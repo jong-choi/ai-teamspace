@@ -87,8 +87,7 @@ client/
 `-- projects/
     `-- <project>/
         |-- apps/
-        |   |-- web/
-        |   |-- native/
+        |   |-- expo/
         |   `-- desktop/
         `-- src/
             |-- app/
@@ -106,7 +105,8 @@ client/
 - 실제 디렉터리명이 확정되면 이후 작업은 확정된 구조를 따른다.
 - 제품 내부 Web, Native, Desktop에서 공유하는 코드는 `client/projects/<project>/src`에 둔다.
 - 제품 간 공유하는 코드는 `client/packages`에 둔다.
-- 플랫폼 app에는 bootstrap, route entry, 플랫폼 설정, 플랫폼 adapter만 둔다.
+- `apps/expo`는 Web, iOS, Android의 bootstrap, route entry, Expo 설정, 플랫폼 adapter만 둔다.
+- `apps/desktop`은 Electron bootstrap, main/preload, desktop 설정, desktop adapter만 둔다.
 
 ## client package 책임
 - `client/packages/ui-kit`는 전 제품 공통 UI primitive와 theme을 소유한다.
@@ -120,7 +120,7 @@ client/
 ## 제품 core와 플랫폼 app
 - 제품 기능의 기본 위치는 `client/projects/<project>/src/features/<feature>`다.
 - screen content, route composition, feature component, form, validation, hook, product state, query/mutation composition, mapper, product configuration, 업무 UI 로직은 기본적으로 제품 `src`에 둔다.
-- `apps/web`, `apps/native`, `apps/desktop`에는 제품 기능을 복사하지 않는다.
+- `apps/expo`, `apps/desktop`에는 제품 기능을 복사하지 않는다.
 - 같은 제품 기능을 여러 플랫폼에서 사용하면 먼저 제품 `src`로 이동한다.
 
 ## route entry
@@ -133,7 +133,7 @@ export default function DashboardPage() {
 }
 ```
 - route entry에서 API workflow, form logic, 대형 화면 구현, product state를 직접 작성하지 않는다.
-- Web과 Native에서 동일한 route가 필요하면 화면 구현을 각각 만들지 않는다.
+- `apps/expo`에서 Web, iOS, Android가 동일한 route를 사용하면 화면 구현을 플랫폼별로 각각 만들지 않는다.
 
 ## 플랫폼별 코드
 - 공통 구현을 기본으로 한다.
@@ -156,6 +156,7 @@ feature.android.ts
 - 공용 feature 전체를 플랫폼별로 복사하지 않는다.
 
 # Expo Web과 React Native
+- Web, iOS, Android는 `apps/expo` 하나에서 관리한다.
 - Web과 Native에서 공유 가능한 UI는 React Native primitive를 기본으로 사용한다.
 ```text
 View
@@ -169,15 +170,15 @@ Image
 - Web 전용 DOM API는 `.web.tsx` 또는 web adapter에 둔다.
 - Native 전용 API는 `.native.tsx`, `.ios.tsx`, `.android.tsx` 또는 native adapter에 둔다.
 - Expo Router app directory에는 route entry와 root layout 등 framework entry 역할만 둔다.
-- Web과 Native app에 같은 business component를 복사하지 않는다.
+- `apps/expo` 내부에서 Web용과 Native용 business component를 별도 사본으로 유지하지 않는다.
 
 ## Expo와 Metro
 - Expo 기본 Metro 설정을 우선한다.
 - `metro.config.*`에서 `watchFolders`, `nodeModulesPaths`, resolver, alias 등을 임의로 추가하지 않는다.
 - monorepo resolution 문제를 component 복사나 dependency 중복 설치로 우회하지 않는다.
 - React, React Native, Expo runtime과 native module의 중복 설치를 만들지 않는다.
-- 공용 package가 native module에 직접 의존해야 하는 경우 native app의 autolinking과 dependency ownership을 확인한다.
-- native dependency는 실행 app 또는 명확한 native adapter package가 소유하는 것을 우선한다.
+- 공용 package가 native module에 직접 의존해야 하는 경우 `apps/expo`의 autolinking과 dependency ownership을 확인한다.
+- native dependency는 `apps/expo` 또는 명확한 native adapter package가 소유하는 것을 우선한다.
 - Metro, Babel, Expo config를 수정할 때 Web과 Native 소비처를 함께 확인한다.
 
 # React Native Reusables와 UI kit

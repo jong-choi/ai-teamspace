@@ -1,0 +1,24 @@
+{
+  "name": "monorepo-erp",
+  "private": true,
+  "packageManager": "npm@11.19.0",
+  "workspaces": [
+    "server",
+    "client/packages/*",
+    "client/projects/*/apps/*"
+  ],
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test",
+    "format": "turbo format",
+    "format:check": "turbo format:check"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "eslint-config-expo": "~57.0.2",
+    "turbo": "2.11.6"
+  }
+}

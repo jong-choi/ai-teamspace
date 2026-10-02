@@ -1,0 +1,8 @@
+node_modules/
+dist/
+coverage/
+.turbo/
+.expo/
+**/generated/
+**/*.generated.*
+package-lock.json

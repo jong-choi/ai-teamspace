@@ -17,10 +17,6 @@
     },
     "test": {
       "dependsOn": ["^test"]
-    },
-    "format": {
-      "cache": false
-    },
-    "format:check": {}
+    }
   }
 }

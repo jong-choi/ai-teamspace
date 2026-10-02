@@ -17,5 +17,6 @@ export default defineConfig({
     root: './',
     include: ['test/**/*.integration.ts'],
     fileParallelism: false,
+    setupFiles: ['./test/setup-environment.ts'],
   },
 });

@@ -2,7 +2,7 @@ import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { AppModule } from '#server-source/app.module';
-import { auth } from '#server-source/auth/auth';
+import type { Auth } from '#server-source/auth/auth';
 import {
   account,
   invitation,
@@ -12,13 +12,16 @@ import {
   user,
   verification,
 } from '#server-source/auth/infrastructure/persistence/drizzle/generated/auth.schema';
-import { database } from '#server-source/database/database';
+import { DatabaseService } from '#server-source/database/database.service';
 
+import { AuthService } from '@thallesp/nestjs-better-auth';
 import { eq } from 'drizzle-orm';
 import request from 'supertest';
 
 describe('Better Auth Drizzle 통합', () => {
   let app: INestApplication;
+  let database: DatabaseService['db'];
+  let auth: Auth;
 
   beforeAll(async () => {
     const moduleFixture = await Test.createTestingModule({
@@ -29,6 +32,8 @@ describe('Better Auth Drizzle 통합', () => {
       bodyParser: false,
     });
     await app.init();
+    database = app.get(DatabaseService).db;
+    auth = app.get<AuthService<Auth>>(AuthService).instance;
   });
 
   beforeEach(async () => {

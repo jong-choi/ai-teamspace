@@ -476,15 +476,21 @@ external provider response -> application model
 - 영속 구조의 단일 원본은 Drizzle table이다.
 - field, enum, nullable, default, foreign key, unique constraint, index, relation 변경은 해당 context의 `infrastructure/db` Drizzle schema부터 수정한다.
 - DB row, insert, update shape를 별도 `type`, `interface`, DTO class, `z.object`로 수동 복제하지 않는다.
-- 설치된 Drizzle version에서 제공하는 schema 파생 API를 사용한다.
-- 웹의 다른 version 문서를 보고 import path나 API를 임의 변경하지 않는다.
+- DB 조회와 변경은 Drizzle ORM query API로 작성한다.
+- 일반 CRUD, filter, join, subquery, CTE, upsert, transaction을 raw SQL로 구현하지 않는다.
+- `db.execute()`에 직접 SQL query를 전달하거나 `sql.raw()`를 사용하지 않는다.
+- `SELECT`, `INSERT`, `UPDATE`, `DELETE`, `JOIN`, `WHERE`를 문자열 SQL 또는 tagged SQL query로 직접 작성하지 않는다.
+- 조건과 projection은 `eq`, `and`, `or`, `inArray`, `exists`, `asc`, `desc`, `count` 등 설치된 Drizzle ORM API를 우선한다.
+- Drizzle ORM API로 표현할 수 없는 기능이 필요해도 임의 raw SQL로 우회하지 않는다. schema 또는 query 설계를 먼저 재검토한다.
+- 설치된 Drizzle version에서 제공하는 API를 사용하고 웹의 다른 version 문서를 보고 import path나 API를 임의 변경하지 않는다.
 
 ## DB-derived schema
 
-- DB persistence contract는 Drizzle table에서 Zod schema를 파생한다.
+- DB persistence validation schema는 `drizzle-zod`의 `createSelectSchema`, `createInsertSchema`, `createUpdateSchema`를 사용해 Drizzle table에서 파생한다.
+- 현재 설치된 stable 계열에서는 별도 `drizzle-zod` package를 기준으로 하고, Drizzle v1 문서의 `drizzle-orm/zod` import를 그대로 적용하지 않는다.
 - 영속 구조를 사용하는 application contract는 DB-derived schema에서 필요한 필드를 `pick`, `omit`, `extend`, `shape`, `merge` 등으로 파생한다.
 - application contract에서 동일 DB field, enum, nullable 구조를 다시 선언하지 않는다.
-- schema 파생은 허용하지만 use-case, service, port가 Drizzle table, SQL, DB connection을 직접 import하지 않는다.
+- schema 파생은 허용하지만 use-case, service, port가 Drizzle table, Drizzle ORM, DB connection을 직접 import하지 않는다.
 
 ## JSON column
 
@@ -558,7 +564,9 @@ Drizzle table
 
 # migration
 
-- DB schema 변경 시 migration을 함께 갱신한다.
+- DB schema 변경 시 Drizzle schema를 먼저 수정하고 Drizzle Kit으로 migration을 생성한다.
+- migration SQL을 직접 작성해 Drizzle schema와 별도 SSOT를 만들지 않는다.
+- Drizzle Kit이 생성한 migration SQL은 generated artifact로 취급하고 임의로 포맷하거나 편의상 다시 작성하지 않는다.
 - migration history를 임의로 수정하거나 기존 migration을 편의상 다시 쓰지 않는다.
 - 가능한 경우 빈 DB에 전체 migration을 처음부터 적용하는 경로와 기존 DB에 새 migration을 이어서 적용하는 경로를 모두 확인한다.
 - DB schema와 migration 결과가 다른 상태로 남지 않게 한다.

@@ -358,139 +358,149 @@ server contract
 
 # server 헥사고날 아키텍처
 
-server는 bounded context 기반 헥사고날 아키텍처를 사용한다.
+server는 `nestjs-boilerplate`의 resource 구조를 기준으로 수직 분할한다. 각 feature가 domain, DTO, persistence port/adapter, controller, service, module을 한 디렉터리 안에서 소유한다. TypeORM relational adapter 자리는 Drizzle adapter로 대체하고, Drizzle table과 drizzle-zod를 사용해 중복 schema 선언을 제거한다.
 
 ```text
-server/src/modules/<context>/
-|-- <context>.module.ts
-|-- application/
-|   |-- contracts/
-|   |-- ports/
-|   |-- <workflow>.use-case.ts
-|   `-- optional service
+server/src/<feature>/
 |-- domain/
+|   `-- <resource>.ts
+|-- dto/
+|   |-- <resource>.dto.ts
+|   |-- create-<resource>.dto.ts
+|   |-- update-<resource>.dto.ts
+|   `-- query-<feature>.dto.ts
 |-- infrastructure/
-|   |-- db/
 |   |-- persistence/
-|   |-- read-model/
-|   `-- integrations/
-`-- transport/
-    `-- http/
-        |-- dto/
-        `-- <context>.controller.ts
+|   |   |-- <resource>.repository.ts
+|   |   `-- drizzle/
+|   |       |-- schema/
+|   |       |   |-- <resource>.schema.ts
+|   |       |   `-- <resource>.zod.ts
+|   |       |-- mappers/
+|   |       |   `-- <resource>.mapper.ts
+|   |       |-- repositories/
+|   |       |   `-- <resource>.repository.ts
+|   |       `-- drizzle-persistence.module.ts
+|   `-- <capability>/
+|       |-- <capability>.provider.ts
+|       `-- <provider>/
+|           |-- <provider>.adapter.ts
+|           `-- <provider>.module.ts
+|-- <feature>.controller.ts
+|-- <feature>.service.ts
+`-- <feature>.module.ts
 ```
 
-- 새 module을 root에 controller, service, repository를 평면으로 배치하지 않는다.
+- DB-backed feature를 새로 만들 때 위 구조를 그대로 만든다.
+- `domain`, DTO 세트, persistence port, Drizzle schema/Zod, mapper, Drizzle repository, persistence module, controller, service, feature module을 baseline으로 둔다.
+- 하나의 feature가 여러 persistence resource를 소유하면 각 resource마다 domain model, Drizzle schema/Zod, mapper를 두고 feature 목적에 맞는 repository port로 묶는다.
+- feature별 controller/service/repository를 서버 전역 `controllers`, `services`, `repositories` 폴더로 모으지 않는다.
+- 추가 helper/service가 생겨도 이 baseline 구조를 대체하지 않는다.
 
-## context module
+## feature module
 
-- `<context>.module.ts`는 composition root 역할만 한다.
-- 다른 Nest module import, controller 등록, provider 등록, port-adapter binding, 외부 provider export만 담당한다.
+- `<feature>.module.ts`는 해당 feature의 composition root다.
+- Drizzle persistence module과 feature가 사용하는 external capability module을 import한다.
+- feature controller를 `controllers`, feature service를 `providers`에 등록한다.
+- 다른 feature가 이 feature의 public service를 사용하면 service를 export한다.
 - module 파일에 business logic, DB query, DTO transformation, mapping, 조건 분기를 넣지 않는다.
 
-## transport/http
+## controller
 
-- controller는 route, HTTP method, status code, guard, auth/session 추출, request/response DTO, application 호출만 담당한다.
-- controller에서 DB를 직접 조회하지 않는다.
-- controller에서 external SDK를 호출하지 않는다.
-- controller에서 transaction을 시작하지 않는다.
-- controller에서 복잡한 업무 조건을 판단하지 않는다.
-- controller에서 API response object를 수동으로 조립하지 않는다.
+- `<feature>.controller.ts`는 feature root에 둔다.
+- controller는 route, HTTP method/status, guard, auth/session 추출, DTO validation, service 호출을 담당한다.
+- controller에서 Drizzle query, external SDK 호출, transaction, 복잡한 업무 조건 판단을 하지 않는다.
+- request는 `dto/`의 DTO를 받고 response는 domain/response DTO contract를 사용한다.
 
-## application
+## service
 
-- application은 업무 입력 검증, 권한 의미 판단, workflow 순서, port 호출, not found, invalid state, conflict, transaction capability 호출, application contract 반환을 담당한다.
-- application은 concrete infrastructure class를 import하지 않는다.
-- Drizzle table, Drizzle service, DB connection, raw SQL, concrete repository, external SDK, HTTP controller, HTTP DTO에 직접 의존하지 않는다.
+- `<feature>.service.ts`는 feature root에 두고 해당 feature의 CRUD와 업무 workflow를 담당한다.
+- service constructor는 `infrastructure/persistence/<resource>.repository.ts`의 repository port와 external capability port를 주입받는다.
+- service는 concrete Drizzle repository, Drizzle DB connection, Better Auth/S3 SDK 구현체를 import하지 않는다.
+- service에서 raw SQL, Drizzle DB connection, SDK client를 직접 사용하지 않는다.
+- service method의 입력과 출력은 `dto/`와 `domain/` contract를 사용한다.
 
-## application ports
+## persistence port와 Drizzle adapter
 
-- application이 외부 세계에 요구하는 capability는 `application/ports`에 정의한다.
-- reader, writer, repository, file storage, mail provider, AI provider, payment provider, transaction manager 등이 해당한다.
-- port input/output은 application/domain contract를 사용한다.
-- DB row, HTTP DTO, SDK response type을 port contract로 사용하지 않는다.
+- `infrastructure/persistence/<resource>.repository.ts`는 `nestjs-boilerplate`의 repository port와 동일한 역할을 하는 abstract class다.
+- port method는 `create`, `findById`, `findByIds`, `findBy...`, `update`, `remove`처럼 feature가 실제로 사용하는 capability를 명시한다.
+- 모든 조건을 받는 범용 `find(condition)` repository를 만들지 않는다.
+- `infrastructure/persistence/drizzle/repositories/<resource>.repository.ts`는 port를 구현하는 Drizzle adapter다.
+- Drizzle adapter만 DrizzleService, table, Drizzle query API를 사용한다.
+- `drizzle-persistence.module.ts`는 `{ provide: <Resource>Repository, useClass: <Resource>DrizzleRepository }` 형태로 port와 adapter를 바인딩하고 port를 export한다.
+- feature module은 repository 구현체가 아니라 `drizzle-persistence.module.ts`를 import한다.
 
 ## domain
 
-- domain은 domain value, value object, domain schema, invariant, 순수 계산, 상태 전이 규칙을 소유한다.
-- domain은 NestJS, Drizzle, database connection, HTTP, external SDK, filesystem, environment variable, application service, infrastructure adapter를 import하지 않는다.
-- 단순 CRUD에 불필요한 domain abstraction을 억지로 추가하지 않는다.
+- `domain/<resource>.ts`는 service와 repository port가 공유하는 canonical resource model을 제공한다.
+- persistence field를 domain 파일에 다시 손으로 선언하지 않는다.
+- 기본 resource model은 해당 resource의 drizzle-zod select schema에서 타입을 파생한다.
+- business-only 상태, value object, 계산 규칙은 같은 `domain/`에 둔다.
+- domain code에서 DB query, DB connection, external SDK를 호출하지 않는다.
 
-## infrastructure
+## Drizzle schema, drizzle-zod, mapper
 
-- infrastructure는 application port를 구현한다.
-- `infrastructure/db`는 DB table, DB enum, DB relation, DB-derived schema를 소유한다.
-- `infrastructure/persistence`는 저장, update, archive, lock, transaction, persistence mapper를 소유한다.
-- `infrastructure/read-model`은 목록, 검색, join, aggregation, projection을 소유한다.
-- `infrastructure/integrations`는 외부 API, storage, mail, payment, AI 등 외부 provider adapter를 소유한다.
-- infrastructure에서 HTTP response shape를 만들지 않는다.
+- `infrastructure/persistence/drizzle/schema/<resource>.schema.ts`가 table, DB enum, relation, index, constraint의 SSOT다.
+- `<resource>.zod.ts`는 같은 table에서 `createSelectSchema`, `createInsertSchema`, `createUpdateSchema`를 생성한다.
+- `domain/<resource>.ts`, response DTO, create/update DTO는 이 파생 schema를 기준으로 타입/schema를 만든다. 동일 persistence field를 다시 선언하지 않는다.
+- `mappers/<resource>.mapper.ts`는 Drizzle row와 canonical domain model 사이의 persistence boundary다.
+- 기본 `toDomain`은 select schema로 row를 parse하고, write mapping은 insert/update schema로 persistence input을 검증한다.
+- mapper에 DB query, 권한 판단, HTTP exception, external API 호출을 넣지 않는다.
 
-# bounded context 경계
+## DTO
 
-- context A의 application이 context B의 concrete service나 repository를 직접 import하지 않는다.
-- 다른 context의 데이터나 기능이 필요하면 소비 context가 필요한 capability를 port로 정의한다.
+- `dto/<resource>.dto.ts`는 select schema 기반 response DTO다.
+- `dto/create-<resource>.dto.ts`는 insert schema에서 API가 받는 field만 `pick`, `omit`, `extend`하여 만든다.
+- `dto/update-<resource>.dto.ts`는 update schema에서 파생한다.
+- `dto/query-<feature>.dto.ts`는 pagination/filter/sort query contract를 소유한다.
+- Zod contract는 `createZodDto`로 Nest DTO를 만든다.
+- DB field, enum, nullable, default를 DTO property나 별도 `z.object`로 다시 복제하지 않는다.
+- DTO에서 DB에 없는 HTTP/query 전용 field만 직접 정의한다.
 
-```text
-orders/application
-  -> CustomerLookupPort
-  -> infrastructure adapter
-  -> customer source
-```
+## external capability port와 adapter
 
-- bounded context 간 양방향 module dependency를 만들지 않는다.
-- cross-context query가 필요한 경우 read-model adapter에서 필요한 projection을 구성한다.
-- application service에서 여러 context의 concrete repository를 직접 조합하지 않는다.
-- 공통 contract가 필요한 경우 독립적인 contract 또는 shared 영역을 사용하고 concrete service를 공유하지 않는다.
+- database 외부 capability도 persistence와 같은 port/adapter 형태로 만든다.
+- `infrastructure/<capability>/<capability>.provider.ts`에 abstract port를 둔다.
+- `infrastructure/<capability>/<provider>/<provider>.adapter.ts`가 이를 구현한다.
+- `<provider>.module.ts`가 `{ provide: <Capability>Provider, useClass: <Provider>Adapter }`로 바인딩하고 port를 export한다.
+- Better Auth, S3, mail, payment, AI provider를 feature service에서 직접 import하지 않는다.
 
-# reader와 writer
+# feature 간 의존성
 
-- 조회와 쓰기의 책임을 분리한다.
-- 복잡한 목록, 검색, join, 통계, dashboard projection은 reader/read-model에 둔다.
-- aggregate write, create, update, archive는 writer/repository에 둔다.
-- 하나의 repository에 조회, 통계, 저장, 외부 연동을 모두 넣지 않는다.
-- reader와 writer를 구현 파일만 나누고 하나의 거대한 통합 port를 유지하지 않는다.
-- 업무상 동일 capability인 경우에만 하나의 port로 유지한다.
+- 다른 feature의 persistence repository나 adapter를 직접 import하지 않는다.
+- 다른 feature 기능이 필요하면 해당 feature가 export한 service를 module import를 통해 사용한다. 이는 `nestjs-boilerplate`에서 AuthModule이 UsersModule, SessionModule, MailModule을 조합하는 방식과 같다.
+- 외부 provider 교체가 필요한 capability는 소비 feature 내부의 provider port/adapter로 감싼다.
+- feature module 사이에 순환 의존성을 만들지 않는다.
 
-# use-case와 service
+# database composition
 
-- use-case는 하나의 사용자 행동 또는 시스템 workflow를 기준으로 나눈다.
-- 생성, 수정, 삭제, archive, connect, import, publish, execute가 서로 다른 변경 이유를 가지면 별도 use-case로 분리한다.
-- 하나의 service에 CRUD, 통계, 외부 API 호출, 저장을 모두 넣지 않는다.
-- service가 facade 역할을 할 수는 있지만 DB query나 HTTP response shape를 직접 다루지 않는다.
-
-# mapper
-
-- mapper는 표현 간 변환만 담당한다.
-
-```text
-DB row -> application model
-application model -> persistence input
-external provider response -> application model
-```
-
-- mapper에 DB query, 권한 판단, external API 호출, HTTP exception을 넣지 않는다.
-- mapper 결과는 필요한 경우 canonical schema로 parse한다.
+- 공통 Drizzle connection/configuration은 `server/src/database`가 소유한다.
+- 각 feature의 table 정의는 해당 feature의 `infrastructure/persistence/drizzle/schema`가 소유한다.
+- 중앙 schema aggregator는 feature schema를 import해 Drizzle connection과 Drizzle Kit에 제공하는 composition 파일이며 field를 다시 선언하지 않는다.
+- migration은 중앙 `server/drizzle` 또는 프로젝트에서 정한 migration directory에 생성한다.
 
 # server Drizzle SSOT
 
-- 영속 구조의 단일 원본은 Drizzle table이다.
-- field, enum, nullable, default, foreign key, unique constraint, index, relation 변경은 해당 context의 `infrastructure/db` Drizzle schema부터 수정한다.
-- DB row, insert, update shape를 별도 `type`, `interface`, DTO class, `z.object`로 수동 복제하지 않는다.
+- 영속 구조의 단일 원본은 각 feature가 소유하는 Drizzle table이다.
+- field, enum, nullable, default, foreign key, unique constraint, index, relation 변경은 해당 feature의 `infrastructure/persistence/drizzle/schema`부터 수정한다.
+- Drizzle table -> drizzle-zod -> domain/DTO contract 순으로 파생한다.
+- DB row, insert, update shape를 별도 `type`, `interface`, DTO property, 수동 `z.object`로 다시 쓰지 않는다.
 - DB 조회와 변경은 Drizzle ORM query API로 작성한다.
 - 일반 CRUD, filter, join, subquery, CTE, upsert, transaction을 raw SQL로 구현하지 않는다.
 - `db.execute()`에 직접 SQL query를 전달하거나 `sql.raw()`를 사용하지 않는다.
 - `SELECT`, `INSERT`, `UPDATE`, `DELETE`, `JOIN`, `WHERE`를 문자열 SQL 또는 tagged SQL query로 직접 작성하지 않는다.
 - 조건과 projection은 `eq`, `and`, `or`, `inArray`, `exists`, `asc`, `desc`, `count` 등 설치된 Drizzle ORM API를 우선한다.
-- Drizzle ORM API로 표현할 수 없는 기능이 필요해도 임의 raw SQL로 우회하지 않는다. schema 또는 query 설계를 먼저 재검토한다.
-- 설치된 Drizzle version에서 제공하는 API를 사용하고 웹의 다른 version 문서를 보고 import path나 API를 임의 변경하지 않는다.
+- Drizzle ORM API로 표현할 수 없는 기능이 필요해도 임의 raw SQL로 우회하지 않고 schema/query 설계를 먼저 재검토한다.
+- 설치된 Drizzle version의 API를 기준으로 하고 다른 major/RC 문서의 import path나 API를 임의 적용하지 않는다.
 
-## DB-derived schema
+## schema 파생 규칙
 
-- DB persistence validation schema는 `drizzle-zod`의 `createSelectSchema`, `createInsertSchema`, `createUpdateSchema`를 사용해 Drizzle table에서 파생한다.
-- 현재 설치된 stable 계열에서는 별도 `drizzle-zod` package를 기준으로 하고, Drizzle v1 문서의 `drizzle-orm/zod` import를 그대로 적용하지 않는다.
-- 영속 구조를 사용하는 application contract는 DB-derived schema에서 필요한 필드를 `pick`, `omit`, `extend`, `shape`, `merge` 등으로 파생한다.
-- application contract에서 동일 DB field, enum, nullable 구조를 다시 선언하지 않는다.
-- schema 파생은 허용하지만 use-case, service, port가 Drizzle table, Drizzle ORM, DB connection을 직접 import하지 않는다.
+- DB persistence validation schema는 `drizzle-zod`의 `createSelectSchema`, `createInsertSchema`, `createUpdateSchema`로 Drizzle table에서 파생한다.
+- 현재 설치된 stable 계열에서는 별도 `drizzle-zod` package를 기준으로 하고 Drizzle v1 문서의 `drizzle-orm/zod` import를 그대로 적용하지 않는다.
+- domain resource type은 select schema에서 파생한다.
+- create/update/response DTO schema는 insert/update/select schema에서 `pick`, `omit`, `partial`, `extend`, `merge`, `shape`로 파생한다.
+- DB에 없는 query parameter와 업무 validation만 DTO/domain schema에서 추가한다.
+- service와 repository port는 table/DB connection이 아니라 domain/DTO contract를 사용한다.
 
 ## JSON column
 
@@ -498,35 +508,23 @@ external provider response -> application model
 - 느슨한 `unknown`, `any`, 검증 없는 `z.custom()`으로 JSON 구조를 우회하지 않는다.
 - JSON 값은 read/write 경계에서 runtime validation한다.
 
-# application contract
-
-- application contract는 command, query, response와 업무 validation을 소유한다.
-- DB-derived field는 DB schema에서 파생한다.
-- DB에 없는 업무 구조는 application 또는 domain에서 독립적으로 정의할 수 있다.
-- 교차 field validation은 application contract 또는 domain 규칙에서 처리한다.
-- DB error 문자열에 의존해 업무 validation을 구현하지 않는다.
-
 # DTO와 OpenAPI
 
-- transport DTO는 application contract를 감싸는 얇은 layer로 작성한다.
-- 가능하면 기존 Zod DTO 방식을 사용한다.
-- DTO class에 동일 field를 수동으로 다시 선언하지 않는다.
-- Swagger schema를 application contract와 별도로 손으로 복제하지 않는다.
-- JSON success response는 실제 response contract에 연결한다.
+- Zod DTO는 drizzle-zod 파생 schema를 직접 감싸는 얇은 HTTP contract다.
+- Swagger schema를 DTO contract와 별도로 손으로 복제하지 않는다.
+- JSON success response는 실제 response DTO에 연결한다.
 - body가 없는 성공 응답은 명확한 no-content status를 사용한다.
 
 # 서버-클라이언트 계약 흐름
 
 ```text
 Drizzle table
--> DB-derived Zod schema
--> application contract
--> HTTP DTO
--> OpenAPI
--> generated client
+  |-> drizzle-zod -> domain model -> repository port/service
+  |-> drizzle-zod -> Zod DTO -> controller -> OpenAPI -> Orval
+  `-> Drizzle repository adapter -> repository port -> service
 ```
 
-- 같은 request/response/entity 구조를 중간에서 새로운 수동 SSOT로 만들지 않는다.
+- 같은 request/response/entity 구조를 중간에 새로운 수동 SSOT로 만들지 않는다.
 - 계약이 틀리면 파생 경로의 앞쪽 원본을 수정한다.
 - generated client에 맞추기 위해 서버 contract를 assertion으로 위장하지 않는다.
 
@@ -535,10 +533,9 @@ Drizzle table
 - transaction은 데이터 invariant와 workflow 원자성을 기준으로 사용한다.
 - 화면에서 연속으로 실행된다는 이유만으로 서로 독립적인 작업을 하나의 transaction으로 묶지 않는다.
 - controller에서 transaction을 관리하지 않는다.
-- application에 raw DB transaction object를 노출하지 않는다.
-- 하나의 persistence adapter 안에서 끝나는 transaction은 adapter가 관리할 수 있다.
-- 여러 port가 하나의 atomic workflow에 참여해야 하는 경우 transaction/UoW capability를 명시적으로 설계한다.
-- transaction abstraction을 모든 write에 기계적으로 적용하지 않는다.
+- raw DB transaction object를 service/public contract로 노출하지 않는다.
+- Drizzle transaction은 Drizzle repository adapter에서 관리한다.
+- Better Auth 같은 별도 persistence 경계를 Drizzle transaction에 억지로 묶지 않고 idempotent workflow와 reconciliation을 설계한다.
 
 # 동시성
 

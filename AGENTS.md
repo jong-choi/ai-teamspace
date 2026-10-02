@@ -493,6 +493,17 @@ server/src/<feature>/
 - Drizzle ORM API로 표현할 수 없는 기능이 필요해도 임의 raw SQL로 우회하지 않고 schema/query 설계를 먼저 재검토한다.
 - 설치된 Drizzle version의 API를 기준으로 하고 다른 major/RC 문서의 import path나 API를 임의 적용하지 않는다.
 
+## Better Auth-owned schema
+
+- Better Auth가 소유하는 `user`, `account`, `session`, `verification`, `organization`, `member`, `invitation` 등 auth schema는 직접 작성한 Drizzle table을 SSOT로 취급하지 않는다.
+- Better Auth-owned schema의 상위 SSOT는 Better Auth config와 enabled plugin이다.
+- `server/src/auth/infrastructure/persistence/drizzle/generated`의 auth Drizzle schema는 Better Auth CLI 생성물이며 수동 수정하지 않는다.
+- Better Auth plugin이나 auth schema option을 변경하면 `npm run auth:schema`로 generated schema를 다시 만들고 `npm run db:generate`로 Drizzle migration을 생성한다.
+- Better Auth-owned table과 Work OS-owned table은 동일 PostgreSQL과 동일 Drizzle connection을 사용하되 소유권 경계는 분리한다.
+- Work OS service/repository에서 `user`, `account`, `session`, `organization`, `member` 등 Better Auth-owned table을 직접 insert/update/delete하지 않는다.
+- Better Auth-owned invariant를 변경하는 작업은 Better Auth API를 adapter/provider 경계를 통해 수행한다.
+- auth generated schema와 `server/drizzle` migration 산출물은 formatter, lint fix, import sort 대상에서 제외한다.
+
 ## schema 파생 규칙
 
 - DB persistence validation schema는 `drizzle-zod`의 `createSelectSchema`, `createInsertSchema`, `createUpdateSchema`로 Drizzle table에서 파생한다.
@@ -535,7 +546,7 @@ Drizzle table
 - controller에서 transaction을 관리하지 않는다.
 - raw DB transaction object를 service/public contract로 노출하지 않는다.
 - Drizzle transaction은 Drizzle repository adapter에서 관리한다.
-- Better Auth 같은 별도 persistence 경계를 Drizzle transaction에 억지로 묶지 않고 idempotent workflow와 reconciliation을 설계한다.
+- Better Auth와 Work OS가 같은 PostgreSQL/Drizzle connection을 사용해도 Better Auth-owned mutation을 Work OS transaction으로 직접 감싸지 않는다. Better Auth API 호출과 Work OS 상태 변경이 함께 필요한 workflow는 idempotency와 reconciliation을 설계한다.
 
 # 동시성
 

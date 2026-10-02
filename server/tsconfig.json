@@ -5,7 +5,7 @@
     "resolvePackageJsonExports": true,
     "esModuleInterop": true,
     "isolatedModules": true,
-    "declaration": true,
+    "declaration": false,
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
@@ -19,7 +19,8 @@
     "strict": true,
     "strictPropertyInitialization": false,
     "paths": {
-      "#server/*": ["./src/*"]
+      "#server/*": ["./src/*"],
+      "#server-source/*": ["./src/*"]
     },
     "types": ["vitest/globals", "node"]
   }

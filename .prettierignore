@@ -5,6 +5,7 @@ coverage/
 .expo/
 **/generated/
 **/*.generated.*
+server/drizzle/
 client/packages/ui-kit/src/components/ui/
 **/nativewind-env.d.ts
 **/expo-env.d.ts

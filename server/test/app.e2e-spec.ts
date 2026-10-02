@@ -14,7 +14,9 @@ describe('앱 컨트롤러 E2E', () => {
       imports: [AppModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
+    app = moduleFixture.createNestApplication({
+      bodyParser: false,
+    });
     await app.init();
   });
 

@@ -7,7 +7,11 @@
   "license": "UNLICENSED",
   "type": "module",
   "scripts": {
+    "auth:schema": "auth generate --config ./better-auth.config.ts --adapter drizzle --dialect postgresql --output ./src/auth/infrastructure/persistence/drizzle/generated/auth.schema.ts --yes",
     "build": "nest build",
+    "db:generate": "npm run auth:schema && drizzle-kit generate --config ./drizzle.config.ts",
+    "db:migrate": "drizzle-kit migrate --config ./drizzle.config.ts",
+    "db:studio": "drizzle-kit studio --config ./drizzle.config.ts",
     "deploy": "nest deploy",
     "dev": "nest start --watch",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -19,17 +23,23 @@
     "lint": "oxlint --type-aware src/ test/",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:integration": "vitest run --config ./vitest.config.integration.ts",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts"
   },
   "dependencies": {
+    "@better-auth/drizzle-adapter": "1.7.6",
     "@nestjs/common": "^12.0.1",
     "@nestjs/core": "^12.0.1",
     "@nestjs/platform-express": "^12.0.1",
+    "@thallesp/nestjs-better-auth": "^2.8.0",
+    "better-auth": "1.7.6",
+    "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.3",
     "drizzle-zod": "^0.8.3",
+    "pg": "^8.23.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "zod": "^4.6.5"
@@ -41,8 +51,10 @@
     "@nestjs/testing": "^12.0.1",
     "@types/express": "^5.0.0",
     "@types/node": "^24.0.0",
+    "@types/pg": "^8.23.1",
     "@types/supertest": "^7.0.0",
     "@vitest/coverage-v8": "^4.1.2",
+    "auth": "1.7.6",
     "drizzle-kit": "^0.31.11",
     "oxlint": "^1.58.0",
     "oxlint-tsgolint": "^7.0.2001",
@@ -56,6 +68,7 @@
     "#server/*": {
       "types": "./src/*",
       "default": "./dist/*"
-    }
+    },
+    "#server-source/*": "./src/*.ts"
   }
 }

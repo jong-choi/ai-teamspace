@@ -46,6 +46,7 @@ file://...
 - import/export 정렬은 lint 설정을 따른다. formatter와 lint에서 같은 책임을 중복 관리하지 않는다.
 - 직접 작성하는 source code의 module import는 가능한 한 alias 기반 절대경로를 사용하고 `./`, `../` 상대 import를 만들지 않는다.
 - build output, generated source, codegen 산출물은 import 경로 정리, lint fix, format을 위한 수정 대상에서 제외한다.
+- `client/packages/ui-kit/src/components/ui`의 React Native Reusables CLI 생성 컴포넌트와 `nativewind-env.d.ts`, `expo-env.d.ts`는 lint fix와 format 대상에서 제외한다. `globals.css`와 설정 파일은 저장소 관리 대상으로 유지한다.
 - 루트 `format`, `lint`, `typecheck`, `test` 계열 스크립트가 있으면 개별 workspace 검증보다 우선한다.
 - `build`는 정적 검증의 대체 수단으로 사용하지 않는다. 번들, native build, Electron package 결과 자체를 확인해야 할 때만 실행한다.
 - framework와 주요 dependency version은 `package.json`과 lockfile을 기준으로 한다.

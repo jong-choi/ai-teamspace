@@ -5,4 +5,7 @@ coverage/
 .expo/
 **/generated/
 **/*.generated.*
+client/packages/ui-kit/src/components/ui/
+**/nativewind-env.d.ts
+**/expo-env.d.ts
 package-lock.json

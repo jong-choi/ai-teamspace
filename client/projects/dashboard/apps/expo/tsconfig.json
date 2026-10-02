@@ -5,7 +5,8 @@
     "paths": {
       "@/*": ["./src/*"],
       "@/assets/*": ["./assets/*"],
-      "@core/*": ["../../src/*"]
+      "@core/*": ["../../src/*"],
+      "@ui-kit/*": ["../../../../packages/ui-kit/src/*"]
     }
   },
   "include": [
@@ -14,6 +15,7 @@
     "../../src/**/*.ts",
     "../../src/**/*.tsx",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts"
+    "expo-env.d.ts",
+    "src/nativewind-env.d.ts"
   ]
 }

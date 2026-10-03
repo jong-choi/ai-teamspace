@@ -24,6 +24,9 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": ["expo-router"],
+    "autolinking": {
+      "include": ["react"]
+    },
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true

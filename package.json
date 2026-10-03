@@ -10,13 +10,17 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
-    "check": "npm run format:check && npm run lint && npm run typecheck",
+    "check": "npm run format:check && npm run lint && npm run check:runtime && npm run check:generated && npm run typecheck",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint . && turbo lint",
     "lint:fix": "eslint . --fix && turbo lint",
     "typecheck": "turbo typecheck",
-    "test": "turbo test"
+    "test": "turbo test",
+    "api:generate": "orval --fail-on-warnings",
+    "api:check": "npm run api:generate && git diff --exit-code -- client/packages/api-client/src/generated",
+    "check:runtime": "npm exec --workspace @monorepo-erp/dashboard-expo -- expo-modules-autolinking verify",
+    "check:generated": "npm run auth:schema --workspace server && git diff --exit-code -- server/src/auth/infrastructure/persistence/drizzle/generated/auth.schema.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
@@ -24,9 +28,11 @@
     "eslint": "^9.0.0",
     "eslint-config-expo": "~57.0.2",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-import-resolver-typescript": "^4.4.5",
+    "eslint-plugin-boundaries": "^5.4.0",
     "eslint-plugin-simple-import-sort": "^14.0.0",
     "globals": "^17.13.0",
-    "jiti": "2.7.0",
+    "orval": "^8.39.0",
     "prettier": "^3.9.9",
     "turbo": "2.11.6",
     "typescript-eslint": "^8.71.0"

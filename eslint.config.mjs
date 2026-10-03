@@ -1,5 +1,6 @@
 import eslint from '@eslint/js';
 import vitest from '@vitest/eslint-plugin';
+import boundaries from 'eslint-plugin-boundaries';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import globals from 'globals';
@@ -83,6 +84,236 @@ export default tseslint.config(
     },
   },
   {
+    files: ['server/**/*.{ts,tsx}', 'client/**/*.{ts,tsx}'],
+    plugins: { boundaries },
+    settings: {
+      'boundaries/root-path': import.meta.dirname,
+      'boundaries/dependency-nodes': [
+        'import',
+        'export',
+        'dynamic-import',
+        'require',
+      ],
+      'import/resolver': {
+        typescript: {
+          project: [
+            `${import.meta.dirname}/server/tsconfig.json`,
+            `${import.meta.dirname}/client/packages/*/tsconfig.json`,
+            `${import.meta.dirname}/client/projects/*/apps/*/tsconfig.json`,
+          ],
+        },
+      },
+      // 세부 경계를 먼저 분류하고 feature 이름을 의존성 비교에 사용한다.
+      'boundaries/elements': [
+        {
+          type: 'auth-generated',
+          pattern:
+            'server/src/auth/infrastructure/persistence/drizzle/generated/**',
+          mode: 'full',
+        },
+        {
+          type: 'schema-aggregator',
+          pattern: 'server/src/database/schema.ts',
+          mode: 'full',
+        },
+        {
+          type: 'auth-composition',
+          pattern: 'server/src/auth/auth.ts',
+          mode: 'full',
+        },
+        {
+          type: 'database-connection',
+          pattern: 'server/src/database/database.service.ts',
+          mode: 'full',
+        },
+        { type: 'server-test', pattern: 'server/test/**', mode: 'full' },
+        {
+          type: 'drizzle-config',
+          pattern: 'server/drizzle.config.ts',
+          mode: 'full',
+        },
+        {
+          type: 'server-infra',
+          pattern: 'server/src/{auth,config,database,jobs,outbox,queue}/**',
+          mode: 'full',
+        },
+        {
+          type: 'service',
+          pattern: 'server/src/*/*.service.ts',
+          mode: 'full',
+          capture: ['feature'],
+        },
+        { type: 'service', pattern: 'server/src/app.service.ts', mode: 'full' },
+        {
+          type: 'domain',
+          pattern: 'server/src/*/domain/**',
+          mode: 'full',
+          capture: ['feature'],
+        },
+        {
+          type: 'port',
+          pattern: 'server/src/*/infrastructure/persistence/*.repository.ts',
+          mode: 'full',
+          capture: ['feature'],
+        },
+        {
+          type: 'port',
+          pattern: 'server/src/*/infrastructure/*/*.provider.ts',
+          mode: 'full',
+          capture: ['feature'],
+        },
+        {
+          type: 'schema',
+          pattern: 'server/src/*/infrastructure/persistence/drizzle/schema/**',
+          mode: 'full',
+          capture: ['feature'],
+        },
+        {
+          type: 'adapter',
+          pattern: 'server/src/*/infrastructure/**',
+          mode: 'full',
+          capture: ['feature'],
+        },
+        {
+          type: 'feature',
+          pattern: 'server/src/*/**',
+          mode: 'full',
+          capture: ['feature'],
+        },
+        { type: 'server-entry', pattern: 'server/**', mode: 'full' },
+        {
+          type: 'product-core',
+          pattern: 'client/projects/*/src/**',
+          mode: 'full',
+          capture: ['product'],
+        },
+        {
+          type: 'renderer',
+          pattern: 'client/projects/*/apps/*/**/renderer/**',
+          mode: 'full',
+        },
+        {
+          type: 'platform-app',
+          pattern: 'client/projects/*/apps/**',
+          mode: 'full',
+        },
+        { type: 'shared', pattern: 'client/packages/**', mode: 'full' },
+      ],
+    },
+    rules: {
+      'boundaries/element-types': [
+        'error',
+        {
+          default: 'allow',
+          rules: [
+            {
+              from: [
+                'service',
+                'domain',
+                'port',
+                'schema',
+                'adapter',
+                'feature',
+              ],
+              disallow: [
+                ['port', { feature: '!${from.feature}' }],
+                ['schema', { feature: '!${from.feature}' }],
+                ['adapter', { feature: '!${from.feature}' }],
+              ],
+            },
+            {
+              from: ['service'],
+              disallow: [
+                'adapter',
+                'schema',
+                'server-infra',
+                'auth-composition',
+                'database-connection',
+                'schema-aggregator',
+              ],
+            },
+            {
+              from: ['domain'],
+              disallow: [
+                'service',
+                'feature',
+                'port',
+                'adapter',
+                'server-infra',
+                'auth-composition',
+                'database-connection',
+                'schema-aggregator',
+              ],
+            },
+            {
+              from: ['product-core', 'shared'],
+              disallow: ['platform-app', 'renderer'],
+            },
+            { from: ['shared'], disallow: ['product-core'] },
+            { from: ['*'], disallow: ['auth-generated', 'schema-aggregator'] },
+            {
+              from: [
+                'auth-composition',
+                'schema-aggregator',
+                'drizzle-config',
+                'server-test',
+              ],
+              allow: ['auth-generated'],
+            },
+            {
+              from: ['database-connection', 'drizzle-config', 'server-test'],
+              allow: ['schema-aggregator'],
+            },
+          ],
+        },
+      ],
+      // 외부 패키지 제한도 dynamic import와 require까지 같은 규칙으로 검사한다.
+      'boundaries/external': [
+        'error',
+        {
+          default: 'allow',
+          rules: [
+            {
+              from: ['service'],
+              disallow: [
+                'drizzle-orm',
+                'pg',
+                'better-auth',
+                '@better-auth/*',
+                '@thallesp/nestjs-better-auth',
+              ],
+            },
+            {
+              from: ['domain'],
+              disallow: [
+                '@nestjs/*',
+                'drizzle-orm',
+                'pg',
+                'better-auth',
+                '@better-auth/*',
+                '@thallesp/nestjs-better-auth',
+                'bullmq',
+                'ioredis',
+              ],
+            },
+            {
+              from: ['product-core', 'renderer'],
+              disallow: [
+                'electron',
+                'node:*',
+                'fs',
+                'child_process',
+                'worker_threads',
+                'net',
+                'tls',
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ['**/*.{spec,test}.{ts,tsx}', '**/*.e2e-spec.ts'],
     ...vitest.configs.recommended,
     languageOptions: {
@@ -102,7 +333,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['**/*.config.{js,mjs,cjs,ts}', '**/scripts/**/*.{js,mjs,cjs,ts}'],
+    files: ['**/*.config.{js,mjs,cjs,ts}'],
     rules: {
       '@typescript-eslint/no-require-imports': 'off',
     },

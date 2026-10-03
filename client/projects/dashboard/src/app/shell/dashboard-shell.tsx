@@ -117,6 +117,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
               <View className="min-w-0 flex-1 flex-row items-center gap-2.5">
                 <Button
                   accessibilityLabel="메뉴 열기"
+                  accessibilityState={{ expanded: mobileDrawerOpen }}
                   className="h-8 w-8"
                   onPress={() => setDrawerOpen(true)}
                   size="icon"

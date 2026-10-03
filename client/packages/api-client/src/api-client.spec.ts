@@ -4,16 +4,15 @@ import {
   organizationsControllerRemoveMember,
 } from '@monorepo-erp/api-client';
 
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { jest } from '@jest/globals';
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => jest.restoreAllMocks());
 
 describe('생성된 조직 API 계약', () => {
   it('활성 조직의 null 응답과 쿠키 전달을 보존한다', async () => {
-    const fetch = vi
-      .fn()
+    const fetch = jest
+      .spyOn(globalThis, 'fetch')
       .mockResolvedValue(Response.json({ activeOrganization: null }));
-    vi.stubGlobal('fetch', fetch);
     const result = await organizationsControllerGetActive();
     expect(result.data.activeOrganization).toBeNull();
     expect(fetch).toHaveBeenCalledWith(
@@ -29,20 +28,18 @@ describe('생성된 조직 API 계약', () => {
       status: 409,
       code: 'ORGANIZATION_SLUG_CONFLICT',
     };
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue(Response.json(problem, { status: 409 })),
-    );
+    jest
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(Response.json(problem, { status: 409 }));
     await expect(
       organizationsControllerCreate({ name: '조직', slug: 'existing' }),
     ).rejects.toMatchObject({ status: 409, info: problem });
   });
 
   it('삭제의 204 응답은 JSON 본문 없이 처리한다', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue(new Response(null, { status: 204 })),
-    );
+    jest
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response(null, { status: 204 }));
     const result = await organizationsControllerRemoveMember(
       'organization',
       'member',

@@ -4,11 +4,11 @@ import { problemDetailsOptions } from '#server/common/http/problem-details.js';
 import { OrganizationProviderFailureError } from '#server/organizations/domain/organization.error.js';
 
 import { ProblemDetailsFactory } from '@camcima/nestjs-rfc9457';
-import { vi } from 'vitest';
+import { jest } from '@jest/globals';
 
 describe('공용 오류 진단', () => {
   it('공급자 장애는 원인의 종류와 작업 정보를 기록하고 원문은 숨긴다', () => {
-    const log = vi
+    const log = jest
       .spyOn(Logger.prototype, 'error')
       .mockImplementation(() => {});
     try {

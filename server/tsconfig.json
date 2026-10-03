@@ -22,6 +22,6 @@
       "#server/*": ["./src/*"],
       "#server-source/*": ["./src/*"]
     },
-    "types": ["vitest/globals", "node"]
+    "types": ["jest", "node"]
   }
 }

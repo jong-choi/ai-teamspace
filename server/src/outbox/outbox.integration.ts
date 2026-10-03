@@ -26,8 +26,8 @@ describe('Transactional Outbox 통합', () => {
 
   it('Drizzle custom migration이 설치된 Outbox package schema와 일치한다', async () => {
     const migrationPath = resolve(
-      import.meta.dirname,
-      '../../drizzle/0001_nestjs_outbox.sql',
+      process.cwd(),
+      'drizzle/0001_nestjs_outbox.sql',
     );
     const migrationSql = await readFile(migrationPath, 'utf8');
     const packageSql = PostgresOutboxStore.migrationSql({

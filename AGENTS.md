@@ -586,13 +586,15 @@ Drizzle table
 
 - server unit test와 feature 범위 integration test는 해당 코드를 소유하는 `server/src/<feature>` 아래에 둔다.
 - `server/test`는 E2E test 전용으로 사용하고 feature별 하위 디렉터리로 구성한다.
-- Vitest 공용 setup은 `server/vitest.setup.ts`에서 관리한다.
+- Jest 공용 setup은 `server/jest.setup.ts`에서 관리한다.
+- monorepo의 unit/integration test runner는 Jest를 기본으로 사용한다.
+- Expo/React Native UI test는 `jest-expo`와 React Native Testing Library를 사용한다.
 
 ```text
 server/
 |-- src/<feature>/*.{spec,integration}.ts
 |-- test/<feature>/*.e2e-spec.ts
-`-- vitest.setup.ts
+`-- jest.setup.ts
 ```
 
 - application test는 port mock/stub을 사용해 workflow와 application rule을 검증한다.

@@ -1,5 +1,4 @@
 import eslint from '@eslint/js';
-import vitest from '@vitest/eslint-plugin';
 import boundaries from 'eslint-plugin-boundaries';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
@@ -329,27 +328,29 @@ export default tseslint.config(
       '**/*.integration.ts',
       '**/*.e2e-spec.ts',
     ],
-    ...vitest.configs.recommended,
     languageOptions: {
       globals: {
-        ...vitest.environments.env.globals,
+        ...globals.jest,
       },
-    },
-    rules: {
-      ...vitest.configs.recommended.rules,
-      'vitest/expect-expect': 'off',
     },
   },
   {
     files: ['**/*.cjs'],
     languageOptions: {
       sourceType: 'commonjs',
+      globals: {
+        ...globals.jest,
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
     },
   },
   {
-    files: ['**/*.config.{js,mjs,cjs,ts}'],
+    files: ['**/*.config*.{js,mjs,cjs,ts}'],
     rules: {
       '@typescript-eslint/no-require-imports': 'off',
+      'no-restricted-imports': 'off',
     },
   },
 );

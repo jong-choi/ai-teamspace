@@ -3,18 +3,21 @@ import { Test } from '@nestjs/testing';
 import { DatabaseModule } from '#server/database/database.module.js';
 import { DatabaseService } from '#server/database/database.service.js';
 
-import { vi } from 'vitest';
+import { jest } from '@jest/globals';
 
 describe('데이터베이스 수명 관리', () => {
+  let databaseUrl: string | undefined;
+
   beforeEach(() => {
-    vi.stubEnv(
-      'DATABASE_URL',
-      'postgresql://postgres:postgres@localhost:5432/lifecycle_test',
-    );
+    databaseUrl = process.env.DATABASE_URL;
+    process.env.DATABASE_URL =
+      'postgresql://postgres:postgres@localhost:5432/lifecycle_test';
   });
 
   afterEach(() => {
-    vi.unstubAllEnvs();
+    if (databaseUrl === undefined) delete process.env.DATABASE_URL;
+    else process.env.DATABASE_URL = databaseUrl;
+    jest.restoreAllMocks();
   });
 
   it('앱마다 독립적인 Pool을 소유하고 해당 앱을 닫을 때만 종료한다', async () => {
@@ -26,8 +29,8 @@ describe('데이터베이스 수명 관리', () => {
     }).compile();
     const firstPool = first.get(DatabaseService).db.$client;
     const secondPool = second.get(DatabaseService).db.$client;
-    const firstEnd = vi.spyOn(firstPool, 'end');
-    const secondEnd = vi.spyOn(secondPool, 'end');
+    const firstEnd = jest.spyOn(firstPool, 'end');
+    const secondEnd = jest.spyOn(secondPool, 'end');
 
     try {
       expect(first.get(DatabaseService)).toBe(first.get(DatabaseService));
@@ -43,7 +46,7 @@ describe('데이터베이스 수명 관리', () => {
   });
 
   it('서비스를 대체하면 실제 DB 설정이나 Pool 생성 없이 모듈을 구성한다', async () => {
-    vi.stubEnv('DATABASE_URL', '');
+    process.env.DATABASE_URL = '';
     const replacement = { db: {} };
     const moduleRef = await Test.createTestingModule({
       imports: [DatabaseModule],

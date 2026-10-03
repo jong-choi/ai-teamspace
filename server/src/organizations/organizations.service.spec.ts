@@ -12,18 +12,18 @@ import {
 } from '#server/organizations/infrastructure/organization/organization.provider.js';
 import { OrganizationsService } from '#server/organizations/organizations.service.js';
 
-import { vi } from 'vitest';
+import { jest } from '@jest/globals';
 
 class FakeOrganizationProvider extends OrganizationProvider {
-  listForActor = vi.fn<OrganizationProvider['listForActor']>();
-  createForActor = vi.fn<OrganizationProvider['createForActor']>();
-  getAccess = vi.fn<OrganizationProvider['getAccess']>();
-  listMembers = vi.fn<OrganizationProvider['listMembers']>();
-  getMember = vi.fn<OrganizationProvider['getMember']>();
-  changeMemberRole = vi.fn<OrganizationProvider['changeMemberRole']>();
-  removeMember = vi.fn<OrganizationProvider['removeMember']>();
-  leave = vi.fn<OrganizationProvider['leave']>();
-  setActive = vi.fn<OrganizationProvider['setActive']>();
+  listForActor = jest.fn<OrganizationProvider['listForActor']>();
+  createForActor = jest.fn<OrganizationProvider['createForActor']>();
+  getAccess = jest.fn<OrganizationProvider['getAccess']>();
+  listMembers = jest.fn<OrganizationProvider['listMembers']>();
+  getMember = jest.fn<OrganizationProvider['getMember']>();
+  changeMemberRole = jest.fn<OrganizationProvider['changeMemberRole']>();
+  removeMember = jest.fn<OrganizationProvider['removeMember']>();
+  leave = jest.fn<OrganizationProvider['leave']>();
+  setActive = jest.fn<OrganizationProvider['setActive']>();
 }
 
 const context: OrganizationActorContext = {

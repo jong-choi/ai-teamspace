@@ -21,10 +21,10 @@ import { createOpenApiDocument, setupOpenApi } from '#server-source/openapi';
 import { OrganizationRoleSchema } from '#server-source/organizations/domain/organization-role';
 import { OrganizationProvider } from '#server-source/organizations/infrastructure/organization/organization.provider';
 
+import { jest } from '@jest/globals';
 import { AuthService } from '@thallesp/nestjs-better-auth';
 import { and, eq } from 'drizzle-orm';
 import request from 'supertest';
-import { vi } from 'vitest';
 
 type TestAgent = ReturnType<typeof request.agent>;
 
@@ -547,7 +547,7 @@ describe('조직과 멤버 E2E', () => {
       const paused = new Promise<void>((resolve) => {
         release = resolve;
       });
-      const spy = vi
+      const spy = jest
         .spyOn(provider, 'getMember')
         .mockImplementationOnce(async (...args) => {
           const target = await getMember(...args);

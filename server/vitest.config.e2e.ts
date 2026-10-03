@@ -15,7 +15,7 @@ export default defineConfig({
   test: {
     globals: true,
     root: './',
-    include: ['**/*.e2e-spec.ts'],
-    setupFiles: ['./test/setup-environment.ts'],
+    include: ['test/**/*.e2e-spec.ts'],
+    setupFiles: ['./vitest.setup.ts'],
   },
 });

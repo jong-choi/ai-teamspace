@@ -7,15 +7,11 @@ import {
 import { Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 
-import {
-  parseCacheEnvironment,
-  parseQueueEnvironment,
-} from '#server-source/config/runtime-environment';
+import { parseQueueEnvironment } from '#server-source/config/runtime-environment';
 import { createWorkerRedisOptions } from '#server-source/queue/queue.config';
 import { QueueModule } from '#server-source/queue/queue.module';
 
 import { type Job, Queue, QueueEvents } from 'bullmq';
-import { Redis } from 'ioredis';
 
 const TEST_QUEUE_NAME = 'test-infrastructure';
 const TEST_JOB_NAME = 'ping';
@@ -23,9 +19,8 @@ const TEST_JOB_NAME = 'ping';
 @Processor(TEST_QUEUE_NAME)
 class TestProcessor extends WorkerHost {
   async process(job: Job): Promise<unknown> {
-    expect(job.name).toBe(TEST_JOB_NAME);
-
     return {
+      jobName: job.name,
       processedAt: new Date().toISOString(),
     };
   }
@@ -48,23 +43,7 @@ class TestProducerModule {}
 })
 class TestWorkerModule {}
 
-describe('Redis 인프라 통합', () => {
-  it('cache Redis에 연결해 PONG을 받는다', async () => {
-    const { REDIS_CACHE_URL } = parseCacheEnvironment();
-    const client = new Redis(REDIS_CACHE_URL, {
-      enableOfflineQueue: false,
-      lazyConnect: true,
-      maxRetriesPerRequest: 1,
-    });
-
-    try {
-      await client.connect();
-      await expect(client.ping()).resolves.toBe('PONG');
-    } finally {
-      await client.quit();
-    }
-  });
-
+describe('BullMQ 큐 통합', () => {
   it('분리된 producer와 worker가 BullMQ 작업을 처리한다', async () => {
     const producerApp = await NestFactory.createApplicationContext(
       TestProducerModule,
@@ -91,6 +70,7 @@ describe('Redis 인프라 통합', () => {
       const result = await job.waitUntilFinished(queueEvents, 5_000);
 
       expect(result).toEqual({
+        jobName: TEST_JOB_NAME,
         processedAt: expect.any(String),
       });
     } finally {

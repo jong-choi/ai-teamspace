@@ -44,7 +44,7 @@ file://...
 - 루트 workspace에서 server, client 공용 package, 제품 package, 플랫폼 app을 함께 관리한다.
 - package manager는 저장소에 설정된 package manager와 lockfile을 따른다. 임의로 package manager를 변경하지 않는다.
 - 기존 workspace 도구가 있으면 루트 스크립트를 우선 사용한다.
-- formatter는 저장소에서 정한 formatter 하나로 통일한다. 별도 formatter를 추가하지 않는다.
+- formatter는 Prettier로 통일한다. 별도 formatter를 추가하지 않는다.
 - import/export 정렬은 lint 설정을 따른다. formatter와 lint에서 같은 책임을 중복 관리하지 않는다.
 - 직접 작성하는 source code의 module import는 가능한 한 alias 기반 절대경로를 사용하고 `./`, `../` 상대 import를 만들지 않는다.
 - build output, generated source, codegen 산출물은 import 경로 정리, lint fix, format을 위한 수정 대상에서 제외한다.
@@ -58,7 +58,7 @@ file://...
 ## 임시 파일과 작업 디렉터리
 
 - 저장소 안에 임의로 `temp`, `tmp`, `scratch`, `backup`, `old`, `test-output` 같은 폴더를 만들지 않는다.
-- 임시 산출물을 저장소 안에 남겨야 하면 프로젝트에서 정한 `.temp` 디렉터리를 사용한다.
+- 임시 산출물을 저장소 안에 남겨야 하면 저장소 루트의 `.temp` 디렉터리만 사용한다.
 - `.temp`를 사용하기 전에 gitignore 대상인지 확인한다.
 - 실험용 코드나 일회성 변환 결과를 source directory에 남기지 않는다.
 
@@ -345,14 +345,14 @@ server contract
 
 # 상태 관리
 
-- 상태 관리 도구는 저장소에서 정한 하나의 방식을 따른다.
+- global state library를 도입할 때는 하나의 라이브러리로 통일하고 이 문서에 명시한다.
 - global store에는 client-local shared state만 둔다.
 - React Query server data, router가 소유하는 route state, form library가 소유하는 form state, component 하나에서만 쓰는 local state를 global store에 중복 저장하지 않는다.
 - 같은 값을 여러 store에서 동시에 관리하지 않는다.
 
 # 폼
 
-- 폼은 저장소에서 정한 form library를 사용한다.
+- form library를 도입할 때는 하나의 라이브러리로 통일하고 이 문서에 명시한다.
 - request payload schema가 있으면 별도 validation schema를 처음부터 다시 만들지 않는다.
 - 필요한 form schema는 canonical schema에서 `pick`, `omit`, `partial`, `extend`, `merge` 등으로 파생한다.
 - API 전송 직전 canonical request schema로 다시 검증한다.
@@ -360,7 +360,7 @@ server contract
 
 # server 헥사고날 아키텍처
 
-server는 `nestjs-boilerplate`의 resource 구조를 기준으로 수직 분할한다. 각 feature가 domain, DTO, persistence port/adapter, controller, service, module을 한 디렉터리 안에서 소유한다. TypeORM relational adapter 자리는 Drizzle adapter로 대체하고, Drizzle table과 drizzle-zod를 사용해 중복 schema 선언을 제거한다.
+server는 feature 단위 수직 분할 구조를 사용한다. 각 feature가 domain, DTO, persistence port/adapter, controller, service, module을 한 디렉터리 안에서 소유한다. DB persistence adapter는 Drizzle을 사용하고, Drizzle table과 drizzle-zod를 통해 persistence schema와 파생 contract의 중복 선언을 피한다.
 
 ```text
 server/src/<feature>/
@@ -424,7 +424,7 @@ server/src/<feature>/
 
 ## persistence port와 Drizzle adapter
 
-- `infrastructure/persistence/<resource>.repository.ts`는 `nestjs-boilerplate`의 repository port와 동일한 역할을 하는 abstract class다.
+- `infrastructure/persistence/<resource>.repository.ts`는 application service가 의존하는 persistence port를 정의하는 abstract class다.
 - port method는 `create`, `findById`, `findByIds`, `findBy...`, `update`, `remove`처럼 feature가 실제로 사용하는 capability를 명시한다.
 - 모든 조건을 받는 범용 `find(condition)` repository를 만들지 않는다.
 - `infrastructure/persistence/drizzle/repositories/<resource>.repository.ts`는 port를 구현하는 Drizzle adapter다.
@@ -470,7 +470,7 @@ server/src/<feature>/
 # feature 간 의존성
 
 - 다른 feature의 persistence repository나 adapter를 직접 import하지 않는다.
-- 다른 feature 기능이 필요하면 해당 feature가 export한 service를 module import를 통해 사용한다. 이는 `nestjs-boilerplate`에서 AuthModule이 UsersModule, SessionModule, MailModule을 조합하는 방식과 같다.
+- 다른 feature 기능이 필요하면 해당 feature가 export한 service를 module import를 통해 사용한다.
 - 외부 provider 교체가 필요한 capability는 소비 feature 내부의 provider port/adapter로 감싼다.
 - feature module 사이에 순환 의존성을 만들지 않는다.
 
@@ -479,7 +479,7 @@ server/src/<feature>/
 - 공통 Drizzle connection/configuration은 `server/src/database`가 소유한다.
 - 각 feature의 table 정의는 해당 feature의 `infrastructure/persistence/drizzle/schema`가 소유한다.
 - 중앙 schema aggregator는 feature schema를 import해 Drizzle connection과 Drizzle Kit에 제공하는 composition 파일이며 field를 다시 선언하지 않는다.
-- migration은 중앙 `server/drizzle` 또는 프로젝트에서 정한 migration directory에 생성한다.
+- migration은 `server/drizzle`에 생성한다.
 
 # server Drizzle SSOT
 
@@ -509,7 +509,7 @@ server/src/<feature>/
 ## schema 파생 규칙
 
 - DB persistence validation schema는 `drizzle-zod`의 `createSelectSchema`, `createInsertSchema`, `createUpdateSchema`로 Drizzle table에서 파생한다.
-- 현재 설치된 stable 계열에서는 별도 `drizzle-zod` package를 기준으로 하고 Drizzle v1 문서의 `drizzle-orm/zod` import를 그대로 적용하지 않는다.
+- Zod schema 생성에는 `drizzle-zod` package를 사용하며 `drizzle-orm/zod` import를 사용하지 않는다.
 - domain resource type은 select schema에서 파생한다.
 - create/update/response DTO schema는 insert/update/select schema에서 `pick`, `omit`, `partial`, `extend`, `merge`, `shape`로 파생한다.
 - DB에 없는 query parameter와 업무 validation만 DTO/domain schema에서 추가한다.
@@ -582,6 +582,17 @@ Drizzle table
 - DB schema와 migration 결과가 다른 상태로 남지 않게 한다.
 
 # 테스트
+
+- server unit test와 feature 범위 integration test는 해당 코드를 소유하는 `server/src/<feature>` 아래에 둔다.
+- `server/test`는 E2E test 전용으로 사용하고 feature별 하위 디렉터리로 구성한다.
+- Vitest 공용 setup은 `server/vitest.setup.ts`에서 관리한다.
+
+```text
+server/
+|-- src/<feature>/*.{spec,integration}.ts
+|-- test/<feature>/*.e2e-spec.ts
+`-- vitest.setup.ts
+```
 
 - application test는 port mock/stub을 사용해 workflow와 application rule을 검증한다.
 - infrastructure test는 실제 query, mapper, transaction, constraint, persistence 동작을 검증한다.

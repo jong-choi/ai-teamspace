@@ -60,7 +60,7 @@ describe('Better Auth Drizzle 통합', () => {
         username: 'httpworker',
       });
 
-    expect(response.status, JSON.stringify(response.body)).toBe(200);
+    expect(response.status).toBe(200);
     expect(response.body.user.username).toBe('httpworker');
 
     const [storedUser] = await database

@@ -126,6 +126,16 @@ export default tseslint.config(
           pattern: 'server/src/database/database.service.ts',
           mode: 'full',
         },
+        {
+          type: 'server-test',
+          pattern: 'server/src/**/*.spec.ts',
+          mode: 'full',
+        },
+        {
+          type: 'server-test',
+          pattern: 'server/src/**/*.integration.ts',
+          mode: 'full',
+        },
         { type: 'server-test', pattern: 'server/test/**', mode: 'full' },
         {
           type: 'drizzle-config',
@@ -314,7 +324,11 @@ export default tseslint.config(
     },
   },
   {
-    files: ['**/*.{spec,test}.{ts,tsx}', '**/*.e2e-spec.ts'],
+    files: [
+      '**/*.{spec,test}.{ts,tsx}',
+      '**/*.integration.ts',
+      '**/*.e2e-spec.ts',
+    ],
     ...vitest.configs.recommended,
     languageOptions: {
       globals: {

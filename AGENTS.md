@@ -46,9 +46,9 @@ file://...
 - 기존 workspace 도구가 있으면 루트 스크립트를 우선 사용한다.
 - formatter는 Prettier로 통일한다. 별도 formatter를 추가하지 않는다.
 - import/export 정렬은 lint 설정을 따른다. formatter와 lint에서 같은 책임을 중복 관리하지 않는다.
-- 직접 작성하는 source code의 module import는 가능한 한 alias 기반 절대경로를 사용하고 `./`, `../` 상대 import를 만들지 않는다.
+- 직접 작성하는 source code의 module import는 가능한 한 alias 기반 절대경로를 사용한다. `client/packages`는 `@repo/client/<package>/*`, RNR은 `@repo/client/rnr/components/ui/*`를 사용하고 `./`, `../` 상대 import를 만들지 않는다.
 - build output, generated source, codegen 산출물은 import 경로 정리, lint fix, format을 위한 수정 대상에서 제외한다.
-- `client/packages/ui-kit/src/components/ui`의 React Native Reusables CLI 생성 컴포넌트와 `nativewind-env.d.ts`, `expo-env.d.ts`는 lint fix와 format 대상에서 제외한다. `globals.css`와 설정 파일은 저장소 관리 대상으로 유지한다.
+- `client/packages/rnr/src/components/ui`의 React Native Reusables CLI 생성 컴포넌트와 `nativewind-env.d.ts`, `expo-env.d.ts`는 lint fix와 format 대상에서 제외한다. `globals.css`와 설정 파일은 저장소 관리 대상으로 유지한다.
 - 루트 `format`, `lint`, `typecheck`, `test` 계열 스크립트가 있으면 개별 workspace 검증보다 우선한다.
 - `build`는 정적 검증의 대체 수단으로 사용하지 않는다. 번들, native build, Electron package 결과 자체를 확인해야 할 때만 실행한다.
 - framework와 주요 dependency version은 `package.json`과 lockfile을 기준으로 한다.
@@ -102,7 +102,7 @@ client/
 |   |-- config/
 |   |-- shared/
 |   |-- testing/
-|   `-- ui-kit/
+|   `-- rnr/
 `-- projects/
     `-- <project>/
         |-- apps/
@@ -130,8 +130,8 @@ client/
 
 ## client package 책임
 
-- `client/packages/ui-kit`는 전 제품 공통 UI primitive와 theme을 소유한다.
-- 특정 제품의 업무 용어, API 상태, feature state를 직접 아는 component를 `ui-kit`에 넣지 않는다.
+- `client/packages/rnr`는 전 제품 공통 RNR UI primitive와 theme을 소유한다.
+- 특정 제품의 업무 용어, API 상태, feature state를 직접 아는 component를 `rnr`에 넣지 않는다.
 - `client/packages/shared`는 UI runtime에 의존하지 않는 전 제품 공통 코드를 소유한다.
 - 특정 제품에서만 사용하는 코드는 `shared`로 올리지 않는다.
 - `client/packages/api-client`는 서버 OpenAPI에서 생성한 API client, query hook, mutation hook, schema, type을 소유한다.
@@ -214,11 +214,12 @@ Image
 - native dependency는 `apps/expo` 또는 명확한 native adapter package가 소유하는 것을 우선한다.
 - Metro, Babel, Expo config를 수정할 때 Web과 Native 소비처를 함께 확인한다.
 
-# React Native Reusables와 UI kit
+# React Native Reusables와 RNR package
 
-- UI component를 새로 작성하기 전에 기존 `ui-kit`, React Native Reusables, 기존 primitive 조합 순서로 확인한다.
+- UI component를 새로 작성하기 전에 기존 `client/packages/rnr`, React Native Reusables, 기존 primitive 조합 순서로 확인한다.
 - React Native Reusables에서 제공하는 component를 이유 없이 별도 custom implementation으로 다시 만들지 않는다.
-- RNR CLI로 설치된 component는 저장소가 소유하는 source code로 관리한다.
+- RNR CLI는 `client/projects/<project>/apps/expo`에서 실행하고 `components.json` alias를 통해 `client/packages/rnr`에 생성한다.
+- 설치는 `npx @react-native-reusables/cli@latest add <component>`를 사용하며 생성 source는 수동 대체하지 않고 저장소가 소유한다.
 - 설치된 source는 프로젝트의 formatter, lint, accessibility, type 규칙을 따른다.
 - CLI 실행 결과가 잘못되면 생성 파일을 즉시 대체 구현하지 말고 CLI version, config, registry, path 설정을 먼저 확인한다.
 - 공용 UI component는 특정 제품 API나 product store에 의존하지 않는다.

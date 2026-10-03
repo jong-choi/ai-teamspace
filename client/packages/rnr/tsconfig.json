@@ -7,7 +7,7 @@
     "moduleResolution": "Bundler",
     "noEmit": true,
     "paths": {
-      "@ui-kit/*": ["./src/*"]
+      "@repo/client/rnr/*": ["./src/*"]
     },
     "skipLibCheck": true,
     "strict": true,

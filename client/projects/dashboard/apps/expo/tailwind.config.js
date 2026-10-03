@@ -7,7 +7,7 @@ module.exports = {
   content: [
     path.join(__dirname, 'src/**/*.{ts,tsx}'),
     path.join(__dirname, '../../src/**/*.{ts,tsx}'),
-    path.join(__dirname, '../../../../packages/ui-kit/src/**/*.{ts,tsx}'),
+    path.join(__dirname, '../../../../packages/rnr/src/**/*.{ts,tsx}'),
   ],
   presets: [require('nativewind/preset')],
   theme: {

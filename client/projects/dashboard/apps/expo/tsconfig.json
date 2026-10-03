@@ -6,7 +6,7 @@
       "@/*": ["./src/*"],
       "@/assets/*": ["./assets/*"],
       "@core/*": ["../../src/*"],
-      "@ui-kit/*": ["../../../../packages/ui-kit/src/*"]
+      "@repo/client/rnr/*": ["../../../../packages/rnr/src/*"]
     }
   },
   "include": [

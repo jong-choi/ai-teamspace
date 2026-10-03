@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
-import { Button } from '@ui-kit/components/ui/button';
-import { Text } from '@ui-kit/components/ui/text';
+import { Button } from '@repo/client/rnr/components/ui/button';
+import { Text } from '@repo/client/rnr/components/ui/text';
 
 export function HomeRoute() {
   return (

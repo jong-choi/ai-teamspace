@@ -1,4 +1,4 @@
-import { cn } from '@ui-kit/lib/utils';
+import { cn } from '@repo/client/rnr/lib/utils';
 import { Slot } from '@rn-primitives/slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 import * as React from 'react';

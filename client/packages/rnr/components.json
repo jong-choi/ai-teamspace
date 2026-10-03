@@ -10,10 +10,10 @@
     "cssVariables": true
   },
   "aliases": {
-    "components": "@ui-kit/components",
-    "hooks": "@ui-kit/hooks",
-    "lib": "@ui-kit/lib",
-    "ui": "@ui-kit/components/ui",
-    "utils": "@ui-kit/lib/utils"
+    "components": "@repo/client/rnr/components",
+    "hooks": "@repo/client/rnr/hooks",
+    "lib": "@repo/client/rnr/lib",
+    "ui": "@repo/client/rnr/components/ui",
+    "utils": "@repo/client/rnr/lib/utils"
   }
 }

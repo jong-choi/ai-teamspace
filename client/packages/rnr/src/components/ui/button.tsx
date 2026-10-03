@@ -1,5 +1,5 @@
-import { TextClassContext } from '@ui-kit/components/ui/text';
-import { cn } from '@ui-kit/lib/utils';
+import { TextClassContext } from '@repo/client/rnr/components/ui/text';
+import { cn } from '@repo/client/rnr/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { Platform, Pressable } from 'react-native';
 

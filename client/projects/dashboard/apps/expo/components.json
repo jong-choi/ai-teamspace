@@ -5,15 +5,15 @@
   "tsx": true,
   "tailwind": {
     "config": "tailwind.config.js",
-    "css": "../../../../packages/ui-kit/src/globals.css",
+    "css": "../../../../packages/rnr/src/globals.css",
     "baseColor": "neutral",
     "cssVariables": true
   },
   "aliases": {
     "components": "@/components",
-    "hooks": "@ui-kit/hooks",
-    "lib": "@ui-kit/lib",
-    "ui": "@ui-kit/components/ui",
-    "utils": "@ui-kit/lib/utils"
+    "hooks": "@repo/client/rnr/hooks",
+    "lib": "@repo/client/rnr/lib",
+    "ui": "@repo/client/rnr/components/ui",
+    "utils": "@repo/client/rnr/lib/utils"
   }
 }

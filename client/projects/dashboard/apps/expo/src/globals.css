@@ -1,1 +1,13 @@
 @import '@repo/rnr';
+
+@layer base {
+  :root {
+    --sidebar: 0 0% 98.5%;
+    --sidebar-foreground: 0 0% 3.9%;
+  }
+
+  .dark:root {
+    --sidebar: 0 0% 14.9%;
+    --sidebar-foreground: 0 0% 98%;
+  }
+}

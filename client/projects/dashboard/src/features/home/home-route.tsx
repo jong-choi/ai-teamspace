@@ -1,17 +1,20 @@
 import { StyleSheet, View } from 'react-native';
 
+import { DashboardShell } from '@core/app/shell/dashboard-shell';
 import { Button } from '@repo/client/rnr/components/ui/button';
 import { Text } from '@repo/client/rnr/components/ui/text';
 
 export function HomeRoute() {
   return (
-    <View style={styles.container}>
-      <Text variant="h1">Monorepo ERP</Text>
-      <Text>Expo Web, iOS, Android 공용 화면</Text>
-      <Button>
-        <Text>React Native Reusables</Text>
-      </Button>
-    </View>
+    <DashboardShell>
+      <View style={styles.container}>
+        <Text variant="h1">Monorepo ERP</Text>
+        <Text>Expo Web, iOS, Android 공용 화면</Text>
+        <Button>
+          <Text>React Native Reusables</Text>
+        </Button>
+      </View>
+    </DashboardShell>
   );
 }
 

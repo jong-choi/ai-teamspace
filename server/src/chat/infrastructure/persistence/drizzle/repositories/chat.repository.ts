@@ -10,6 +10,7 @@ import {
   type CreateChatChannelConversationInput,
   type CreateDirectChatConversationInput,
   type ListChatMessagesInput,
+  type MarkChatReadResult,
 } from '#server/chat/infrastructure/persistence/chat.repository.js';
 import {
   toChatConversationDomain,
@@ -297,7 +298,7 @@ export class ChatDrizzleRepository extends ChatRepository {
     conversationId: string;
     userId: string;
     readAt: Date;
-  }): Promise<boolean> {
+  }): Promise<MarkChatReadResult> {
     const rows = await this.database.db
       .update(chatParticipant)
       .set(toChatParticipantUpdate({ lastReadAt: input.readAt }))
@@ -305,11 +306,30 @@ export class ChatDrizzleRepository extends ChatRepository {
         and(
           eq(chatParticipant.conversationId, input.conversationId),
           eq(chatParticipant.userId, input.userId),
+          or(
+            isNull(chatParticipant.lastReadAt),
+            lt(chatParticipant.lastReadAt, input.readAt),
+          ),
         ),
       )
       .returning({ conversationId: chatParticipant.conversationId });
 
-    return rows.length > 0;
+    if (rows.length > 0) {
+      return 'advanced';
+    }
+
+    const [participant] = await this.database.db
+      .select({ conversationId: chatParticipant.conversationId })
+      .from(chatParticipant)
+      .where(
+        and(
+          eq(chatParticipant.conversationId, input.conversationId),
+          eq(chatParticipant.userId, input.userId),
+        ),
+      )
+      .limit(1);
+
+    return participant ? 'unchanged' : null;
   }
 
   private async listConversationsForUser(

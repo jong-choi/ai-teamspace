@@ -22,10 +22,10 @@ export const chatConversation = pgTable(
     name: text('name'),
     topic: text('topic'),
     directKey: text('direct_key'),
-    createdAt: timestamp('created_at', { withTimezone: true })
+    createdAt: timestamp('created_at', { withTimezone: true, precision: 3 })
       .defaultNow()
       .notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
+    updatedAt: timestamp('updated_at', { withTimezone: true, precision: 3 })
       .defaultNow()
       .notNull(),
   },

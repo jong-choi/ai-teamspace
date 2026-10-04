@@ -6,7 +6,7 @@ coverage/
 **/generated/
 **/*.generated.*
 server/drizzle/
-client/packages/ui-kit/src/components/ui/
+client/packages/rnr/src/components/ui/
 **/nativewind-env.d.ts
 **/expo-env.d.ts
 package-lock.json

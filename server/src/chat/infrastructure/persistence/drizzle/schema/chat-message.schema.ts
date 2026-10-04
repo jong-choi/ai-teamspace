@@ -33,13 +33,13 @@ export const chatMessage = pgTable(
     }),
     contentType: chatMessageContentTypeEnum('content_type').notNull(),
     content: jsonb('content').notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true })
+    createdAt: timestamp('created_at', { withTimezone: true, precision: 3 })
       .defaultNow()
       .notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
+    updatedAt: timestamp('updated_at', { withTimezone: true, precision: 3 })
       .defaultNow()
       .notNull(),
-    editedAt: timestamp('edited_at', { withTimezone: true }),
+    editedAt: timestamp('edited_at', { withTimezone: true, precision: 3 }),
   },
   (table) => [
     index('chat_message_conversation_created_id_idx').on(

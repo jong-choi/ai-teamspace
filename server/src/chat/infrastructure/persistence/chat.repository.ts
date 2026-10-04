@@ -26,6 +26,8 @@ export type ChatMessagePage = {
   hasMore: boolean;
 };
 
+export type MarkChatReadResult = 'advanced' | 'unchanged' | null;
+
 export abstract class ChatRepository {
   abstract createChannelConversation(
     input: CreateChatChannelConversationInput,
@@ -76,5 +78,5 @@ export abstract class ChatRepository {
     conversationId: string;
     userId: string;
     readAt: Date;
-  }): Promise<boolean>;
+  }): Promise<MarkChatReadResult>;
 }

@@ -195,7 +195,7 @@ describe('채팅 Drizzle 저장소 통합', () => {
         userId: actorUserId,
         readAt: new Date(),
       }),
-    ).resolves.toBe(true);
+    ).resolves.toBe('advanced');
 
     const afterRead = await repository.findConversationState(
       conversation.id,

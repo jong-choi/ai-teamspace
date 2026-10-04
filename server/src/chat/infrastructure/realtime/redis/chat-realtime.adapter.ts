@@ -14,6 +14,7 @@ import { Redis, type RedisOptions } from 'ioredis';
 import { Observable, Subject } from 'rxjs';
 
 const CHANNEL_PREFIX = 'work-os:chat:user:';
+const REDIS_READY_TIMEOUT_MS = 1_500;
 const redisOptions = {
   connectTimeout: 1_000,
   enableOfflineQueue: false,
@@ -35,6 +36,8 @@ export class RedisChatRealtimeAdapter
   private readonly publisher: Redis;
   private readonly subscriber: Redis;
   private readonly localStreams = new Map<string, LocalStream>();
+  private publisherConnection: Promise<void> | null = null;
+  private subscriberConnection: Promise<void> | null = null;
 
   constructor() {
     super();
@@ -152,7 +155,7 @@ export class RedisChatRealtimeAdapter
     stream: LocalStream,
   ): Promise<void> {
     try {
-      await connectRedisClient(this.subscriber);
+      await this.connectSubscriber();
       if (this.localStreams.get(userId) !== stream) {
         return;
       }
@@ -187,7 +190,7 @@ export class RedisChatRealtimeAdapter
     const parsedEvent = ChatRealtimeEventSchema.parse(event);
     const payload = JSON.stringify(parsedEvent);
     try {
-      await connectRedisClient(this.publisher);
+      await this.connectPublisher();
       await Promise.all(
         [...new Set(participantUserIds)].map((userId) =>
           this.publisher.publish(channelForUser(userId), payload),
@@ -199,6 +202,30 @@ export class RedisChatRealtimeAdapter
         error,
       );
     }
+  }
+
+  private connectPublisher(): Promise<void> {
+    if (!this.publisherConnection) {
+      const connection = connectRedisClient(this.publisher).finally(() => {
+        if (this.publisherConnection === connection) {
+          this.publisherConnection = null;
+        }
+      });
+      this.publisherConnection = connection;
+    }
+    return this.publisherConnection;
+  }
+
+  private connectSubscriber(): Promise<void> {
+    if (!this.subscriberConnection) {
+      const connection = connectRedisClient(this.subscriber).finally(() => {
+        if (this.subscriberConnection === connection) {
+          this.subscriberConnection = null;
+        }
+      });
+      this.subscriberConnection = connection;
+    }
+    return this.subscriberConnection;
   }
 
   private onRedisMessage(channel: string, payload: string): void {
@@ -234,7 +261,38 @@ async function connectRedisClient(client: Redis): Promise<void> {
   }
   if (client.status === 'wait' || client.status === 'end') {
     await client.connect();
+    return;
   }
+
+  await waitForRedisReady(client);
+}
+
+function waitForRedisReady(client: Redis): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const cleanup = () => {
+      clearTimeout(timeout);
+      client.removeListener('ready', onReady);
+      client.removeListener('end', onEnd);
+    };
+    const onReady = () => {
+      cleanup();
+      resolve();
+    };
+    const onEnd = () => {
+      cleanup();
+      reject(new Error('Redis 연결이 준비되기 전에 종료되었습니다.'));
+    };
+    const timeout = setTimeout(() => {
+      cleanup();
+      reject(new Error('Redis 연결 준비 시간이 초과되었습니다.'));
+    }, REDIS_READY_TIMEOUT_MS);
+
+    client.once('ready', onReady);
+    client.once('end', onEnd);
+    if (client.status === 'ready') {
+      onReady();
+    }
+  });
 }
 
 async function closeRedisClient(client: Redis): Promise<void> {

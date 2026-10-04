@@ -19,10 +19,10 @@ export const chatParticipant = pgTable(
     userId: text('user_id')
       .notNull()
       .references(() => authUserIdColumn, { onDelete: 'cascade' }),
-    joinedAt: timestamp('joined_at', { withTimezone: true })
+    joinedAt: timestamp('joined_at', { withTimezone: true, precision: 3 })
       .defaultNow()
       .notNull(),
-    lastReadAt: timestamp('last_read_at', { withTimezone: true }),
+    lastReadAt: timestamp('last_read_at', { withTimezone: true, precision: 3 }),
   },
   (table) => [
     primaryKey({ columns: [table.conversationId, table.userId] }),

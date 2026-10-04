@@ -35,6 +35,10 @@ import {
   type CreateChatDirectInput,
 } from '#server/chat/dto/create-chat-direct.dto.js';
 import {
+  MarkChatReadDto,
+  type MarkChatReadInput,
+} from '#server/chat/dto/mark-chat-read.dto.js';
+import {
   QueryChatMessagesDto,
   type QueryChatMessagesInput,
 } from '#server/chat/dto/query-chat-messages.dto.js';
@@ -186,7 +190,8 @@ export class ChatController {
   async markRead(
     @Session() session: UserSession<Auth>,
     @Param('conversationId', new ParseUUIDPipe()) conversationId: string,
+    @Body({ schema: MarkChatReadDto.schema }) input: MarkChatReadInput,
   ): Promise<void> {
-    await this.chatService.markRead(session.user.id, conversationId);
+    await this.chatService.markRead(session.user.id, conversationId, input);
   }
 }

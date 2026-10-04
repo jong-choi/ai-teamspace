@@ -26,6 +26,7 @@ import {
 import type { ChatMessagePageResponse } from '#server/chat/dto/chat-message-page.dto.js';
 import type { CreateChatChannelInput } from '#server/chat/dto/create-chat-channel.dto.js';
 import type { CreateChatDirectInput } from '#server/chat/dto/create-chat-direct.dto.js';
+import type { MarkChatReadInput } from '#server/chat/dto/mark-chat-read.dto.js';
 import type { QueryChatMessagesInput } from '#server/chat/dto/query-chat-messages.dto.js';
 import type { SendChatMessageInput } from '#server/chat/dto/send-chat-message.dto.js';
 import type { UpdateChatMessageInput } from '#server/chat/dto/update-chat-message.dto.js';
@@ -240,6 +241,9 @@ export class ChatService {
     ) {
       throw new ChatAccessDeniedError();
     }
+    if (current.content.text === input.text) {
+      return toChatMessageResponse(current);
+    }
 
     const state = await this.requireConversationState(userId, conversationId);
     const updated = await this.chatRepository.updateTextMessage({
@@ -259,25 +263,37 @@ export class ChatService {
     return response;
   }
 
-  async markRead(userId: string, conversationId: string): Promise<void> {
-    const state = await this.requireConversationState(userId, conversationId);
-    const readAt = new Date();
-    const updated = await this.chatRepository.markRead({
+  async markRead(
+    userId: string,
+    conversationId: string,
+    input: MarkChatReadInput,
+  ): Promise<void> {
+    const message = await this.chatRepository.findMessage(
+      conversationId,
+      input.messageId,
+      userId,
+    );
+    if (!message) {
+      throw new ChatMessageNotFoundError();
+    }
+
+    const result = await this.chatRepository.markRead({
       conversationId,
       userId,
-      readAt,
+      readAt: message.createdAt,
     });
-    if (!updated) {
+    if (result === null) {
       throw new ChatConversationNotFoundError();
     }
-    await this.realtime.publishConversationRead(
-      state.participants.map((participant) => participant.userId),
-      {
-        conversationId,
-        userId,
-        readAt: readAt.toISOString(),
-      },
-    );
+    if (result === 'unchanged') {
+      return;
+    }
+
+    await this.realtime.publishConversationRead([userId], {
+      conversationId,
+      userId,
+      readAt: message.createdAt.toISOString(),
+    });
   }
 
   private async requireConversationState(

@@ -23,6 +23,7 @@ import type {
   UseQueryResult
 } from '@tanstack/react-query';
 
+import { workOsFetcher } from '../runtime';
 /**
  * Granular validation error details (extension member). Shape depends on how errors were produced: a flat array of messages (default `ValidationPipe`), a field-map of messages keyed by dotted path (`mapClassValidatorErrors()`, or Nest v12 `ValidationPipe` with `errorFormat: 'grouped'`), or an array of RFC 9457 JSON Pointer objects (`mapToPointerErrors()`).
  */
@@ -88,6 +89,628 @@ export interface ProblemDetails {
   errors?: ProblemDetailsErrors;
   [key: string]: unknown;
  }
+
+export type ChatControllerListConversations200ItemsItemKind = typeof ChatControllerListConversations200ItemsItemKind[keyof typeof ChatControllerListConversations200ItemsItemKind];
+
+
+export const ChatControllerListConversations200ItemsItemKind = {
+  channel: 'channel',
+  direct: 'direct',
+  system: 'system',
+} as const;
+
+export type ChatControllerListConversations200ItemsItemParticipantsItem = {
+  userId: string;
+  name: string;
+  /** @nullable */
+  username: string | null;
+  /** @nullable */
+  image: string | null;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  joinedAt: string;
+  /**
+     * @nullable
+     * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+     */
+  lastReadAt: string | null;
+};
+
+export type ChatControllerListConversations200ItemsItemLatestMessageSenderKind = typeof ChatControllerListConversations200ItemsItemLatestMessageSenderKind[keyof typeof ChatControllerListConversations200ItemsItemLatestMessageSenderKind];
+
+
+export const ChatControllerListConversations200ItemsItemLatestMessageSenderKind = {
+  system: 'system',
+  user: 'user',
+} as const;
+
+export type ChatControllerListConversations200ItemsItemLatestMessageContentType = typeof ChatControllerListConversations200ItemsItemLatestMessageContentType[keyof typeof ChatControllerListConversations200ItemsItemLatestMessageContentType];
+
+
+export const ChatControllerListConversations200ItemsItemLatestMessageContentType = {
+  text: 'text',
+} as const;
+
+export type ChatControllerListConversations200ItemsItemLatestMessageContent = {
+  /**
+     * @minLength 1
+     * @maxLength 10000
+     */
+  text: string;
+};
+
+/**
+ * @nullable
+ */
+export type ChatControllerListConversations200ItemsItemLatestMessage = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string;
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  conversationId: string;
+  senderKind: ChatControllerListConversations200ItemsItemLatestMessageSenderKind;
+  /** @nullable */
+  senderUserId: string | null;
+  contentType: ChatControllerListConversations200ItemsItemLatestMessageContentType;
+  content: ChatControllerListConversations200ItemsItemLatestMessageContent;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  createdAt: string;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  updatedAt: string;
+  /**
+     * @nullable
+     * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+     */
+  editedAt: string | null;
+} | null;
+
+export type ChatControllerListConversations200ItemsItem = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string;
+  kind: ChatControllerListConversations200ItemsItemKind;
+  /** @nullable */
+  name: string | null;
+  /** @nullable */
+  topic: string | null;
+  participants: ChatControllerListConversations200ItemsItemParticipantsItem[];
+  /**
+     * @minimum 0
+     * @maximum 9007199254740991
+     */
+  unreadCount: number;
+  /** @nullable */
+  latestMessage: ChatControllerListConversations200ItemsItemLatestMessage;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  createdAt: string;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  updatedAt: string;
+};
+
+export type ChatControllerListConversations200 = {
+  items: ChatControllerListConversations200ItemsItem[];
+};
+
+export type ChatControllerCreateChannelBody = {
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  name: string;
+  /**
+     * @maxLength 250
+     * @nullable
+     */
+  topic?: string | null;
+  /**
+     * @maxItems 49
+     * @items.minLength 1
+     * @items.maxLength 255
+     */
+  participantUsernames?: string[];
+};
+
+export type ChatControllerCreateChannel201Kind = typeof ChatControllerCreateChannel201Kind[keyof typeof ChatControllerCreateChannel201Kind];
+
+
+export const ChatControllerCreateChannel201Kind = {
+  channel: 'channel',
+  direct: 'direct',
+  system: 'system',
+} as const;
+
+export type ChatControllerCreateChannel201ParticipantsItem = {
+  userId: string;
+  name: string;
+  /** @nullable */
+  username: string | null;
+  /** @nullable */
+  image: string | null;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  joinedAt: string;
+  /**
+     * @nullable
+     * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+     */
+  lastReadAt: string | null;
+};
+
+export type ChatControllerCreateChannel201LatestMessageSenderKind = typeof ChatControllerCreateChannel201LatestMessageSenderKind[keyof typeof ChatControllerCreateChannel201LatestMessageSenderKind];
+
+
+export const ChatControllerCreateChannel201LatestMessageSenderKind = {
+  system: 'system',
+  user: 'user',
+} as const;
+
+export type ChatControllerCreateChannel201LatestMessageContentType = typeof ChatControllerCreateChannel201LatestMessageContentType[keyof typeof ChatControllerCreateChannel201LatestMessageContentType];
+
+
+export const ChatControllerCreateChannel201LatestMessageContentType = {
+  text: 'text',
+} as const;
+
+export type ChatControllerCreateChannel201LatestMessageContent = {
+  /**
+     * @minLength 1
+     * @maxLength 10000
+     */
+  text: string;
+};
+
+/**
+ * @nullable
+ */
+export type ChatControllerCreateChannel201LatestMessage = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string;
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  conversationId: string;
+  senderKind: ChatControllerCreateChannel201LatestMessageSenderKind;
+  /** @nullable */
+  senderUserId: string | null;
+  contentType: ChatControllerCreateChannel201LatestMessageContentType;
+  content: ChatControllerCreateChannel201LatestMessageContent;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  createdAt: string;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  updatedAt: string;
+  /**
+     * @nullable
+     * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+     */
+  editedAt: string | null;
+} | null;
+
+export type ChatControllerCreateChannel201 = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string;
+  kind: ChatControllerCreateChannel201Kind;
+  /** @nullable */
+  name: string | null;
+  /** @nullable */
+  topic: string | null;
+  participants: ChatControllerCreateChannel201ParticipantsItem[];
+  /**
+     * @minimum 0
+     * @maximum 9007199254740991
+     */
+  unreadCount: number;
+  /** @nullable */
+  latestMessage: ChatControllerCreateChannel201LatestMessage;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  createdAt: string;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  updatedAt: string;
+};
+
+export type ChatControllerCreateDirectBody = {
+  /**
+     * @minLength 1
+     * @maxLength 255
+     */
+  recipientUsername: string;
+};
+
+export type ChatControllerCreateDirect200Kind = typeof ChatControllerCreateDirect200Kind[keyof typeof ChatControllerCreateDirect200Kind];
+
+
+export const ChatControllerCreateDirect200Kind = {
+  channel: 'channel',
+  direct: 'direct',
+  system: 'system',
+} as const;
+
+export type ChatControllerCreateDirect200ParticipantsItem = {
+  userId: string;
+  name: string;
+  /** @nullable */
+  username: string | null;
+  /** @nullable */
+  image: string | null;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  joinedAt: string;
+  /**
+     * @nullable
+     * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+     */
+  lastReadAt: string | null;
+};
+
+export type ChatControllerCreateDirect200LatestMessageSenderKind = typeof ChatControllerCreateDirect200LatestMessageSenderKind[keyof typeof ChatControllerCreateDirect200LatestMessageSenderKind];
+
+
+export const ChatControllerCreateDirect200LatestMessageSenderKind = {
+  system: 'system',
+  user: 'user',
+} as const;
+
+export type ChatControllerCreateDirect200LatestMessageContentType = typeof ChatControllerCreateDirect200LatestMessageContentType[keyof typeof ChatControllerCreateDirect200LatestMessageContentType];
+
+
+export const ChatControllerCreateDirect200LatestMessageContentType = {
+  text: 'text',
+} as const;
+
+export type ChatControllerCreateDirect200LatestMessageContent = {
+  /**
+     * @minLength 1
+     * @maxLength 10000
+     */
+  text: string;
+};
+
+/**
+ * @nullable
+ */
+export type ChatControllerCreateDirect200LatestMessage = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string;
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  conversationId: string;
+  senderKind: ChatControllerCreateDirect200LatestMessageSenderKind;
+  /** @nullable */
+  senderUserId: string | null;
+  contentType: ChatControllerCreateDirect200LatestMessageContentType;
+  content: ChatControllerCreateDirect200LatestMessageContent;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  createdAt: string;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  updatedAt: string;
+  /**
+     * @nullable
+     * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+     */
+  editedAt: string | null;
+} | null;
+
+export type ChatControllerCreateDirect200 = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string;
+  kind: ChatControllerCreateDirect200Kind;
+  /** @nullable */
+  name: string | null;
+  /** @nullable */
+  topic: string | null;
+  participants: ChatControllerCreateDirect200ParticipantsItem[];
+  /**
+     * @minimum 0
+     * @maximum 9007199254740991
+     */
+  unreadCount: number;
+  /** @nullable */
+  latestMessage: ChatControllerCreateDirect200LatestMessage;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  createdAt: string;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  updatedAt: string;
+};
+
+export type ChatControllerGetConversation200Kind = typeof ChatControllerGetConversation200Kind[keyof typeof ChatControllerGetConversation200Kind];
+
+
+export const ChatControllerGetConversation200Kind = {
+  channel: 'channel',
+  direct: 'direct',
+  system: 'system',
+} as const;
+
+export type ChatControllerGetConversation200ParticipantsItem = {
+  userId: string;
+  name: string;
+  /** @nullable */
+  username: string | null;
+  /** @nullable */
+  image: string | null;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  joinedAt: string;
+  /**
+     * @nullable
+     * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+     */
+  lastReadAt: string | null;
+};
+
+export type ChatControllerGetConversation200LatestMessageSenderKind = typeof ChatControllerGetConversation200LatestMessageSenderKind[keyof typeof ChatControllerGetConversation200LatestMessageSenderKind];
+
+
+export const ChatControllerGetConversation200LatestMessageSenderKind = {
+  system: 'system',
+  user: 'user',
+} as const;
+
+export type ChatControllerGetConversation200LatestMessageContentType = typeof ChatControllerGetConversation200LatestMessageContentType[keyof typeof ChatControllerGetConversation200LatestMessageContentType];
+
+
+export const ChatControllerGetConversation200LatestMessageContentType = {
+  text: 'text',
+} as const;
+
+export type ChatControllerGetConversation200LatestMessageContent = {
+  /**
+     * @minLength 1
+     * @maxLength 10000
+     */
+  text: string;
+};
+
+/**
+ * @nullable
+ */
+export type ChatControllerGetConversation200LatestMessage = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string;
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  conversationId: string;
+  senderKind: ChatControllerGetConversation200LatestMessageSenderKind;
+  /** @nullable */
+  senderUserId: string | null;
+  contentType: ChatControllerGetConversation200LatestMessageContentType;
+  content: ChatControllerGetConversation200LatestMessageContent;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  createdAt: string;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  updatedAt: string;
+  /**
+     * @nullable
+     * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+     */
+  editedAt: string | null;
+} | null;
+
+export type ChatControllerGetConversation200 = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string;
+  kind: ChatControllerGetConversation200Kind;
+  /** @nullable */
+  name: string | null;
+  /** @nullable */
+  topic: string | null;
+  participants: ChatControllerGetConversation200ParticipantsItem[];
+  /**
+     * @minimum 0
+     * @maximum 9007199254740991
+     */
+  unreadCount: number;
+  /** @nullable */
+  latestMessage: ChatControllerGetConversation200LatestMessage;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  createdAt: string;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  updatedAt: string;
+};
+
+export type ChatControllerListMessagesParams = {
+/**
+ * @minLength 1
+ */
+before?: string;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: number;
+};
+
+export type ChatControllerListMessages200ItemsItemSenderKind = typeof ChatControllerListMessages200ItemsItemSenderKind[keyof typeof ChatControllerListMessages200ItemsItemSenderKind];
+
+
+export const ChatControllerListMessages200ItemsItemSenderKind = {
+  system: 'system',
+  user: 'user',
+} as const;
+
+export type ChatControllerListMessages200ItemsItemContentType = typeof ChatControllerListMessages200ItemsItemContentType[keyof typeof ChatControllerListMessages200ItemsItemContentType];
+
+
+export const ChatControllerListMessages200ItemsItemContentType = {
+  text: 'text',
+} as const;
+
+export type ChatControllerListMessages200ItemsItemContent = {
+  /**
+     * @minLength 1
+     * @maxLength 10000
+     */
+  text: string;
+};
+
+export type ChatControllerListMessages200ItemsItem = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string;
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  conversationId: string;
+  senderKind: ChatControllerListMessages200ItemsItemSenderKind;
+  /** @nullable */
+  senderUserId: string | null;
+  contentType: ChatControllerListMessages200ItemsItemContentType;
+  content: ChatControllerListMessages200ItemsItemContent;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  createdAt: string;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  updatedAt: string;
+  /**
+     * @nullable
+     * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+     */
+  editedAt: string | null;
+};
+
+export type ChatControllerListMessages200 = {
+  items: ChatControllerListMessages200ItemsItem[];
+  /** @nullable */
+  nextCursor: string | null;
+};
+
+export type ChatControllerSendMessageBody = {
+  /**
+     * @minLength 1
+     * @maxLength 10000
+     */
+  text: string;
+};
+
+export type ChatControllerSendMessage201SenderKind = typeof ChatControllerSendMessage201SenderKind[keyof typeof ChatControllerSendMessage201SenderKind];
+
+
+export const ChatControllerSendMessage201SenderKind = {
+  system: 'system',
+  user: 'user',
+} as const;
+
+export type ChatControllerSendMessage201ContentType = typeof ChatControllerSendMessage201ContentType[keyof typeof ChatControllerSendMessage201ContentType];
+
+
+export const ChatControllerSendMessage201ContentType = {
+  text: 'text',
+} as const;
+
+export type ChatControllerSendMessage201Content = {
+  /**
+     * @minLength 1
+     * @maxLength 10000
+     */
+  text: string;
+};
+
+export type ChatControllerSendMessage201 = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string;
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  conversationId: string;
+  senderKind: ChatControllerSendMessage201SenderKind;
+  /** @nullable */
+  senderUserId: string | null;
+  contentType: ChatControllerSendMessage201ContentType;
+  content: ChatControllerSendMessage201Content;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  createdAt: string;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  updatedAt: string;
+  /**
+     * @nullable
+     * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+     */
+  editedAt: string | null;
+};
+
+export type ChatControllerGetMessage200SenderKind = typeof ChatControllerGetMessage200SenderKind[keyof typeof ChatControllerGetMessage200SenderKind];
+
+
+export const ChatControllerGetMessage200SenderKind = {
+  system: 'system',
+  user: 'user',
+} as const;
+
+export type ChatControllerGetMessage200ContentType = typeof ChatControllerGetMessage200ContentType[keyof typeof ChatControllerGetMessage200ContentType];
+
+
+export const ChatControllerGetMessage200ContentType = {
+  text: 'text',
+} as const;
+
+export type ChatControllerGetMessage200Content = {
+  /**
+     * @minLength 1
+     * @maxLength 10000
+     */
+  text: string;
+};
+
+export type ChatControllerGetMessage200 = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string;
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  conversationId: string;
+  senderKind: ChatControllerGetMessage200SenderKind;
+  /** @nullable */
+  senderUserId: string | null;
+  contentType: ChatControllerGetMessage200ContentType;
+  content: ChatControllerGetMessage200Content;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  createdAt: string;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  updatedAt: string;
+  /**
+     * @nullable
+     * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+     */
+  editedAt: string | null;
+};
+
+export type ChatControllerUpdateMessageBody = {
+  /**
+     * @minLength 1
+     * @maxLength 10000
+     */
+  text: string;
+};
+
+export type ChatControllerUpdateMessage200SenderKind = typeof ChatControllerUpdateMessage200SenderKind[keyof typeof ChatControllerUpdateMessage200SenderKind];
+
+
+export const ChatControllerUpdateMessage200SenderKind = {
+  system: 'system',
+  user: 'user',
+} as const;
+
+export type ChatControllerUpdateMessage200ContentType = typeof ChatControllerUpdateMessage200ContentType[keyof typeof ChatControllerUpdateMessage200ContentType];
+
+
+export const ChatControllerUpdateMessage200ContentType = {
+  text: 'text',
+} as const;
+
+export type ChatControllerUpdateMessage200Content = {
+  /**
+     * @minLength 1
+     * @maxLength 10000
+     */
+  text: string;
+};
+
+export type ChatControllerUpdateMessage200 = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  id: string;
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  conversationId: string;
+  senderKind: ChatControllerUpdateMessage200SenderKind;
+  /** @nullable */
+  senderUserId: string | null;
+  contentType: ChatControllerUpdateMessage200ContentType;
+  content: ChatControllerUpdateMessage200Content;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  createdAt: string;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  updatedAt: string;
+  /**
+     * @nullable
+     * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+     */
+  editedAt: string | null;
+};
+
+export type ChatControllerMarkReadBody = {
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  messageId: string;
+};
 
 export type OrganizationsControllerList200ItemsItem = {
   /** @minLength 1 */
@@ -363,6 +986,10 @@ export type OrganizationsControllerChangeMemberRole200 = {
   user: OrganizationsControllerChangeMemberRole200User;
 };
 
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+
+
 const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKey: K } => {
   const result = { queryKey } as T & { queryKey: K };
   for (const key of Object.keys(query)) {
@@ -396,9 +1023,9 @@ export const getAppControllerGetHelloUrl = () => {
   return `/`
 }
 
-export const appControllerGetHello = async ( options?: RequestInit): Promise<appControllerGetHelloResponseSuccess> => {
+export const appControllerGetHello = async ( options?: Parameters<typeof workOsFetcher>[1]): Promise<appControllerGetHelloResponseSuccess> => {
 
-  const res = await fetch(getAppControllerGetHelloUrl(),
+  return workOsFetcher<appControllerGetHelloResponseSuccess>(getAppControllerGetHelloUrl(),
   {
       credentials: 'include',
     ...options,
@@ -406,21 +1033,7 @@ export const appControllerGetHello = async ( options?: RequestInit): Promise<app
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  if (!res.ok) {
-
-    const err: globalThis.Error & {info?: any, status?: number} = new globalThis.Error();
-    const data  = body ? JSON.parse(body) : {}
-    err.info = data;
-    err.status = res.status;
-    throw err;
-  }
-  const data: appControllerGetHelloResponseSuccess['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as appControllerGetHelloResponseSuccess
-}
+);}
 
 
 
@@ -433,16 +1046,16 @@ export const getAppControllerGetHelloQueryKey = () => {
     }
 
 
-export const getAppControllerGetHelloQueryOptions = <TData = Awaited<ReturnType<typeof appControllerGetHello>>, TError = globalThis.Error & { info?: unknown; status?: number }>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appControllerGetHello>>, TError, TData>>, fetch?: RequestInit}
+export const getAppControllerGetHelloQueryOptions = <TData = Awaited<ReturnType<typeof appControllerGetHello>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appControllerGetHello>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getAppControllerGetHelloQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof appControllerGetHello>>> = ({ signal }) => appControllerGetHello({ signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof appControllerGetHello>>> = ({ signal }) => appControllerGetHello({ signal, ...requestOptions });
 
 
 
@@ -452,36 +1065,36 @@ const {query: queryOptions, fetch: fetchOptions} = options ?? {};
 }
 
 export type AppControllerGetHelloQueryResult = NonNullable<Awaited<ReturnType<typeof appControllerGetHello>>>
-export type AppControllerGetHelloQueryError = globalThis.Error & { info?: unknown; status?: number }
+export type AppControllerGetHelloQueryError = unknown
 
 
-export function useAppControllerGetHello<TData = Awaited<ReturnType<typeof appControllerGetHello>>, TError = globalThis.Error & { info?: unknown; status?: number }>(
+export function useAppControllerGetHello<TData = Awaited<ReturnType<typeof appControllerGetHello>>, TError = unknown>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof appControllerGetHello>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof appControllerGetHello>>,
           TError,
           Awaited<ReturnType<typeof appControllerGetHello>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAppControllerGetHello<TData = Awaited<ReturnType<typeof appControllerGetHello>>, TError = globalThis.Error & { info?: unknown; status?: number }>(
+export function useAppControllerGetHello<TData = Awaited<ReturnType<typeof appControllerGetHello>>, TError = unknown>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appControllerGetHello>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof appControllerGetHello>>,
           TError,
           Awaited<ReturnType<typeof appControllerGetHello>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAppControllerGetHello<TData = Awaited<ReturnType<typeof appControllerGetHello>>, TError = globalThis.Error & { info?: unknown; status?: number }>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appControllerGetHello>>, TError, TData>>, fetch?: RequestInit}
+export function useAppControllerGetHello<TData = Awaited<ReturnType<typeof appControllerGetHello>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appControllerGetHello>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
-export function useAppControllerGetHello<TData = Awaited<ReturnType<typeof appControllerGetHello>>, TError = globalThis.Error & { info?: unknown; status?: number }>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appControllerGetHello>>, TError, TData>>, fetch?: RequestInit}
+export function useAppControllerGetHello<TData = Awaited<ReturnType<typeof appControllerGetHello>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appControllerGetHello>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -497,6 +1110,1349 @@ export function useAppControllerGetHello<TData = Awaited<ReturnType<typeof appCo
 
 
 
+
+export type chatControllerEventsResponse200 = {
+  data: void
+  status: 200
+}
+
+export type chatControllerEventsResponse400 = {
+  data: ProblemDetails
+  status: 400
+}
+
+export type chatControllerEventsResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type chatControllerEventsResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type chatControllerEventsResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type chatControllerEventsResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
+export type chatControllerEventsResponse500 = {
+  data: ProblemDetails
+  status: 500
+}
+
+export type chatControllerEventsResponseSuccess = (chatControllerEventsResponse200) & {
+  headers: Headers;
+};
+export type chatControllerEventsResponseError = (chatControllerEventsResponse400 | chatControllerEventsResponse401 | chatControllerEventsResponse403 | chatControllerEventsResponse404 | chatControllerEventsResponse409 | chatControllerEventsResponse500) & {
+  headers: Headers;
+};
+
+export const getChatControllerEventsUrl = () => {
+
+
+
+
+  return `/chat/events`
+}
+
+export const chatControllerEvents = async ( options?: Parameters<typeof workOsFetcher>[1]): Promise<chatControllerEventsResponseSuccess> => {
+
+  return workOsFetcher<chatControllerEventsResponseSuccess>(getChatControllerEventsUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getChatControllerEventsQueryKey = () => {
+    return [
+    `/chat/events`
+    ] as const;
+    }
+
+
+export const getChatControllerEventsQueryOptions = <TData = Awaited<ReturnType<typeof chatControllerEvents>>, TError = ProblemDetails>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatControllerEvents>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getChatControllerEventsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof chatControllerEvents>>> = ({ signal }) => chatControllerEvents({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof chatControllerEvents>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ChatControllerEventsQueryResult = NonNullable<Awaited<ReturnType<typeof chatControllerEvents>>>
+export type ChatControllerEventsQueryError = ProblemDetails
+
+
+export function useChatControllerEvents<TData = Awaited<ReturnType<typeof chatControllerEvents>>, TError = ProblemDetails>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatControllerEvents>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof chatControllerEvents>>,
+          TError,
+          Awaited<ReturnType<typeof chatControllerEvents>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useChatControllerEvents<TData = Awaited<ReturnType<typeof chatControllerEvents>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatControllerEvents>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof chatControllerEvents>>,
+          TError,
+          Awaited<ReturnType<typeof chatControllerEvents>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useChatControllerEvents<TData = Awaited<ReturnType<typeof chatControllerEvents>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatControllerEvents>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useChatControllerEvents<TData = Awaited<ReturnType<typeof chatControllerEvents>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatControllerEvents>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getChatControllerEventsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export type chatControllerListConversationsResponse200 = {
+  data: ChatControllerListConversations200
+  status: 200
+}
+
+export type chatControllerListConversationsResponse400 = {
+  data: ProblemDetails
+  status: 400
+}
+
+export type chatControllerListConversationsResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type chatControllerListConversationsResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type chatControllerListConversationsResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type chatControllerListConversationsResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
+export type chatControllerListConversationsResponse500 = {
+  data: ProblemDetails
+  status: 500
+}
+
+export type chatControllerListConversationsResponseSuccess = (chatControllerListConversationsResponse200) & {
+  headers: Headers;
+};
+export type chatControllerListConversationsResponseError = (chatControllerListConversationsResponse400 | chatControllerListConversationsResponse401 | chatControllerListConversationsResponse403 | chatControllerListConversationsResponse404 | chatControllerListConversationsResponse409 | chatControllerListConversationsResponse500) & {
+  headers: Headers;
+};
+
+export const getChatControllerListConversationsUrl = () => {
+
+
+
+
+  return `/chat/conversations`
+}
+
+export const chatControllerListConversations = async ( options?: Parameters<typeof workOsFetcher>[1]): Promise<chatControllerListConversationsResponseSuccess> => {
+
+  return workOsFetcher<chatControllerListConversationsResponseSuccess>(getChatControllerListConversationsUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getChatControllerListConversationsQueryKey = () => {
+    return [
+    `/chat/conversations`
+    ] as const;
+    }
+
+
+export const getChatControllerListConversationsQueryOptions = <TData = Awaited<ReturnType<typeof chatControllerListConversations>>, TError = ProblemDetails>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatControllerListConversations>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getChatControllerListConversationsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof chatControllerListConversations>>> = ({ signal }) => chatControllerListConversations({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof chatControllerListConversations>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ChatControllerListConversationsQueryResult = NonNullable<Awaited<ReturnType<typeof chatControllerListConversations>>>
+export type ChatControllerListConversationsQueryError = ProblemDetails
+
+
+export function useChatControllerListConversations<TData = Awaited<ReturnType<typeof chatControllerListConversations>>, TError = ProblemDetails>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatControllerListConversations>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof chatControllerListConversations>>,
+          TError,
+          Awaited<ReturnType<typeof chatControllerListConversations>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useChatControllerListConversations<TData = Awaited<ReturnType<typeof chatControllerListConversations>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatControllerListConversations>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof chatControllerListConversations>>,
+          TError,
+          Awaited<ReturnType<typeof chatControllerListConversations>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useChatControllerListConversations<TData = Awaited<ReturnType<typeof chatControllerListConversations>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatControllerListConversations>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useChatControllerListConversations<TData = Awaited<ReturnType<typeof chatControllerListConversations>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatControllerListConversations>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getChatControllerListConversationsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export type chatControllerCreateChannelResponse201 = {
+  data: ChatControllerCreateChannel201
+  status: 201
+}
+
+export type chatControllerCreateChannelResponse400 = {
+  data: ProblemDetails
+  status: 400
+}
+
+export type chatControllerCreateChannelResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type chatControllerCreateChannelResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type chatControllerCreateChannelResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type chatControllerCreateChannelResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
+export type chatControllerCreateChannelResponse500 = {
+  data: ProblemDetails
+  status: 500
+}
+
+export type chatControllerCreateChannelResponseSuccess = (chatControllerCreateChannelResponse201) & {
+  headers: Headers;
+};
+export type chatControllerCreateChannelResponseError = (chatControllerCreateChannelResponse400 | chatControllerCreateChannelResponse401 | chatControllerCreateChannelResponse403 | chatControllerCreateChannelResponse404 | chatControllerCreateChannelResponse409 | chatControllerCreateChannelResponse500) & {
+  headers: Headers;
+};
+
+export const getChatControllerCreateChannelUrl = () => {
+
+
+
+
+  return `/chat/channels`
+}
+
+export const chatControllerCreateChannel = async (chatControllerCreateChannelBody: ChatControllerCreateChannelBody, options?: Parameters<typeof workOsFetcher>[1]): Promise<chatControllerCreateChannelResponseSuccess> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<chatControllerCreateChannelResponseSuccess>(getChatControllerCreateChannelUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(chatControllerCreateChannelBody)
+  }
+);}
+
+
+
+
+
+export const getChatControllerCreateChannelMutationKey = () => ['chatControllerCreateChannel'] as const;
+
+export const getChatControllerCreateChannelMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerCreateChannel>>, TError,ChatControllerCreateChannelMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof chatControllerCreateChannel>>, TError,ChatControllerCreateChannelMutationVariables, TContext> => {
+
+const mutationKey = getChatControllerCreateChannelMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof chatControllerCreateChannel>>, ChatControllerCreateChannelMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  chatControllerCreateChannel(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChatControllerCreateChannelMutationResult = NonNullable<Awaited<ReturnType<typeof chatControllerCreateChannel>>>
+    export type ChatControllerCreateChannelMutationBody = ChatControllerCreateChannelBody
+    export type ChatControllerCreateChannelMutationError = ProblemDetails
+    export type ChatControllerCreateChannelMutationVariables = {data: ChatControllerCreateChannelBody}
+
+    export const useChatControllerCreateChannel = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerCreateChannel>>, TError,ChatControllerCreateChannelMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof chatControllerCreateChannel>>,
+        TError,
+        ChatControllerCreateChannelMutationVariables,
+        TContext
+      > => {
+      return useMutation(getChatControllerCreateChannelMutationOptions(options), queryClient);
+    }
+
+export type chatControllerCreateDirectResponse200 = {
+  data: ChatControllerCreateDirect200
+  status: 200
+}
+
+export type chatControllerCreateDirectResponse400 = {
+  data: ProblemDetails
+  status: 400
+}
+
+export type chatControllerCreateDirectResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type chatControllerCreateDirectResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type chatControllerCreateDirectResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type chatControllerCreateDirectResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
+export type chatControllerCreateDirectResponse500 = {
+  data: ProblemDetails
+  status: 500
+}
+
+export type chatControllerCreateDirectResponseSuccess = (chatControllerCreateDirectResponse200) & {
+  headers: Headers;
+};
+export type chatControllerCreateDirectResponseError = (chatControllerCreateDirectResponse400 | chatControllerCreateDirectResponse401 | chatControllerCreateDirectResponse403 | chatControllerCreateDirectResponse404 | chatControllerCreateDirectResponse409 | chatControllerCreateDirectResponse500) & {
+  headers: Headers;
+};
+
+export const getChatControllerCreateDirectUrl = () => {
+
+
+
+
+  return `/chat/direct`
+}
+
+export const chatControllerCreateDirect = async (chatControllerCreateDirectBody: ChatControllerCreateDirectBody, options?: Parameters<typeof workOsFetcher>[1]): Promise<chatControllerCreateDirectResponseSuccess> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<chatControllerCreateDirectResponseSuccess>(getChatControllerCreateDirectUrl(),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(chatControllerCreateDirectBody)
+  }
+);}
+
+
+
+
+
+export const getChatControllerCreateDirectMutationKey = () => ['chatControllerCreateDirect'] as const;
+
+export const getChatControllerCreateDirectMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerCreateDirect>>, TError,ChatControllerCreateDirectMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof chatControllerCreateDirect>>, TError,ChatControllerCreateDirectMutationVariables, TContext> => {
+
+const mutationKey = getChatControllerCreateDirectMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof chatControllerCreateDirect>>, ChatControllerCreateDirectMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  chatControllerCreateDirect(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChatControllerCreateDirectMutationResult = NonNullable<Awaited<ReturnType<typeof chatControllerCreateDirect>>>
+    export type ChatControllerCreateDirectMutationBody = ChatControllerCreateDirectBody
+    export type ChatControllerCreateDirectMutationError = ProblemDetails
+    export type ChatControllerCreateDirectMutationVariables = {data: ChatControllerCreateDirectBody}
+
+    export const useChatControllerCreateDirect = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerCreateDirect>>, TError,ChatControllerCreateDirectMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof chatControllerCreateDirect>>,
+        TError,
+        ChatControllerCreateDirectMutationVariables,
+        TContext
+      > => {
+      return useMutation(getChatControllerCreateDirectMutationOptions(options), queryClient);
+    }
+
+export type chatControllerGetConversationResponse200 = {
+  data: ChatControllerGetConversation200
+  status: 200
+}
+
+export type chatControllerGetConversationResponse400 = {
+  data: ProblemDetails
+  status: 400
+}
+
+export type chatControllerGetConversationResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type chatControllerGetConversationResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type chatControllerGetConversationResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type chatControllerGetConversationResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
+export type chatControllerGetConversationResponse500 = {
+  data: ProblemDetails
+  status: 500
+}
+
+export type chatControllerGetConversationResponseSuccess = (chatControllerGetConversationResponse200) & {
+  headers: Headers;
+};
+export type chatControllerGetConversationResponseError = (chatControllerGetConversationResponse400 | chatControllerGetConversationResponse401 | chatControllerGetConversationResponse403 | chatControllerGetConversationResponse404 | chatControllerGetConversationResponse409 | chatControllerGetConversationResponse500) & {
+  headers: Headers;
+};
+
+export const getChatControllerGetConversationUrl = (conversationId: string,) => {
+
+
+
+
+  return `/chat/conversations/${conversationId}`
+}
+
+export const chatControllerGetConversation = async (conversationId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<chatControllerGetConversationResponseSuccess> => {
+
+  return workOsFetcher<chatControllerGetConversationResponseSuccess>(getChatControllerGetConversationUrl(conversationId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getChatControllerGetConversationQueryKey = (conversationId: string,) => {
+    return [
+    `/chat/conversations/${conversationId}`
+    ] as const;
+    }
+
+
+export const getChatControllerGetConversationQueryOptions = <TData = Awaited<ReturnType<typeof chatControllerGetConversation>>, TError = ProblemDetails>(conversationId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatControllerGetConversation>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getChatControllerGetConversationQueryKey(conversationId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof chatControllerGetConversation>>> = ({ signal }) => chatControllerGetConversation(conversationId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: conversationId !== null && conversationId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof chatControllerGetConversation>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ChatControllerGetConversationQueryResult = NonNullable<Awaited<ReturnType<typeof chatControllerGetConversation>>>
+export type ChatControllerGetConversationQueryError = ProblemDetails
+
+
+export function useChatControllerGetConversation<TData = Awaited<ReturnType<typeof chatControllerGetConversation>>, TError = ProblemDetails>(
+ conversationId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatControllerGetConversation>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof chatControllerGetConversation>>,
+          TError,
+          Awaited<ReturnType<typeof chatControllerGetConversation>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useChatControllerGetConversation<TData = Awaited<ReturnType<typeof chatControllerGetConversation>>, TError = ProblemDetails>(
+ conversationId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatControllerGetConversation>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof chatControllerGetConversation>>,
+          TError,
+          Awaited<ReturnType<typeof chatControllerGetConversation>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useChatControllerGetConversation<TData = Awaited<ReturnType<typeof chatControllerGetConversation>>, TError = ProblemDetails>(
+ conversationId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatControllerGetConversation>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useChatControllerGetConversation<TData = Awaited<ReturnType<typeof chatControllerGetConversation>>, TError = ProblemDetails>(
+ conversationId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatControllerGetConversation>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getChatControllerGetConversationQueryOptions(conversationId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export type chatControllerListMessagesResponse200 = {
+  data: ChatControllerListMessages200
+  status: 200
+}
+
+export type chatControllerListMessagesResponse400 = {
+  data: ProblemDetails
+  status: 400
+}
+
+export type chatControllerListMessagesResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type chatControllerListMessagesResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type chatControllerListMessagesResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type chatControllerListMessagesResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
+export type chatControllerListMessagesResponse500 = {
+  data: ProblemDetails
+  status: 500
+}
+
+export type chatControllerListMessagesResponseSuccess = (chatControllerListMessagesResponse200) & {
+  headers: Headers;
+};
+export type chatControllerListMessagesResponseError = (chatControllerListMessagesResponse400 | chatControllerListMessagesResponse401 | chatControllerListMessagesResponse403 | chatControllerListMessagesResponse404 | chatControllerListMessagesResponse409 | chatControllerListMessagesResponse500) & {
+  headers: Headers;
+};
+
+export const getChatControllerListMessagesUrl = (conversationId: string,
+    params?: ChatControllerListMessagesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/chat/conversations/${conversationId}/messages?${stringifiedParams}` : `/chat/conversations/${conversationId}/messages`
+}
+
+export const chatControllerListMessages = async (conversationId: string,
+    params?: ChatControllerListMessagesParams, options?: Parameters<typeof workOsFetcher>[1]): Promise<chatControllerListMessagesResponseSuccess> => {
+
+  return workOsFetcher<chatControllerListMessagesResponseSuccess>(getChatControllerListMessagesUrl(conversationId,params),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getChatControllerListMessagesQueryKey = (conversationId: string,
+    params?: ChatControllerListMessagesParams,) => {
+    return [
+    `/chat/conversations/${conversationId}/messages`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getChatControllerListMessagesQueryOptions = <TData = Awaited<ReturnType<typeof chatControllerListMessages>>, TError = ProblemDetails>(conversationId: string,
+    params?: ChatControllerListMessagesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatControllerListMessages>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getChatControllerListMessagesQueryKey(conversationId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof chatControllerListMessages>>> = ({ signal }) => chatControllerListMessages(conversationId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: conversationId !== null && conversationId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof chatControllerListMessages>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ChatControllerListMessagesQueryResult = NonNullable<Awaited<ReturnType<typeof chatControllerListMessages>>>
+export type ChatControllerListMessagesQueryError = ProblemDetails
+
+
+export function useChatControllerListMessages<TData = Awaited<ReturnType<typeof chatControllerListMessages>>, TError = ProblemDetails>(
+ conversationId: string,
+    params: undefined |  ChatControllerListMessagesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatControllerListMessages>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof chatControllerListMessages>>,
+          TError,
+          Awaited<ReturnType<typeof chatControllerListMessages>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useChatControllerListMessages<TData = Awaited<ReturnType<typeof chatControllerListMessages>>, TError = ProblemDetails>(
+ conversationId: string,
+    params?: ChatControllerListMessagesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatControllerListMessages>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof chatControllerListMessages>>,
+          TError,
+          Awaited<ReturnType<typeof chatControllerListMessages>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useChatControllerListMessages<TData = Awaited<ReturnType<typeof chatControllerListMessages>>, TError = ProblemDetails>(
+ conversationId: string,
+    params?: ChatControllerListMessagesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatControllerListMessages>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useChatControllerListMessages<TData = Awaited<ReturnType<typeof chatControllerListMessages>>, TError = ProblemDetails>(
+ conversationId: string,
+    params?: ChatControllerListMessagesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatControllerListMessages>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getChatControllerListMessagesQueryOptions(conversationId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export type chatControllerSendMessageResponse201 = {
+  data: ChatControllerSendMessage201
+  status: 201
+}
+
+export type chatControllerSendMessageResponse400 = {
+  data: ProblemDetails
+  status: 400
+}
+
+export type chatControllerSendMessageResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type chatControllerSendMessageResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type chatControllerSendMessageResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type chatControllerSendMessageResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
+export type chatControllerSendMessageResponse500 = {
+  data: ProblemDetails
+  status: 500
+}
+
+export type chatControllerSendMessageResponseSuccess = (chatControllerSendMessageResponse201) & {
+  headers: Headers;
+};
+export type chatControllerSendMessageResponseError = (chatControllerSendMessageResponse400 | chatControllerSendMessageResponse401 | chatControllerSendMessageResponse403 | chatControllerSendMessageResponse404 | chatControllerSendMessageResponse409 | chatControllerSendMessageResponse500) & {
+  headers: Headers;
+};
+
+export const getChatControllerSendMessageUrl = (conversationId: string,) => {
+
+
+
+
+  return `/chat/conversations/${conversationId}/messages`
+}
+
+export const chatControllerSendMessage = async (conversationId: string,
+    chatControllerSendMessageBody: ChatControllerSendMessageBody, options?: Parameters<typeof workOsFetcher>[1]): Promise<chatControllerSendMessageResponseSuccess> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<chatControllerSendMessageResponseSuccess>(getChatControllerSendMessageUrl(conversationId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(chatControllerSendMessageBody)
+  }
+);}
+
+
+
+
+
+export const getChatControllerSendMessageMutationKey = () => ['chatControllerSendMessage'] as const;
+
+export const getChatControllerSendMessageMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerSendMessage>>, TError,ChatControllerSendMessageMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof chatControllerSendMessage>>, TError,ChatControllerSendMessageMutationVariables, TContext> => {
+
+const mutationKey = getChatControllerSendMessageMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof chatControllerSendMessage>>, ChatControllerSendMessageMutationVariables> = (props) => {
+          const {conversationId,data} = props ?? {};
+
+          return  chatControllerSendMessage(conversationId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChatControllerSendMessageMutationResult = NonNullable<Awaited<ReturnType<typeof chatControllerSendMessage>>>
+    export type ChatControllerSendMessageMutationBody = ChatControllerSendMessageBody
+    export type ChatControllerSendMessageMutationError = ProblemDetails
+    export type ChatControllerSendMessageMutationVariables = {conversationId: string;data: ChatControllerSendMessageBody}
+
+    export const useChatControllerSendMessage = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerSendMessage>>, TError,ChatControllerSendMessageMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof chatControllerSendMessage>>,
+        TError,
+        ChatControllerSendMessageMutationVariables,
+        TContext
+      > => {
+      return useMutation(getChatControllerSendMessageMutationOptions(options), queryClient);
+    }
+
+export type chatControllerGetMessageResponse200 = {
+  data: ChatControllerGetMessage200
+  status: 200
+}
+
+export type chatControllerGetMessageResponse400 = {
+  data: ProblemDetails
+  status: 400
+}
+
+export type chatControllerGetMessageResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type chatControllerGetMessageResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type chatControllerGetMessageResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type chatControllerGetMessageResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
+export type chatControllerGetMessageResponse500 = {
+  data: ProblemDetails
+  status: 500
+}
+
+export type chatControllerGetMessageResponseSuccess = (chatControllerGetMessageResponse200) & {
+  headers: Headers;
+};
+export type chatControllerGetMessageResponseError = (chatControllerGetMessageResponse400 | chatControllerGetMessageResponse401 | chatControllerGetMessageResponse403 | chatControllerGetMessageResponse404 | chatControllerGetMessageResponse409 | chatControllerGetMessageResponse500) & {
+  headers: Headers;
+};
+
+export const getChatControllerGetMessageUrl = (conversationId: string,
+    messageId: string,) => {
+
+
+
+
+  return `/chat/conversations/${conversationId}/messages/${messageId}`
+}
+
+export const chatControllerGetMessage = async (conversationId: string,
+    messageId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<chatControllerGetMessageResponseSuccess> => {
+
+  return workOsFetcher<chatControllerGetMessageResponseSuccess>(getChatControllerGetMessageUrl(conversationId,messageId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getChatControllerGetMessageQueryKey = (conversationId: string,
+    messageId: string,) => {
+    return [
+    `/chat/conversations/${conversationId}/messages/${messageId}`
+    ] as const;
+    }
+
+
+export const getChatControllerGetMessageQueryOptions = <TData = Awaited<ReturnType<typeof chatControllerGetMessage>>, TError = ProblemDetails>(conversationId: string,
+    messageId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatControllerGetMessage>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getChatControllerGetMessageQueryKey(conversationId,messageId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof chatControllerGetMessage>>> = ({ signal }) => chatControllerGetMessage(conversationId,messageId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: conversationId !== null && conversationId !== undefined && messageId !== null && messageId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof chatControllerGetMessage>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ChatControllerGetMessageQueryResult = NonNullable<Awaited<ReturnType<typeof chatControllerGetMessage>>>
+export type ChatControllerGetMessageQueryError = ProblemDetails
+
+
+export function useChatControllerGetMessage<TData = Awaited<ReturnType<typeof chatControllerGetMessage>>, TError = ProblemDetails>(
+ conversationId: string,
+    messageId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatControllerGetMessage>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof chatControllerGetMessage>>,
+          TError,
+          Awaited<ReturnType<typeof chatControllerGetMessage>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useChatControllerGetMessage<TData = Awaited<ReturnType<typeof chatControllerGetMessage>>, TError = ProblemDetails>(
+ conversationId: string,
+    messageId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatControllerGetMessage>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof chatControllerGetMessage>>,
+          TError,
+          Awaited<ReturnType<typeof chatControllerGetMessage>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useChatControllerGetMessage<TData = Awaited<ReturnType<typeof chatControllerGetMessage>>, TError = ProblemDetails>(
+ conversationId: string,
+    messageId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatControllerGetMessage>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useChatControllerGetMessage<TData = Awaited<ReturnType<typeof chatControllerGetMessage>>, TError = ProblemDetails>(
+ conversationId: string,
+    messageId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatControllerGetMessage>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getChatControllerGetMessageQueryOptions(conversationId,messageId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export type chatControllerUpdateMessageResponse200 = {
+  data: ChatControllerUpdateMessage200
+  status: 200
+}
+
+export type chatControllerUpdateMessageResponse400 = {
+  data: ProblemDetails
+  status: 400
+}
+
+export type chatControllerUpdateMessageResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type chatControllerUpdateMessageResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type chatControllerUpdateMessageResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type chatControllerUpdateMessageResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
+export type chatControllerUpdateMessageResponse500 = {
+  data: ProblemDetails
+  status: 500
+}
+
+export type chatControllerUpdateMessageResponseSuccess = (chatControllerUpdateMessageResponse200) & {
+  headers: Headers;
+};
+export type chatControllerUpdateMessageResponseError = (chatControllerUpdateMessageResponse400 | chatControllerUpdateMessageResponse401 | chatControllerUpdateMessageResponse403 | chatControllerUpdateMessageResponse404 | chatControllerUpdateMessageResponse409 | chatControllerUpdateMessageResponse500) & {
+  headers: Headers;
+};
+
+export const getChatControllerUpdateMessageUrl = (conversationId: string,
+    messageId: string,) => {
+
+
+
+
+  return `/chat/conversations/${conversationId}/messages/${messageId}`
+}
+
+export const chatControllerUpdateMessage = async (conversationId: string,
+    messageId: string,
+    chatControllerUpdateMessageBody: ChatControllerUpdateMessageBody, options?: Parameters<typeof workOsFetcher>[1]): Promise<chatControllerUpdateMessageResponseSuccess> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<chatControllerUpdateMessageResponseSuccess>(getChatControllerUpdateMessageUrl(conversationId,messageId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(chatControllerUpdateMessageBody)
+  }
+);}
+
+
+
+
+
+export const getChatControllerUpdateMessageMutationKey = () => ['chatControllerUpdateMessage'] as const;
+
+export const getChatControllerUpdateMessageMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerUpdateMessage>>, TError,ChatControllerUpdateMessageMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof chatControllerUpdateMessage>>, TError,ChatControllerUpdateMessageMutationVariables, TContext> => {
+
+const mutationKey = getChatControllerUpdateMessageMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof chatControllerUpdateMessage>>, ChatControllerUpdateMessageMutationVariables> = (props) => {
+          const {conversationId,messageId,data} = props ?? {};
+
+          return  chatControllerUpdateMessage(conversationId,messageId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChatControllerUpdateMessageMutationResult = NonNullable<Awaited<ReturnType<typeof chatControllerUpdateMessage>>>
+    export type ChatControllerUpdateMessageMutationBody = ChatControllerUpdateMessageBody
+    export type ChatControllerUpdateMessageMutationError = ProblemDetails
+    export type ChatControllerUpdateMessageMutationVariables = {conversationId: string;messageId: string;data: ChatControllerUpdateMessageBody}
+
+    export const useChatControllerUpdateMessage = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerUpdateMessage>>, TError,ChatControllerUpdateMessageMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof chatControllerUpdateMessage>>,
+        TError,
+        ChatControllerUpdateMessageMutationVariables,
+        TContext
+      > => {
+      return useMutation(getChatControllerUpdateMessageMutationOptions(options), queryClient);
+    }
+
+export type chatControllerMarkReadResponse204 = {
+  data: void
+  status: 204
+}
+
+export type chatControllerMarkReadResponse400 = {
+  data: ProblemDetails
+  status: 400
+}
+
+export type chatControllerMarkReadResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type chatControllerMarkReadResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type chatControllerMarkReadResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type chatControllerMarkReadResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
+export type chatControllerMarkReadResponse500 = {
+  data: ProblemDetails
+  status: 500
+}
+
+export type chatControllerMarkReadResponseSuccess = (chatControllerMarkReadResponse204) & {
+  headers: Headers;
+};
+export type chatControllerMarkReadResponseError = (chatControllerMarkReadResponse400 | chatControllerMarkReadResponse401 | chatControllerMarkReadResponse403 | chatControllerMarkReadResponse404 | chatControllerMarkReadResponse409 | chatControllerMarkReadResponse500) & {
+  headers: Headers;
+};
+
+export const getChatControllerMarkReadUrl = (conversationId: string,) => {
+
+
+
+
+  return `/chat/conversations/${conversationId}/read`
+}
+
+export const chatControllerMarkRead = async (conversationId: string,
+    chatControllerMarkReadBody: ChatControllerMarkReadBody, options?: Parameters<typeof workOsFetcher>[1]): Promise<chatControllerMarkReadResponseSuccess> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<chatControllerMarkReadResponseSuccess>(getChatControllerMarkReadUrl(conversationId),
+  {
+      credentials: 'include',
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(chatControllerMarkReadBody)
+  }
+);}
+
+
+
+
+
+export const getChatControllerMarkReadMutationKey = () => ['chatControllerMarkRead'] as const;
+
+export const getChatControllerMarkReadMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerMarkRead>>, TError,ChatControllerMarkReadMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof chatControllerMarkRead>>, TError,ChatControllerMarkReadMutationVariables, TContext> => {
+
+const mutationKey = getChatControllerMarkReadMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof chatControllerMarkRead>>, ChatControllerMarkReadMutationVariables> = (props) => {
+          const {conversationId,data} = props ?? {};
+
+          return  chatControllerMarkRead(conversationId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChatControllerMarkReadMutationResult = NonNullable<Awaited<ReturnType<typeof chatControllerMarkRead>>>
+    export type ChatControllerMarkReadMutationBody = ChatControllerMarkReadBody
+    export type ChatControllerMarkReadMutationError = ProblemDetails
+    export type ChatControllerMarkReadMutationVariables = {conversationId: string;data: ChatControllerMarkReadBody}
+
+    export const useChatControllerMarkRead = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerMarkRead>>, TError,ChatControllerMarkReadMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof chatControllerMarkRead>>,
+        TError,
+        ChatControllerMarkReadMutationVariables,
+        TContext
+      > => {
+      return useMutation(getChatControllerMarkReadMutationOptions(options), queryClient);
+    }
 
 export type organizationsControllerListResponse200 = {
   data: OrganizationsControllerList200
@@ -553,9 +2509,9 @@ export const getOrganizationsControllerListUrl = () => {
   return `/organizations`
 }
 
-export const organizationsControllerList = async ( options?: RequestInit): Promise<organizationsControllerListResponseSuccess> => {
+export const organizationsControllerList = async ( options?: Parameters<typeof workOsFetcher>[1]): Promise<organizationsControllerListResponseSuccess> => {
 
-  const res = await fetch(getOrganizationsControllerListUrl(),
+  return workOsFetcher<organizationsControllerListResponseSuccess>(getOrganizationsControllerListUrl(),
   {
       credentials: 'include',
     ...options,
@@ -563,21 +2519,7 @@ export const organizationsControllerList = async ( options?: RequestInit): Promi
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  if (!res.ok) {
-
-    const err: globalThis.Error & {info?: organizationsControllerListResponseError['data'], status?: number} = new globalThis.Error();
-    const data : organizationsControllerListResponseError['data'] = body ? JSON.parse(body) : {}
-    err.info = data;
-    err.status = res.status;
-    throw err;
-  }
-  const data: organizationsControllerListResponseSuccess['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as organizationsControllerListResponseSuccess
-}
+);}
 
 
 
@@ -590,16 +2532,16 @@ export const getOrganizationsControllerListQueryKey = () => {
     }
 
 
-export const getOrganizationsControllerListQueryOptions = <TData = Awaited<ReturnType<typeof organizationsControllerList>>, TError = globalThis.Error & { info?: ProblemDetails; status?: number }>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerList>>, TError, TData>>, fetch?: RequestInit}
+export const getOrganizationsControllerListQueryOptions = <TData = Awaited<ReturnType<typeof organizationsControllerList>>, TError = ProblemDetails>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerList>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getOrganizationsControllerListQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsControllerList>>> = ({ signal }) => organizationsControllerList({ signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsControllerList>>> = ({ signal }) => organizationsControllerList({ signal, ...requestOptions });
 
 
 
@@ -609,36 +2551,36 @@ const {query: queryOptions, fetch: fetchOptions} = options ?? {};
 }
 
 export type OrganizationsControllerListQueryResult = NonNullable<Awaited<ReturnType<typeof organizationsControllerList>>>
-export type OrganizationsControllerListQueryError = globalThis.Error & { info?: ProblemDetails; status?: number }
+export type OrganizationsControllerListQueryError = ProblemDetails
 
 
-export function useOrganizationsControllerList<TData = Awaited<ReturnType<typeof organizationsControllerList>>, TError = globalThis.Error & { info?: ProblemDetails; status?: number }>(
+export function useOrganizationsControllerList<TData = Awaited<ReturnType<typeof organizationsControllerList>>, TError = ProblemDetails>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerList>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof organizationsControllerList>>,
           TError,
           Awaited<ReturnType<typeof organizationsControllerList>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useOrganizationsControllerList<TData = Awaited<ReturnType<typeof organizationsControllerList>>, TError = globalThis.Error & { info?: ProblemDetails; status?: number }>(
+export function useOrganizationsControllerList<TData = Awaited<ReturnType<typeof organizationsControllerList>>, TError = ProblemDetails>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerList>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof organizationsControllerList>>,
           TError,
           Awaited<ReturnType<typeof organizationsControllerList>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useOrganizationsControllerList<TData = Awaited<ReturnType<typeof organizationsControllerList>>, TError = globalThis.Error & { info?: ProblemDetails; status?: number }>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerList>>, TError, TData>>, fetch?: RequestInit}
+export function useOrganizationsControllerList<TData = Awaited<ReturnType<typeof organizationsControllerList>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerList>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
-export function useOrganizationsControllerList<TData = Awaited<ReturnType<typeof organizationsControllerList>>, TError = globalThis.Error & { info?: ProblemDetails; status?: number }>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerList>>, TError, TData>>, fetch?: RequestInit}
+export function useOrganizationsControllerList<TData = Awaited<ReturnType<typeof organizationsControllerList>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerList>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -710,7 +2652,7 @@ export const getOrganizationsControllerCreateUrl = () => {
   return `/organizations`
 }
 
-export const organizationsControllerCreate = async (organizationsControllerCreateBody: OrganizationsControllerCreateBody, options?: RequestInit): Promise<organizationsControllerCreateResponseSuccess> => {
+export const organizationsControllerCreate = async (organizationsControllerCreateBody: OrganizationsControllerCreateBody, options?: Parameters<typeof workOsFetcher>[1]): Promise<organizationsControllerCreateResponseSuccess> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -726,7 +2668,7 @@ export const organizationsControllerCreate = async (organizationsControllerCreat
     }
     return headers;
   };
-const res = await fetch(getOrganizationsControllerCreateUrl(),
+return workOsFetcher<organizationsControllerCreateResponseSuccess>(getOrganizationsControllerCreateUrl(),
   {
       credentials: 'include',
     ...options,
@@ -734,21 +2676,7 @@ const res = await fetch(getOrganizationsControllerCreateUrl(),
     headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
     body: JSON.stringify(organizationsControllerCreateBody)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  if (!res.ok) {
-
-    const err: globalThis.Error & {info?: organizationsControllerCreateResponseError['data'], status?: number} = new globalThis.Error();
-    const data : organizationsControllerCreateResponseError['data'] = body ? JSON.parse(body) : {}
-    err.info = data;
-    err.status = res.status;
-    throw err;
-  }
-  const data: organizationsControllerCreateResponseSuccess['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as organizationsControllerCreateResponseSuccess
-}
+);}
 
 
 
@@ -756,16 +2684,16 @@ const res = await fetch(getOrganizationsControllerCreateUrl(),
 
 export const getOrganizationsControllerCreateMutationKey = () => ['organizationsControllerCreate'] as const;
 
-export const getOrganizationsControllerCreateMutationOptions = <TError = globalThis.Error & { info?: ProblemDetails; status?: number },
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof organizationsControllerCreate>>, TError,OrganizationsControllerCreateMutationVariables, TContext>, fetch?: RequestInit}
+export const getOrganizationsControllerCreateMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof organizationsControllerCreate>>, TError,OrganizationsControllerCreateMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
 ): UseMutationOptions<Awaited<ReturnType<typeof organizationsControllerCreate>>, TError,OrganizationsControllerCreateMutationVariables, TContext> => {
 
 const mutationKey = getOrganizationsControllerCreateMutationKey();
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -773,7 +2701,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof organizationsControllerCreate>>, OrganizationsControllerCreateMutationVariables> = (props) => {
           const {data} = props ?? {};
 
-          return  organizationsControllerCreate(data,fetchOptions)
+          return  organizationsControllerCreate(data,requestOptions)
         }
 
 
@@ -785,11 +2713,11 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
 
     export type OrganizationsControllerCreateMutationResult = NonNullable<Awaited<ReturnType<typeof organizationsControllerCreate>>>
     export type OrganizationsControllerCreateMutationBody = OrganizationsControllerCreateBody
-    export type OrganizationsControllerCreateMutationError = globalThis.Error & { info?: ProblemDetails; status?: number }
+    export type OrganizationsControllerCreateMutationError = ProblemDetails
     export type OrganizationsControllerCreateMutationVariables = {data: OrganizationsControllerCreateBody}
 
-    export const useOrganizationsControllerCreate = <TError = globalThis.Error & { info?: ProblemDetails; status?: number },
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof organizationsControllerCreate>>, TError,OrganizationsControllerCreateMutationVariables, TContext>, fetch?: RequestInit}
+    export const useOrganizationsControllerCreate = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof organizationsControllerCreate>>, TError,OrganizationsControllerCreateMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof organizationsControllerCreate>>,
         TError,
@@ -854,9 +2782,9 @@ export const getOrganizationsControllerGetActiveUrl = () => {
   return `/organizations/active`
 }
 
-export const organizationsControllerGetActive = async ( options?: RequestInit): Promise<organizationsControllerGetActiveResponseSuccess> => {
+export const organizationsControllerGetActive = async ( options?: Parameters<typeof workOsFetcher>[1]): Promise<organizationsControllerGetActiveResponseSuccess> => {
 
-  const res = await fetch(getOrganizationsControllerGetActiveUrl(),
+  return workOsFetcher<organizationsControllerGetActiveResponseSuccess>(getOrganizationsControllerGetActiveUrl(),
   {
       credentials: 'include',
     ...options,
@@ -864,21 +2792,7 @@ export const organizationsControllerGetActive = async ( options?: RequestInit): 
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  if (!res.ok) {
-
-    const err: globalThis.Error & {info?: organizationsControllerGetActiveResponseError['data'], status?: number} = new globalThis.Error();
-    const data : organizationsControllerGetActiveResponseError['data'] = body ? JSON.parse(body) : {}
-    err.info = data;
-    err.status = res.status;
-    throw err;
-  }
-  const data: organizationsControllerGetActiveResponseSuccess['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as organizationsControllerGetActiveResponseSuccess
-}
+);}
 
 
 
@@ -891,16 +2805,16 @@ export const getOrganizationsControllerGetActiveQueryKey = () => {
     }
 
 
-export const getOrganizationsControllerGetActiveQueryOptions = <TData = Awaited<ReturnType<typeof organizationsControllerGetActive>>, TError = globalThis.Error & { info?: ProblemDetails; status?: number }>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerGetActive>>, TError, TData>>, fetch?: RequestInit}
+export const getOrganizationsControllerGetActiveQueryOptions = <TData = Awaited<ReturnType<typeof organizationsControllerGetActive>>, TError = ProblemDetails>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerGetActive>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getOrganizationsControllerGetActiveQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsControllerGetActive>>> = ({ signal }) => organizationsControllerGetActive({ signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsControllerGetActive>>> = ({ signal }) => organizationsControllerGetActive({ signal, ...requestOptions });
 
 
 
@@ -910,36 +2824,36 @@ const {query: queryOptions, fetch: fetchOptions} = options ?? {};
 }
 
 export type OrganizationsControllerGetActiveQueryResult = NonNullable<Awaited<ReturnType<typeof organizationsControllerGetActive>>>
-export type OrganizationsControllerGetActiveQueryError = globalThis.Error & { info?: ProblemDetails; status?: number }
+export type OrganizationsControllerGetActiveQueryError = ProblemDetails
 
 
-export function useOrganizationsControllerGetActive<TData = Awaited<ReturnType<typeof organizationsControllerGetActive>>, TError = globalThis.Error & { info?: ProblemDetails; status?: number }>(
+export function useOrganizationsControllerGetActive<TData = Awaited<ReturnType<typeof organizationsControllerGetActive>>, TError = ProblemDetails>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerGetActive>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof organizationsControllerGetActive>>,
           TError,
           Awaited<ReturnType<typeof organizationsControllerGetActive>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useOrganizationsControllerGetActive<TData = Awaited<ReturnType<typeof organizationsControllerGetActive>>, TError = globalThis.Error & { info?: ProblemDetails; status?: number }>(
+export function useOrganizationsControllerGetActive<TData = Awaited<ReturnType<typeof organizationsControllerGetActive>>, TError = ProblemDetails>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerGetActive>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof organizationsControllerGetActive>>,
           TError,
           Awaited<ReturnType<typeof organizationsControllerGetActive>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useOrganizationsControllerGetActive<TData = Awaited<ReturnType<typeof organizationsControllerGetActive>>, TError = globalThis.Error & { info?: ProblemDetails; status?: number }>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerGetActive>>, TError, TData>>, fetch?: RequestInit}
+export function useOrganizationsControllerGetActive<TData = Awaited<ReturnType<typeof organizationsControllerGetActive>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerGetActive>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
-export function useOrganizationsControllerGetActive<TData = Awaited<ReturnType<typeof organizationsControllerGetActive>>, TError = globalThis.Error & { info?: ProblemDetails; status?: number }>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerGetActive>>, TError, TData>>, fetch?: RequestInit}
+export function useOrganizationsControllerGetActive<TData = Awaited<ReturnType<typeof organizationsControllerGetActive>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerGetActive>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -1011,7 +2925,7 @@ export const getOrganizationsControllerSetActiveUrl = () => {
   return `/organizations/active`
 }
 
-export const organizationsControllerSetActive = async (organizationsControllerSetActiveBody: OrganizationsControllerSetActiveBody, options?: RequestInit): Promise<organizationsControllerSetActiveResponseSuccess> => {
+export const organizationsControllerSetActive = async (organizationsControllerSetActiveBody: OrganizationsControllerSetActiveBody, options?: Parameters<typeof workOsFetcher>[1]): Promise<organizationsControllerSetActiveResponseSuccess> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -1027,7 +2941,7 @@ export const organizationsControllerSetActive = async (organizationsControllerSe
     }
     return headers;
   };
-const res = await fetch(getOrganizationsControllerSetActiveUrl(),
+return workOsFetcher<organizationsControllerSetActiveResponseSuccess>(getOrganizationsControllerSetActiveUrl(),
   {
       credentials: 'include',
     ...options,
@@ -1035,21 +2949,7 @@ const res = await fetch(getOrganizationsControllerSetActiveUrl(),
     headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
     body: JSON.stringify(organizationsControllerSetActiveBody)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  if (!res.ok) {
-
-    const err: globalThis.Error & {info?: organizationsControllerSetActiveResponseError['data'], status?: number} = new globalThis.Error();
-    const data : organizationsControllerSetActiveResponseError['data'] = body ? JSON.parse(body) : {}
-    err.info = data;
-    err.status = res.status;
-    throw err;
-  }
-  const data: organizationsControllerSetActiveResponseSuccess['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as organizationsControllerSetActiveResponseSuccess
-}
+);}
 
 
 
@@ -1057,16 +2957,16 @@ const res = await fetch(getOrganizationsControllerSetActiveUrl(),
 
 export const getOrganizationsControllerSetActiveMutationKey = () => ['organizationsControllerSetActive'] as const;
 
-export const getOrganizationsControllerSetActiveMutationOptions = <TError = globalThis.Error & { info?: ProblemDetails; status?: number },
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof organizationsControllerSetActive>>, TError,OrganizationsControllerSetActiveMutationVariables, TContext>, fetch?: RequestInit}
+export const getOrganizationsControllerSetActiveMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof organizationsControllerSetActive>>, TError,OrganizationsControllerSetActiveMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
 ): UseMutationOptions<Awaited<ReturnType<typeof organizationsControllerSetActive>>, TError,OrganizationsControllerSetActiveMutationVariables, TContext> => {
 
 const mutationKey = getOrganizationsControllerSetActiveMutationKey();
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -1074,7 +2974,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof organizationsControllerSetActive>>, OrganizationsControllerSetActiveMutationVariables> = (props) => {
           const {data} = props ?? {};
 
-          return  organizationsControllerSetActive(data,fetchOptions)
+          return  organizationsControllerSetActive(data,requestOptions)
         }
 
 
@@ -1086,11 +2986,11 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
 
     export type OrganizationsControllerSetActiveMutationResult = NonNullable<Awaited<ReturnType<typeof organizationsControllerSetActive>>>
     export type OrganizationsControllerSetActiveMutationBody = OrganizationsControllerSetActiveBody
-    export type OrganizationsControllerSetActiveMutationError = globalThis.Error & { info?: ProblemDetails; status?: number }
+    export type OrganizationsControllerSetActiveMutationError = ProblemDetails
     export type OrganizationsControllerSetActiveMutationVariables = {data: OrganizationsControllerSetActiveBody}
 
-    export const useOrganizationsControllerSetActive = <TError = globalThis.Error & { info?: ProblemDetails; status?: number },
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof organizationsControllerSetActive>>, TError,OrganizationsControllerSetActiveMutationVariables, TContext>, fetch?: RequestInit}
+    export const useOrganizationsControllerSetActive = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof organizationsControllerSetActive>>, TError,OrganizationsControllerSetActiveMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof organizationsControllerSetActive>>,
         TError,
@@ -1155,9 +3055,9 @@ export const getOrganizationsControllerGetDetailUrl = (organizationId: string,) 
   return `/organizations/${organizationId}`
 }
 
-export const organizationsControllerGetDetail = async (organizationId: string, options?: RequestInit): Promise<organizationsControllerGetDetailResponseSuccess> => {
+export const organizationsControllerGetDetail = async (organizationId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<organizationsControllerGetDetailResponseSuccess> => {
 
-  const res = await fetch(getOrganizationsControllerGetDetailUrl(organizationId),
+  return workOsFetcher<organizationsControllerGetDetailResponseSuccess>(getOrganizationsControllerGetDetailUrl(organizationId),
   {
       credentials: 'include',
     ...options,
@@ -1165,21 +3065,7 @@ export const organizationsControllerGetDetail = async (organizationId: string, o
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  if (!res.ok) {
-
-    const err: globalThis.Error & {info?: organizationsControllerGetDetailResponseError['data'], status?: number} = new globalThis.Error();
-    const data : organizationsControllerGetDetailResponseError['data'] = body ? JSON.parse(body) : {}
-    err.info = data;
-    err.status = res.status;
-    throw err;
-  }
-  const data: organizationsControllerGetDetailResponseSuccess['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as organizationsControllerGetDetailResponseSuccess
-}
+);}
 
 
 
@@ -1192,16 +3078,16 @@ export const getOrganizationsControllerGetDetailQueryKey = (organizationId: stri
     }
 
 
-export const getOrganizationsControllerGetDetailQueryOptions = <TData = Awaited<ReturnType<typeof organizationsControllerGetDetail>>, TError = globalThis.Error & { info?: ProblemDetails; status?: number }>(organizationId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerGetDetail>>, TError, TData>>, fetch?: RequestInit}
+export const getOrganizationsControllerGetDetailQueryOptions = <TData = Awaited<ReturnType<typeof organizationsControllerGetDetail>>, TError = ProblemDetails>(organizationId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerGetDetail>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getOrganizationsControllerGetDetailQueryKey(organizationId);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsControllerGetDetail>>> = ({ signal }) => organizationsControllerGetDetail(organizationId, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsControllerGetDetail>>> = ({ signal }) => organizationsControllerGetDetail(organizationId, { signal, ...requestOptions });
 
 
 
@@ -1211,36 +3097,36 @@ const {query: queryOptions, fetch: fetchOptions} = options ?? {};
 }
 
 export type OrganizationsControllerGetDetailQueryResult = NonNullable<Awaited<ReturnType<typeof organizationsControllerGetDetail>>>
-export type OrganizationsControllerGetDetailQueryError = globalThis.Error & { info?: ProblemDetails; status?: number }
+export type OrganizationsControllerGetDetailQueryError = ProblemDetails
 
 
-export function useOrganizationsControllerGetDetail<TData = Awaited<ReturnType<typeof organizationsControllerGetDetail>>, TError = globalThis.Error & { info?: ProblemDetails; status?: number }>(
+export function useOrganizationsControllerGetDetail<TData = Awaited<ReturnType<typeof organizationsControllerGetDetail>>, TError = ProblemDetails>(
  organizationId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerGetDetail>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof organizationsControllerGetDetail>>,
           TError,
           Awaited<ReturnType<typeof organizationsControllerGetDetail>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useOrganizationsControllerGetDetail<TData = Awaited<ReturnType<typeof organizationsControllerGetDetail>>, TError = globalThis.Error & { info?: ProblemDetails; status?: number }>(
+export function useOrganizationsControllerGetDetail<TData = Awaited<ReturnType<typeof organizationsControllerGetDetail>>, TError = ProblemDetails>(
  organizationId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerGetDetail>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof organizationsControllerGetDetail>>,
           TError,
           Awaited<ReturnType<typeof organizationsControllerGetDetail>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useOrganizationsControllerGetDetail<TData = Awaited<ReturnType<typeof organizationsControllerGetDetail>>, TError = globalThis.Error & { info?: ProblemDetails; status?: number }>(
- organizationId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerGetDetail>>, TError, TData>>, fetch?: RequestInit}
+export function useOrganizationsControllerGetDetail<TData = Awaited<ReturnType<typeof organizationsControllerGetDetail>>, TError = ProblemDetails>(
+ organizationId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerGetDetail>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
-export function useOrganizationsControllerGetDetail<TData = Awaited<ReturnType<typeof organizationsControllerGetDetail>>, TError = globalThis.Error & { info?: ProblemDetails; status?: number }>(
- organizationId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerGetDetail>>, TError, TData>>, fetch?: RequestInit}
+export function useOrganizationsControllerGetDetail<TData = Awaited<ReturnType<typeof organizationsControllerGetDetail>>, TError = ProblemDetails>(
+ organizationId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerGetDetail>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -1321,9 +3207,9 @@ export const getOrganizationsControllerListMembersUrl = (organizationId: string,
 }
 
 export const organizationsControllerListMembers = async (organizationId: string,
-    params?: OrganizationsControllerListMembersParams, options?: RequestInit): Promise<organizationsControllerListMembersResponseSuccess> => {
+    params?: OrganizationsControllerListMembersParams, options?: Parameters<typeof workOsFetcher>[1]): Promise<organizationsControllerListMembersResponseSuccess> => {
 
-  const res = await fetch(getOrganizationsControllerListMembersUrl(organizationId,params),
+  return workOsFetcher<organizationsControllerListMembersResponseSuccess>(getOrganizationsControllerListMembersUrl(organizationId,params),
   {
       credentials: 'include',
     ...options,
@@ -1331,21 +3217,7 @@ export const organizationsControllerListMembers = async (organizationId: string,
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  if (!res.ok) {
-
-    const err: globalThis.Error & {info?: organizationsControllerListMembersResponseError['data'], status?: number} = new globalThis.Error();
-    const data : organizationsControllerListMembersResponseError['data'] = body ? JSON.parse(body) : {}
-    err.info = data;
-    err.status = res.status;
-    throw err;
-  }
-  const data: organizationsControllerListMembersResponseSuccess['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as organizationsControllerListMembersResponseSuccess
-}
+);}
 
 
 
@@ -1359,17 +3231,17 @@ export const getOrganizationsControllerListMembersQueryKey = (organizationId: st
     }
 
 
-export const getOrganizationsControllerListMembersQueryOptions = <TData = Awaited<ReturnType<typeof organizationsControllerListMembers>>, TError = globalThis.Error & { info?: ProblemDetails; status?: number }>(organizationId: string,
-    params?: OrganizationsControllerListMembersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerListMembers>>, TError, TData>>, fetch?: RequestInit}
+export const getOrganizationsControllerListMembersQueryOptions = <TData = Awaited<ReturnType<typeof organizationsControllerListMembers>>, TError = ProblemDetails>(organizationId: string,
+    params?: OrganizationsControllerListMembersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerListMembers>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getOrganizationsControllerListMembersQueryKey(organizationId,params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsControllerListMembers>>> = ({ signal }) => organizationsControllerListMembers(organizationId,params, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsControllerListMembers>>> = ({ signal }) => organizationsControllerListMembers(organizationId,params, { signal, ...requestOptions });
 
 
 
@@ -1379,10 +3251,10 @@ const {query: queryOptions, fetch: fetchOptions} = options ?? {};
 }
 
 export type OrganizationsControllerListMembersQueryResult = NonNullable<Awaited<ReturnType<typeof organizationsControllerListMembers>>>
-export type OrganizationsControllerListMembersQueryError = globalThis.Error & { info?: ProblemDetails; status?: number }
+export type OrganizationsControllerListMembersQueryError = ProblemDetails
 
 
-export function useOrganizationsControllerListMembers<TData = Awaited<ReturnType<typeof organizationsControllerListMembers>>, TError = globalThis.Error & { info?: ProblemDetails; status?: number }>(
+export function useOrganizationsControllerListMembers<TData = Awaited<ReturnType<typeof organizationsControllerListMembers>>, TError = ProblemDetails>(
  organizationId: string,
     params: undefined |  OrganizationsControllerListMembersParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerListMembers>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -1390,10 +3262,10 @@ export function useOrganizationsControllerListMembers<TData = Awaited<ReturnType
           TError,
           Awaited<ReturnType<typeof organizationsControllerListMembers>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useOrganizationsControllerListMembers<TData = Awaited<ReturnType<typeof organizationsControllerListMembers>>, TError = globalThis.Error & { info?: ProblemDetails; status?: number }>(
+export function useOrganizationsControllerListMembers<TData = Awaited<ReturnType<typeof organizationsControllerListMembers>>, TError = ProblemDetails>(
  organizationId: string,
     params?: OrganizationsControllerListMembersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerListMembers>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -1401,18 +3273,18 @@ export function useOrganizationsControllerListMembers<TData = Awaited<ReturnType
           TError,
           Awaited<ReturnType<typeof organizationsControllerListMembers>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useOrganizationsControllerListMembers<TData = Awaited<ReturnType<typeof organizationsControllerListMembers>>, TError = globalThis.Error & { info?: ProblemDetails; status?: number }>(
+export function useOrganizationsControllerListMembers<TData = Awaited<ReturnType<typeof organizationsControllerListMembers>>, TError = ProblemDetails>(
  organizationId: string,
-    params?: OrganizationsControllerListMembersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerListMembers>>, TError, TData>>, fetch?: RequestInit}
+    params?: OrganizationsControllerListMembersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerListMembers>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
-export function useOrganizationsControllerListMembers<TData = Awaited<ReturnType<typeof organizationsControllerListMembers>>, TError = globalThis.Error & { info?: ProblemDetails; status?: number }>(
+export function useOrganizationsControllerListMembers<TData = Awaited<ReturnType<typeof organizationsControllerListMembers>>, TError = ProblemDetails>(
  organizationId: string,
-    params?: OrganizationsControllerListMembersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerListMembers>>, TError, TData>>, fetch?: RequestInit}
+    params?: OrganizationsControllerListMembersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsControllerListMembers>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -1487,7 +3359,7 @@ export const getOrganizationsControllerChangeMemberRoleUrl = (organizationId: st
 
 export const organizationsControllerChangeMemberRole = async (organizationId: string,
     memberId: string,
-    organizationsControllerChangeMemberRoleBody: OrganizationsControllerChangeMemberRoleBody, options?: RequestInit): Promise<organizationsControllerChangeMemberRoleResponseSuccess> => {
+    organizationsControllerChangeMemberRoleBody: OrganizationsControllerChangeMemberRoleBody, options?: Parameters<typeof workOsFetcher>[1]): Promise<organizationsControllerChangeMemberRoleResponseSuccess> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -1503,7 +3375,7 @@ export const organizationsControllerChangeMemberRole = async (organizationId: st
     }
     return headers;
   };
-const res = await fetch(getOrganizationsControllerChangeMemberRoleUrl(organizationId,memberId),
+return workOsFetcher<organizationsControllerChangeMemberRoleResponseSuccess>(getOrganizationsControllerChangeMemberRoleUrl(organizationId,memberId),
   {
       credentials: 'include',
     ...options,
@@ -1511,21 +3383,7 @@ const res = await fetch(getOrganizationsControllerChangeMemberRoleUrl(organizati
     headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
     body: JSON.stringify(organizationsControllerChangeMemberRoleBody)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  if (!res.ok) {
-
-    const err: globalThis.Error & {info?: organizationsControllerChangeMemberRoleResponseError['data'], status?: number} = new globalThis.Error();
-    const data : organizationsControllerChangeMemberRoleResponseError['data'] = body ? JSON.parse(body) : {}
-    err.info = data;
-    err.status = res.status;
-    throw err;
-  }
-  const data: organizationsControllerChangeMemberRoleResponseSuccess['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as organizationsControllerChangeMemberRoleResponseSuccess
-}
+);}
 
 
 
@@ -1533,16 +3391,16 @@ const res = await fetch(getOrganizationsControllerChangeMemberRoleUrl(organizati
 
 export const getOrganizationsControllerChangeMemberRoleMutationKey = () => ['organizationsControllerChangeMemberRole'] as const;
 
-export const getOrganizationsControllerChangeMemberRoleMutationOptions = <TError = globalThis.Error & { info?: ProblemDetails; status?: number },
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof organizationsControllerChangeMemberRole>>, TError,OrganizationsControllerChangeMemberRoleMutationVariables, TContext>, fetch?: RequestInit}
+export const getOrganizationsControllerChangeMemberRoleMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof organizationsControllerChangeMemberRole>>, TError,OrganizationsControllerChangeMemberRoleMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
 ): UseMutationOptions<Awaited<ReturnType<typeof organizationsControllerChangeMemberRole>>, TError,OrganizationsControllerChangeMemberRoleMutationVariables, TContext> => {
 
 const mutationKey = getOrganizationsControllerChangeMemberRoleMutationKey();
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -1550,7 +3408,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof organizationsControllerChangeMemberRole>>, OrganizationsControllerChangeMemberRoleMutationVariables> = (props) => {
           const {organizationId,memberId,data} = props ?? {};
 
-          return  organizationsControllerChangeMemberRole(organizationId,memberId,data,fetchOptions)
+          return  organizationsControllerChangeMemberRole(organizationId,memberId,data,requestOptions)
         }
 
 
@@ -1562,11 +3420,11 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
 
     export type OrganizationsControllerChangeMemberRoleMutationResult = NonNullable<Awaited<ReturnType<typeof organizationsControllerChangeMemberRole>>>
     export type OrganizationsControllerChangeMemberRoleMutationBody = OrganizationsControllerChangeMemberRoleBody
-    export type OrganizationsControllerChangeMemberRoleMutationError = globalThis.Error & { info?: ProblemDetails; status?: number }
+    export type OrganizationsControllerChangeMemberRoleMutationError = ProblemDetails
     export type OrganizationsControllerChangeMemberRoleMutationVariables = {organizationId: string;memberId: string;data: OrganizationsControllerChangeMemberRoleBody}
 
-    export const useOrganizationsControllerChangeMemberRole = <TError = globalThis.Error & { info?: ProblemDetails; status?: number },
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof organizationsControllerChangeMemberRole>>, TError,OrganizationsControllerChangeMemberRoleMutationVariables, TContext>, fetch?: RequestInit}
+    export const useOrganizationsControllerChangeMemberRole = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof organizationsControllerChangeMemberRole>>, TError,OrganizationsControllerChangeMemberRoleMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof organizationsControllerChangeMemberRole>>,
         TError,
@@ -1633,9 +3491,9 @@ export const getOrganizationsControllerRemoveMemberUrl = (organizationId: string
 }
 
 export const organizationsControllerRemoveMember = async (organizationId: string,
-    memberId: string, options?: RequestInit): Promise<organizationsControllerRemoveMemberResponseSuccess> => {
+    memberId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<organizationsControllerRemoveMemberResponseSuccess> => {
 
-  const res = await fetch(getOrganizationsControllerRemoveMemberUrl(organizationId,memberId),
+  return workOsFetcher<organizationsControllerRemoveMemberResponseSuccess>(getOrganizationsControllerRemoveMemberUrl(organizationId,memberId),
   {
       credentials: 'include',
     ...options,
@@ -1643,21 +3501,7 @@ export const organizationsControllerRemoveMember = async (organizationId: string
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  if (!res.ok) {
-
-    const err: globalThis.Error & {info?: organizationsControllerRemoveMemberResponseError['data'], status?: number} = new globalThis.Error();
-    const data : organizationsControllerRemoveMemberResponseError['data'] = body ? JSON.parse(body) : {}
-    err.info = data;
-    err.status = res.status;
-    throw err;
-  }
-  const data: organizationsControllerRemoveMemberResponseSuccess['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as organizationsControllerRemoveMemberResponseSuccess
-}
+);}
 
 
 
@@ -1665,16 +3509,16 @@ export const organizationsControllerRemoveMember = async (organizationId: string
 
 export const getOrganizationsControllerRemoveMemberMutationKey = () => ['organizationsControllerRemoveMember'] as const;
 
-export const getOrganizationsControllerRemoveMemberMutationOptions = <TError = globalThis.Error & { info?: ProblemDetails; status?: number },
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof organizationsControllerRemoveMember>>, TError,OrganizationsControllerRemoveMemberMutationVariables, TContext>, fetch?: RequestInit}
+export const getOrganizationsControllerRemoveMemberMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof organizationsControllerRemoveMember>>, TError,OrganizationsControllerRemoveMemberMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
 ): UseMutationOptions<Awaited<ReturnType<typeof organizationsControllerRemoveMember>>, TError,OrganizationsControllerRemoveMemberMutationVariables, TContext> => {
 
 const mutationKey = getOrganizationsControllerRemoveMemberMutationKey();
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -1682,7 +3526,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof organizationsControllerRemoveMember>>, OrganizationsControllerRemoveMemberMutationVariables> = (props) => {
           const {organizationId,memberId} = props ?? {};
 
-          return  organizationsControllerRemoveMember(organizationId,memberId,fetchOptions)
+          return  organizationsControllerRemoveMember(organizationId,memberId,requestOptions)
         }
 
 
@@ -1694,11 +3538,11 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
 
     export type OrganizationsControllerRemoveMemberMutationResult = NonNullable<Awaited<ReturnType<typeof organizationsControllerRemoveMember>>>
 
-    export type OrganizationsControllerRemoveMemberMutationError = globalThis.Error & { info?: ProblemDetails; status?: number }
+    export type OrganizationsControllerRemoveMemberMutationError = ProblemDetails
     export type OrganizationsControllerRemoveMemberMutationVariables = {organizationId: string;memberId: string}
 
-    export const useOrganizationsControllerRemoveMember = <TError = globalThis.Error & { info?: ProblemDetails; status?: number },
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof organizationsControllerRemoveMember>>, TError,OrganizationsControllerRemoveMemberMutationVariables, TContext>, fetch?: RequestInit}
+    export const useOrganizationsControllerRemoveMember = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof organizationsControllerRemoveMember>>, TError,OrganizationsControllerRemoveMemberMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof organizationsControllerRemoveMember>>,
         TError,

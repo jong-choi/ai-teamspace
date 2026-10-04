@@ -181,6 +181,7 @@ describe('채팅 E2E', () => {
 
     await recipient.agent
       .post(`/chat/conversations/${conversationId}/read`)
+      .send({ messageId })
       .expect(204);
     const afterRead = await recipient.agent.get('/chat/conversations');
     expect(afterRead.status).toBe(200);

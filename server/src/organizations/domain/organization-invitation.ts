@@ -20,6 +20,16 @@ export const OrganizationInvitationSchema = z.object({
   createdAt: z.date(),
 });
 
+export const OrganizationInvitationDetailSchema =
+  OrganizationInvitationSchema.extend({
+    organizationName: z.string().min(1),
+    organizationSlug: z.string().min(1),
+    inviterEmail: z.string().email(),
+  });
+
 export type OrganizationInvitation = z.infer<
   typeof OrganizationInvitationSchema
+>;
+export type OrganizationInvitationDetail = z.infer<
+  typeof OrganizationInvitationDetailSchema
 >;

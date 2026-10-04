@@ -12,4 +12,6 @@ export abstract class AuthUserDirectory {
   ): Promise<AuthUserIdentity | null>;
 
   abstract findByIds(userIds: readonly string[]): Promise<AuthUserIdentity[]>;
+
+  abstract findByEmails(emails: readonly string[]): Promise<AuthUserIdentity[]>;
 }

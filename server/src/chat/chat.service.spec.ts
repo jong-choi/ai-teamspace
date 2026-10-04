@@ -177,7 +177,7 @@ describe('채팅 서비스', () => {
         organizationNameAtSend: '조직 A',
       }),
     ).resolves.toMatchObject({
-      contentType: 'organization_invitation',
+      content: { type: 'organization_invitation' },
       referenceId: 'invitation-a',
     });
 
@@ -239,6 +239,44 @@ describe('채팅 서비스', () => {
     ).resolves.toMatchObject({ referenceId: 'invitation-a' });
   });
 
+  it('조직 초대 resend는 기존 durable message를 중복 저장하지 않고 realtime만 다시 알린다', async () => {
+    repository.deliverReferencedSystemMessage.mockResolvedValue({
+      conversation: conversation({
+        kind: 'system',
+        directKey: null,
+        systemUserId: recipientUserId,
+      }),
+      conversationCreated: false,
+      message: message({
+        senderKind: 'system',
+        senderUserId: null,
+        contentType: 'organization_invitation',
+        content: {
+          type: 'organization_invitation',
+          invitationId: 'invitation-a',
+          organizationId: 'organization-a',
+          inviterUserId: actorUserId,
+        },
+        referenceKind: 'organization_invitation',
+        referenceId: 'invitation-a',
+      }),
+      messageCreated: false,
+    });
+
+    await service.deliverOrganizationInvitation({
+      recipientUserId,
+      invitationId: 'invitation-a',
+      organizationId: 'organization-a',
+      inviterUserId: actorUserId,
+      republishExistingMessage: true,
+    });
+
+    expect(realtime.publishMessageCreated).toHaveBeenCalledWith(
+      [recipientUserId],
+      expect.objectContaining({ id: messageId }),
+    );
+  });
+
   it('대화 목록은 사이드바에 필요한 참가자, 읽지 않은 수, 최근 메시지를 함께 반환한다', async () => {
     repository.listConversationStates.mockResolvedValue([state()]);
     directory.findByIds.mockResolvedValue(directoryUsers());
@@ -254,7 +292,10 @@ describe('채팅 서비스', () => {
               { userId: actorUserId, username: 'actor' },
               { userId: recipientUserId, username: 'recipient' },
             ],
-            latestMessage: { id: messageId, content: { text: '안녕하세요' } },
+            latestMessage: {
+              id: messageId,
+              content: { type: 'text', text: '안녕하세요' },
+            },
           },
         ],
       },

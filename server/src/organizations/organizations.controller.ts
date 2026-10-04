@@ -45,7 +45,7 @@ import {
   UpdateOrganizationMemberRoleDto,
   type UpdateOrganizationMemberRoleInput,
 } from '#server/organizations/dto/update-organization-member-role.dto.js';
-import type { OrganizationActorContext } from '#server/organizations/infrastructure/organization/organization.provider.js';
+import { toOrganizationActorContext } from '#server/organizations/organization-actor-context.js';
 import { OrganizationsService } from '#server/organizations/organizations.service.js';
 
 import { Session, type UserSession } from '@thallesp/nestjs-better-auth';
@@ -72,7 +72,9 @@ export class OrganizationsController {
     @Session() session: UserSession<Auth>,
     @Headers() headers: IncomingHttpHeaders,
   ): Promise<OrganizationListDto> {
-    return this.organizationsService.list(this.context(session, headers));
+    return this.organizationsService.list(
+      toOrganizationActorContext(session, headers),
+    );
   }
 
   @Post()
@@ -85,7 +87,7 @@ export class OrganizationsController {
     input: CreateOrganizationInput,
   ): Promise<OrganizationAccessDto> {
     return this.organizationsService.create(
-      this.context(session, headers),
+      toOrganizationActorContext(session, headers),
       input,
     );
   }
@@ -96,7 +98,9 @@ export class OrganizationsController {
     @Session() session: UserSession<Auth>,
     @Headers() headers: IncomingHttpHeaders,
   ): Promise<ActiveOrganizationDto> {
-    return this.organizationsService.getActive(this.context(session, headers));
+    return this.organizationsService.getActive(
+      toOrganizationActorContext(session, headers),
+    );
   }
 
   @Put('active')
@@ -108,7 +112,7 @@ export class OrganizationsController {
     input: SetActiveOrganizationInput,
   ): Promise<ActiveOrganizationDto> {
     return this.organizationsService.setActive(
-      this.context(session, headers),
+      toOrganizationActorContext(session, headers),
       input,
     );
   }
@@ -121,7 +125,7 @@ export class OrganizationsController {
     @Param('organizationId') organizationId: string,
   ): Promise<OrganizationAccessDto> {
     return this.organizationsService.getDetail(
-      this.context(session, headers),
+      toOrganizationActorContext(session, headers),
       organizationId,
     );
   }
@@ -136,7 +140,7 @@ export class OrganizationsController {
     query: QueryOrganizationMembersInput,
   ): Promise<OrganizationMemberListDto> {
     return this.organizationsService.listMembers(
-      this.context(session, headers),
+      toOrganizationActorContext(session, headers),
       organizationId,
       query,
     );
@@ -153,7 +157,7 @@ export class OrganizationsController {
     input: UpdateOrganizationMemberRoleInput,
   ): Promise<OrganizationMemberDto> {
     return this.organizationsService.changeMemberRole(
-      this.context(session, headers),
+      toOrganizationActorContext(session, headers),
       organizationId,
       memberId,
       input,
@@ -170,21 +174,9 @@ export class OrganizationsController {
     @Param('memberId') memberId: string,
   ): Promise<void> {
     await this.organizationsService.removeMember(
-      this.context(session, headers),
+      toOrganizationActorContext(session, headers),
       organizationId,
       memberId,
     );
-  }
-
-  private context(
-    session: UserSession<Auth>,
-    requestHeaders: IncomingHttpHeaders,
-  ): OrganizationActorContext {
-    return {
-      userId: session.user.id,
-      activeOrganizationIdCandidate:
-        session.session.activeOrganizationId ?? undefined,
-      providerCredential: requestHeaders,
-    };
   }
 }

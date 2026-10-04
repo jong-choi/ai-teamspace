@@ -1,57 +1,30 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
-import { AuthUserDirectoryService } from '#server/auth/auth-user-directory.service.js';
-import { ChatService } from '#server/chat/chat.service.js';
 import {
-  OrganizationInvitationCompensationFailureError,
-  OrganizationInvitationDeliveryFailureError,
-  OrganizationInvitationUnavailableError,
   OrganizationMemberNotFoundError,
   OrganizationNotFoundError,
 } from '#server/organizations/domain/organization.error.js';
 import type { OrganizationAccess } from '#server/organizations/domain/organization-access.js';
 import type { OrganizationMember } from '#server/organizations/domain/organization-member.js';
 import {
-  assertInvitationCreateAllowed,
   assertMemberRemovalAllowed,
   assertMemberRoleChangeAllowed,
 } from '#server/organizations/domain/organization-policy.js';
 import type { ActiveOrganization } from '#server/organizations/dto/active-organization.dto.js';
 import type { CreateOrganizationInput } from '#server/organizations/dto/create-organization.dto.js';
-import type { CreateOrganizationInvitationInput } from '#server/organizations/dto/create-organization-invitation.dto.js';
-import type { OrganizationInvitationResponse } from '#server/organizations/dto/organization-invitation.dto.js';
-import { toOrganizationInvitationResponse } from '#server/organizations/dto/organization-invitation.dto.js';
 import type { OrganizationList } from '#server/organizations/dto/organization-list.dto.js';
 import type { OrganizationMemberList } from '#server/organizations/dto/organization-member-list.dto.js';
 import type { QueryOrganizationMembersInput } from '#server/organizations/dto/query-organization-members.dto.js';
 import type { SetActiveOrganizationInput } from '#server/organizations/dto/set-active-organization.dto.js';
 import type { UpdateOrganizationMemberRoleInput } from '#server/organizations/dto/update-organization-member-role.dto.js';
-import { OrganizationInvitationProvider } from '#server/organizations/infrastructure/invitation/organization-invitation.provider.js';
 import {
   type OrganizationActorContext,
   OrganizationProvider,
 } from '#server/organizations/infrastructure/organization/organization.provider.js';
 
-type OrganizationInvitationDelivery = Pick<
-  ChatService,
-  'deliverOrganizationInvitation'
->;
-
-type OrganizationUserDirectory = Pick<
-  AuthUserDirectoryService,
-  'resolveExactUsername'
->;
-
 @Injectable()
 export class OrganizationsService {
-  constructor(
-    private readonly organizationProvider: OrganizationProvider,
-    private readonly invitationProvider: OrganizationInvitationProvider,
-    @Inject(AuthUserDirectoryService)
-    private readonly userDirectory: OrganizationUserDirectory,
-    @Inject(ChatService)
-    private readonly chatService: OrganizationInvitationDelivery,
-  ) {}
+  constructor(private readonly organizationProvider: OrganizationProvider) {}
 
   async list(context: OrganizationActorContext): Promise<OrganizationList> {
     return {
@@ -64,58 +37,6 @@ export class OrganizationsService {
     input: CreateOrganizationInput,
   ): Promise<OrganizationAccess> {
     return this.organizationProvider.createForActor(context, input);
-  }
-
-  async createInvitation(
-    context: OrganizationActorContext,
-    organizationId: string,
-    input: CreateOrganizationInvitationInput,
-  ): Promise<OrganizationInvitationResponse> {
-    const access = await this.organizationProvider.getAccess(
-      context,
-      organizationId,
-    );
-    assertInvitationCreateAllowed(access.role);
-
-    const recipient = await this.userDirectory.resolveExactUsername(
-      input.recipientUsername,
-    );
-    if (!recipient) {
-      throw new OrganizationInvitationUnavailableError();
-    }
-
-    const invitation = await this.invitationProvider.create(context, {
-      organizationId,
-      email: recipient.email,
-      role: input.role,
-    });
-
-    try {
-      await this.chatService.deliverOrganizationInvitation({
-        recipientUserId: recipient.id,
-        invitationId: invitation.id,
-        organizationId,
-        inviterUserId: context.userId,
-        organizationNameAtSend: access.organization.name,
-      });
-    } catch (deliveryError) {
-      try {
-        await this.invitationProvider.cancel(context, invitation.id);
-      } catch (compensationError) {
-        throw new OrganizationInvitationCompensationFailureError(
-          invitation.id,
-          {
-            cause: new AggregateError([deliveryError, compensationError]),
-          },
-        );
-      }
-
-      throw new OrganizationInvitationDeliveryFailureError(invitation.id, {
-        cause: deliveryError,
-      });
-    }
-
-    return toOrganizationInvitationResponse(invitation);
   }
 
   async getActive(

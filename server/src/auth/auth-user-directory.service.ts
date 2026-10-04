@@ -18,4 +18,8 @@ export class AuthUserDirectoryService {
   findByIds(userIds: readonly string[]): Promise<AuthUserIdentity[]> {
     return this.directory.findByIds(userIds);
   }
+
+  findByEmails(emails: readonly string[]): Promise<AuthUserIdentity[]> {
+    return this.directory.findByEmails(emails);
+  }
 }

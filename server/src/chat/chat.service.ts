@@ -42,6 +42,7 @@ export type DeliverOrganizationInvitationInput = {
   inviterUserId: string;
   organizationNameAtSend?: string;
   inviterDisplayNameAtSend?: string;
+  republishExistingMessage?: boolean;
 };
 
 type ChatUserDirectory = Pick<
@@ -95,7 +96,7 @@ export class ChatService {
         ),
       );
     }
-    if (result.messageCreated) {
+    if (result.messageCreated || input.republishExistingMessage) {
       await this.publishBestEffort(() =>
         this.realtime.publishMessageCreated([input.recipientUserId], response),
       );

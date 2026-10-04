@@ -8,7 +8,7 @@ import type { OrganizationMember } from '#server/organizations/domain/organizati
 import type { OrganizationRole } from '#server/organizations/domain/organization-role.js';
 import { OrganizationRoleSchema } from '#server/organizations/domain/organization-role.js';
 
-export function assertInvitationCreateAllowed(role: OrganizationRole): void {
+export function assertInvitationAdminAllowed(role: OrganizationRole): void {
   if (role === OrganizationRoleSchema.enum.member) {
     throw new OrganizationAccessDeniedError();
   }

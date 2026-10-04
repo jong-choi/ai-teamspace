@@ -121,6 +121,39 @@ export class OrganizationInvitationUnavailableError extends ApplicationError {
   }
 }
 
+export class OrganizationInvitationNotFoundError extends ApplicationError {
+  constructor(options?: ErrorOptions) {
+    super(
+      'ORGANIZATION_INVITATION_NOT_FOUND',
+      'not_found',
+      '조직 초대를 찾을 수 없습니다.',
+      options,
+    );
+  }
+}
+
+export class OrganizationInvitationAccessDeniedError extends ApplicationError {
+  constructor(options?: ErrorOptions) {
+    super(
+      'ORGANIZATION_INVITATION_ACCESS_DENIED',
+      'forbidden',
+      '이 조직 초대에 접근할 권한이 없습니다.',
+      options,
+    );
+  }
+}
+
+export class OrganizationInvitationInvalidStateError extends ApplicationError {
+  constructor(options?: ErrorOptions) {
+    super(
+      'ORGANIZATION_INVITATION_INVALID_STATE',
+      'conflict',
+      '현재 상태에서는 이 조직 초대 작업을 수행할 수 없습니다.',
+      options,
+    );
+  }
+}
+
 export class OrganizationInvitationDeliveryFailureError extends ApplicationError {
   constructor(
     readonly invitationId: string,

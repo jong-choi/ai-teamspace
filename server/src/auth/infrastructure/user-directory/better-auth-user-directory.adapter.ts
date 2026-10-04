@@ -40,7 +40,23 @@ export class BetterAuthUserDirectory extends AuthUserDirectory {
     const { adapter } = await this.auth.instance.$context;
     return adapter.findMany<AuthUserIdentity>({
       model: 'user',
-      where: [{ field: 'id', operator: 'in', value: [...userIds] }],
+      where: [{ field: 'id', operator: 'in', value: [...new Set(userIds)] }],
+      select: userProjection,
+    });
+  }
+
+  async findByEmails(emails: readonly string[]): Promise<AuthUserIdentity[]> {
+    if (emails.length === 0) {
+      return [];
+    }
+
+    const normalizedEmails = [
+      ...new Set(emails.map((email) => email.toLowerCase())),
+    ];
+    const { adapter } = await this.auth.instance.$context;
+    return adapter.findMany<AuthUserIdentity>({
+      model: 'user',
+      where: [{ field: 'email', operator: 'in', value: normalizedEmails }],
       select: userProjection,
     });
   }

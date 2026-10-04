@@ -19,7 +19,7 @@ export function DashboardNotificationsProvider({
 
 export function useDashboardNotifications(): Pick<
   DashboardPlatformValue,
-  'notifyError'
+  'notifyError' | 'notifySuccess'
 > {
   const notifyError = useCallback<DashboardPlatformValue['notifyError']>(
     ({ id, title, description }) => {
@@ -27,6 +27,12 @@ export function useDashboardNotifications(): Pick<
     },
     [],
   );
+  const notifySuccess = useCallback<DashboardPlatformValue['notifySuccess']>(
+    ({ id, title, description }) => {
+      toast.success(title, { description, id });
+    },
+    [],
+  );
 
-  return { notifyError };
+  return { notifyError, notifySuccess };
 }

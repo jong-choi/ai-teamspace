@@ -40,7 +40,17 @@ const NAVIGATION_ITEMS = [
   { id: 'settings', label: '설정', icon: Settings },
 ] as const;
 
-export function DashboardNavigationContent() {
+export type DashboardNavigationItemId = (typeof NAVIGATION_ITEMS)[number]['id'];
+
+type DashboardNavigationContentProps = {
+  activeItem?: DashboardNavigationItemId;
+  organizationName?: string;
+};
+
+export function DashboardNavigationContent({
+  activeItem = 'home',
+  organizationName,
+}: DashboardNavigationContentProps) {
   return (
     <View className="min-h-0 flex-1">
       <ScrollView
@@ -48,7 +58,7 @@ export function DashboardNavigationContent() {
         contentContainerStyle={{ paddingBottom: 12 }}
         showsVerticalScrollIndicator={false}
       >
-        <OrganizationSwitcher />
+        <OrganizationSwitcher organizationName={organizationName} />
 
         <View className="hidden lg:flex">
           <QuickSearch />
@@ -62,7 +72,7 @@ export function DashboardNavigationContent() {
 
         <View className="gap-1 lg:gap-0.5">
           {NAVIGATION_ITEMS.map((item) => {
-            const active = item.id === 'home';
+            const active = item.id === activeItem;
             const aiItem = item.id === 'ai';
 
             return (
@@ -117,7 +127,11 @@ export function DashboardNavigationContent() {
   );
 }
 
-function OrganizationSwitcher() {
+function OrganizationSwitcher({
+  organizationName,
+}: {
+  organizationName?: string;
+}) {
   return (
     <View className="mb-4">
       <DropdownMenu>
@@ -132,10 +146,10 @@ function OrganizationSwitcher() {
               </View>
               <View className="min-w-0 flex-1">
                 <Text className="truncate text-xs font-semibold">
-                  조직 선택
+                  {organizationName ?? '조직 선택'}
                 </Text>
                 <Text className="text-[10px] text-muted-foreground">
-                  활성 조직 없음
+                  {organizationName ? '현재 조직' : '활성 조직 없음'}
                 </Text>
               </View>
             </View>
@@ -152,7 +166,7 @@ function OrganizationSwitcher() {
           <DropdownMenuSeparator />
           <DropdownMenuItem disabled>
             <Text className="text-xs text-muted-foreground">
-              연결된 조직 정보가 없습니다.
+              {organizationName ?? '연결된 조직 정보가 없습니다.'}
             </Text>
           </DropdownMenuItem>
         </DropdownMenuContent>

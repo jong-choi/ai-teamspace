@@ -12,16 +12,25 @@ import { Button } from '@repo/client/rnr/components/ui/button';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
-import { DashboardNavigationContent } from '@core/app/shell/dashboard-navigation-content';
+import {
+  DashboardNavigationContent,
+  type DashboardNavigationItemId,
+} from '@core/app/shell/dashboard-navigation-content';
 import { ThemeToggle } from '@core/app/shell/theme-toggle';
 
 import { Building2, Menu, Search, UserRound, X } from 'lucide-react-native';
 
 type DashboardShellProps = {
+  activeNavigationItem?: DashboardNavigationItemId;
   children: ReactNode;
+  organizationName?: string;
 };
 
-export function DashboardShell({ children }: DashboardShellProps) {
+export function DashboardShell({
+  activeNavigationItem,
+  children,
+  organizationName,
+}: DashboardShellProps) {
   const insets = useSafeAreaInsets();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const previousLayoutWidth = useRef<number | null>(null);
@@ -88,7 +97,10 @@ export function DashboardShell({ children }: DashboardShellProps) {
           </Button>
         </View>
 
-        <DashboardNavigationContent />
+        <DashboardNavigationContent
+          activeItem={activeNavigationItem}
+          organizationName={organizationName}
+        />
       </View>
 
       <View className="min-h-0 min-w-0 flex-1 bg-background">
@@ -115,7 +127,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
                 />
               </View>
               <Text className="max-w-[150px] truncate text-sm font-semibold tracking-tight">
-                조직 선택
+                {organizationName ?? '조직 선택'}
               </Text>
             </View>
           </View>

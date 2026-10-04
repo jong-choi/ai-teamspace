@@ -26,7 +26,7 @@ export function ExpoDashboardPlatformProvider({
 function ExpoDashboardPlatformBridge({ children }: { children: ReactNode }) {
   const session = authClient.useSession();
   const currentUserId = session.data?.user.id ?? null;
-  const { notifyError } = useDashboardNotifications();
+  const { notifyError, notifySuccess } = useDashboardNotifications();
 
   const value = useMemo(
     () => ({
@@ -38,8 +38,9 @@ function ExpoDashboardPlatformBridge({ children }: { children: ReactNode }) {
       createAppUrl: (path: string) =>
         Linking.createURL(path.replace(/^\//, '')),
       notifyError,
+      notifySuccess,
     }),
-    [currentUserId, notifyError, session.isPending],
+    [currentUserId, notifyError, notifySuccess, session.isPending],
   );
 
   return (

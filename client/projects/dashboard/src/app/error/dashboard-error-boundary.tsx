@@ -94,7 +94,13 @@ function DashboardErrorFallback({
         <Button onPress={resetErrorBoundary}>
           <Text className="text-primary-foreground">다시 시도</Text>
         </Button>
-        <Button onPress={() => router.replace(homeHref)} variant="outline">
+        <Button
+          onPress={() => {
+            router.replace(homeHref);
+            resetErrorBoundary();
+          }}
+          variant="outline"
+        >
           <Text>홈으로</Text>
         </Button>
       </View>

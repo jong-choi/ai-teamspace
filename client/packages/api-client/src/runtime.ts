@@ -17,7 +17,7 @@ export type ApiRequestOptions = RequestInit & {
   schema?: ZodType;
 };
 
-export type ErrorType<T> = T;
+export type ErrorType<T> = T | Error;
 
 let runtimeConfiguration: ApiRuntimeConfiguration = {};
 

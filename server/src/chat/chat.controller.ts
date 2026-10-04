@@ -50,6 +50,7 @@ import {
   UpdateChatMessageDto,
   type UpdateChatMessageInput,
 } from '#server/chat/dto/update-chat-message.dto.js';
+import { ChatRealtimeEventSchema } from '#server/chat/infrastructure/realtime/chat-realtime.event.js';
 import { TrustedOriginGuard } from '#server/common/http/trusted-origin.guard.js';
 
 import { Session, type UserSession } from '@thallesp/nestjs-better-auth';
@@ -71,6 +72,7 @@ export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
   @Sse('events')
+  @ApiOkResponse({ standardSchema: ChatRealtimeEventSchema })
   events(@Session() session: UserSession<Auth>): Observable<MessageEvent> {
     return merge(
       this.chatService.events(session.user.id).pipe(

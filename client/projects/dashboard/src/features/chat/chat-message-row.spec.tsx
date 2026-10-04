@@ -1,7 +1,7 @@
 import type {
-  ChatControllerListConversations200ItemsItem,
-  ChatControllerListMessages200ItemsItem,
-} from '@monorepo-erp/api-client';
+  ChatConversation,
+  ChatMessage,
+} from '@monorepo-erp/api-client/schemas';
 import { ChatMessageRow } from '@core/features/chat/chat-message-row';
 
 import { describe, expect, it, jest } from '@jest/globals';
@@ -11,7 +11,7 @@ const actorUserId = 'actor-user';
 const peerUserId = 'peer-user';
 const conversationId = '11111111-1111-4111-8111-111111111111';
 
-const conversation: ChatControllerListConversations200ItemsItem = {
+const conversation: ChatConversation = {
   id: conversationId,
   kind: 'direct',
   name: null,
@@ -40,9 +40,7 @@ const conversation: ChatControllerListConversations200ItemsItem = {
   updatedAt: '2026-10-04T00:00:00.000Z',
 };
 
-function createMessage(
-  senderUserId: string,
-): ChatControllerListMessages200ItemsItem {
+function createMessage(senderUserId: string): ChatMessage {
   return {
     id: '22222222-2222-4222-8222-222222222222',
     conversationId,

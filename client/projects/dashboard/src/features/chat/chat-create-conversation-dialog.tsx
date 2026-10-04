@@ -5,7 +5,7 @@ import {
   useChatControllerCreateChannel,
   useChatControllerCreateDirect,
 } from '@monorepo-erp/api-client';
-import { getProblemDetail } from '@core/features/chat/chat-presenter';
+import { useMutationErrorNotification } from '@core/app/error/use-mutation-error-notification';
 import { Button } from '@repo/client/rnr/components/ui/button';
 import {
   Dialog,
@@ -38,12 +38,19 @@ export function ChatCreateConversationDialog({
   const [topic, setTopic] = useState('');
   const [participantUsernames, setParticipantUsernames] = useState('');
   const [recipientUsername, setRecipientUsername] = useState('');
-
-  const createChannel = useChatControllerCreateChannel();
-  const createDirect = useChatControllerCreateDirect();
+  const notifyCreateError = useMutationErrorNotification({
+    id: 'chat-create-conversation',
+    title: '대화를 만들지 못했습니다',
+    fallback: '잠시 후 다시 시도해 주세요.',
+  });
+  const createChannel = useChatControllerCreateChannel({
+    mutation: { onError: notifyCreateError },
+  });
+  const createDirect = useChatControllerCreateDirect({
+    mutation: { onError: notifyCreateError },
+  });
 
   const pending = createChannel.isPending || createDirect.isPending;
-  const error = mode === 'channel' ? createChannel.error : createDirect.error;
   const canSubmit =
     mode === 'channel'
       ? name.trim().replace(/^#/, '').length > 0
@@ -102,7 +109,7 @@ export function ChatCreateConversationDialog({
           },
         },
         {
-          onSuccess: (response) => handleCreated(response.data.id),
+          onSuccess: (response) => handleCreated(response.id),
         },
       );
       return;
@@ -115,7 +122,7 @@ export function ChatCreateConversationDialog({
     createDirect.mutate(
       { data: { recipientUsername: username } },
       {
-        onSuccess: (response) => handleCreated(response.data.id),
+        onSuccess: (response) => handleCreated(response.id),
       },
     );
   };
@@ -210,12 +217,6 @@ export function ChatCreateConversationDialog({
             </Text>
           </View>
         )}
-
-        {error ? (
-          <Text className="text-xs text-destructive">
-            {getProblemDetail(error) ?? '대화를 만들지 못했습니다.'}
-          </Text>
-        ) : null}
 
         <DialogFooter>
           <Button

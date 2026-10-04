@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { View } from 'react-native';
 
-import type { ChatControllerListMessages200ItemsItem } from '@monorepo-erp/api-client';
+import type { ChatMessage } from '@monorepo-erp/api-client/schemas';
 import { formatMessageTime } from '@core/features/chat/chat-presenter';
 import type { ChatParticipantDisplay } from '@core/features/chat/chat-query';
 import {
@@ -19,7 +19,7 @@ import { Link2, Pencil } from 'lucide-react-native';
 type ChatMessageRowProps = {
   currentUserId: string;
   focused: boolean;
-  message: ChatControllerListMessages200ItemsItem;
+  message: ChatMessage;
   sender?: ChatParticipantDisplay;
   onCopyCanonical: (messageId: string) => void;
   onEdit: (messageId: string) => void;

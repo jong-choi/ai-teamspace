@@ -1,7 +1,7 @@
 import { memo, useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
-import type { ChatControllerListConversations200ItemsItem } from '@monorepo-erp/api-client';
+import type { ChatConversation } from '@monorepo-erp/api-client/schemas';
 import { getConversationDisplay } from '@core/features/chat/chat-presenter';
 import { useChatConversations } from '@core/features/chat/chat-query';
 import {
@@ -36,7 +36,7 @@ type SidebarItem =
   | {
       id: string;
       type: 'conversation';
-      conversation: ChatControllerListConversations200ItemsItem;
+      conversation: ChatConversation;
     };
 
 export function ChatConversationSidebar({
@@ -139,7 +139,7 @@ const ConversationRow = memo(function ConversationRow({
   onSelect,
 }: {
   active: boolean;
-  conversation: ChatControllerListConversations200ItemsItem;
+  conversation: ChatConversation;
   currentUserId: string;
   onSelect: (id: string) => void;
 }) {
@@ -210,7 +210,7 @@ const ConversationRow = memo(function ConversationRow({
 });
 
 function buildSidebarItems(
-  conversations: ChatControllerListConversations200ItemsItem[],
+  conversations: ChatConversation[],
   currentUserId: string,
   search: string,
 ): SidebarItem[] {
@@ -240,8 +240,8 @@ function buildSidebarItems(
 
 function appendSection(
   items: SidebarItem[],
-  conversations: ChatControllerListConversations200ItemsItem[],
-  kind: ChatControllerListConversations200ItemsItem['kind'],
+  conversations: ChatConversation[],
+  kind: ChatConversation['kind'],
   label: string,
 ): void {
   const section = conversations.filter(

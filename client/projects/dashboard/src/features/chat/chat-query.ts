@@ -1,162 +1,114 @@
 import {
-  type ChatControllerGetConversation200ParticipantsItem,
-  type ChatControllerGetConversationQueryResult,
-  type ChatControllerGetMessageQueryResult,
-  type ChatControllerListConversations200ItemsItem,
-  type ChatControllerListConversationsQueryResult,
-  chatControllerListMessages,
-  type ChatControllerListMessages200ItemsItem,
-  type ChatControllerListMessagesQueryResult,
   getChatControllerGetConversationQueryKey,
-  getChatControllerGetConversationQueryOptions,
   getChatControllerGetMessageQueryKey,
-  getChatControllerGetMessageQueryOptions,
   getChatControllerListConversationsQueryKey,
-  getChatControllerListConversationsQueryOptions,
-  getChatControllerListMessagesQueryKey,
+  getChatControllerListMessagesInfiniteQueryKey,
+  useChatControllerGetConversationSuspense,
+  useChatControllerGetMessageSuspense,
+  useChatControllerListConversationsSuspense,
+  useChatControllerListMessagesSuspenseInfinite,
 } from '@monorepo-erp/api-client';
+import type {
+  ChatConversation,
+  ChatConversationList,
+  ChatMessage,
+  ChatMessagePage,
+  ChatParticipant,
+} from '@monorepo-erp/api-client/schemas';
 
-import {
-  type InfiniteData,
-  type QueryClient,
-  skipToken,
-  useSuspenseInfiniteQuery,
-  useSuspenseQuery,
-} from '@tanstack/react-query';
+import type { InfiniteData, QueryClient } from '@tanstack/react-query';
 
 const MESSAGE_PAGE_SIZE = 50;
-const INITIAL_MESSAGE_CURSOR: string | null = null;
 
-type MessageHistory = InfiniteData<
-  ChatControllerListMessagesQueryResult,
-  unknown
->;
+export type MessageHistory = InfiniteData<ChatMessagePage, string | undefined>;
 
 export type ChatParticipantDisplay = Pick<
-  ChatControllerGetConversation200ParticipantsItem,
+  ChatParticipant,
   'userId' | 'name' | 'username' | 'image'
 >;
 
 export function useChatConversations() {
-  const options = getChatControllerListConversationsQueryOptions<
-    ChatControllerListConversations200ItemsItem[]
-  >({
+  return useChatControllerListConversationsSuspense<ChatConversation[]>({
     query: {
-      select: (response) => response.data.items,
+      select: (response) => response.items,
     },
   });
-  const queryFn = requireQueryFn(options.queryFn);
-
-  return useSuspenseQuery({ ...options, queryFn });
 }
 
 export function useChatConversationHeader(conversationId: string) {
-  type HeaderData = Pick<
-    ChatControllerGetConversationQueryResult['data'],
-    'id' | 'kind' | 'name' | 'topic'
-  > & {
+  type HeaderData = Pick<ChatConversation, 'id' | 'kind' | 'name' | 'topic'> & {
     participants: ChatParticipantDisplay[];
   };
-  const options = getChatControllerGetConversationQueryOptions<HeaderData>(
-    conversationId,
-    {
-      query: {
-        select: (response) => ({
-          id: response.data.id,
-          kind: response.data.kind,
-          name: response.data.name,
-          topic: response.data.topic,
-          participants: response.data.participants.map(
-            toChatParticipantDisplay,
-          ),
-        }),
-      },
-    },
-  );
-  const queryFn = requireQueryFn(options.queryFn);
 
-  return useSuspenseQuery({ ...options, queryFn });
+  return useChatControllerGetConversationSuspense<HeaderData>(conversationId, {
+    query: {
+      select: (response) => ({
+        id: response.id,
+        kind: response.kind,
+        name: response.name,
+        topic: response.topic,
+        participants: response.participants.map(toChatParticipantDisplay),
+      }),
+    },
+  });
 }
 
 export function useChatConversationParticipants(conversationId: string) {
-  const options = getChatControllerGetConversationQueryOptions<
-    ChatParticipantDisplay[]
-  >(conversationId, {
-    query: {
-      select: (response) =>
-        response.data.participants.map(toChatParticipantDisplay),
+  return useChatControllerGetConversationSuspense<ChatParticipantDisplay[]>(
+    conversationId,
+    {
+      query: {
+        select: (response) =>
+          response.participants.map(toChatParticipantDisplay),
+      },
     },
-  });
-  const queryFn = requireQueryFn(options.queryFn);
-
-  return useSuspenseQuery({ ...options, queryFn });
+  );
 }
 
 export function useChatConversationReadState(conversationId: string) {
   type ReadState = Pick<
-    ChatControllerGetConversationQueryResult['data'],
+    ChatConversation,
     'id' | 'unreadCount' | 'latestMessage'
   >;
-  const options = getChatControllerGetConversationQueryOptions<ReadState>(
-    conversationId,
-    {
-      query: {
-        select: (response) => ({
-          id: response.data.id,
-          unreadCount: response.data.unreadCount,
-          latestMessage: response.data.latestMessage,
-        }),
-      },
-    },
-  );
-  const queryFn = requireQueryFn(options.queryFn);
 
-  return useSuspenseQuery({ ...options, queryFn });
+  return useChatControllerGetConversationSuspense<ReadState>(conversationId, {
+    query: {
+      select: (response) => ({
+        id: response.id,
+        unreadCount: response.unreadCount,
+        latestMessage: response.latestMessage,
+      }),
+    },
+  });
 }
 
 export function useChatMessage(conversationId: string, messageId: string) {
-  const options = getChatControllerGetMessageQueryOptions<
-    ChatControllerGetMessageQueryResult['data']
-  >(conversationId, messageId, {
-    query: {
-      select: (response) => response.data,
-    },
-  });
-  const queryFn = requireQueryFn(options.queryFn);
-
-  return useSuspenseQuery({ ...options, queryFn });
+  return useChatControllerGetMessageSuspense(conversationId, messageId);
 }
 
 export function useChatMessageHistory(conversationId: string) {
-  return useSuspenseInfiniteQuery({
-    queryKey: getChatControllerListMessagesQueryKey(conversationId),
-    initialPageParam: INITIAL_MESSAGE_CURSOR,
-    queryFn: ({ pageParam, signal }) =>
-      chatControllerListMessages(
-        conversationId,
-        {
-          before: pageParam ?? undefined,
-          limit: MESSAGE_PAGE_SIZE,
-        },
-        { signal },
-      ),
-    getNextPageParam: (lastPage) => lastPage.data.nextCursor ?? undefined,
-  });
+  return useChatControllerListMessagesSuspenseInfinite(
+    conversationId,
+    { limit: MESSAGE_PAGE_SIZE },
+    {
+      query: {
+        initialPageParam: undefined,
+        getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+      },
+    },
+  );
 }
 
 export function flattenChatMessageHistory(
   history: MessageHistory | undefined,
-): ChatControllerListMessages200ItemsItem[] {
+): ChatMessage[] {
   if (!history) {
     return [];
   }
 
-  const messagesById = new Map<
-    string,
-    ChatControllerListMessages200ItemsItem
-  >();
+  const messagesById = new Map<string, ChatMessage>();
   for (const page of history.pages) {
-    for (const message of page.data.items) {
+    for (const message of page.items) {
       const current = messagesById.get(message.id);
       if (!current || compareChatMessageVersions(current, message) < 0) {
         messagesById.set(message.id, message);
@@ -169,14 +121,14 @@ export function flattenChatMessageHistory(
 
 export function mergeCreatedMessage(
   queryClient: QueryClient,
-  message: ChatControllerListMessages200ItemsItem,
+  message: ChatMessage,
   currentUserId: string,
 ): void {
   const inserted = appendMessageToHistory(queryClient, message);
 
   const mergeConversation = (
-    conversation: ChatControllerListConversations200ItemsItem,
-  ): ChatControllerListConversations200ItemsItem => {
+    conversation: ChatConversation,
+  ): ChatConversation => {
     const alreadyApplied =
       inserted === false || conversation.latestMessage?.id === message.id;
     const latestMessage = conversation.latestMessage;
@@ -214,21 +166,19 @@ export function mergeCreatedMessage(
 
 export function mergeUpdatedMessage(
   queryClient: QueryClient,
-  message: ChatControllerListMessages200ItemsItem,
+  message: ChatMessage,
 ): void {
   replaceMessageInHistory(queryClient, message);
 
-  queryClient.setQueryData<ChatControllerGetMessageQueryResult>(
+  queryClient.setQueryData<ChatMessage>(
     getChatControllerGetMessageQueryKey(message.conversationId, message.id),
     (current) =>
-      !current || compareChatMessageVersions(current.data, message) >= 0
+      !current || compareChatMessageVersions(current, message) >= 0
         ? current
-        : { ...current, data: message },
+        : message,
   );
 
-  const updateLatest = (
-    conversation: ChatControllerListConversations200ItemsItem,
-  ) => {
+  const updateLatest = (conversation: ChatConversation): ChatConversation => {
     const latestMessage = conversation.latestMessage;
     if (
       latestMessage?.id !== message.id ||
@@ -250,13 +200,13 @@ export async function refreshChatAfterReconnect(
   const [conversationPrefix] = getChatControllerListConversationsQueryKey();
 
   await queryClient.invalidateQueries({
-    predicate: (query) => {
-      const [key] = query.queryKey;
-      return (
-        typeof key === 'string' &&
-        (key === conversationPrefix || key.startsWith(`${conversationPrefix}/`))
-      );
-    },
+    predicate: (query) =>
+      query.queryKey.some(
+        (key) =>
+          typeof key === 'string' &&
+          (key === conversationPrefix ||
+            key.startsWith(`${conversationPrefix}/`)),
+      ),
   });
 }
 
@@ -276,19 +226,21 @@ export async function refreshConversationMetadata(
 
 function appendMessageToHistory(
   queryClient: QueryClient,
-  message: ChatControllerListMessages200ItemsItem,
+  message: ChatMessage,
 ): boolean | null {
   let inserted: boolean | null = null;
 
   queryClient.setQueryData<MessageHistory>(
-    getChatControllerListMessagesQueryKey(message.conversationId),
+    getChatControllerListMessagesInfiniteQueryKey(message.conversationId, {
+      limit: MESSAGE_PAGE_SIZE,
+    }),
     (current) => {
       if (!current || current.pages.length === 0) {
         return current;
       }
       if (
         current.pages.some((page) =>
-          page.data.items.some(({ id }) => id === message.id),
+          page.items.some(({ id }) => id === message.id),
         )
       ) {
         inserted = false;
@@ -302,12 +254,7 @@ function appendMessageToHistory(
         pages: [
           {
             ...latestPage,
-            data: {
-              ...latestPage.data,
-              items: [...latestPage.data.items, message].sort(
-                compareChatMessages,
-              ),
-            },
+            items: [...latestPage.items, message].sort(compareChatMessages),
           },
           ...olderPages,
         ],
@@ -320,10 +267,12 @@ function appendMessageToHistory(
 
 function replaceMessageInHistory(
   queryClient: QueryClient,
-  message: ChatControllerListMessages200ItemsItem,
+  message: ChatMessage,
 ): void {
   queryClient.setQueryData<MessageHistory>(
-    getChatControllerListMessagesQueryKey(message.conversationId),
+    getChatControllerListMessagesInfiniteQueryKey(message.conversationId, {
+      limit: MESSAGE_PAGE_SIZE,
+    }),
     (current) => {
       if (!current) {
         return current;
@@ -332,7 +281,7 @@ function replaceMessageInHistory(
       let changed = false;
       const pages = current.pages.map((page) => {
         let pageChanged = false;
-        const items = page.data.items.map((item) => {
+        const items = page.items.map((item) => {
           if (
             item.id !== message.id ||
             compareChatMessageVersions(item, message) >= 0
@@ -345,7 +294,7 @@ function replaceMessageInHistory(
           return message;
         });
 
-        return pageChanged ? { ...page, data: { ...page.data, items } } : page;
+        return pageChanged ? { ...page, items } : page;
       });
 
       return changed ? { ...current, pages } : current;
@@ -356,11 +305,9 @@ function replaceMessageInHistory(
 function updateConversationList(
   queryClient: QueryClient,
   conversationId: string,
-  update: (
-    conversation: ChatControllerListConversations200ItemsItem,
-  ) => ChatControllerListConversations200ItemsItem,
+  update: (conversation: ChatConversation) => ChatConversation,
 ): void {
-  queryClient.setQueryData<ChatControllerListConversationsQueryResult>(
+  queryClient.setQueryData<ChatConversationList>(
     getChatControllerListConversationsQueryKey(),
     (current) => {
       if (!current) {
@@ -368,7 +315,7 @@ function updateConversationList(
       }
 
       let changed = false;
-      const items = current.data.items.map((conversation) => {
+      const items = current.items.map((conversation) => {
         if (conversation.id !== conversationId) {
           return conversation;
         }
@@ -388,16 +335,13 @@ function updateConversationList(
           : right.id.localeCompare(left.id);
       });
 
-      return {
-        ...current,
-        data: { ...current.data, items },
-      };
+      return { ...current, items };
     },
   );
 }
 
 function toChatParticipantDisplay(
-  participant: ChatControllerGetConversation200ParticipantsItem,
+  participant: ChatParticipant,
 ): ChatParticipantDisplay {
   return {
     userId: participant.userId,
@@ -407,48 +351,32 @@ function toChatParticipantDisplay(
   };
 }
 
-function compareChatMessages(
-  left: ChatControllerListMessages200ItemsItem,
-  right: ChatControllerListMessages200ItemsItem,
-): number {
+function compareChatMessages(left: ChatMessage, right: ChatMessage): number {
   const byCreatedAt = left.createdAt.localeCompare(right.createdAt);
   return byCreatedAt !== 0 ? byCreatedAt : left.id.localeCompare(right.id);
 }
 
 function compareChatMessageVersions(
-  left: ChatControllerListMessages200ItemsItem,
-  right: ChatControllerListMessages200ItemsItem,
+  left: ChatMessage,
+  right: ChatMessage,
 ): number {
   return left.updatedAt.localeCompare(right.updatedAt);
-}
-
-function requireQueryFn<TQueryFn>(
-  queryFn: TQueryFn | typeof skipToken | undefined,
-): TQueryFn {
-  if (queryFn === undefined || queryFn === skipToken) {
-    throw new Error('생성된 채팅 queryFn을 사용할 수 없습니다.');
-  }
-  return queryFn;
 }
 
 function updateConversationDetail(
   queryClient: QueryClient,
   conversationId: string,
-  update: (
-    conversation: ChatControllerListConversations200ItemsItem,
-  ) => ChatControllerListConversations200ItemsItem,
+  update: (conversation: ChatConversation) => ChatConversation,
 ): void {
-  queryClient.setQueryData<ChatControllerGetConversationQueryResult>(
+  queryClient.setQueryData<ChatConversation>(
     getChatControllerGetConversationQueryKey(conversationId),
     (current) => {
       if (!current) {
         return current;
       }
 
-      const nextConversation = update(current.data);
-      return nextConversation === current.data
-        ? current
-        : { ...current, data: nextConversation };
+      const nextConversation = update(current);
+      return nextConversation === current ? current : nextConversation;
     },
   );
 }

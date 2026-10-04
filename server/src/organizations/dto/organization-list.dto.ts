@@ -3,9 +3,11 @@ import { OrganizationSchema } from '#server/organizations/domain/organization.js
 
 import { z } from 'zod';
 
-export const OrganizationListSchema = z.object({
-  items: z.array(OrganizationSchema),
-});
+export const OrganizationListSchema = z
+  .object({
+    items: z.array(OrganizationSchema),
+  })
+  .meta({ id: 'OrganizationList' });
 
 export type OrganizationList = z.infer<typeof OrganizationListSchema>;
 

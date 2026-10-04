@@ -1,8 +1,10 @@
 import '@/globals.css';
 
 import { type ReactNode, useState } from 'react';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
 
+import { DashboardErrorBoundary } from '@core/app/error/dashboard-error-boundary';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 import { ChatRealtimeBoundary } from '@core/features/chat/chat-realtime-boundary';
 import { ExpoDashboardPlatformProvider } from '@/lib/dashboard-platform';
@@ -12,14 +14,18 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 export default function RootLayout() {
   return (
-    <ExpoDashboardPlatformProvider>
-      <SessionQueryClientProvider>
-        <ChatRealtimeBoundary>
-          <Stack screenOptions={{ headerShown: false }} />
-          <PortalHost />
-        </ChatRealtimeBoundary>
-      </SessionQueryClientProvider>
-    </ExpoDashboardPlatformProvider>
+    <SafeAreaProvider>
+      <ExpoDashboardPlatformProvider>
+        <SessionQueryClientProvider>
+          <DashboardErrorBoundary title="앱을 불러오지 못했습니다">
+            <ChatRealtimeBoundary>
+              <Stack screenOptions={{ headerShown: false }} />
+              <PortalHost />
+            </ChatRealtimeBoundary>
+          </DashboardErrorBoundary>
+        </SessionQueryClientProvider>
+      </ExpoDashboardPlatformProvider>
+    </SafeAreaProvider>
   );
 }
 

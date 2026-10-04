@@ -18,7 +18,8 @@ export const ChatConversationParticipantSchema = chatParticipantSelectSchema
     image: z.string().nullable(),
     joinedAt: z.string().datetime(),
     lastReadAt: z.string().datetime().nullable(),
-  });
+  })
+  .meta({ id: 'ChatParticipant' });
 
 export const ChatConversationSchema = chatConversationSelectSchema
   .pick({
@@ -33,7 +34,8 @@ export const ChatConversationSchema = chatConversationSelectSchema
     latestMessage: ChatMessageSchema.nullable(),
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
-  });
+  })
+  .meta({ id: 'ChatConversation' });
 
 export type ChatConversationResponse = z.infer<typeof ChatConversationSchema>;
 

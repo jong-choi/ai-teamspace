@@ -3,12 +3,14 @@ import { OrganizationMemberSchema } from '#server/organizations/domain/organizat
 
 import { z } from 'zod';
 
-export const OrganizationMemberListSchema = z.object({
-  items: z.array(OrganizationMemberSchema),
-  total: z.number().int().nonnegative(),
-  limit: z.number().int().positive(),
-  offset: z.number().int().nonnegative(),
-});
+export const OrganizationMemberListSchema = z
+  .object({
+    items: z.array(OrganizationMemberSchema),
+    total: z.number().int().nonnegative(),
+    limit: z.number().int().positive(),
+    offset: z.number().int().nonnegative(),
+  })
+  .meta({ id: 'OrganizationMemberList' });
 
 export type OrganizationMemberList = z.infer<
   typeof OrganizationMemberListSchema

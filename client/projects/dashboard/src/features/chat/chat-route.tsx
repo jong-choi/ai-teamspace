@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
@@ -10,8 +10,8 @@ import { ChatConversationSidebar } from '@core/features/chat/chat-conversation-s
 import { ChatCreateConversationDialog } from '@core/features/chat/chat-create-conversation-dialog';
 import { useChatConversations } from '@core/features/chat/chat-query';
 import {
-  ChatErrorBoundary,
   ChatLoading,
+  ChatQueryBoundary,
   ChatState,
 } from '@core/features/chat/chat-state';
 import { Button } from '@repo/client/rnr/components/ui/button';
@@ -79,18 +79,19 @@ function AuthenticatedChatRoute({
 
   return (
     <View className="relative min-h-0 flex-1 flex-row overflow-hidden bg-background">
-      <ChatErrorBoundary>
-        <Suspense fallback={<ConversationSidebarFallback />}>
-          <ChatConversationSidebar
-            activeConversationId={conversationId}
-            currentUserId={currentUserId}
-            drawerOpen={drawerOpen}
-            onCloseDrawer={closeDrawer}
-            onOpenCreateDialog={openCreateDialog}
-            onSelectConversation={selectConversation}
-          />
-        </Suspense>
-      </ChatErrorBoundary>
+      <ChatQueryBoundary
+        fallback={<ConversationSidebarFallback />}
+        title="대화 목록을 불러오지 못했습니다"
+      >
+        <ChatConversationSidebar
+          activeConversationId={conversationId}
+          currentUserId={currentUserId}
+          drawerOpen={drawerOpen}
+          onCloseDrawer={closeDrawer}
+          onOpenCreateDialog={openCreateDialog}
+          onSelectConversation={selectConversation}
+        />
+      </ChatQueryBoundary>
 
       <Pressable
         accessibilityLabel="채널 목록 닫기"
@@ -103,27 +104,23 @@ function AuthenticatedChatRoute({
 
       <View className="min-h-0 min-w-0 flex-1 bg-background">
         {conversationId ? (
-          <ChatErrorBoundary key={conversationId}>
-            <Suspense fallback={<ChatLoading label="대화를 불러오는 중..." />}>
-              <ChatConversationPanel
-                conversationId={conversationId}
-                currentUserId={currentUserId}
-                focusedMessageId={focusedMessageId}
-                onOpenChannelDrawer={openDrawer}
-              />
-            </Suspense>
-          </ChatErrorBoundary>
+          <ChatConversationPanel
+            key={conversationId}
+            conversationId={conversationId}
+            currentUserId={currentUserId}
+            focusedMessageId={focusedMessageId}
+            onOpenChannelDrawer={openDrawer}
+          />
         ) : (
-          <ChatErrorBoundary>
-            <Suspense
-              fallback={<ChatLoading label="채팅 목록을 불러오는 중..." />}
-            >
-              <ChatConversationLanding
-                onOpenChannelDrawer={openDrawer}
-                onOpenCreateDialog={openCreateDialog}
-              />
-            </Suspense>
-          </ChatErrorBoundary>
+          <ChatQueryBoundary
+            fallback={<ChatLoading label="채팅 목록을 불러오는 중..." />}
+            title="채팅 목록을 불러오지 못했습니다"
+          >
+            <ChatConversationLanding
+              onOpenChannelDrawer={openDrawer}
+              onOpenCreateDialog={openCreateDialog}
+            />
+          </ChatQueryBoundary>
         )}
       </View>
 

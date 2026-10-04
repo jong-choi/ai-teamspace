@@ -6,12 +6,12 @@ import {
   useChatControllerMarkRead,
   useChatControllerSendMessage,
 } from '@monorepo-erp/api-client';
+import { useMutationErrorNotification } from '@core/app/error/use-mutation-error-notification';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 import { ChatMessageRow } from '@core/features/chat/chat-message-row';
 import {
   getCanonicalMessagePath,
   getConversationDisplay,
-  getProblemDetail,
 } from '@core/features/chat/chat-presenter';
 import {
   flattenChatMessageHistory,
@@ -22,7 +22,11 @@ import {
   useChatConversationReadState,
   useChatMessageHistory,
 } from '@core/features/chat/chat-query';
-import { ChatState } from '@core/features/chat/chat-state';
+import {
+  ChatLoading,
+  ChatQueryBoundary,
+  ChatState,
+} from '@core/features/chat/chat-state';
 import { Button } from '@repo/client/rnr/components/ui/button';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Input } from '@repo/client/rnr/components/ui/input';
@@ -48,21 +52,62 @@ export function ChatConversationPanel({
 }: ChatConversationPanelProps) {
   return (
     <View className="min-h-0 flex-1 bg-background">
+      <ChatQueryBoundary
+        errorFallbackClassName="min-h-16 border-b border-border py-3"
+        fallback={<ConversationHeaderFallback />}
+        resetKeys={[conversationId]}
+        title="대화 정보를 불러오지 못했습니다"
+      >
+        <ConversationMetadata
+          conversationId={conversationId}
+          currentUserId={currentUserId}
+          onOpenChannelDrawer={onOpenChannelDrawer}
+        />
+      </ChatQueryBoundary>
+      <ChatQueryBoundary
+        fallback={<ChatLoading label="메시지를 불러오는 중..." />}
+        resetKeys={[conversationId]}
+        title="메시지를 불러오지 못했습니다"
+      >
+        <ChatMessageFeed
+          conversationId={conversationId}
+          currentUserId={currentUserId}
+          focusedMessageId={focusedMessageId}
+        />
+      </ChatQueryBoundary>
+      <ChatComposer
+        conversationId={conversationId}
+        currentUserId={currentUserId}
+      />
+    </View>
+  );
+}
+
+function ConversationMetadata({
+  conversationId,
+  currentUserId,
+  onOpenChannelDrawer,
+}: {
+  conversationId: string;
+  currentUserId: string;
+  onOpenChannelDrawer: () => void;
+}) {
+  return (
+    <>
       <ConversationHeader
         conversationId={conversationId}
         currentUserId={currentUserId}
         onOpenChannelDrawer={onOpenChannelDrawer}
       />
-      <ChatMessageFeed
-        conversationId={conversationId}
-        currentUserId={currentUserId}
-        focusedMessageId={focusedMessageId}
-      />
-      <ChatComposer
-        conversationId={conversationId}
-        currentUserId={currentUserId}
-      />
       <ConversationReadSync conversationId={conversationId} />
+    </>
+  );
+}
+
+function ConversationHeaderFallback() {
+  return (
+    <View className="min-h-16 shrink-0 items-center justify-center border-b border-border px-4 py-3">
+      <ActivityIndicator size="small" />
     </View>
   );
 }
@@ -259,10 +304,16 @@ const ChatComposer = memo(function ChatComposer({
 }) {
   const queryClient = useQueryClient();
   const [text, setText] = useState('');
+  const notifySendError = useMutationErrorNotification({
+    id: `chat-send-message:${conversationId}`,
+    title: '메시지를 보내지 못했습니다',
+    fallback: '잠시 후 다시 시도해 주세요.',
+  });
   const sendMessage = useChatControllerSendMessage({
     mutation: {
+      onError: notifySendError,
       onSuccess: (response) => {
-        mergeCreatedMessage(queryClient, response.data, currentUserId);
+        mergeCreatedMessage(queryClient, response, currentUserId);
         setText('');
       },
     },
@@ -299,11 +350,6 @@ const ChatComposer = memo(function ChatComposer({
             Enter 전송 · Shift+Enter 줄바꿈
           </Text>
           <View className="ml-auto flex-row items-center gap-2">
-            {sendMessage.isError ? (
-              <Text className="text-[10px] text-destructive">
-                {getProblemDetail(sendMessage.error) ?? '전송하지 못했습니다.'}
-              </Text>
-            ) : null}
             <Button
               className="h-8 gap-1.5 px-3"
               disabled={!text.trim() || sendMessage.isPending}
@@ -329,6 +375,11 @@ const ChatComposer = memo(function ChatComposer({
 function ConversationReadSync({ conversationId }: { conversationId: string }) {
   const queryClient = useQueryClient();
   const conversation = useChatConversationReadState(conversationId).data;
+  const notifyReadError = useMutationErrorNotification({
+    id: `chat-mark-read:${conversationId}`,
+    title: '읽음 상태를 저장하지 못했습니다',
+    fallback: '잠시 후 다시 시도해 주세요.',
+  });
   const attemptedMessageId = useRef<string | null>(null);
   const [routeFocused, setRouteFocused] = useState(false);
   const [appActive, setAppActive] = useState(
@@ -337,6 +388,7 @@ function ConversationReadSync({ conversationId }: { conversationId: string }) {
   const markRead = useChatControllerMarkRead({
     mutation: {
       retry: 1,
+      onError: notifyReadError,
       onSuccess: () => refreshConversationMetadata(queryClient, conversationId),
     },
   });

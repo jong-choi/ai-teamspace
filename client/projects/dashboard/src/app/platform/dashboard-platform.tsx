@@ -1,10 +1,17 @@
 import { createContext, type ReactNode, useContext } from 'react';
 
+export type DashboardErrorNotification = {
+  id?: string;
+  title: string;
+  description?: string;
+};
+
 export type DashboardPlatformValue = {
   currentUserId: string | null;
   sessionPending: boolean;
   copyText: (value: string) => Promise<void>;
   createAppUrl: (path: string) => string;
+  notifyError: (notification: DashboardErrorNotification) => void;
 };
 
 const DashboardPlatformContext = createContext<DashboardPlatformValue | null>(

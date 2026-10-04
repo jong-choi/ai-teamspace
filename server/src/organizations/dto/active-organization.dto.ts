@@ -3,9 +3,11 @@ import { OrganizationAccessSchema } from '#server/organizations/domain/organizat
 
 import { z } from 'zod';
 
-export const ActiveOrganizationSchema = z.object({
-  activeOrganization: OrganizationAccessSchema.nullable(),
-});
+export const ActiveOrganizationSchema = z
+  .object({
+    activeOrganization: OrganizationAccessSchema.nullable(),
+  })
+  .meta({ id: 'ActiveOrganization' });
 
 export type ActiveOrganization = z.infer<typeof ActiveOrganizationSchema>;
 

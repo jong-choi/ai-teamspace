@@ -34,11 +34,13 @@ export const ChatConversationChangedEventSchema =
     type: z.literal('conversation.changed'),
   });
 
-export const ChatRealtimeEventSchema = z.discriminatedUnion('type', [
-  ChatMessageCreatedEventSchema,
-  ChatMessageUpdatedEventSchema,
-  ChatConversationReadEventSchema,
-  ChatConversationChangedEventSchema,
-]);
+export const ChatRealtimeEventSchema = z
+  .discriminatedUnion('type', [
+    ChatMessageCreatedEventSchema,
+    ChatMessageUpdatedEventSchema,
+    ChatConversationReadEventSchema,
+    ChatConversationChangedEventSchema,
+  ])
+  .meta({ id: 'ChatRealtimeEvent' });
 
 export type ChatRealtimeEvent = z.infer<typeof ChatRealtimeEventSchema>;

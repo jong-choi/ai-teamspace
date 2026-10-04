@@ -5,6 +5,7 @@ import {
 } from '@monorepo-erp/api-client';
 
 import { jest } from '@jest/globals';
+import { ZodError } from 'zod';
 
 afterEach(() => jest.restoreAllMocks());
 
@@ -14,7 +15,7 @@ describe('생성된 조직 API 계약', () => {
       .spyOn(globalThis, 'fetch')
       .mockResolvedValue(Response.json({ activeOrganization: null }));
     const result = await organizationsControllerGetActive();
-    expect(result.data.activeOrganization).toBeNull();
+    expect(result.activeOrganization).toBeNull();
     expect(fetch).toHaveBeenCalledWith(
       '/organizations/active',
       expect.objectContaining({ credentials: 'include' }),
@@ -33,7 +34,17 @@ describe('생성된 조직 API 계약', () => {
       .mockResolvedValue(Response.json(problem, { status: 409 }));
     await expect(
       organizationsControllerCreate({ name: '조직', slug: 'existing' }),
-    ).rejects.toMatchObject({ status: 409, info: problem });
+    ).rejects.toEqual(problem);
+  });
+
+  it('생성된 Zod 계약과 다른 성공 응답은 거절한다', async () => {
+    jest
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(Response.json({ activeOrganization: {} }));
+
+    await expect(organizationsControllerGetActive()).rejects.toBeInstanceOf(
+      ZodError,
+    );
   });
 
   it('삭제의 204 응답은 JSON 본문 없이 처리한다', async () => {
@@ -44,6 +55,6 @@ describe('생성된 조직 API 계약', () => {
       'organization',
       'member',
     );
-    expect(result.status).toBe(204);
+    expect(result).toBeUndefined();
   });
 });

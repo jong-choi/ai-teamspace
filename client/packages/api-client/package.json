@@ -6,6 +6,7 @@
   "exports": {
     ".": "./src/generated/work-os.ts",
     "./runtime": "./src/runtime.ts",
+    "./schemas": "./src/generated/schemas/index.ts",
     "./sse": "./src/sse.ts"
   },
   "scripts": {
@@ -13,7 +14,8 @@
     "test": "jest --config ./jest.config.mjs"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.104.1"
+    "@tanstack/react-query": "^5.104.1",
+    "zod": "4.6.5"
   },
   "peerDependencies": {
     "react": "^19.2.3"

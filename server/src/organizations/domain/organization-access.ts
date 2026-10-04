@@ -3,9 +3,11 @@ import { OrganizationRoleSchema } from '#server/organizations/domain/organizatio
 
 import { z } from 'zod';
 
-export const OrganizationAccessSchema = z.object({
-  organization: OrganizationSchema,
-  role: OrganizationRoleSchema,
-});
+export const OrganizationAccessSchema = z
+  .object({
+    organization: OrganizationSchema,
+    role: OrganizationRoleSchema,
+  })
+  .meta({ id: 'OrganizationAccess' });
 
 export type OrganizationAccess = z.infer<typeof OrganizationAccessSchema>;

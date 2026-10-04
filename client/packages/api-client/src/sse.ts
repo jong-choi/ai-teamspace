@@ -1,4 +1,5 @@
 import {
+  getApiCredentials,
   getApiFetch,
   getApiHeaders,
   getApiUrl,
@@ -33,7 +34,7 @@ export async function streamServerSentEvents({
   while (!signal.aborted) {
     try {
       const response = await getApiFetch()(getApiUrl(path), {
-        credentials: 'include',
+        credentials: getApiCredentials(),
         headers: await getApiHeaders({ Accept: 'text/event-stream' }),
         signal,
       });

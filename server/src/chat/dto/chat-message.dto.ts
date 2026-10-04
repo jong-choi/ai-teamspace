@@ -14,7 +14,8 @@ export const ChatMessageSchema = chatMessageSelectSchema
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
     editedAt: z.string().datetime().nullable(),
-  });
+  })
+  .meta({ id: 'ChatMessage' });
 
 export type ChatMessageResponse = z.infer<typeof ChatMessageSchema>;
 

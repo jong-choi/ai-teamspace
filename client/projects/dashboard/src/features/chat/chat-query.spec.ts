@@ -1,28 +1,31 @@
 import {
-  type ChatControllerListConversations200ItemsItem,
-  type ChatControllerListConversationsQueryResult,
-  type ChatControllerListMessages200ItemsItem,
-  type ChatControllerListMessagesQueryResult,
   getChatControllerListConversationsQueryKey,
-  getChatControllerListMessagesQueryKey,
+  getChatControllerListMessagesInfiniteQueryKey,
 } from '@monorepo-erp/api-client';
-import {
-  getConversationDisplay,
-  getProblemDetail,
-} from '@core/features/chat/chat-presenter';
+import type {
+  ChatConversation,
+  ChatConversationList,
+  ChatMessage,
+} from '@monorepo-erp/api-client/schemas';
+import { getConversationDisplay } from '@core/features/chat/chat-presenter';
 import {
   mergeCreatedMessage,
   mergeUpdatedMessage,
+  type MessageHistory,
 } from '@core/features/chat/chat-query';
 
 import { describe, expect, it } from '@jest/globals';
-import { type InfiniteData, QueryClient } from '@tanstack/react-query';
+import { QueryClient } from '@tanstack/react-query';
 
 const conversationId = '11111111-1111-4111-8111-111111111111';
 const actorUserId = 'actor-user';
 const peerUserId = 'peer-user';
+const messageHistoryQueryKey = getChatControllerListMessagesInfiniteQueryKey(
+  conversationId,
+  { limit: 50 },
+);
 
-const conversation: ChatControllerListConversations200ItemsItem = {
+const conversation: ChatConversation = {
   id: conversationId,
   kind: 'direct',
   name: null,
@@ -51,7 +54,7 @@ const conversation: ChatControllerListConversations200ItemsItem = {
   updatedAt: '2026-10-04T00:00:00.000Z',
 };
 
-const olderMessage: ChatControllerListMessages200ItemsItem = {
+const olderMessage: ChatMessage = {
   id: '22222222-2222-4222-8222-222222222222',
   conversationId,
   senderKind: 'user',
@@ -63,7 +66,7 @@ const olderMessage: ChatControllerListMessages200ItemsItem = {
   editedAt: null,
 };
 
-const createdMessage: ChatControllerListMessages200ItemsItem = {
+const createdMessage: ChatMessage = {
   ...olderMessage,
   id: '33333333-3333-4333-8333-333333333333',
   senderUserId: peerUserId,
@@ -81,22 +84,19 @@ describe('채팅 클라이언트 캐시', () => {
     mergeCreatedMessage(queryClient, createdMessage, actorUserId);
     mergeCreatedMessage(queryClient, createdMessage, actorUserId);
 
-    const history = queryClient.getQueryData<
-      InfiniteData<ChatControllerListMessagesQueryResult, unknown>
-    >(getChatControllerListMessagesQueryKey(conversationId));
-    expect(history?.pages[0]?.data.items.map(({ id }) => id)).toEqual([
+    const history = queryClient.getQueryData<MessageHistory>(
+      messageHistoryQueryKey,
+    );
+    expect(history?.pages[0]?.items.map(({ id }) => id)).toEqual([
       olderMessage.id,
       createdMessage.id,
     ]);
 
-    const conversations =
-      queryClient.getQueryData<ChatControllerListConversationsQueryResult>(
-        getChatControllerListConversationsQueryKey(),
-      );
-    expect(conversations?.data.items[0]?.unreadCount).toBe(2);
-    expect(conversations?.data.items[0]?.latestMessage?.id).toBe(
-      createdMessage.id,
+    const conversations = queryClient.getQueryData<ChatConversationList>(
+      getChatControllerListConversationsQueryKey(),
     );
+    expect(conversations?.items[0]?.unreadCount).toBe(2);
+    expect(conversations?.items[0]?.latestMessage?.id).toBe(createdMessage.id);
   });
 
   it('수정 이벤트는 기존 메시지를 교체하고 최신 메시지 메타데이터도 맞춘다', () => {
@@ -112,22 +112,19 @@ describe('채팅 클라이언트 캐시', () => {
       content: { text: '수정된 메시지' },
       editedAt: '2026-10-04T00:03:00.000Z',
       updatedAt: '2026-10-04T00:03:00.000Z',
-    } satisfies ChatControllerListMessages200ItemsItem;
+    } satisfies ChatMessage;
 
     mergeUpdatedMessage(queryClient, updatedMessage);
 
-    const history = queryClient.getQueryData<
-      InfiniteData<ChatControllerListMessagesQueryResult, unknown>
-    >(getChatControllerListMessagesQueryKey(conversationId));
-    expect(history?.pages[0]?.data.items[0]?.content.text).toBe(
-      '수정된 메시지',
+    const history = queryClient.getQueryData<MessageHistory>(
+      messageHistoryQueryKey,
     );
+    expect(history?.pages[0]?.items[0]?.content.text).toBe('수정된 메시지');
 
-    const conversations =
-      queryClient.getQueryData<ChatControllerListConversationsQueryResult>(
-        getChatControllerListConversationsQueryKey(),
-      );
-    expect(conversations?.data.items[0]?.latestMessage?.content.text).toBe(
+    const conversations = queryClient.getQueryData<ChatConversationList>(
+      getChatControllerListConversationsQueryKey(),
+    );
+    expect(conversations?.items[0]?.latestMessage?.content.text).toBe(
       '수정된 메시지',
     );
   });
@@ -141,38 +138,33 @@ describe('채팅 클라이언트 캐시', () => {
       id: '55555555-5555-4555-8555-555555555555',
       createdAt: '2026-10-04T00:03:00.000Z',
       updatedAt: '2026-10-04T00:03:00.000Z',
-    } satisfies ChatControllerListMessages200ItemsItem;
+    } satisfies ChatMessage;
     const lateOlderMessage = {
       ...createdMessage,
       id: '44444444-4444-4444-8444-444444444444',
       createdAt: '2026-10-04T00:02:00.000Z',
       updatedAt: '2026-10-04T00:02:00.000Z',
-    } satisfies ChatControllerListMessages200ItemsItem;
+    } satisfies ChatMessage;
 
     mergeCreatedMessage(queryClient, newerMessage, actorUserId);
     mergeCreatedMessage(queryClient, lateOlderMessage, actorUserId);
     mergeCreatedMessage(queryClient, lateOlderMessage, actorUserId);
 
-    const history = queryClient.getQueryData<
-      InfiniteData<ChatControllerListMessagesQueryResult, unknown>
-    >(getChatControllerListMessagesQueryKey(conversationId));
-    expect(history?.pages[0]?.data.items.map(({ id }) => id)).toEqual([
+    const history = queryClient.getQueryData<MessageHistory>(
+      messageHistoryQueryKey,
+    );
+    expect(history?.pages[0]?.items.map(({ id }) => id)).toEqual([
       olderMessage.id,
       lateOlderMessage.id,
       newerMessage.id,
     ]);
 
-    const conversations =
-      queryClient.getQueryData<ChatControllerListConversationsQueryResult>(
-        getChatControllerListConversationsQueryKey(),
-      );
-    expect(conversations?.data.items[0]?.latestMessage?.id).toBe(
-      newerMessage.id,
+    const conversations = queryClient.getQueryData<ChatConversationList>(
+      getChatControllerListConversationsQueryKey(),
     );
-    expect(conversations?.data.items[0]?.updatedAt).toBe(
-      newerMessage.createdAt,
-    );
-    expect(conversations?.data.items[0]?.unreadCount).toBe(3);
+    expect(conversations?.items[0]?.latestMessage?.id).toBe(newerMessage.id);
+    expect(conversations?.items[0]?.updatedAt).toBe(newerMessage.createdAt);
+    expect(conversations?.items[0]?.unreadCount).toBe(3);
   });
 });
 
@@ -213,15 +205,6 @@ describe('채팅 표시 규칙', () => {
       image: null,
     });
   });
-
-  it('API 런타임 오류의 info 안에 있는 Problem Details 상세 내용을 읽는다', () => {
-    expect(
-      getProblemDetail({
-        status: 409,
-        info: { detail: '이미 존재하는 대화입니다.' },
-      }),
-    ).toBe('이미 존재하는 대화입니다.');
-  });
 });
 
 function createQueryClient(): QueryClient {
@@ -235,32 +218,20 @@ function createQueryClient(): QueryClient {
 
 function seedConversationList(
   queryClient: QueryClient,
-  value: ChatControllerListConversations200ItemsItem = {
+  value: ChatConversation = {
     ...conversation,
     unreadCount: 1,
   },
 ): void {
-  queryClient.setQueryData<ChatControllerListConversationsQueryResult>(
+  queryClient.setQueryData<ChatConversationList>(
     getChatControllerListConversationsQueryKey(),
-    {
-      data: { items: [value] },
-      status: 200,
-      headers: new Headers(),
-    },
+    { items: [value] },
   );
 }
 
 function seedMessageHistory(queryClient: QueryClient): void {
-  queryClient.setQueryData<
-    InfiniteData<ChatControllerListMessagesQueryResult, unknown>
-  >(getChatControllerListMessagesQueryKey(conversationId), {
-    pages: [
-      {
-        data: { items: [olderMessage], nextCursor: null },
-        status: 200,
-        headers: new Headers(),
-      },
-    ],
-    pageParams: [null],
+  queryClient.setQueryData<MessageHistory>(messageHistoryQueryKey, {
+    pages: [{ items: [olderMessage], nextCursor: null }],
+    pageParams: [undefined],
   });
 }

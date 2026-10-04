@@ -318,6 +318,7 @@ server contract
 ```
 
 - API request type, response type, enum, schema를 feature에서 수동으로 복제하지 않는다.
+- OpenAPI에서 생성 가능한 request/response schema는 Orval generated Zod를 runtime contract로 사용하고 feature에서 동일 schema/type guard를 다시 작성하지 않는다.
 - generated query hook과 mutation hook이 있으면 직접 fetch wrapper를 만들지 않는다.
 - generated schema/type을 feature에서 동일한 이름으로 다시 선언하지 않는다.
 
@@ -339,11 +340,14 @@ server contract
 
 - 서버 데이터는 React Query cache를 기준으로 관리한다.
 - 서버 데이터를 Zustand 등 client global store에 복제하지 않는다.
+- 클라이언트 GET 조회는 Orval이 생성한 Suspense query hook을 기본으로 사용하며 일반 `useQuery` hook은 생성·사용하지 않는다.
 - 조회는 generated query hook을 우선 사용한다.
 - mutation은 generated mutation hook을 우선 사용한다.
 - mutation 성공 후 invalidation은 관련 query key로 좁혀서 수행한다.
 - 조회 오류를 feature 내부에서 임의 fallback state로 숨기지 않는다.
 - Suspense를 사용하는 경우 ErrorBoundary와 Suspense boundary를 실제 query 소비처에 가깝게 둔다.
+- mutation 오류는 ErrorBoundary로 올리지 않고 플랫폼 알림 경계에서 처리하며 Web은 Sonner, React Native는 RNR toast를 사용한다.
+- query/render 오류는 가장 가까운 ErrorBoundary가 처리하고 retry는 QueryErrorResetBoundary와 resetErrorBoundary를 함께 사용하며 라우터 redirect 제어 흐름은 재throw한다.
 
 # 상태 관리
 

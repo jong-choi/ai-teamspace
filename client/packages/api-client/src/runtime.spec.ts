@@ -1,7 +1,7 @@
 import {
   type ApiFetch,
   configureApiRuntime,
-  WorkOsApiError,
+  getProblemDetails,
   workOsFetcher,
 } from '@monorepo-erp/api-client/runtime';
 import {
@@ -21,6 +21,7 @@ describe('API 런타임', () => {
     const fetcher = jest.fn<ApiFetch>(async () => Response.json({ ok: true }));
     configureApiRuntime({
       baseUrl: 'https://api.example.com/',
+      credentials: 'omit',
       expoOrigin: 'monorepoerp://',
       fetcher,
       getCookie: async () => 'better-auth.session=token',
@@ -38,21 +39,49 @@ describe('API 런타임', () => {
     expect(headers.get('cookie')).toBe('better-auth.session=token');
     expect(headers.get('expo-origin')).toBe('monorepoerp://');
     expect(headers.get('content-type')).toBe('application/json');
+    expect(request?.credentials).toBe('omit');
   });
 
-  it('JSON이 아닌 오류 응답도 Problem Details 표시용 상세 내용으로 보존한다', async () => {
+  it('Nest Problem Details 오류를 생성 계약 그대로 throw한다', async () => {
+    const problem = {
+      type: 'about:blank',
+      title: 'Conflict',
+      status: 409,
+      detail: '이미 존재하는 대화입니다.',
+    };
+    configureApiRuntime({
+      fetcher: async () => Response.json(problem, { status: 409 }),
+    });
+
+    await expect(
+      workOsFetcher('/chat/conversations', { method: 'GET' }),
+    ).rejects.toEqual(problem);
+  });
+
+  it('계약 밖 오류 응답은 일반 기술 오류로 구분한다', async () => {
     configureApiRuntime({
       fetcher: async () => new Response('게이트웨이 오류', { status: 502 }),
     });
 
     await expect(
       workOsFetcher('/chat/conversations', { method: 'GET' }),
-    ).rejects.toEqual(
-      expect.objectContaining<Partial<WorkOsApiError>>({
-        status: 502,
-        info: { detail: '게이트웨이 오류' },
+    ).rejects.toThrow('invalid Problem Details response');
+  });
+
+  it('Problem Details 구조만 오류 표시 데이터로 인정한다', () => {
+    expect(
+      getProblemDetails({
+        title: 'Bad Request',
+        status: 400,
+        detail: '입력값을 확인해 주세요.',
       }),
-    );
+    ).toMatchObject({
+      type: 'about:blank',
+      title: 'Bad Request',
+      status: 400,
+      detail: '입력값을 확인해 주세요.',
+    });
+    expect(getProblemDetails(new Error('network'))).toBeNull();
   });
 
   it('SSE 프레임의 식별자, 이벤트 이름과 여러 데이터 줄을 파싱한다', () => {

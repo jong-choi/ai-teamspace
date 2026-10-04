@@ -1,4 +1,4 @@
-import type { ChatControllerListConversations200ItemsItem } from '@monorepo-erp/api-client';
+import type { ChatConversation } from '@monorepo-erp/api-client/schemas';
 
 export type ConversationDisplay = {
   title: string;
@@ -7,12 +7,12 @@ export type ConversationDisplay = {
 };
 
 type ConversationDisplayParticipant = Pick<
-  ChatControllerListConversations200ItemsItem['participants'][number],
+  ChatConversation['participants'][number],
   'userId' | 'name' | 'username' | 'image'
 >;
 
 type ConversationDisplayInput = Pick<
-  ChatControllerListConversations200ItemsItem,
+  ChatConversation,
   'kind' | 'name' | 'topic'
 > & {
   participants: readonly ConversationDisplayParticipant[];
@@ -78,34 +78,9 @@ export function formatMessageDateTime(value: string): string {
   return messageDateTimeFormatter.format(date);
 }
 
-export function getProblemDetail(error: unknown): string | null {
-  const direct = getStringProperty(error, 'detail');
-  if (direct) {
-    return direct;
-  }
-
-  if (!isRecord(error) || !('info' in error)) {
-    return null;
-  }
-
-  return getStringProperty(error.info, 'detail');
-}
-
 export function getCanonicalMessagePath(
   conversationId: string,
   messageId: string,
 ): string {
   return `/chat/${encodeURIComponent(conversationId)}/messages/${encodeURIComponent(messageId)}`;
-}
-
-function getStringProperty(value: unknown, key: string): string | null {
-  if (!isRecord(value)) {
-    return null;
-  }
-  const candidate = value[key];
-  return typeof candidate === 'string' ? candidate : null;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
 }

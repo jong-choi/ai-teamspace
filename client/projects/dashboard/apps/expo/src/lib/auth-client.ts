@@ -28,6 +28,7 @@ export const authClient = createAuthClient({
 
 configureApiRuntime({
   baseUrl: nativeApiBaseUrl,
+  credentials: native ? 'omit' : 'include',
   expoOrigin: native ? 'monorepoerp://' : undefined,
   fetcher: native ? (input, init) => expoFetch(input, init) : undefined,
   getCookie: native ? () => authClient.getCookie() : undefined,

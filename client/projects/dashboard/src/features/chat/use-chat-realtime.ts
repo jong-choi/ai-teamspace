@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import type { ChatControllerListMessages200ItemsItem } from '@monorepo-erp/api-client';
+import { ChatRealtimeEvent } from '@monorepo-erp/api-client/schemas';
 import { streamServerSentEvents } from '@monorepo-erp/api-client/sse';
 import {
   mergeCreatedMessage,
@@ -10,23 +10,6 @@ import {
 } from '@core/features/chat/chat-query';
 
 import { useQueryClient } from '@tanstack/react-query';
-
-type ChatRealtimeEvent =
-  | {
-      type: 'message.created' | 'message.updated';
-      conversationId: string;
-      message: ChatControllerListMessages200ItemsItem;
-    }
-  | {
-      type: 'conversation.read';
-      conversationId: string;
-      userId: string;
-      readAt: string;
-    }
-  | {
-      type: 'conversation.changed';
-      conversationId: string;
-    };
 
 type UseChatRealtimeInput = {
   currentUserId: string | null;
@@ -93,76 +76,11 @@ export function useChatRealtime({
   }, [currentUserId, enabled, queryClient]);
 }
 
-function parseChatRealtimeEvent(data: string): ChatRealtimeEvent | null {
+function parseChatRealtimeEvent(data: string) {
   try {
-    const payload: unknown = JSON.parse(data);
-    if (
-      !isRecord(payload) ||
-      typeof payload.type !== 'string' ||
-      typeof payload.conversationId !== 'string'
-    ) {
-      return null;
-    }
-
-    if (
-      (payload.type === 'message.created' ||
-        payload.type === 'message.updated') &&
-      isChatMessage(payload.message) &&
-      payload.message.conversationId === payload.conversationId
-    ) {
-      return {
-        type: payload.type,
-        conversationId: payload.conversationId,
-        message: payload.message,
-      };
-    }
-
-    if (
-      payload.type === 'conversation.read' &&
-      typeof payload.userId === 'string' &&
-      typeof payload.readAt === 'string'
-    ) {
-      return {
-        type: payload.type,
-        conversationId: payload.conversationId,
-        userId: payload.userId,
-        readAt: payload.readAt,
-      };
-    }
-
-    if (payload.type === 'conversation.changed') {
-      return {
-        type: payload.type,
-        conversationId: payload.conversationId,
-      };
-    }
-
-    return null;
+    const result = ChatRealtimeEvent.safeParse(JSON.parse(data));
+    return result.success ? result.data : null;
   } catch {
     return null;
   }
-}
-
-function isChatMessage(
-  value: unknown,
-): value is ChatControllerListMessages200ItemsItem {
-  if (!isRecord(value) || !isRecord(value.content)) {
-    return false;
-  }
-
-  return (
-    typeof value.id === 'string' &&
-    typeof value.conversationId === 'string' &&
-    (value.senderKind === 'system' || value.senderKind === 'user') &&
-    (value.senderUserId === null || typeof value.senderUserId === 'string') &&
-    value.contentType === 'text' &&
-    typeof value.content.text === 'string' &&
-    typeof value.createdAt === 'string' &&
-    typeof value.updatedAt === 'string' &&
-    (value.editedAt === null || typeof value.editedAt === 'string')
-  );
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
 }

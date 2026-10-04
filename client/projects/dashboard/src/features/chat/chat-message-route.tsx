@@ -1,14 +1,14 @@
-import { Suspense, useState } from 'react';
+import { useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { useChatControllerUpdateMessage } from '@monorepo-erp/api-client';
+import { useMutationErrorNotification } from '@core/app/error/use-mutation-error-notification';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 import { DashboardShell } from '@core/app/shell/dashboard-shell';
 import {
   formatMessageDateTime,
   getCanonicalMessagePath,
-  getProblemDetail,
 } from '@core/features/chat/chat-presenter';
 import {
   mergeUpdatedMessage,
@@ -16,8 +16,8 @@ import {
   useChatMessage,
 } from '@core/features/chat/chat-query';
 import {
-  ChatErrorBoundary,
   ChatLoading,
+  ChatQueryBoundary,
   ChatState,
 } from '@core/features/chat/chat-state';
 import { Button } from '@repo/client/rnr/components/ui/button';
@@ -52,16 +52,13 @@ export function ChatMessageDetailRoute(props: ChatMessageRouteProps) {
           description="메시지를 보려면 먼저 로그인해 주세요."
         />
       ) : (
-        <ChatErrorBoundary
-          key={`${props.conversationId}:${props.messageId}:detail`}
+        <ChatQueryBoundary
+          fallback={<ChatLoading label="메시지를 불러오는 중..." />}
+          resetKeys={[props.conversationId, props.messageId]}
+          title="메시지를 불러오지 못했습니다"
         >
-          <Suspense fallback={<ChatLoading label="메시지를 불러오는 중..." />}>
-            <ChatMessageDetailContent
-              {...props}
-              currentUserId={currentUserId}
-            />
-          </Suspense>
-        </ChatErrorBoundary>
+          <ChatMessageDetailContent {...props} currentUserId={currentUserId} />
+        </ChatQueryBoundary>
       )}
     </DashboardShell>
   );
@@ -184,13 +181,13 @@ export function ChatMessageEditRoute(props: ChatMessageRouteProps) {
           description="메시지를 수정하려면 먼저 로그인해 주세요."
         />
       ) : (
-        <ChatErrorBoundary
-          key={`${props.conversationId}:${props.messageId}:edit`}
+        <ChatQueryBoundary
+          fallback={<ChatLoading label="메시지를 불러오는 중..." />}
+          resetKeys={[props.conversationId, props.messageId]}
+          title="메시지를 불러오지 못했습니다"
         >
-          <Suspense fallback={<ChatLoading label="메시지를 불러오는 중..." />}>
-            <ChatMessageEditContent {...props} currentUserId={currentUserId} />
-          </Suspense>
-        </ChatErrorBoundary>
+          <ChatMessageEditContent {...props} currentUserId={currentUserId} />
+        </ChatQueryBoundary>
       )}
     </DashboardShell>
   );
@@ -257,10 +254,16 @@ function MessageEditor({
   const [text, setText] = useState(initialText);
   const normalizedText = text.trim();
   const changed = normalizedText !== initialText;
+  const notifyUpdateError = useMutationErrorNotification({
+    id: `chat-update-message:${messageId}`,
+    title: '메시지를 수정하지 못했습니다',
+    fallback: '잠시 후 다시 시도해 주세요.',
+  });
   const updateMessage = useChatControllerUpdateMessage({
     mutation: {
+      onError: notifyUpdateError,
       onSuccess: (response) => {
-        mergeUpdatedMessage(queryClient, response.data);
+        mergeUpdatedMessage(queryClient, response);
         onSaved();
       },
     },
@@ -289,12 +292,6 @@ function MessageEditor({
           placeholder="메시지 내용을 입력하세요"
           value={text}
         />
-        {updateMessage.isError ? (
-          <Text className="text-xs text-destructive">
-            {getProblemDetail(updateMessage.error) ??
-              '메시지를 수정하지 못했습니다.'}
-          </Text>
-        ) : null}
         <View className="flex-row justify-end gap-2">
           <Button
             disabled={updateMessage.isPending}

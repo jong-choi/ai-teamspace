@@ -26,7 +26,7 @@ describe('생성된 조직 API 계약', () => {
       type: 'about:blank',
       title: 'Conflict',
       status: 409,
-      code: 'ORGANIZATION_SLUG_CONFLICT',
+      errorCode: 'ORGANIZATION_SLUG_CONFLICT',
     };
     jest
       .spyOn(globalThis, 'fetch')

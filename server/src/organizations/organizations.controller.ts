@@ -17,18 +17,12 @@ import {
 } from '@nestjs/common';
 import {
   ApiCreatedResponse,
-  ApiExtraModels,
   ApiNoContentResponse,
   ApiOkResponse,
-  ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 
 import type { Auth } from '#server/auth/auth.js';
-import {
-  ApplicationProblemDto,
-  problemResponse,
-} from '#server/common/http/application-problem.dto.js';
 import { ActiveOrganizationDto } from '#server/organizations/dto/active-organization.dto.js';
 import {
   CreateOrganizationDto,
@@ -55,16 +49,18 @@ import { OrganizationOriginGuard } from '#server/organizations/organization-orig
 import { OrganizationsService } from '#server/organizations/organizations.service.js';
 
 import { Session, type UserSession } from '@thallesp/nestjs-better-auth';
+import { ApiProblemResponse } from 'nest-problem-details-filter/swagger';
+
+const problemDetailsSchema = { $ref: '#/components/schemas/ProblemDetails' };
 
 @ApiTags('organizations')
-@ApiExtraModels(ApplicationProblemDto)
-@ApiResponse({ status: 400, ...problemResponse })
-@ApiResponse({ status: 401, ...problemResponse })
-@ApiResponse({ status: 403, ...problemResponse })
-@ApiResponse({ status: 404, ...problemResponse })
-@ApiResponse({ status: 409, ...problemResponse })
-@ApiResponse({ status: 500, ...problemResponse })
-@ApiResponse({ status: 502, ...problemResponse })
+@ApiProblemResponse({ status: 400, schema: problemDetailsSchema })
+@ApiProblemResponse({ status: 401, schema: problemDetailsSchema })
+@ApiProblemResponse({ status: 403, schema: problemDetailsSchema })
+@ApiProblemResponse({ status: 404, schema: problemDetailsSchema })
+@ApiProblemResponse({ status: 409, schema: problemDetailsSchema })
+@ApiProblemResponse({ status: 500, schema: problemDetailsSchema })
+@ApiProblemResponse({ status: 502, schema: problemDetailsSchema })
 @Controller('organizations')
 @UseGuards(OrganizationOriginGuard)
 export class OrganizationsController {

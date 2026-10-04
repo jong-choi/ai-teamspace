@@ -13,7 +13,6 @@ export const organizationFacadeDisabledPaths = organizationFacadeEndpoints.map(
 
 export const authOptions = {
   basePath: '/api/auth',
-  disabledPaths: organizationFacadeDisabledPaths,
   emailAndPassword: {
     enabled: true,
   },

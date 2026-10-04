@@ -1,59 +1,98 @@
-import { HttpException } from '@nestjs/common';
+import { STATUS_CODES } from 'node:http';
 
-import {
-  PROBLEM_CONTENT_TYPE,
-  ProblemDetailsFactory,
-} from '@camcima/nestjs-rfc9457';
 import type { BetterAuthPlugin } from 'better-auth';
 import { z } from 'zod';
+
+const PROBLEM_CONTENT_TYPE = 'application/problem+json';
+const DEFAULT_PROBLEM_TYPE = 'about:blank';
 
 const authErrorSchema = z.object({
   code: z.string().optional(),
   message: z.string().optional(),
 });
 
-export async function toAuthProblemResponse(
-  factory: ProblemDetailsFactory,
+type ProblemDetailsPluginOptions = {
+  disabledPaths?: readonly string[];
+};
+
+type AuthProblemDetails = {
+  type: string;
+  title: string;
+  status: number;
+  detail?: string;
+  errorCode?: string;
+};
+
+function createProblemResponse(
+  status: number,
+  options: {
+    detail?: string;
+    errorCode?: string;
+    headers?: HeadersInit;
+  } = {},
+): Response {
+  const body: AuthProblemDetails = {
+    type: DEFAULT_PROBLEM_TYPE,
+    title: STATUS_CODES[status] ?? 'Error',
+    status,
+  };
+
+  if (status < 500 && options.detail) body.detail = options.detail;
+  if (options.errorCode) body.errorCode = options.errorCode;
+
+  const headers = new Headers(options.headers);
+  headers.set('content-type', PROBLEM_CONTENT_TYPE);
+  headers.delete('content-length');
+
+  return new Response(JSON.stringify(body), { status, headers });
+}
+
+export async function toProblemDetailsResponse(
   response: Response,
-  request?: Request,
 ): Promise<Response> {
   if (
     response.status < 400 ||
     response.status > 599 ||
     response.headers.get('content-type')?.includes(PROBLEM_CONTENT_TYPE)
-  )
+  ) {
     return response;
+  }
+
   const payload: unknown = await response
     .clone()
     .json()
     .catch(() => null);
   const parsed = authErrorSchema.safeParse(payload);
-  const { body, status } = factory.create(
-    new HttpException(
-      parsed.success ? (parsed.data.message ?? '') : '',
-      response.status,
-    ),
-    {
-      url: request ? new URL(request.url).pathname : '',
-      method: request?.method ?? '',
-    },
-  );
-  if (parsed.success && parsed.data.code) body.code = parsed.data.code;
-  if (!request) delete body.instance;
-  const headers = new Headers(response.headers);
-  headers.set('content-type', PROBLEM_CONTENT_TYPE);
-  headers.delete('content-length');
-  return new Response(JSON.stringify(body), { status, headers });
+
+  return createProblemResponse(response.status, {
+    detail: parsed.success ? parsed.data.message : undefined,
+    errorCode: parsed.success ? parsed.data.code : undefined,
+    headers: response.headers,
+  });
 }
 
 export function problemDetailsPlugin(
-  factory: ProblemDetailsFactory,
+  options: ProblemDetailsPluginOptions = {},
 ): BetterAuthPlugin {
+  const disabledPaths = new Set(options.disabledPaths ?? []);
+
   return {
     id: 'work-os-problem-details',
+    // Better Auth의 built-in disabledPaths는 onResponse 전에 반환하므로 여기서 차단해 오류 형식을 유지한다.
+    async onRequest(request, context) {
+      const requestPath = new URL(request.url).pathname;
+      const basePath = new URL(context.baseURL).pathname.replace(/\/$/, '');
+      const isAuthPath =
+        requestPath === basePath || requestPath.startsWith(`${basePath}/`);
+      const relativePath = isAuthPath
+        ? requestPath.slice(basePath.length) || '/'
+        : requestPath;
+
+      if (!disabledPaths.has(relativePath)) return;
+      return { response: createProblemResponse(404) };
+    },
     async onResponse(response) {
-      // HTTP 응답에만 적용하고 SDK의 APIError 계약은 유지한다.
-      const converted = await toAuthProblemResponse(factory, response);
+      const converted = await toProblemDetailsResponse(response);
       if (converted !== response) return { response: converted };
     },
   };

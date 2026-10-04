@@ -1,9 +1,11 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "isolatedModules": false,
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "resolvePackageJsonExports": false,
+    "ignoreDeprecations": "6.0",
+    "isolatedModules": true,
     "types": ["jest", "node"]
   }
 }

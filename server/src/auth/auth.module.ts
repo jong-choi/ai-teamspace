@@ -4,19 +4,15 @@ import { createAuth } from '#server/auth/auth.js';
 import { DatabaseModule } from '#server/database/database.module.js';
 import { DatabaseService } from '#server/database/database.service.js';
 
-import { ProblemDetailsFactory } from '@camcima/nestjs-rfc9457';
 import { AuthModule as NestBetterAuthModule } from '@thallesp/nestjs-better-auth';
 
 @Module({
   imports: [
     NestBetterAuthModule.forRootAsync({
       imports: [DatabaseModule],
-      inject: [DatabaseService, ProblemDetailsFactory],
-      useFactory: (
-        databaseService: DatabaseService,
-        problems: ProblemDetailsFactory,
-      ) => ({
-        auth: createAuth(databaseService.db, problems),
+      inject: [DatabaseService],
+      useFactory: (databaseService: DatabaseService) => ({
+        auth: createAuth(databaseService.db),
       }),
     }),
   ],

@@ -216,7 +216,7 @@ describe('조직과 멤버 E2E', () => {
       `/organizations/${organizationId}`,
     );
     expect(outsiderResponse.status).toBe(404);
-    expect(outsiderResponse.body.code).toBe('ORGANIZATION_NOT_FOUND');
+    expect(outsiderResponse.body.errorCode).toBe('ORGANIZATION_NOT_FOUND');
   });
 
   it('DTO validation과 slug conflict를 공용 error envelope로 반환한다', async () => {
@@ -239,7 +239,7 @@ describe('조직과 멤버 E2E', () => {
       slug: 'unique-org',
     });
     expect(conflictResponse.status).toBe(409);
-    expect(conflictResponse.body.code).toBe('ORGANIZATION_SLUG_CONFLICT');
+    expect(conflictResponse.body.errorCode).toBe('ORGANIZATION_SLUG_CONFLICT');
   });
 
   it('member 목록과 role 변경은 target organization 범위와 Better Auth 권한을 따른다', async () => {
@@ -282,7 +282,7 @@ describe('조직과 멤버 E2E', () => {
       )
       .send({ role: OrganizationRoleSchema.enum.member });
     expect(memberForbiddenResponse.status).toBe(403);
-    expect(memberForbiddenResponse.body.code).toBe(
+    expect(memberForbiddenResponse.body.errorCode).toBe(
       'ORGANIZATION_ACCESS_DENIED',
     );
 
@@ -298,7 +298,7 @@ describe('조직과 멤버 E2E', () => {
       .patch(`/organizations/${organizationId}/members/${foreignMemberId}/role`)
       .send({ role: OrganizationRoleSchema.enum.admin });
     expect(foreignTargetResponse.status).toBe(404);
-    expect(foreignTargetResponse.body.code).toBe(
+    expect(foreignTargetResponse.body.errorCode).toBe(
       'ORGANIZATION_MEMBER_NOT_FOUND',
     );
   });
@@ -322,13 +322,13 @@ describe('조직과 멤버 E2E', () => {
       )
       .send({ role: OrganizationRoleSchema.enum.admin });
     expect(demoteOwnerResponse.status).toBe(409);
-    expect(demoteOwnerResponse.body.code).toBe('OWNER_TRANSFER_REQUIRED');
+    expect(demoteOwnerResponse.body.errorCode).toBe('OWNER_TRANSFER_REQUIRED');
 
     const removeOwnerResponse = await owner.agent.delete(
       `/organizations/${organizationId}/members/${secondOwnerMemberId}`,
     );
     expect(removeOwnerResponse.status).toBe(409);
-    expect(removeOwnerResponse.body.code).toBe('OWNER_TRANSFER_REQUIRED');
+    expect(removeOwnerResponse.body.errorCode).toBe('OWNER_TRANSFER_REQUIRED');
 
     const [ownerMember] = await database
       .select()
@@ -344,7 +344,9 @@ describe('조직과 멤버 E2E', () => {
       .patch(`/organizations/${organizationId}/members/${ownerMember!.id}/role`)
       .send({ role: OrganizationRoleSchema.enum.admin });
     expect(selfRoleResponse.status).toBe(409);
-    expect(selfRoleResponse.body.code).toBe('SELF_ROLE_CHANGE_NOT_SUPPORTED');
+    expect(selfRoleResponse.body.errorCode).toBe(
+      'SELF_ROLE_CHANGE_NOT_SUPPORTED',
+    );
   });
 
   it('동일 non-owner role 변경이 동시에 들어와도 완전한 role 상태로 수렴한다', async () => {
@@ -480,7 +482,7 @@ describe('조직과 멤버 E2E', () => {
       `/organizations/${organizationId}/members/${removableMemberId}`,
     );
     expect(repeatedDelete.status).toBe(404);
-    expect(repeatedDelete.body.code).toBe('ORGANIZATION_MEMBER_NOT_FOUND');
+    expect(repeatedDelete.body.errorCode).toBe('ORGANIZATION_MEMBER_NOT_FOUND');
   });
   it('쿠키 인증 변경 요청의 미허용 Origin과 누락된 Origin을 거절한다', async () => {
     const actor = await createUser('origin-guard');
@@ -514,7 +516,7 @@ describe('조직과 멤버 E2E', () => {
     expect(response.body).toMatchObject({
       status: 401,
       type: 'about:blank',
-      code: 'INVALID_EMAIL_OR_PASSWORD',
+      errorCode: 'INVALID_EMAIL_OR_PASSWORD',
     });
     const disabled = await request(app.getHttpServer())
       .post(`${authOptions.basePath}${organizationFacadeDisabledPaths[0]}`)
@@ -574,7 +576,7 @@ describe('조직과 멤버 E2E', () => {
       }
       const response = await mutation;
       expect(response.status).toBe(409);
-      expect(response.body.code).toBe('OWNER_TRANSFER_REQUIRED');
+      expect(response.body.errorCode).toBe('OWNER_TRANSFER_REQUIRED');
       const [stored] = await database
         .select()
         .from(member)

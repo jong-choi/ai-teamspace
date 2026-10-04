@@ -59,10 +59,12 @@ function ChatMessageEditContent({
 }: ChatMessageEditRouteProps & { currentUserId: string }) {
   const router = useRouter();
   const message = useChatMessage(conversationId, messageId).data;
-  const canEdit =
+  const editableContent =
     message.senderKind === 'user' &&
     message.senderUserId === currentUserId &&
-    message.contentType === 'text';
+    message.content.type === 'text'
+      ? message.content
+      : null;
 
   return (
     <View className="min-h-0 flex-1 bg-background">
@@ -72,7 +74,7 @@ function ChatMessageEditContent({
         title="메시지 수정"
       />
 
-      {!canEdit ? (
+      {!editableContent ? (
         <ChatState
           title="수정할 수 없는 메시지입니다"
           description="본인이 작성한 일반 텍스트 메시지만 수정할 수 있습니다."
@@ -81,7 +83,7 @@ function ChatMessageEditContent({
         <MessageEditor
           key={message.id}
           conversationId={conversationId}
-          initialText={message.content.text}
+          initialText={editableContent.text}
           messageId={messageId}
           onCancel={() => router.back()}
           onSaved={() =>

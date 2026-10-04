@@ -8,7 +8,7 @@ import * as zod from 'zod';
 
 export const chatMessageIdRegExp = new RegExp('^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$');
 export const chatMessageConversationIdRegExp = new RegExp('^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$');
-export const chatMessageContentTextMax = 10000;
+export const chatMessageContentOneTextMax = 10000;
 
 export const chatMessageCreatedAtRegExp = new RegExp('^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$');
 export const chatMessageUpdatedAtRegExp = new RegExp('^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$');
@@ -20,10 +20,19 @@ export const ChatMessage = zod.object({
   "conversationId": zod.uuid().regex(chatMessageConversationIdRegExp),
   "senderKind": zod.enum(['system', 'user']),
   "senderUserId": zod.string().nullable(),
-  "contentType": zod.enum(['text']),
-  "content": zod.object({
-  "text": zod.string().min(1).max(chatMessageContentTextMax)
-}),
+  "referenceKind": zod.string().nullable(),
+  "referenceId": zod.string().nullable(),
+  "content": zod.union([zod.object({
+  "text": zod.string().min(1).max(chatMessageContentOneTextMax),
+  "type": zod.enum(['text'])
+}),zod.object({
+  "type": zod.enum(['organization_invitation']),
+  "invitationId": zod.string(),
+  "organizationId": zod.string(),
+  "inviterUserId": zod.string(),
+  "organizationNameAtSend": zod.string().optional(),
+  "inviterDisplayNameAtSend": zod.string().optional()
+})]),
   "createdAt": zod.iso.datetime({"offset":true}).regex(chatMessageCreatedAtRegExp),
   "updatedAt": zod.iso.datetime({"offset":true}).regex(chatMessageUpdatedAtRegExp),
   "editedAt": zod.iso.datetime({"offset":true}).regex(chatMessageEditedAtRegExp).nullable()

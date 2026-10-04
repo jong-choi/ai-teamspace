@@ -49,13 +49,15 @@ export function OrganizationMemberToolbar({
           className="h-8 pl-9 text-xs"
           maxLength={100}
           onChangeText={filters.setSearchInput}
-          placeholder="이름 또는 이메일 검색..."
+          placeholder="등록 멤버 이름 또는 이메일 검색..."
           value={filters.searchInput}
         />
       </View>
 
       <View className="flex-row items-center gap-2">
-        <Text className="text-xs font-medium text-muted-foreground">역할:</Text>
+        <Text className="text-xs font-medium text-muted-foreground">
+          멤버 역할:
+        </Text>
         <Select
           onValueChange={(option) => {
             filters.setRole(

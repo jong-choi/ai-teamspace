@@ -11,6 +11,7 @@ import {
 import { useOrganizationMemberFilters } from '@core/features/organizations/organization-member-filters';
 import { OrganizationMemberList } from '@core/features/organizations/organization-member-list';
 import { OrganizationMemberMetrics } from '@core/features/organizations/organization-member-metrics';
+import { canManageOrganizationInvitations } from '@core/features/organizations/organization-member-permissions';
 import { OrganizationMemberToolbar } from '@core/features/organizations/organization-member-toolbar';
 import { OrganizationMembersHeader } from '@core/features/organizations/organization-members-header';
 import { useOrganizationAccess } from '@core/features/organizations/organization-members-query';
@@ -111,23 +112,31 @@ function OrganizationMembersPage({
   organizationId: string;
 }) {
   const filters = useOrganizationMemberFilters();
+  const canManageInvitations = canManageOrganizationInvitations(access.role);
+  const listLabel = canManageInvitations ? '멤버 및 초대 목록' : '멤버 목록';
 
   return (
     <ScrollView className="min-h-0 flex-1" showsVerticalScrollIndicator={false}>
       <View className="mx-auto w-full max-w-7xl gap-6 p-4 sm:p-6 lg:p-8">
-        <OrganizationMembersHeader access={access} />
+        <OrganizationMembersHeader
+          access={access}
+          organizationId={organizationId}
+        />
 
         <DashboardQueryBoundary
           fallback={
             <DashboardLoading
               className="min-h-32 py-10"
-              label="멤버 수를 불러오는 중..."
+              label="멤버 및 초대 현황을 불러오는 중..."
             />
           }
           resetKeys={[organizationId]}
-          title="멤버 수를 불러오지 못했습니다"
+          title="멤버 및 초대 현황을 불러오지 못했습니다"
         >
-          <OrganizationMemberMetrics organizationId={organizationId} />
+          <OrganizationMemberMetrics
+            actorRole={access.role}
+            organizationId={organizationId}
+          />
         </DashboardQueryBoundary>
 
         <View className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
@@ -136,7 +145,7 @@ function OrganizationMembersPage({
             fallback={
               <DashboardLoading
                 className="min-h-32 py-10"
-                label="멤버 목록을 불러오는 중..."
+                label={`${listLabel}을 불러오는 중...`}
               />
             }
             resetKeys={[
@@ -145,7 +154,7 @@ function OrganizationMembersPage({
               filters.params.role,
               filters.params.search,
             ]}
-            title="멤버 목록을 불러오지 못했습니다"
+            title={`${listLabel}을 불러오지 못했습니다`}
           >
             <OrganizationMemberList
               actorRole={access.role}

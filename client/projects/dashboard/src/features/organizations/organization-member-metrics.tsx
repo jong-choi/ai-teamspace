@@ -1,14 +1,20 @@
 import { View } from 'react-native';
 
+import type { OrganizationAccess } from '@repo/client/api-client/schemas';
 import { Text } from '@repo/client/rnr/components/ui/text';
+import { useOrganizationPendingInvitationTotal } from '@core/features/organizations/organization-invitation-query';
+import { canManageOrganizationInvitations } from '@core/features/organizations/organization-member-permissions';
 import { useOrganizationMemberTotal } from '@core/features/organizations/organization-members-query';
 
 export function OrganizationMemberMetrics({
+  actorRole,
   organizationId,
 }: {
+  actorRole: OrganizationAccess['role'];
   organizationId: string;
 }) {
   const total = useOrganizationMemberTotal(organizationId).data;
+  const canManageInvitations = canManageOrganizationInvitations(actorRole);
 
   return (
     <View className="flex-row flex-wrap gap-4">
@@ -23,12 +29,16 @@ export function OrganizationMemberMetrics({
         muted
         value="—"
       />
-      <MetricCard
-        description="초대 기능 준비 중"
-        label="초대 대기중"
-        muted
-        value="—"
-      />
+      {canManageInvitations ? (
+        <PendingInvitationMetric organizationId={organizationId} />
+      ) : (
+        <MetricCard
+          description="관리 권한이 있는 사용자만 조회할 수 있습니다"
+          label="초대 대기중"
+          muted
+          value="—"
+        />
+      )}
       <MetricCard
         description="라이선스 정보 없음"
         label="AI 시트 할당율"
@@ -36,6 +46,22 @@ export function OrganizationMemberMetrics({
         value="—"
       />
     </View>
+  );
+}
+
+function PendingInvitationMetric({
+  organizationId,
+}: {
+  organizationId: string;
+}) {
+  const total = useOrganizationPendingInvitationTotal(organizationId).data;
+
+  return (
+    <MetricCard
+      description="수락 대기 중인 조직 초대"
+      label="초대 대기중"
+      value={`${total}건`}
+    />
   );
 }
 

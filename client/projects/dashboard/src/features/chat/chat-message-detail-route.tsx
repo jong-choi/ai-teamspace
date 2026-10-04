@@ -20,6 +20,7 @@ import {
   ChatQueryBoundary,
   ChatState,
 } from '@core/features/chat/chat-state';
+import { OrganizationInvitationMessage } from '@core/features/invitations/organization-invitation-message';
 
 import { Link2, MessageSquareText, Pencil } from 'lucide-react-native';
 
@@ -68,7 +69,7 @@ function ChatMessageDetailContent({
   const canEdit =
     message.senderKind === 'user' &&
     message.senderUserId === currentUserId &&
-    message.contentType === 'text';
+    message.content.type === 'text';
 
   return (
     <View className="min-h-0 flex-1 bg-background">
@@ -104,9 +105,21 @@ function ChatMessageDetailContent({
             </Text>
           </View>
 
-          <Text className="text-sm leading-6 text-foreground/90">
-            {message.content.text}
-          </Text>
+          {message.content.type === 'text' ? (
+            <Text className="text-sm leading-6 text-foreground/90">
+              {message.content.text}
+            </Text>
+          ) : message.content.type === 'organization_invitation' ? (
+            <OrganizationInvitationMessage
+              content={message.content}
+              onOpenInvitation={(invitationId) =>
+                router.push({
+                  pathname: '/invitations/[invitationId]',
+                  params: { invitationId },
+                })
+              }
+            />
+          ) : null}
 
           <View className="flex-row flex-wrap gap-2 border-t border-border pt-4">
             <Button

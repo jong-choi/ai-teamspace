@@ -58,8 +58,9 @@ const olderMessage: ChatMessage = {
   conversationId,
   senderKind: 'user',
   senderUserId: actorUserId,
-  contentType: 'text',
-  content: { text: '이전 메시지' },
+  content: { type: 'text', text: '이전 메시지' },
+  referenceKind: null,
+  referenceId: null,
   createdAt: '2026-10-04T00:01:00.000Z',
   updatedAt: '2026-10-04T00:01:00.000Z',
   editedAt: null,
@@ -69,7 +70,7 @@ const createdMessage: ChatMessage = {
   ...olderMessage,
   id: '33333333-3333-4333-8333-333333333333',
   senderUserId: peerUserId,
-  content: { text: '새 메시지' },
+  content: { type: 'text', text: '새 메시지' },
   createdAt: '2026-10-04T00:02:00.000Z',
   updatedAt: '2026-10-04T00:02:00.000Z',
 };
@@ -108,7 +109,7 @@ describe('채팅 클라이언트 캐시', () => {
 
     const updatedMessage = {
       ...olderMessage,
-      content: { text: '수정된 메시지' },
+      content: { type: 'text', text: '수정된 메시지' },
       editedAt: '2026-10-04T00:03:00.000Z',
       updatedAt: '2026-10-04T00:03:00.000Z',
     } satisfies ChatMessage;
@@ -118,14 +119,18 @@ describe('채팅 클라이언트 캐시', () => {
     const history = queryClient.getQueryData<MessageHistory>(
       messageHistoryQueryKey,
     );
-    expect(history?.pages[0]?.items[0]?.content.text).toBe('수정된 메시지');
+    expect(history?.pages[0]?.items[0]?.content).toEqual({
+      type: 'text',
+      text: '수정된 메시지',
+    });
 
     const conversations = queryClient.getQueryData<ChatConversationList>(
       getChatControllerListConversationsQueryKey(),
     );
-    expect(conversations?.items[0]?.latestMessage?.content.text).toBe(
-      '수정된 메시지',
-    );
+    expect(conversations?.items[0]?.latestMessage?.content).toEqual({
+      type: 'text',
+      text: '수정된 메시지',
+    });
   });
 
   it('생성 이벤트 순서가 뒤집혀도 이력과 최근 메시지 순서를 되돌리지 않는다', () => {

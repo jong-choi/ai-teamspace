@@ -61,6 +61,15 @@ export function ChatMessageFeed({
     },
     [conversationId, router],
   );
+  const openInvitation = useCallback(
+    (invitationId: string) => {
+      router.push({
+        pathname: '/invitations/[invitationId]',
+        params: { invitationId },
+      });
+    },
+    [router],
+  );
 
   useEffect(() => {
     if (!focusedMessageId) {
@@ -123,6 +132,7 @@ export function ChatMessageFeed({
             message={item}
             onCopyCanonical={copyCanonical}
             onEdit={editMessage}
+            onOpenInvitation={openInvitation}
             sender={
               item.senderUserId
                 ? participantsById.get(item.senderUserId)

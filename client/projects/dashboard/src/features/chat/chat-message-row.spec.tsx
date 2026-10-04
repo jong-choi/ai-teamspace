@@ -46,11 +46,30 @@ function createMessage(senderUserId: string): ChatMessage {
     conversationId,
     senderKind: 'user',
     senderUserId,
-    contentType: 'text',
-    content: { text: '테스트 메시지' },
+    content: { type: 'text', text: '테스트 메시지' },
+    referenceKind: null,
+    referenceId: null,
     createdAt: '2026-10-04T00:01:00.000Z',
     updatedAt: '2026-10-04T00:01:00.000Z',
     editedAt: null,
+  };
+}
+
+function createInvitationMessage(): ChatMessage {
+  return {
+    ...createMessage(peerUserId),
+    senderKind: 'system',
+    senderUserId: null,
+    referenceKind: 'organization_invitation',
+    referenceId: 'invitation-a',
+    content: {
+      type: 'organization_invitation',
+      invitationId: 'invitation-a',
+      organizationId: 'organization-a',
+      inviterUserId: peerUserId,
+      organizationNameAtSend: '조직 A',
+      inviterDisplayNameAtSend: '초대자',
+    },
   };
 }
 
@@ -64,6 +83,7 @@ describe('채팅 메시지 행', () => {
         message={createMessage(peerUserId)}
         onCopyCanonical={onCopyCanonical}
         onEdit={jest.fn()}
+        onOpenInvitation={jest.fn()}
         sender={conversation.participants[1]}
       />,
     );
@@ -83,6 +103,7 @@ describe('채팅 메시지 행', () => {
         message={createMessage(actorUserId)}
         onCopyCanonical={jest.fn()}
         onEdit={onEdit}
+        onOpenInvitation={jest.fn()}
         sender={conversation.participants[0]}
       />,
     );
@@ -91,5 +112,28 @@ describe('채팅 메시지 행', () => {
 
     expect(onEdit).toHaveBeenCalledTimes(1);
     expect(screen.getByText('내 메시지')).toBeTruthy();
+  });
+
+  it('조직 초대 structured message는 snapshot 카드와 확인 action을 렌더한다', async () => {
+    const onOpenInvitation = jest.fn();
+    await render(
+      <ChatMessageRow
+        currentUserId={actorUserId}
+        focused={false}
+        message={createInvitationMessage()}
+        onCopyCanonical={jest.fn()}
+        onEdit={jest.fn()}
+        onOpenInvitation={onOpenInvitation}
+      />,
+    );
+
+    expect(screen.getByText('조직 초대')).toBeTruthy();
+    expect(
+      screen.getByText('초대자님이 조직 A 조직에 초대했습니다.'),
+    ).toBeTruthy();
+    expect(screen.queryByLabelText('메시지 수정')).toBeNull();
+
+    fireEvent.press(screen.getByText('초대 확인'));
+    expect(onOpenInvitation).toHaveBeenCalledWith('invitation-a');
   });
 });

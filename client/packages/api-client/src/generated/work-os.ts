@@ -33,6 +33,9 @@ import {
   ChatMessagePage,
   ChatRealtimeEvent,
   OrganizationAccess,
+  OrganizationInvitation,
+  OrganizationInvitationDetail,
+  OrganizationInvitationList,
   OrganizationList,
   OrganizationMember,
   OrganizationMemberList
@@ -44,6 +47,8 @@ import type {
   ChatControllerMarkReadBody,
   ChatControllerSendMessageBody,
   ChatControllerUpdateMessageBody,
+  OrganizationInvitationsControllerCreateBody,
+  OrganizationInvitationsControllerListParams,
   OrganizationsControllerChangeMemberRoleBody,
   OrganizationsControllerCreateBody,
   OrganizationsControllerListMembersParams,
@@ -1627,4 +1632,550 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getOrganizationsControllerRemoveMemberMutationOptions(options), queryClient);
+    }
+
+export const getOrganizationInvitationsControllerListUrl = (organizationId: string,
+    params?: OrganizationInvitationsControllerListParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/organizations/${organizationId}/invitations?${stringifiedParams}` : `/organizations/${organizationId}/invitations`
+}
+
+export const organizationInvitationsControllerList = async (organizationId: string,
+    params?: OrganizationInvitationsControllerListParams, options?: Parameters<typeof workOsFetcher>[1]): Promise<OrganizationInvitationList> => {
+
+  return workOsFetcher<OrganizationInvitationList>(getOrganizationInvitationsControllerListUrl(organizationId,params),
+  {
+    ...options,
+    method: 'GET'
+
+    ,
+    schema: OrganizationInvitationList
+  }
+);}
+
+
+
+
+
+export const getOrganizationInvitationsControllerListQueryKey = (organizationId: string,
+    params?: OrganizationInvitationsControllerListParams,) => {
+    return [
+    `/organizations/${organizationId}/invitations`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getOrganizationInvitationsControllerListSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof organizationInvitationsControllerList>>, TError = ErrorType<ProblemDetails>>(organizationId: string,
+    params?: OrganizationInvitationsControllerListParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof organizationInvitationsControllerList>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getOrganizationInvitationsControllerListQueryKey(organizationId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationInvitationsControllerList>>> = ({ signal }) => organizationInvitationsControllerList(organizationId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof organizationInvitationsControllerList>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
+}
+
+export type OrganizationInvitationsControllerListSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof organizationInvitationsControllerList>>>
+export type OrganizationInvitationsControllerListSuspenseQueryError = ErrorType<ProblemDetails>
+
+
+export function useOrganizationInvitationsControllerListSuspense<TData = Awaited<ReturnType<typeof organizationInvitationsControllerList>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    params: undefined |  OrganizationInvitationsControllerListParams, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof organizationInvitationsControllerList>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useOrganizationInvitationsControllerListSuspense<TData = Awaited<ReturnType<typeof organizationInvitationsControllerList>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    params?: OrganizationInvitationsControllerListParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof organizationInvitationsControllerList>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useOrganizationInvitationsControllerListSuspense<TData = Awaited<ReturnType<typeof organizationInvitationsControllerList>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    params?: OrganizationInvitationsControllerListParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof organizationInvitationsControllerList>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useOrganizationInvitationsControllerListSuspense<TData = Awaited<ReturnType<typeof organizationInvitationsControllerList>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    params?: OrganizationInvitationsControllerListParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof organizationInvitationsControllerList>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getOrganizationInvitationsControllerListSuspenseQueryOptions(organizationId,params,options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getOrganizationInvitationsControllerCreateUrl = (organizationId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/invitations`
+}
+
+export const organizationInvitationsControllerCreate = async (organizationId: string,
+    organizationInvitationsControllerCreateBody: OrganizationInvitationsControllerCreateBody, options?: Parameters<typeof workOsFetcher>[1]): Promise<OrganizationInvitation> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<OrganizationInvitation>(getOrganizationInvitationsControllerCreateUrl(organizationId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(organizationInvitationsControllerCreateBody),
+    schema: OrganizationInvitation
+  }
+);}
+
+
+
+
+
+export const getOrganizationInvitationsControllerCreateMutationKey = () => ['organizationInvitationsControllerCreate'] as const;
+
+export const getOrganizationInvitationsControllerCreateMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof organizationInvitationsControllerCreate>>, TError,OrganizationInvitationsControllerCreateMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof organizationInvitationsControllerCreate>>, TError,OrganizationInvitationsControllerCreateMutationVariables, TContext> => {
+
+const mutationKey = getOrganizationInvitationsControllerCreateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof organizationInvitationsControllerCreate>>, OrganizationInvitationsControllerCreateMutationVariables> = (props) => {
+          const {organizationId,data} = props ?? {};
+
+          return  organizationInvitationsControllerCreate(organizationId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type OrganizationInvitationsControllerCreateMutationResult = NonNullable<Awaited<ReturnType<typeof organizationInvitationsControllerCreate>>>
+    export type OrganizationInvitationsControllerCreateMutationBody = OrganizationInvitationsControllerCreateBody
+    export type OrganizationInvitationsControllerCreateMutationError = ErrorType<ProblemDetails>
+    export type OrganizationInvitationsControllerCreateMutationVariables = {organizationId: string;data: OrganizationInvitationsControllerCreateBody}
+
+    export const useOrganizationInvitationsControllerCreate = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof organizationInvitationsControllerCreate>>, TError,OrganizationInvitationsControllerCreateMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof organizationInvitationsControllerCreate>>,
+        TError,
+        OrganizationInvitationsControllerCreateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getOrganizationInvitationsControllerCreateMutationOptions(options), queryClient);
+    }
+
+export const getOrganizationInvitationsControllerCancelUrl = (organizationId: string,
+    invitationId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/invitations/${invitationId}`
+}
+
+export const organizationInvitationsControllerCancel = async (organizationId: string,
+    invitationId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<void> => {
+
+  return workOsFetcher<void>(getOrganizationInvitationsControllerCancelUrl(organizationId,invitationId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getOrganizationInvitationsControllerCancelMutationKey = () => ['organizationInvitationsControllerCancel'] as const;
+
+export const getOrganizationInvitationsControllerCancelMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof organizationInvitationsControllerCancel>>, TError,OrganizationInvitationsControllerCancelMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof organizationInvitationsControllerCancel>>, TError,OrganizationInvitationsControllerCancelMutationVariables, TContext> => {
+
+const mutationKey = getOrganizationInvitationsControllerCancelMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof organizationInvitationsControllerCancel>>, OrganizationInvitationsControllerCancelMutationVariables> = (props) => {
+          const {organizationId,invitationId} = props ?? {};
+
+          return  organizationInvitationsControllerCancel(organizationId,invitationId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type OrganizationInvitationsControllerCancelMutationResult = NonNullable<Awaited<ReturnType<typeof organizationInvitationsControllerCancel>>>
+
+    export type OrganizationInvitationsControllerCancelMutationError = ErrorType<ProblemDetails>
+    export type OrganizationInvitationsControllerCancelMutationVariables = {organizationId: string;invitationId: string}
+
+    export const useOrganizationInvitationsControllerCancel = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof organizationInvitationsControllerCancel>>, TError,OrganizationInvitationsControllerCancelMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof organizationInvitationsControllerCancel>>,
+        TError,
+        OrganizationInvitationsControllerCancelMutationVariables,
+        TContext
+      > => {
+      return useMutation(getOrganizationInvitationsControllerCancelMutationOptions(options), queryClient);
+    }
+
+export const getOrganizationInvitationsControllerResendUrl = (organizationId: string,
+    invitationId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/invitations/${invitationId}/resend`
+}
+
+export const organizationInvitationsControllerResend = async (organizationId: string,
+    invitationId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<OrganizationInvitation> => {
+
+  return workOsFetcher<OrganizationInvitation>(getOrganizationInvitationsControllerResendUrl(organizationId,invitationId),
+  {
+    ...options,
+    method: 'POST'
+
+    ,
+    schema: OrganizationInvitation
+  }
+);}
+
+
+
+
+
+export const getOrganizationInvitationsControllerResendMutationKey = () => ['organizationInvitationsControllerResend'] as const;
+
+export const getOrganizationInvitationsControllerResendMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof organizationInvitationsControllerResend>>, TError,OrganizationInvitationsControllerResendMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof organizationInvitationsControllerResend>>, TError,OrganizationInvitationsControllerResendMutationVariables, TContext> => {
+
+const mutationKey = getOrganizationInvitationsControllerResendMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof organizationInvitationsControllerResend>>, OrganizationInvitationsControllerResendMutationVariables> = (props) => {
+          const {organizationId,invitationId} = props ?? {};
+
+          return  organizationInvitationsControllerResend(organizationId,invitationId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type OrganizationInvitationsControllerResendMutationResult = NonNullable<Awaited<ReturnType<typeof organizationInvitationsControllerResend>>>
+
+    export type OrganizationInvitationsControllerResendMutationError = ErrorType<ProblemDetails>
+    export type OrganizationInvitationsControllerResendMutationVariables = {organizationId: string;invitationId: string}
+
+    export const useOrganizationInvitationsControllerResend = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof organizationInvitationsControllerResend>>, TError,OrganizationInvitationsControllerResendMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof organizationInvitationsControllerResend>>,
+        TError,
+        OrganizationInvitationsControllerResendMutationVariables,
+        TContext
+      > => {
+      return useMutation(getOrganizationInvitationsControllerResendMutationOptions(options), queryClient);
+    }
+
+export const getInvitationsControllerGetDetailUrl = (invitationId: string,) => {
+
+
+
+
+  return `/invitations/${invitationId}`
+}
+
+export const invitationsControllerGetDetail = async (invitationId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<OrganizationInvitationDetail> => {
+
+  return workOsFetcher<OrganizationInvitationDetail>(getInvitationsControllerGetDetailUrl(invitationId),
+  {
+    ...options,
+    method: 'GET'
+
+    ,
+    schema: OrganizationInvitationDetail
+  }
+);}
+
+
+
+
+
+export const getInvitationsControllerGetDetailQueryKey = (invitationId: string,) => {
+    return [
+    `/invitations/${invitationId}`
+    ] as const;
+    }
+
+
+export const getInvitationsControllerGetDetailSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof invitationsControllerGetDetail>>, TError = ErrorType<ProblemDetails>>(invitationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof invitationsControllerGetDetail>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getInvitationsControllerGetDetailQueryKey(invitationId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof invitationsControllerGetDetail>>> = ({ signal }) => invitationsControllerGetDetail(invitationId, { signal, ...requestOptions });
+
+
+
+
+
+   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof invitationsControllerGetDetail>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
+}
+
+export type InvitationsControllerGetDetailSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof invitationsControllerGetDetail>>>
+export type InvitationsControllerGetDetailSuspenseQueryError = ErrorType<ProblemDetails>
+
+
+export function useInvitationsControllerGetDetailSuspense<TData = Awaited<ReturnType<typeof invitationsControllerGetDetail>>, TError = ErrorType<ProblemDetails>>(
+ invitationId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof invitationsControllerGetDetail>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useInvitationsControllerGetDetailSuspense<TData = Awaited<ReturnType<typeof invitationsControllerGetDetail>>, TError = ErrorType<ProblemDetails>>(
+ invitationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof invitationsControllerGetDetail>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useInvitationsControllerGetDetailSuspense<TData = Awaited<ReturnType<typeof invitationsControllerGetDetail>>, TError = ErrorType<ProblemDetails>>(
+ invitationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof invitationsControllerGetDetail>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useInvitationsControllerGetDetailSuspense<TData = Awaited<ReturnType<typeof invitationsControllerGetDetail>>, TError = ErrorType<ProblemDetails>>(
+ invitationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof invitationsControllerGetDetail>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getInvitationsControllerGetDetailSuspenseQueryOptions(invitationId,options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getInvitationsControllerAcceptUrl = (invitationId: string,) => {
+
+
+
+
+  return `/invitations/${invitationId}/accept`
+}
+
+export const invitationsControllerAccept = async (invitationId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<OrganizationInvitation> => {
+
+  return workOsFetcher<OrganizationInvitation>(getInvitationsControllerAcceptUrl(invitationId),
+  {
+    ...options,
+    method: 'POST'
+
+    ,
+    schema: OrganizationInvitation
+  }
+);}
+
+
+
+
+
+export const getInvitationsControllerAcceptMutationKey = () => ['invitationsControllerAccept'] as const;
+
+export const getInvitationsControllerAcceptMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof invitationsControllerAccept>>, TError,InvitationsControllerAcceptMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof invitationsControllerAccept>>, TError,InvitationsControllerAcceptMutationVariables, TContext> => {
+
+const mutationKey = getInvitationsControllerAcceptMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof invitationsControllerAccept>>, InvitationsControllerAcceptMutationVariables> = (props) => {
+          const {invitationId} = props ?? {};
+
+          return  invitationsControllerAccept(invitationId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type InvitationsControllerAcceptMutationResult = NonNullable<Awaited<ReturnType<typeof invitationsControllerAccept>>>
+
+    export type InvitationsControllerAcceptMutationError = ErrorType<ProblemDetails>
+    export type InvitationsControllerAcceptMutationVariables = {invitationId: string}
+
+    export const useInvitationsControllerAccept = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof invitationsControllerAccept>>, TError,InvitationsControllerAcceptMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof invitationsControllerAccept>>,
+        TError,
+        InvitationsControllerAcceptMutationVariables,
+        TContext
+      > => {
+      return useMutation(getInvitationsControllerAcceptMutationOptions(options), queryClient);
+    }
+
+export const getInvitationsControllerRejectUrl = (invitationId: string,) => {
+
+
+
+
+  return `/invitations/${invitationId}/reject`
+}
+
+export const invitationsControllerReject = async (invitationId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<OrganizationInvitation> => {
+
+  return workOsFetcher<OrganizationInvitation>(getInvitationsControllerRejectUrl(invitationId),
+  {
+    ...options,
+    method: 'POST'
+
+    ,
+    schema: OrganizationInvitation
+  }
+);}
+
+
+
+
+
+export const getInvitationsControllerRejectMutationKey = () => ['invitationsControllerReject'] as const;
+
+export const getInvitationsControllerRejectMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof invitationsControllerReject>>, TError,InvitationsControllerRejectMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof invitationsControllerReject>>, TError,InvitationsControllerRejectMutationVariables, TContext> => {
+
+const mutationKey = getInvitationsControllerRejectMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof invitationsControllerReject>>, InvitationsControllerRejectMutationVariables> = (props) => {
+          const {invitationId} = props ?? {};
+
+          return  invitationsControllerReject(invitationId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type InvitationsControllerRejectMutationResult = NonNullable<Awaited<ReturnType<typeof invitationsControllerReject>>>
+
+    export type InvitationsControllerRejectMutationError = ErrorType<ProblemDetails>
+    export type InvitationsControllerRejectMutationVariables = {invitationId: string}
+
+    export const useInvitationsControllerReject = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof invitationsControllerReject>>, TError,InvitationsControllerRejectMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof invitationsControllerReject>>,
+        TError,
+        InvitationsControllerRejectMutationVariables,
+        TContext
+      > => {
+      return useMutation(getInvitationsControllerRejectMutationOptions(options), queryClient);
     }

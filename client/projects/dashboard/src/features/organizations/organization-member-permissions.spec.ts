@@ -1,5 +1,6 @@
 import type { OrganizationMember } from '@repo/client/api-client/schemas';
 import {
+  canManageOrganizationInvitations,
   getAssignableOrganizationMemberRoles,
   getOrganizationMemberManagementPermissions,
 } from '@core/features/organizations/organization-member-permissions';
@@ -78,5 +79,11 @@ describe('조직 멤버 관리 UI 권한', () => {
       'member',
     ]);
     expect(getAssignableOrganizationMemberRoles('member')).toEqual([]);
+  });
+
+  it('owner와 admin에게만 초대 관리 UI를 노출한다', () => {
+    expect(canManageOrganizationInvitations('owner')).toBe(true);
+    expect(canManageOrganizationInvitations('admin')).toBe(true);
+    expect(canManageOrganizationInvitations('member')).toBe(false);
   });
 });

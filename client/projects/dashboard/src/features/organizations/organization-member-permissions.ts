@@ -12,6 +12,12 @@ export type OrganizationMemberManagementPermissions = {
   canRemove: boolean;
 };
 
+export function canManageOrganizationInvitations(
+  actorRole: OrganizationAccess['role'],
+): boolean {
+  return actorRole === 'owner' || actorRole === 'admin';
+}
+
 export function getOrganizationMemberManagementPermissions(input: {
   actorRole: OrganizationAccess['role'];
   actorUserId: string;

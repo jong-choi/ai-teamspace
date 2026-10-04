@@ -15,6 +15,7 @@ import {
   type ChatParticipantDisplay,
   formatMessageTime,
 } from '@core/features/chat/chat-presenter';
+import { OrganizationInvitationMessage } from '@core/features/invitations/organization-invitation-message';
 
 import { Link2, Pencil } from 'lucide-react-native';
 
@@ -25,6 +26,7 @@ type ChatMessageRowProps = {
   sender?: ChatParticipantDisplay;
   onCopyCanonical: (messageId: string) => void;
   onEdit: (messageId: string) => void;
+  onOpenInvitation: (invitationId: string) => void;
 };
 
 export const ChatMessageRow = memo(function ChatMessageRow({
@@ -34,12 +36,14 @@ export const ChatMessageRow = memo(function ChatMessageRow({
   sender,
   onCopyCanonical,
   onEdit,
+  onOpenInvitation,
 }: ChatMessageRowProps) {
   const mine =
     message.senderKind === 'user' && message.senderUserId === currentUserId;
   const senderName =
     sender?.name ??
     (message.senderKind === 'system' ? '시스템' : '알 수 없는 사용자');
+  const textContent = message.content.type === 'text' ? message.content : null;
 
   return (
     <View
@@ -73,12 +77,19 @@ export const ChatMessageRow = memo(function ChatMessageRow({
             <Text className="text-[10px] text-muted-foreground">수정됨</Text>
           ) : null}
         </View>
-        <Text className="text-xs leading-5 text-foreground/90">
-          {message.content.text}
-        </Text>
+        {textContent ? (
+          <Text className="text-xs leading-5 text-foreground/90">
+            {textContent.text}
+          </Text>
+        ) : message.content.type === 'organization_invitation' ? (
+          <OrganizationInvitationMessage
+            content={message.content}
+            onOpenInvitation={onOpenInvitation}
+          />
+        ) : null}
       </View>
       <View className="shrink-0 flex-row items-center gap-0.5">
-        {mine && message.contentType === 'text' ? (
+        {mine && textContent ? (
           <Button
             accessibilityLabel="메시지 수정"
             className="h-7 w-7"

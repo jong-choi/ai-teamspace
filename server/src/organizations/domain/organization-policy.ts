@@ -1,4 +1,5 @@
 import {
+  OrganizationAccessDeniedError,
   OwnerTransferRequiredError,
   SelfMemberRemovalNotSupportedError,
   SelfRoleChangeNotSupportedError,
@@ -6,6 +7,12 @@ import {
 import type { OrganizationMember } from '#server/organizations/domain/organization-member.js';
 import type { OrganizationRole } from '#server/organizations/domain/organization-role.js';
 import { OrganizationRoleSchema } from '#server/organizations/domain/organization-role.js';
+
+export function assertInvitationCreateAllowed(role: OrganizationRole): void {
+  if (role === OrganizationRoleSchema.enum.member) {
+    throw new OrganizationAccessDeniedError();
+  }
+}
 
 export function assertMemberRoleChangeAllowed(input: {
   actorUserId: string;

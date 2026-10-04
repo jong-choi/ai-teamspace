@@ -1,3 +1,5 @@
+import { authUserIdColumn } from '#server/auth/infrastructure/persistence/drizzle/auth-user-reference.js';
+
 import {
   index,
   pgEnum,
@@ -22,6 +24,9 @@ export const chatConversation = pgTable(
     name: text('name'),
     topic: text('topic'),
     directKey: text('direct_key'),
+    systemUserId: text('system_user_id').references(() => authUserIdColumn, {
+      onDelete: 'cascade',
+    }),
     createdAt: timestamp('created_at', { withTimezone: true, precision: 3 })
       .defaultNow()
       .notNull(),
@@ -31,6 +36,7 @@ export const chatConversation = pgTable(
   },
   (table) => [
     uniqueIndex('chat_conversation_direct_key_uidx').on(table.directKey),
+    uniqueIndex('chat_conversation_system_user_uidx').on(table.systemUserId),
     index('chat_conversation_updated_at_idx').on(table.updatedAt),
   ],
 );

@@ -1,3 +1,4 @@
+import type { AuthUserDirectoryService } from '#server/auth/auth-user-directory.service.js';
 import { ChatService } from '#server/chat/chat.service.js';
 import {
   ChatAccessDeniedError,
@@ -9,7 +10,6 @@ import type { ChatMessage } from '#server/chat/domain/chat-message.js';
 import { decodeChatMessageCursor } from '#server/chat/domain/chat-message-cursor.js';
 import { ChatRepository } from '#server/chat/infrastructure/persistence/chat.repository.js';
 import { ChatRealtimeProvider } from '#server/chat/infrastructure/realtime/chat-realtime.provider.js';
-import { ChatUserDirectory } from '#server/chat/infrastructure/user-directory/user-directory.provider.js';
 
 import { jest } from '@jest/globals';
 import { EMPTY } from 'rxjs';
@@ -20,6 +20,8 @@ class FakeChatRepository extends ChatRepository {
   createDirectConversation =
     jest.fn<ChatRepository['createDirectConversation']>();
   findDirectByKey = jest.fn<ChatRepository['findDirectByKey']>();
+  deliverReferencedSystemMessage =
+    jest.fn<ChatRepository['deliverReferencedSystemMessage']>();
   listConversationStates = jest.fn<ChatRepository['listConversationStates']>();
   findConversationState = jest.fn<ChatRepository['findConversationState']>();
   listMessages = jest.fn<ChatRepository['listMessages']>();
@@ -29,9 +31,10 @@ class FakeChatRepository extends ChatRepository {
   markRead = jest.fn<ChatRepository['markRead']>();
 }
 
-class FakeChatUserDirectory extends ChatUserDirectory {
-  resolveExactUsername = jest.fn<ChatUserDirectory['resolveExactUsername']>();
-  findByIds = jest.fn<ChatUserDirectory['findByIds']>();
+class FakeAuthUserDirectory {
+  resolveExactUsername =
+    jest.fn<AuthUserDirectoryService['resolveExactUsername']>();
+  findByIds = jest.fn<AuthUserDirectoryService['findByIds']>();
 }
 
 class FakeChatRealtimeProvider extends ChatRealtimeProvider {
@@ -60,6 +63,7 @@ function conversation(input: Partial<ChatConversation> = {}): ChatConversation {
     name: null,
     topic: null,
     directKey: 'direct-key',
+    systemUserId: null,
     createdAt: new Date('2026-10-04T00:00:00.000Z'),
     updatedAt: new Date('2026-10-04T00:01:00.000Z'),
     ...input,
@@ -74,6 +78,8 @@ function message(input: Partial<ChatMessage> = {}): ChatMessage {
     senderUserId: actorUserId,
     contentType: 'text',
     content: { text: '안녕하세요' },
+    referenceKind: null,
+    referenceId: null,
     createdAt: new Date('2026-10-04T00:01:00.000Z'),
     updatedAt: new Date('2026-10-04T00:01:00.000Z'),
     editedAt: null,
@@ -107,12 +113,14 @@ function directoryUsers() {
   return [
     {
       id: actorUserId,
+      email: 'actor@example.com',
       name: '나',
       username: 'actor',
       image: null,
     },
     {
       id: recipientUserId,
+      email: 'recipient@example.com',
       name: '상대',
       username: 'recipient',
       image: null,
@@ -122,15 +130,113 @@ function directoryUsers() {
 
 describe('채팅 서비스', () => {
   let repository: FakeChatRepository;
-  let directory: FakeChatUserDirectory;
+  let directory: FakeAuthUserDirectory;
   let realtime: FakeChatRealtimeProvider;
   let service: ChatService;
 
   beforeEach(() => {
     repository = new FakeChatRepository();
-    directory = new FakeChatUserDirectory();
+    directory = new FakeAuthUserDirectory();
     realtime = new FakeChatRealtimeProvider();
     service = new ChatService(repository, directory, realtime);
+  });
+
+  it('조직 초대는 수신자 system 대화에 참조 기반 structured message로 전달한다', async () => {
+    const invitationMessage = message({
+      senderKind: 'system',
+      senderUserId: null,
+      contentType: 'organization_invitation',
+      content: {
+        type: 'organization_invitation',
+        invitationId: 'invitation-a',
+        organizationId: 'organization-a',
+        inviterUserId: actorUserId,
+        organizationNameAtSend: '조직 A',
+      },
+      referenceKind: 'organization_invitation',
+      referenceId: 'invitation-a',
+    });
+    const systemConversation = conversation({
+      kind: 'system',
+      directKey: null,
+      systemUserId: recipientUserId,
+    });
+    repository.deliverReferencedSystemMessage.mockResolvedValue({
+      conversation: systemConversation,
+      conversationCreated: true,
+      message: invitationMessage,
+      messageCreated: true,
+    });
+
+    await expect(
+      service.deliverOrganizationInvitation({
+        recipientUserId,
+        invitationId: 'invitation-a',
+        organizationId: 'organization-a',
+        inviterUserId: actorUserId,
+        organizationNameAtSend: '조직 A',
+      }),
+    ).resolves.toMatchObject({
+      contentType: 'organization_invitation',
+      referenceId: 'invitation-a',
+    });
+
+    expect(repository.deliverReferencedSystemMessage).toHaveBeenCalledWith({
+      recipientUserId,
+      contentType: 'organization_invitation',
+      content: {
+        type: 'organization_invitation',
+        invitationId: 'invitation-a',
+        organizationId: 'organization-a',
+        inviterUserId: actorUserId,
+        organizationNameAtSend: '조직 A',
+      },
+      referenceKind: 'organization_invitation',
+      referenceId: 'invitation-a',
+    });
+    expect(realtime.publishConversationChanged).toHaveBeenCalledWith(
+      [recipientUserId],
+      conversationId,
+    );
+    expect(realtime.publishMessageCreated).toHaveBeenCalledWith(
+      [recipientUserId],
+      expect.objectContaining({ id: messageId }),
+    );
+  });
+
+  it('조직 초대 realtime 발행 실패는 durable delivery 성공을 뒤집지 않는다', async () => {
+    repository.deliverReferencedSystemMessage.mockResolvedValue({
+      conversation: conversation({
+        kind: 'system',
+        directKey: null,
+        systemUserId: recipientUserId,
+      }),
+      conversationCreated: false,
+      message: message({
+        senderKind: 'system',
+        senderUserId: null,
+        contentType: 'organization_invitation',
+        content: {
+          type: 'organization_invitation',
+          invitationId: 'invitation-a',
+          organizationId: 'organization-a',
+          inviterUserId: actorUserId,
+        },
+        referenceKind: 'organization_invitation',
+        referenceId: 'invitation-a',
+      }),
+      messageCreated: true,
+    });
+    realtime.publishMessageCreated.mockRejectedValue(new Error('redis down'));
+
+    await expect(
+      service.deliverOrganizationInvitation({
+        recipientUserId,
+        invitationId: 'invitation-a',
+        organizationId: 'organization-a',
+        inviterUserId: actorUserId,
+      }),
+    ).resolves.toMatchObject({ referenceId: 'invitation-a' });
   });
 
   it('대화 목록은 사이드바에 필요한 참가자, 읽지 않은 수, 최근 메시지를 함께 반환한다', async () => {
@@ -182,6 +288,7 @@ describe('채팅 서비스', () => {
   it('동일한 일대일 대화가 있으면 새 행을 만들지 않고 기존 대화를 반환한다', async () => {
     directory.resolveExactUsername.mockResolvedValue({
       id: recipientUserId,
+      email: 'recipient@example.com',
       name: '상대',
       username: 'recipient',
       image: null,
@@ -201,6 +308,7 @@ describe('채팅 서비스', () => {
   it('일대일 대화 동시 생성 충돌 뒤에는 고유 제약으로 생성된 기존 대화를 재조회한다', async () => {
     directory.resolveExactUsername.mockResolvedValue({
       id: recipientUserId,
+      email: 'recipient@example.com',
       name: '상대',
       username: 'recipient',
       image: null,
@@ -222,6 +330,7 @@ describe('채팅 서비스', () => {
     const persistenceError = new Error('database unavailable');
     directory.resolveExactUsername.mockResolvedValue({
       id: recipientUserId,
+      email: 'recipient@example.com',
       name: '상대',
       username: 'recipient',
       image: null,

@@ -1,7 +1,8 @@
 import { createHash } from 'node:crypto';
 
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 
+import { AuthUserDirectoryService } from '#server/auth/auth-user-directory.service.js';
 import {
   ChatAccessDeniedError,
   ChatConversationNotFoundError,
@@ -10,6 +11,7 @@ import {
   ChatParticipantUnavailableError,
 } from '#server/chat/domain/chat.error.js';
 import type { ChatConversationState } from '#server/chat/domain/chat-conversation-state.js';
+import { chatTextMessageContentSchema } from '#server/chat/domain/chat-message-content.js';
 import {
   decodeChatMessageCursor,
   encodeChatMessageCursor,
@@ -32,18 +34,74 @@ import type { SendChatMessageInput } from '#server/chat/dto/send-chat-message.dt
 import type { UpdateChatMessageInput } from '#server/chat/dto/update-chat-message.dto.js';
 import { ChatRepository } from '#server/chat/infrastructure/persistence/chat.repository.js';
 import { ChatRealtimeProvider } from '#server/chat/infrastructure/realtime/chat-realtime.provider.js';
-import { ChatUserDirectory } from '#server/chat/infrastructure/user-directory/user-directory.provider.js';
+
+export type DeliverOrganizationInvitationInput = {
+  recipientUserId: string;
+  invitationId: string;
+  organizationId: string;
+  inviterUserId: string;
+  organizationNameAtSend?: string;
+  inviterDisplayNameAtSend?: string;
+};
+
+type ChatUserDirectory = Pick<
+  AuthUserDirectoryService,
+  'resolveExactUsername' | 'findByIds'
+>;
 
 @Injectable()
 export class ChatService {
+  private readonly logger = new Logger(ChatService.name);
+
   constructor(
     private readonly chatRepository: ChatRepository,
+    @Inject(AuthUserDirectoryService)
     private readonly userDirectory: ChatUserDirectory,
     private readonly realtime: ChatRealtimeProvider,
   ) {}
 
   events(userId: string): ReturnType<ChatRealtimeProvider['events']> {
     return this.realtime.events(userId);
+  }
+
+  async deliverOrganizationInvitation(
+    input: DeliverOrganizationInvitationInput,
+  ): Promise<ChatMessageResponse> {
+    const result = await this.chatRepository.deliverReferencedSystemMessage({
+      recipientUserId: input.recipientUserId,
+      contentType: 'organization_invitation',
+      content: {
+        type: 'organization_invitation',
+        invitationId: input.invitationId,
+        organizationId: input.organizationId,
+        inviterUserId: input.inviterUserId,
+        ...(input.organizationNameAtSend
+          ? { organizationNameAtSend: input.organizationNameAtSend }
+          : {}),
+        ...(input.inviterDisplayNameAtSend
+          ? { inviterDisplayNameAtSend: input.inviterDisplayNameAtSend }
+          : {}),
+      },
+      referenceKind: 'organization_invitation',
+      referenceId: input.invitationId,
+    });
+    const response = toChatMessageResponse(result.message);
+
+    if (result.conversationCreated) {
+      await this.publishBestEffort(() =>
+        this.realtime.publishConversationChanged(
+          [input.recipientUserId],
+          result.conversation.id,
+        ),
+      );
+    }
+    if (result.messageCreated) {
+      await this.publishBestEffort(() =>
+        this.realtime.publishMessageCreated([input.recipientUserId], response),
+      );
+    }
+
+    return response;
   }
 
   async listConversations(
@@ -241,7 +299,8 @@ export class ChatService {
     ) {
       throw new ChatAccessDeniedError();
     }
-    if (current.content.text === input.text) {
+    const currentContent = chatTextMessageContentSchema.parse(current.content);
+    if (currentContent.text === input.text) {
       return toChatMessageResponse(current);
     }
 
@@ -294,6 +353,16 @@ export class ChatService {
       userId,
       readAt: message.createdAt.toISOString(),
     });
+  }
+
+  private async publishBestEffort(
+    operation: () => Promise<void>,
+  ): Promise<void> {
+    try {
+      await operation();
+    } catch {
+      this.logger.warn('채팅 실시간 이벤트 발행에 실패했습니다.');
+    }
   }
 
   private async requireConversationState(

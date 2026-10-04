@@ -1,3 +1,4 @@
+import { chatMessageContentSchema } from '#server/chat/domain/chat-message-content.js';
 import { chatMessage } from '#server/chat/infrastructure/persistence/drizzle/schema/chat-message.schema.js';
 
 import {
@@ -5,13 +6,6 @@ import {
   createSelectSchema,
   createUpdateSchema,
 } from 'drizzle-zod';
-import { z } from 'zod';
-
-export const chatTextMessageContentSchema = z.object({
-  text: z.string().trim().min(1).max(10_000),
-});
-
-export const chatMessageContentSchema = chatTextMessageContentSchema;
 
 export const chatMessageSelectSchema = createSelectSchema(chatMessage, {
   content: chatMessageContentSchema,

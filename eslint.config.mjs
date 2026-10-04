@@ -141,6 +141,18 @@ export default tseslint.config(
           mode: 'full',
         },
         {
+          type: 'service',
+          pattern: 'server/src/*/auth-user-directory.service.ts',
+          mode: 'full',
+          capture: ['feature'],
+        },
+        {
+          type: 'port',
+          pattern: 'server/src/*/infrastructure/user-directory/*.provider.ts',
+          mode: 'full',
+          capture: ['feature'],
+        },
+        {
           type: 'server-infra',
           pattern: 'server/src/{auth,config,database,jobs,outbox,queue}/**',
           mode: 'full',

@@ -1,4 +1,4 @@
-import { chatTextMessageContentSchema } from '#server/chat/infrastructure/persistence/drizzle/schema/chat-message.zod.js';
+import { chatTextMessageContentSchema } from '#server/chat/domain/chat-message-content.js';
 import { createZodDto } from '#server/common/dto/create-zod-dto.js';
 
 import { z } from 'zod';

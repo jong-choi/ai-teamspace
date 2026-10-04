@@ -1,6 +1,7 @@
 import type { ChatConversation } from '#server/chat/domain/chat-conversation.js';
 import type { ChatConversationState } from '#server/chat/domain/chat-conversation-state.js';
 import type { ChatMessage } from '#server/chat/domain/chat-message.js';
+import type { ChatMessageContentInput } from '#server/chat/domain/chat-message-content.js';
 import type { ChatMessageCursor } from '#server/chat/domain/chat-message-cursor.js';
 
 export type CreateChatChannelConversationInput = {
@@ -28,6 +29,19 @@ export type ChatMessagePage = {
 
 export type MarkChatReadResult = 'advanced' | 'unchanged' | null;
 
+export type DeliverReferencedSystemMessageInput = ChatMessageContentInput & {
+  recipientUserId: string;
+  referenceKind: string;
+  referenceId: string;
+};
+
+export type DeliverReferencedSystemMessageResult = {
+  conversation: ChatConversation;
+  conversationCreated: boolean;
+  message: ChatMessage;
+  messageCreated: boolean;
+};
+
 export abstract class ChatRepository {
   abstract createChannelConversation(
     input: CreateChatChannelConversationInput,
@@ -41,6 +55,10 @@ export abstract class ChatRepository {
     directKey: string,
     userId: string,
   ): Promise<ChatConversation | null>;
+
+  abstract deliverReferencedSystemMessage(
+    input: DeliverReferencedSystemMessageInput,
+  ): Promise<DeliverReferencedSystemMessageResult>;
 
   abstract listConversationStates(
     userId: string,

@@ -109,3 +109,42 @@ export class OrganizationProviderFailureError extends ApplicationError {
     );
   }
 }
+
+export class OrganizationInvitationUnavailableError extends ApplicationError {
+  constructor(options?: ErrorOptions) {
+    super(
+      'ORGANIZATION_INVITATION_UNAVAILABLE',
+      'conflict',
+      '초대를 보낼 수 없습니다.',
+      options,
+    );
+  }
+}
+
+export class OrganizationInvitationDeliveryFailureError extends ApplicationError {
+  constructor(
+    readonly invitationId: string,
+    options?: ErrorOptions,
+  ) {
+    super(
+      'ORGANIZATION_INVITATION_DELIVERY_FAILURE',
+      'external_provider',
+      '초대 전달에 실패했습니다.',
+      options,
+    );
+  }
+}
+
+export class OrganizationInvitationCompensationFailureError extends ApplicationError {
+  constructor(
+    readonly invitationId: string,
+    options?: ErrorOptions,
+  ) {
+    super(
+      'ORGANIZATION_INVITATION_COMPENSATION_FAILURE',
+      'external_provider',
+      '초대 전달 실패를 복구하지 못했습니다.',
+      options,
+    );
+  }
+}

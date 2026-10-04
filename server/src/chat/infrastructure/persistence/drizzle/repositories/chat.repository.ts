@@ -9,6 +9,8 @@ import {
   ChatRepository,
   type CreateChatChannelConversationInput,
   type CreateDirectChatConversationInput,
+  type DeliverReferencedSystemMessageInput,
+  type DeliverReferencedSystemMessageResult,
   type ListChatMessagesInput,
   type MarkChatReadResult,
 } from '#server/chat/infrastructure/persistence/chat.repository.js';
@@ -138,6 +140,96 @@ export class ChatDrizzleRepository extends ChatRepository {
       .limit(1);
 
     return row ? toChatConversationDomain(row.conversation) : null;
+  }
+
+  async deliverReferencedSystemMessage(
+    input: DeliverReferencedSystemMessageInput,
+  ): Promise<DeliverReferencedSystemMessageResult> {
+    return this.database.db.transaction(async (transaction) => {
+      const [createdConversation] = await transaction
+        .insert(chatConversation)
+        .values(
+          toChatConversationInsert({
+            kind: 'system',
+            name: null,
+            topic: null,
+            directKey: null,
+            systemUserId: input.recipientUserId,
+          }),
+        )
+        .onConflictDoNothing({ target: chatConversation.systemUserId })
+        .returning();
+
+      let conversation = createdConversation;
+      if (createdConversation) {
+        await transaction.insert(chatParticipant).values(
+          toChatParticipantInsert({
+            conversationId: createdConversation.id,
+            userId: input.recipientUserId,
+          }),
+        );
+      } else {
+        [conversation] = await transaction
+          .select()
+          .from(chatConversation)
+          .where(eq(chatConversation.systemUserId, input.recipientUserId))
+          .limit(1);
+      }
+
+      if (!conversation) {
+        throw new Error('시스템 채팅 대화 조회 결과가 없습니다.');
+      }
+
+      const [createdMessage] = await transaction
+        .insert(chatMessage)
+        .values(
+          toChatMessageInsert({
+            conversationId: conversation.id,
+            senderKind: 'system',
+            senderUserId: null,
+            contentType: input.contentType,
+            content: input.content,
+            referenceKind: input.referenceKind,
+            referenceId: input.referenceId,
+          }),
+        )
+        .onConflictDoNothing({
+          target: [chatMessage.referenceKind, chatMessage.referenceId],
+        })
+        .returning();
+
+      let message = createdMessage;
+      if (createdMessage) {
+        await transaction
+          .update(chatConversation)
+          .set(
+            toChatConversationUpdate({ updatedAt: createdMessage.createdAt }),
+          )
+          .where(eq(chatConversation.id, conversation.id));
+      } else {
+        [message] = await transaction
+          .select()
+          .from(chatMessage)
+          .where(
+            and(
+              eq(chatMessage.referenceKind, input.referenceKind),
+              eq(chatMessage.referenceId, input.referenceId),
+            ),
+          )
+          .limit(1);
+      }
+
+      if (!message || message.conversationId !== conversation.id) {
+        throw new Error('참조 채팅 메시지 조회 결과가 올바르지 않습니다.');
+      }
+
+      return {
+        conversation: toChatConversationDomain(conversation),
+        conversationCreated: Boolean(createdConversation),
+        message: toChatMessageDomain(message),
+        messageCreated: Boolean(createdMessage),
+      };
+    });
   }
 
   async listConversationStates(

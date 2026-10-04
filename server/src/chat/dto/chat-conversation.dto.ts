@@ -1,3 +1,4 @@
+import type { AuthUserIdentity } from '#server/auth/auth-user-directory.service.js';
 import type { ChatConversationState } from '#server/chat/domain/chat-conversation-state.js';
 import {
   ChatMessageSchema,
@@ -5,7 +6,6 @@ import {
 } from '#server/chat/dto/chat-message.dto.js';
 import { chatConversationSelectSchema } from '#server/chat/infrastructure/persistence/drizzle/schema/chat-conversation.zod.js';
 import { chatParticipantSelectSchema } from '#server/chat/infrastructure/persistence/drizzle/schema/chat-participant.zod.js';
-import type { ChatDirectoryUser } from '#server/chat/infrastructure/user-directory/user-directory.provider.js';
 import { createZodDto } from '#server/common/dto/create-zod-dto.js';
 
 import { z } from 'zod';
@@ -41,7 +41,7 @@ export type ChatConversationResponse = z.infer<typeof ChatConversationSchema>;
 
 export function toChatConversationResponse(
   state: ChatConversationState,
-  usersById: ReadonlyMap<string, ChatDirectoryUser>,
+  usersById: ReadonlyMap<string, AuthUserIdentity>,
 ): ChatConversationResponse {
   const participants = state.participants.flatMap((participant) => {
     const user = usersById.get(participant.userId);

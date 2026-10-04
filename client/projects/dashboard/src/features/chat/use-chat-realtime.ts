@@ -1,13 +1,13 @@
 import { useEffect } from 'react';
 
-import { ChatRealtimeEvent } from '@monorepo-erp/api-client/schemas';
-import { streamServerSentEvents } from '@monorepo-erp/api-client/sse';
+import { ChatRealtimeEvent } from '@repo/client/api-client/schemas';
+import { streamServerSentEvents } from '@repo/client/api-client/sse';
 import {
   mergeCreatedMessage,
   mergeUpdatedMessage,
   refreshChatAfterReconnect,
   refreshConversationMetadata,
-} from '@core/features/chat/chat-query';
+} from '@core/features/chat/chat-cache';
 
 import { useQueryClient } from '@tanstack/react-query';
 

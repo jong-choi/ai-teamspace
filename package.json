@@ -1,5 +1,5 @@
 {
-  "name": "monorepo-erp",
+  "name": "work-os",
   "private": true,
   "packageManager": "npm@11.19.0",
   "workspaces": [
@@ -17,10 +17,10 @@
     "lint:fix": "eslint . --fix && turbo lint",
     "typecheck": "turbo typecheck",
     "test": "turbo test",
-    "api:generate": "npm run openapi:generate --workspace server && orval --fail-on-warnings",
+    "api:generate": "npm run openapi:generate --workspace @repo/server && orval --fail-on-warnings",
     "api:check": "npm run api:generate && git diff --exit-code -- client/packages/api-client/src/generated",
-    "check:runtime": "npm exec --workspace @monorepo-erp/dashboard-expo -- expo-modules-autolinking verify",
-    "check:generated": "npm run auth:schema --workspace server && git diff --exit-code -- server/src/auth/infrastructure/persistence/drizzle/generated/auth.schema.ts"
+    "check:runtime": "npm exec --workspace @repo/dashboard -- expo-modules-autolinking verify",
+    "check:generated": "npm run auth:schema --workspace @repo/server && git diff --exit-code -- server/src/auth/infrastructure/persistence/drizzle/generated/auth.schema.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

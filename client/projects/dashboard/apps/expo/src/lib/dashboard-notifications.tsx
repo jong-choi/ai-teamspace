@@ -1,7 +1,7 @@
 import { type ReactNode, useCallback } from 'react';
 
-import type { DashboardPlatformValue } from '@core/app/platform/dashboard-platform';
 import { ToastProvider, useToast } from '@repo/client/rnr/components/ui/toast';
+import type { DashboardPlatformValue } from '@core/app/platform/dashboard-platform';
 
 export function DashboardNotificationsProvider({
   children,

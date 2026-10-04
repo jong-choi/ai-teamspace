@@ -6,6 +6,19 @@
       "@/*": ["./src/*"],
       "@/assets/*": ["./assets/*"],
       "@core/*": ["../../src/*"],
+      "@repo/client/api-client": [
+        "../../../../packages/api-client/src/generated/work-os.ts"
+      ],
+      "@repo/client/api-client/runtime": [
+        "../../../../packages/api-client/src/runtime.ts"
+      ],
+      "@repo/client/api-client/schemas": [
+        "../../../../packages/api-client/src/generated/schemas/index.ts"
+      ],
+      "@repo/client/api-client/sse": [
+        "../../../../packages/api-client/src/sse.ts"
+      ],
+      "@repo/client/api-client/*": ["../../../../packages/api-client/src/*"],
       "@repo/client/rnr/*": ["../../../../packages/rnr/src/*"]
     }
   },

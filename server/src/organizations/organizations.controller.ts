@@ -23,6 +23,7 @@ import {
 } from '@nestjs/swagger';
 
 import type { Auth } from '#server/auth/auth.js';
+import { TrustedOriginGuard } from '#server/common/http/trusted-origin.guard.js';
 import { ActiveOrganizationDto } from '#server/organizations/dto/active-organization.dto.js';
 import {
   CreateOrganizationDto,
@@ -45,7 +46,6 @@ import {
   type UpdateOrganizationMemberRoleInput,
 } from '#server/organizations/dto/update-organization-member-role.dto.js';
 import type { OrganizationActorContext } from '#server/organizations/infrastructure/organization/organization.provider.js';
-import { OrganizationOriginGuard } from '#server/organizations/organization-origin.guard.js';
 import { OrganizationsService } from '#server/organizations/organizations.service.js';
 
 import { Session, type UserSession } from '@thallesp/nestjs-better-auth';
@@ -62,7 +62,7 @@ const problemDetailsSchema = { $ref: '#/components/schemas/ProblemDetails' };
 @ApiProblemResponse({ status: 500, schema: problemDetailsSchema })
 @ApiProblemResponse({ status: 502, schema: problemDetailsSchema })
 @Controller('organizations')
-@UseGuards(OrganizationOriginGuard)
+@UseGuards(TrustedOriginGuard)
 export class OrganizationsController {
   constructor(private readonly organizationsService: OrganizationsService) {}
 

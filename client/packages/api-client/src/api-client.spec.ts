@@ -2,7 +2,7 @@ import {
   organizationsControllerCreate,
   organizationsControllerGetActive,
   organizationsControllerRemoveMember,
-} from '@monorepo-erp/api-client';
+} from '@repo/client/api-client';
 
 import { jest } from '@jest/globals';
 import { ZodError } from 'zod';

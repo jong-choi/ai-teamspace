@@ -8,6 +8,14 @@ module.exports = {
     '^lucide-react-native$': lucideReactNative,
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@core/(.*)$': '<rootDir>/../../src/$1',
+    '^@repo/client/api-client$':
+      '<rootDir>/../../../../packages/api-client/src/generated/work-os.ts',
+    '^@repo/client/api-client/runtime$':
+      '<rootDir>/../../../../packages/api-client/src/runtime.ts',
+    '^@repo/client/api-client/schemas$':
+      '<rootDir>/../../../../packages/api-client/src/generated/schemas/index.ts',
+    '^@repo/client/api-client/sse$':
+      '<rootDir>/../../../../packages/api-client/src/sse.ts',
     '^@repo/client/rnr/(.*)$': '<rootDir>/../../../../packages/rnr/src/$1',
   },
   transformIgnorePatterns: [

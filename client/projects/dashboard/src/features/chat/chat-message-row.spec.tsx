@@ -1,7 +1,7 @@
 import type {
   ChatConversation,
   ChatMessage,
-} from '@monorepo-erp/api-client/schemas';
+} from '@repo/client/api-client/schemas';
 import { ChatMessageRow } from '@core/features/chat/chat-message-row';
 
 import { describe, expect, it, jest } from '@jest/globals';

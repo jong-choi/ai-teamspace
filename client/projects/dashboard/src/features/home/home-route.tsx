@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
-import { DashboardShell } from '@core/app/shell/dashboard-shell';
 import { Text } from '@repo/client/rnr/components/ui/text';
+import { DashboardShell } from '@core/app/shell/dashboard-shell';
 
 export function HomeRoute() {
   return (

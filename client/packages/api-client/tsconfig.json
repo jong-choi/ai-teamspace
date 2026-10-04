@@ -6,6 +6,13 @@
     "strict": true,
     "skipLibCheck": true,
     "noEmit": true,
+    "paths": {
+      "@repo/client/api-client": ["./src/generated/work-os.ts"],
+      "@repo/client/api-client/runtime": ["./src/runtime.ts"],
+      "@repo/client/api-client/schemas": ["./src/generated/schemas/index.ts"],
+      "@repo/client/api-client/sse": ["./src/sse.ts"],
+      "@repo/client/api-client/*": ["./src/*"]
+    },
     "types": ["jest"]
   },
   "include": ["src/**/*.ts"]

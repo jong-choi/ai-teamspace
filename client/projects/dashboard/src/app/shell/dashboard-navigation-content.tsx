@@ -1,6 +1,5 @@
 import { Pressable, ScrollView, View } from 'react-native';
 
-import { ThemeToggle } from '@core/app/shell/theme-toggle';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +11,7 @@ import {
 import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
+import { ThemeToggle } from '@core/app/shell/theme-toggle';
 
 import {
   Bot,

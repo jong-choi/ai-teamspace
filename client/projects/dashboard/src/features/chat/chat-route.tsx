@@ -2,7 +2,11 @@ import { useCallback, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import { getChatControllerListConversationsQueryKey } from '@monorepo-erp/api-client';
+import { getChatControllerListConversationsQueryKey } from '@repo/client/api-client';
+import { Button } from '@repo/client/rnr/components/ui/button';
+import { Icon } from '@repo/client/rnr/components/ui/icon';
+import { Text } from '@repo/client/rnr/components/ui/text';
+import { cn } from '@repo/client/rnr/lib/utils';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 import { DashboardShell } from '@core/app/shell/dashboard-shell';
 import { ChatConversationPanel } from '@core/features/chat/chat-conversation-panel';
@@ -14,10 +18,6 @@ import {
   ChatQueryBoundary,
   ChatState,
 } from '@core/features/chat/chat-state';
-import { Button } from '@repo/client/rnr/components/ui/button';
-import { Icon } from '@repo/client/rnr/components/ui/icon';
-import { Text } from '@repo/client/rnr/components/ui/text';
-import { cn } from '@repo/client/rnr/lib/utils';
 
 import { useQueryClient } from '@tanstack/react-query';
 import { List, MessageSquare, Plus } from 'lucide-react-native';

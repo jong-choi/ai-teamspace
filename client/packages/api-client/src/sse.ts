@@ -3,7 +3,7 @@ import {
   getApiFetch,
   getApiHeaders,
   getApiUrl,
-} from '@monorepo-erp/api-client/runtime';
+} from '@repo/client/api-client/runtime';
 
 export type ServerSentEvent = {
   id?: string;

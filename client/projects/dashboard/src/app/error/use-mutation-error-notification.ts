@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 
-import { getProblemDetails } from '@monorepo-erp/api-client/runtime';
+import { getProblemDetails } from '@repo/client/api-client/runtime';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 
 type MutationErrorNotificationOptions = {

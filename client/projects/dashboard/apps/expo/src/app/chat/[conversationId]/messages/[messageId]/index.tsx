@@ -1,6 +1,6 @@
 import { useLocalSearchParams } from 'expo-router';
 
-import { ChatMessageDetailRoute } from '@core/features/chat/chat-message-route';
+import { ChatMessageDetailRoute } from '@core/features/chat/chat-message-detail-route';
 
 export default function MessageDetailRoute() {
   const params = useLocalSearchParams<{

@@ -4,8 +4,7 @@ import { ActivityIndicator, Pressable, View } from 'react-native';
 import {
   useChatControllerCreateChannel,
   useChatControllerCreateDirect,
-} from '@monorepo-erp/api-client';
-import { useMutationErrorNotification } from '@core/app/error/use-mutation-error-notification';
+} from '@repo/client/api-client';
 import { Button } from '@repo/client/rnr/components/ui/button';
 import {
   Dialog,
@@ -19,6 +18,7 @@ import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Input } from '@repo/client/rnr/components/ui/input';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
+import { useMutationErrorNotification } from '@core/app/error/use-mutation-error-notification';
 
 import { UserPlus, Users } from 'lucide-react-native';
 

@@ -3,11 +3,11 @@ import {
   configureApiRuntime,
   getProblemDetails,
   workOsFetcher,
-} from '@monorepo-erp/api-client/runtime';
+} from '@repo/client/api-client/runtime';
 import {
   parseServerSentEvent,
   streamServerSentEvents,
-} from '@monorepo-erp/api-client/sse';
+} from '@repo/client/api-client/sse';
 
 import { jest } from '@jest/globals';
 

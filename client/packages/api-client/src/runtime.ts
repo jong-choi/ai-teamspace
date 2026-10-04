@@ -1,5 +1,5 @@
-import type { ProblemDetails as ProblemDetailsType } from '@monorepo-erp/api-client/schemas';
-import { ProblemDetails } from '@monorepo-erp/api-client/schemas';
+import type { ProblemDetails as ProblemDetailsType } from '@repo/client/api-client/schemas';
+import { ProblemDetails } from '@repo/client/api-client/schemas';
 
 import type { ZodType } from 'zod';
 

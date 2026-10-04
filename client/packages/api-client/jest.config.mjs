@@ -9,10 +9,10 @@ export default {
   testEnvironment: 'node',
   testMatch: ['<rootDir>/src/**/*.spec.ts'],
   moduleNameMapper: {
-    '^@monorepo-erp/api-client$': '<rootDir>/src/generated/work-os.ts',
-    '^@monorepo-erp/api-client/schemas$':
+    '^@repo/client/api-client$': '<rootDir>/src/generated/work-os.ts',
+    '^@repo/client/api-client/schemas$':
       '<rootDir>/src/generated/schemas/index.ts',
-    '^@monorepo-erp/api-client/(.*)$': '<rootDir>/src/$1.ts',
+    '^@repo/client/api-client/(.*)$': '<rootDir>/src/$1.ts',
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
 };

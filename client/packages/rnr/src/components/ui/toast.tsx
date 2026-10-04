@@ -20,6 +20,7 @@ import { X } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const DEFAULT_DURATION_MS = 4_500;
+const MAX_VISIBLE_TOASTS = 3;
 
 export type ToastInput = {
   id?: string;
@@ -43,17 +44,26 @@ let toastSequence = 0;
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastRecord[]>([]);
+  const toastsRef = useRef<ToastRecord[]>([]);
   const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
   const insets = useSafeAreaInsets();
 
-  const dismiss = useCallback((id: string) => {
-    const timer = timers.current.get(id);
-    if (timer) {
-      clearTimeout(timer);
-      timers.current.delete(id);
-    }
-    setToasts((current) => current.filter((toast) => toast.id !== id));
+  const commitToasts = useCallback((next: ToastRecord[]) => {
+    toastsRef.current = next;
+    setToasts(next);
   }, []);
+
+  const dismiss = useCallback(
+    (id: string) => {
+      const timer = timers.current.get(id);
+      if (timer) {
+        clearTimeout(timer);
+        timers.current.delete(id);
+      }
+      commitToasts(toastsRef.current.filter((toast) => toast.id !== id));
+    },
+    [commitToasts],
+  );
 
   const show = useCallback(
     (input: ToastInput) => {
@@ -65,35 +75,34 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         timers.current.delete(id);
       }
 
-      setToasts((current) => {
-        const next = [
-          ...current.filter((toast) => toast.id !== id),
-          { ...input, id },
-        ];
-        const visible = next.slice(-3);
-        for (const hidden of next.slice(0, -3)) {
-          const timer = timers.current.get(hidden.id);
-          if (timer) {
-            clearTimeout(timer);
-            timers.current.delete(hidden.id);
-          }
+      const next = [
+        ...toastsRef.current.filter((toast) => toast.id !== id),
+        { ...input, id },
+      ];
+      const hidden = next.slice(0, -MAX_VISIBLE_TOASTS);
+      const visible = next.slice(-MAX_VISIBLE_TOASTS);
+      for (const toast of hidden) {
+        const timer = timers.current.get(toast.id);
+        if (timer) {
+          clearTimeout(timer);
+          timers.current.delete(toast.id);
         }
-        return visible;
-      });
+      }
+      commitToasts(visible);
 
       if (duration > 0) {
         timers.current.set(
           id,
           setTimeout(() => {
             timers.current.delete(id);
-            setToasts((current) => current.filter((toast) => toast.id !== id));
+            commitToasts(toastsRef.current.filter((toast) => toast.id !== id));
           }, duration),
         );
       }
 
       return id;
     },
-    [],
+    [commitToasts],
   );
 
   useEffect(

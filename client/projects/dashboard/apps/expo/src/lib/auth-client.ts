@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 import { fetch as expoFetch } from 'expo/fetch';
 import * as SecureStore from 'expo-secure-store';
 
-import { configureApiRuntime } from '@monorepo-erp/api-client/runtime';
+import { configureApiRuntime } from '@repo/client/api-client/runtime';
 import { parseNativeRuntimeEnvironment } from '@/lib/runtime-environment';
 
 import { expoClient } from '@better-auth/expo/client';

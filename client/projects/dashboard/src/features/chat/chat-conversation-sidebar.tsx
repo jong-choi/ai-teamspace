@@ -1,9 +1,7 @@
 import { memo, useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
-import type { ChatConversation } from '@monorepo-erp/api-client/schemas';
-import { getConversationDisplay } from '@core/features/chat/chat-presenter';
-import { useChatConversations } from '@core/features/chat/chat-query';
+import type { ChatConversation } from '@repo/client/api-client/schemas';
 import {
   Avatar,
   AvatarFallback,
@@ -14,6 +12,8 @@ import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Input } from '@repo/client/rnr/components/ui/input';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
+import { getConversationDisplay } from '@core/features/chat/chat-presenter';
+import { useChatConversations } from '@core/features/chat/chat-query';
 
 import { LegendList } from '@legendapp/list/react-native';
 import { Bell, Hash, Plus, Search } from 'lucide-react-native';

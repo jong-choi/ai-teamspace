@@ -1,18 +1,17 @@
 import {
   getChatControllerListConversationsQueryKey,
   getChatControllerListMessagesInfiniteQueryKey,
-} from '@monorepo-erp/api-client';
+} from '@repo/client/api-client';
 import type {
   ChatConversation,
   ChatConversationList,
   ChatMessage,
-} from '@monorepo-erp/api-client/schemas';
-import { getConversationDisplay } from '@core/features/chat/chat-presenter';
+} from '@repo/client/api-client/schemas';
 import {
   mergeCreatedMessage,
   mergeUpdatedMessage,
-  type MessageHistory,
-} from '@core/features/chat/chat-query';
+} from '@core/features/chat/chat-cache';
+import type { MessageHistory } from '@core/features/chat/chat-message-history';
 
 import { describe, expect, it } from '@jest/globals';
 import { QueryClient } from '@tanstack/react-query';
@@ -165,45 +164,6 @@ describe('채팅 클라이언트 캐시', () => {
     expect(conversations?.items[0]?.latestMessage?.id).toBe(newerMessage.id);
     expect(conversations?.items[0]?.updatedAt).toBe(newerMessage.createdAt);
     expect(conversations?.items[0]?.unreadCount).toBe(3);
-  });
-});
-
-describe('채팅 표시 규칙', () => {
-  it('다이렉트 메시지 제목은 현재 사용자가 아니라 상대방을 표시한다', () => {
-    expect(getConversationDisplay(conversation, actorUserId)).toMatchObject({
-      title: '상대방',
-      subtitle: '@peer',
-    });
-  });
-
-  it('상대가 사라진 다이렉트 메시지를 현재 사용자 이름으로 오인하지 않는다', () => {
-    expect(
-      getConversationDisplay(
-        { ...conversation, participants: [conversation.participants[0]!] },
-        actorUserId,
-      ),
-    ).toMatchObject({
-      title: '대화 상대 없음',
-    });
-  });
-
-  it('시스템 대화를 다이렉트 메시지로 오인하지 않는다', () => {
-    expect(
-      getConversationDisplay(
-        {
-          ...conversation,
-          kind: 'system',
-          name: null,
-          topic: null,
-          participants: [conversation.participants[0]!],
-        },
-        actorUserId,
-      ),
-    ).toEqual({
-      title: '시스템',
-      subtitle: '시스템 알림과 메시지',
-      image: null,
-    });
   });
 });
 

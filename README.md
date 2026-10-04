@@ -1,4 +1,4 @@
-# monorepo-erp
+# Work OS
 
 Expo와 Nest.js를 이용한 모노레포 구조의 앱 템플릿
 
@@ -18,18 +18,18 @@ npm run check
 npm test
 ```
 
-`api:generate`는 실행 중인 서버의 `/openapi.json`을 Orval이 직접 읽어 [API client](client/packages/api-client/src/generated/work-os.ts)와 React Query hook을 생성한다. 기본 주소는 `http://127.0.0.1:3000/openapi.json`이며 필요하면 `OPENAPI_URL`로 바꿀 수 있다. 오류 응답은 Promise rejection으로 전달되며 `error.info`에 Problem Details, `error.status`에 HTTP 상태가 있다. 브라우저 요청은 쿠키를 포함한다. 서버 주소 및 플랫폼별 인증 구성은 소비 app이 제공한다.
+`api:generate`는 Nest build에서 `server/dist/openapi.json`을 생성한 뒤 Orval로 [API client](client/packages/api-client/src/generated/work-os.ts), React Query hook, Zod schema를 함께 재생성한다. 필요하면 `OPENAPI_URL`로 다른 OpenAPI 입력을 지정할 수 있다. HTTP 오류는 generated `ProblemDetails` 계약으로 Promise rejection되고 네트워크·응답 검증 실패는 표준 `Error`로 전달된다. 성공 응답은 generated Zod schema로 검증하며 서버 주소와 Web/Native 인증 transport는 소비 app이 구성한다.
 
 `check`는 포맷·아키텍처 lint·타입 검사 외에 다음을 확인한다.
 
 - Better Auth CLI로 재생성한 auth schema와 저장된 schema 비교
 - Expo autolinking verifier로 React/React Native 중복 설치 확인
 
-생성물은 직접 수정하지 않는다. API 계약 변경 후 `api:generate`, Better Auth schema 설정 변경 후 `npm run db:generate --workspace server`를 실행한다.
+생성물은 직접 수정하지 않는다. API 계약 변경 후 `api:generate`, Better Auth schema 설정 변경 후 `npm run db:generate --workspace @repo/server`를 실행한다.
 
 실제 PostgreSQL/Redis를 사용하는 검증은 테스트 전용 환경 변수로 실행한다. 통합/E2E 테스트는 auth 데이터를 정리하므로 운영 DB를 사용하지 않는다.
 
 ```sh
-npm run test:integration --workspace server
-npm run test:e2e --workspace server
+npm run test:integration --workspace @repo/server
+npm run test:e2e --workspace @repo/server
 ```

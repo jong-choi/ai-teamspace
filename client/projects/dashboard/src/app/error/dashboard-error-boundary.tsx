@@ -7,7 +7,7 @@ import {
 import { View } from 'react-native';
 import { type Href, useRouter } from 'expo-router';
 
-import { getProblemDetails } from '@monorepo-erp/api-client/runtime';
+import { getProblemDetails } from '@repo/client/api-client/runtime';
 import { Button } from '@repo/client/rnr/components/ui/button';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';

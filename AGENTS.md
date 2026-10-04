@@ -47,6 +47,7 @@ file://...
 - formatter는 Prettier로 통일한다. 별도 formatter를 추가하지 않는다.
 - import/export 정렬은 lint 설정을 따른다. formatter와 lint에서 같은 책임을 중복 관리하지 않는다.
 - 직접 작성하는 source code의 module import는 가능한 한 alias 기반 절대경로를 사용한다. `client/packages`는 `@repo/client/<package>/*`, RNR은 `@repo/client/rnr/components/ui/*`를 사용하고 `./`, `../` 상대 import를 만들지 않는다.
+- repo 내부 workspace package와 authored import namespace는 `@repo/*` 체계로 통일한다.
 - build output, generated source, codegen 산출물은 import 경로 정리, lint fix, format을 위한 수정 대상에서 제외한다.
 - `client/packages/rnr/src/components/ui`의 React Native Reusables CLI 생성 컴포넌트와 `nativewind-env.d.ts`, `expo-env.d.ts`는 lint fix와 format 대상에서 제외한다. `globals.css`와 설정 파일은 저장소 관리 대상으로 유지한다.
 - 루트 `format`, `lint`, `typecheck`, `test` 계열 스크립트가 있으면 개별 workspace 검증보다 우선한다.

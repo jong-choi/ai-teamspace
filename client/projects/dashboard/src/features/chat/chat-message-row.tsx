@@ -1,9 +1,7 @@
 import { memo } from 'react';
 import { View } from 'react-native';
 
-import type { ChatMessage } from '@monorepo-erp/api-client/schemas';
-import { formatMessageTime } from '@core/features/chat/chat-presenter';
-import type { ChatParticipantDisplay } from '@core/features/chat/chat-query';
+import type { ChatMessage } from '@repo/client/api-client/schemas';
 import {
   Avatar,
   AvatarFallback,
@@ -13,6 +11,10 @@ import { Button } from '@repo/client/rnr/components/ui/button';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
+import {
+  type ChatParticipantDisplay,
+  formatMessageTime,
+} from '@core/features/chat/chat-presenter';
 
 import { Link2, Pencil } from 'lucide-react-native';
 

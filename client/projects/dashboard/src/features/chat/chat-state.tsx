@@ -1,8 +1,8 @@
 import { type ReactNode, Suspense } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
-import { DashboardErrorBoundary } from '@core/app/error/dashboard-error-boundary';
 import { Text } from '@repo/client/rnr/components/ui/text';
+import { DashboardErrorBoundary } from '@core/app/error/dashboard-error-boundary';
 
 export function ChatLoading({ label }: { label: string }) {
   return (

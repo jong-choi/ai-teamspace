@@ -8,12 +8,12 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { DashboardNavigationContent } from '@core/app/shell/dashboard-navigation-content';
-import { ThemeToggle } from '@core/app/shell/theme-toggle';
 import { Button } from '@repo/client/rnr/components/ui/button';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
+import { DashboardNavigationContent } from '@core/app/shell/dashboard-navigation-content';
+import { ThemeToggle } from '@core/app/shell/theme-toggle';
 
 import { Building2, Menu, Search, UserRound, X } from 'lucide-react-native';
 

@@ -1,4 +1,12 @@
-import type { ChatConversation } from '@monorepo-erp/api-client/schemas';
+import type {
+  ChatConversation,
+  ChatParticipant,
+} from '@repo/client/api-client/schemas';
+
+export type ChatParticipantDisplay = Pick<
+  ChatParticipant,
+  'userId' | 'name' | 'username' | 'image'
+>;
 
 export type ConversationDisplay = {
   title: string;

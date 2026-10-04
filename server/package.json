@@ -9,6 +9,7 @@
   "scripts": {
     "auth:schema": "auth generate --config ./better-auth.config.ts --adapter drizzle --dialect postgresql --output ./src/auth/infrastructure/persistence/drizzle/generated/auth.schema.ts --yes",
     "build": "nest build",
+    "openapi:generate": "npm run build && node dist/openapi.generate.js",
     "db:generate": "npm run auth:schema && drizzle-kit generate --config ./drizzle.config.ts",
     "db:migrate": "drizzle-kit migrate --config ./drizzle.config.ts",
     "db:studio": "drizzle-kit studio --config ./drizzle.config.ts",
@@ -36,6 +37,7 @@
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "1.7.7",
+    "@better-auth/expo": "^1.7.7",
     "@nestjs/bullmq": "12.0.0",
     "@nestjs/common": "^12.0.1",
     "@nestjs/core": "^12.0.1",
@@ -53,7 +55,7 @@
     "pg": "^8.23.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "zod": "^4.6.5"
+    "zod": "4.6.5"
   },
   "devDependencies": {
     "@nestjs/cli": "^12.0.0",

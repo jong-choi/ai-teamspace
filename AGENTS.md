@@ -401,6 +401,17 @@ server/src/<feature>/
 - feature별 controller/service/repository를 서버 전역 `controllers`, `services`, `repositories` 폴더로 모으지 않는다.
 - 추가 helper/service가 생겨도 이 baseline 구조를 대체하지 않는다.
 
+## 정석 구현 우선 원칙
+
+- architecture, type, generated contract, dependency 문제를 `as`, `unknown` 우회, lint disable, architecture 예외 추가, 임시 re-export, raw SQL, generated 파일 직접 수정으로 덮지 않는다.
+- 정적 검사가 설계 위반을 잡으면 검사를 약화하거나 예외 처리하기 전에 dependency ownership, port 위치, adapter 경계, package version/topology, canonical schema 파생 구조를 먼저 고친다.
+- 같은 개념의 schema/type/provider를 경계마다 복제해서 컴파일만 맞추지 않는다. 소유 feature와 SSOT를 정하고 파생 또는 명시적 port/mapper로 연결한다.
+- 다른 feature의 내부 table, generated schema, repository, adapter를 소비 feature가 직접 import하지 않는다. 필요한 기능은 소유 feature의 public application service 또는 소비 feature가 소유한 capability port와 정식 adapter 경계를 통해 사용한다.
+- package version 충돌이나 duplicate dependency 때문에 canonical schema 파생이 깨지면 assertion으로 봉합하지 않고 dependency topology를 먼저 정상화한다.
+- repository port에는 application service가 실제 사용하는 capability만 노출한다. adapter 내부 helper를 port로 끌어올리거나 범용 CRUD 인터페이스로 넓히지 않는다.
+- 구현이 동작하더라도 root architecture/lint/typecheck가 실패하면 완료로 판단하지 않는다. feature-local 검사만 통과한 상태를 전체 품질 검증으로 해석하지 않는다.
+- AGENTS 규칙과 현재 구현이 충돌하면 기존 구현을 관성적으로 유지하지 말고 규칙에 맞는 정식 구조로 리팩터링한다. 규칙 자체를 바꿔야 하는 경우에는 단순히 현재 코드를 통과시키기 위한 예외가 아니라 저장소 전체에 적용 가능한 architecture 근거가 있어야 한다.
+
 ## feature module
 
 - `<feature>.module.ts`는 해당 feature의 composition root다.
@@ -444,9 +455,11 @@ server/src/<feature>/
 
 ## Drizzle schema, drizzle-zod, mapper
 
-- `infrastructure/persistence/drizzle/schema/<resource>.schema.ts`가 table, DB enum, relation, index, constraint의 SSOT다.
-- `<resource>.zod.ts`는 같은 table에서 `createSelectSchema`, `createInsertSchema`, `createUpdateSchema`를 생성한다.
-- `domain/<resource>.ts`, response DTO, create/update DTO는 이 파생 schema를 기준으로 타입/schema를 만든다. 동일 persistence field를 다시 선언하지 않는다.
+- `infrastructure/persistence/drizzle/schema/<resource>.schema.ts`의 Drizzle table 정의가 persistence contract의 유일한 SSOT다. DB column, enum, nullable, default, relation, index, constraint의 의미를 다른 schema/type에서 별도로 다시 선언하지 않는다.
+- `<resource>.zod.ts`는 같은 Drizzle table에서 `createSelectSchema`, `createInsertSchema`, `createUpdateSchema`를 생성하는 파생 계층이다. persistence field를 별도 `z.object`로 다시 작성하는 방식으로 Drizzle table을 우회하지 않는다.
+- `domain/<resource>.ts`, response DTO, create/update DTO는 이 파생 schema를 기준으로 `pick`, `omit`, `extend`, `partial` 등으로 만든다. HTTP 전용 field나 business-only field만 직접 추가할 수 있다.
+- drizzle-zod와 application Zod가 서로 다른 runtime/type instance로 갈라지면 type assertion이나 schema 복제로 덮지 않는다. package dependency와 peer dependency를 정리해 같은 schema graph가 호환되는 Zod instance를 사용하도록 해결한다.
+- generated schema가 있더라도 다른 feature가 해당 generated persistence implementation을 직접 import해서 FK나 domain contract를 만들지 않는다. cross-feature reference가 필요하면 해당 feature의 공개 persistence boundary나 독립된 reference contract를 둔다.
 - `mappers/<resource>.mapper.ts`는 Drizzle row와 canonical domain model 사이의 persistence boundary다.
 - 기본 `toDomain`은 select schema로 row를 parse하고, write mapping은 insert/update schema로 persistence input을 검증한다.
 - mapper에 DB query, 권한 판단, HTTP exception, external API 호출을 넣지 않는다.
@@ -504,6 +517,8 @@ server/src/<feature>/
 - `server/src/auth/infrastructure/persistence/drizzle/generated`의 auth Drizzle schema는 Better Auth CLI 생성물이며 수동 수정하지 않는다.
 - Better Auth plugin이나 auth schema option을 변경하면 `npm run auth:schema`로 generated schema를 다시 만들고 `npm run db:generate`로 Drizzle migration을 생성한다.
 - Better Auth-owned table과 Work OS-owned table은 동일 PostgreSQL과 동일 Drizzle connection을 사용하되 소유권 경계는 분리한다.
+- Work OS table이 Better Auth-owned `user`를 DB foreign key로 참조해야 하면 `server/src/auth/infrastructure/persistence/drizzle/auth-user-reference.ts`가 노출하는 최소 schema reference만 사용한다. feature schema에서 generated auth schema를 직접 import하지 않는다.
+- auth schema reference module은 foreign key 구성에 필요한 column reference만 노출하고 query, mutation, business logic, generated table 전체 re-export를 넣지 않는다.
 - Work OS service/repository에서 `user`, `account`, `session`, `organization`, `member` 등 Better Auth-owned table을 직접 insert/update/delete하지 않는다.
 - Better Auth-owned invariant를 변경하는 작업은 Better Auth API를 adapter/provider 경계를 통해 수행한다.
 - auth generated schema와 `server/drizzle` migration 산출물은 formatter, lint fix, import sort 대상에서 제외한다.

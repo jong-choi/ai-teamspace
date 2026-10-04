@@ -1,3 +1,4 @@
+import { expo } from '@better-auth/expo';
 import type { BetterAuthOptions } from 'better-auth';
 import { organization, username } from 'better-auth/plugins';
 
@@ -13,10 +14,12 @@ export const organizationFacadeDisabledPaths = organizationFacadeEndpoints.map(
 
 export const authOptions = {
   basePath: '/api/auth',
+  trustedOrigins: ['monorepoerp://'],
   emailAndPassword: {
     enabled: true,
   },
   plugins: [
+    expo(),
     username({
       immutableUsername: true,
     }),

@@ -111,6 +111,12 @@ export default tseslint.config(
           mode: 'full',
         },
         {
+          type: 'auth-persistence-reference',
+          pattern:
+            'server/src/auth/infrastructure/persistence/drizzle/auth-user-reference.ts',
+          mode: 'full',
+        },
+        {
           type: 'schema-aggregator',
           pattern: 'server/src/database/schema.ts',
           mode: 'full',
@@ -237,6 +243,7 @@ export default tseslint.config(
                 'schema',
                 'server-infra',
                 'auth-composition',
+                'auth-persistence-reference',
                 'database-connection',
                 'schema-aggregator',
               ],
@@ -250,9 +257,14 @@ export default tseslint.config(
                 'adapter',
                 'server-infra',
                 'auth-composition',
+                'auth-persistence-reference',
                 'database-connection',
                 'schema-aggregator',
               ],
+            },
+            {
+              from: ['port', 'feature'],
+              disallow: ['auth-persistence-reference'],
             },
             {
               from: ['product-core', 'shared'],
@@ -263,6 +275,7 @@ export default tseslint.config(
             {
               from: [
                 'auth-composition',
+                'auth-persistence-reference',
                 'schema-aggregator',
                 'drizzle-config',
                 'server-test',

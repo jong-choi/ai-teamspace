@@ -1,0 +1,36 @@
+import {
+  index,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from 'drizzle-orm/pg-core';
+
+export const chatConversationKindEnum = pgEnum('chat_conversation_kind', [
+  'channel',
+  'direct',
+  'system',
+]);
+
+export const chatConversation = pgTable(
+  'chat_conversation',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    kind: chatConversationKindEnum('kind').notNull(),
+    name: text('name'),
+    topic: text('topic'),
+    directKey: text('direct_key'),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex('chat_conversation_direct_key_uidx').on(table.directKey),
+    index('chat_conversation_updated_at_idx').on(table.updatedAt),
+  ],
+);

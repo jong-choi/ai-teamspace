@@ -127,6 +127,7 @@ client/
 - 제품 간 공유하는 코드는 `client/packages`에 둔다.
 - `apps/expo`는 Web, iOS, Android의 bootstrap, route entry, Expo 설정, 플랫폼 adapter만 둔다.
 - `apps/desktop`은 Electron bootstrap, main/preload, desktop 설정, desktop adapter만 둔다.
+- useEffect, useLayoutEffect의 사용은 최소화한다.
 
 ## client package 책임
 

@@ -1,7 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
 import { DashboardShell } from '@core/app/shell/dashboard-shell';
-import { Button } from '@repo/client/rnr/components/ui/button';
 import { Text } from '@repo/client/rnr/components/ui/text';
 
 export function HomeRoute() {
@@ -10,9 +9,9 @@ export function HomeRoute() {
       <View style={styles.container}>
         <Text variant="h1">Monorepo ERP</Text>
         <Text>Expo Web, iOS, Android 공용 화면</Text>
-        <Button>
+        <View className="rounded-md bg-secondary px-4 py-2">
           <Text>React Native Reusables</Text>
-        </Button>
+        </View>
       </View>
     </DashboardShell>
   );

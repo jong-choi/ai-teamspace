@@ -88,6 +88,17 @@ export class SelfRoleChangeNotSupportedError extends ApplicationError {
   }
 }
 
+export class SelfMemberRemovalNotSupportedError extends ApplicationError {
+  constructor(options?: ErrorOptions) {
+    super(
+      'SELF_MEMBER_REMOVAL_NOT_SUPPORTED',
+      'conflict',
+      '자기 자신의 조직 탈퇴는 이 API에서 지원하지 않습니다.',
+      options,
+    );
+  }
+}
+
 export class OrganizationProviderFailureError extends ApplicationError {
   constructor(options?: ErrorOptions) {
     super(

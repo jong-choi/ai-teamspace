@@ -52,11 +52,6 @@ export abstract class OrganizationProvider {
     memberId: string,
   ): Promise<void>;
 
-  abstract leave(
-    context: OrganizationActorContext,
-    organizationId: string,
-  ): Promise<void>;
-
   abstract setActive(
     context: OrganizationActorContext,
     organizationId: string | null,

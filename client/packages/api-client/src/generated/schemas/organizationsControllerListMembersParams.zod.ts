@@ -13,10 +13,16 @@ export const organizationsControllerListMembersParamsOffsetDefault = 0;
 export const organizationsControllerListMembersParamsOffsetMin = 0;
 export const organizationsControllerListMembersParamsOffsetMax = 9007199254740991;
 
+export const organizationsControllerListMembersParamsSearchMax = 100;
+
+
+export const organizationsControllerListMembersParamsSearchRegExp = new RegExp('\\S');
 
 export const OrganizationsControllerListMembersParams = zod.object({
   "limit": zod.int().min(1).max(organizationsControllerListMembersParamsLimitMax).default(organizationsControllerListMembersParamsLimitDefault),
-  "offset": zod.int().min(organizationsControllerListMembersParamsOffsetMin).max(organizationsControllerListMembersParamsOffsetMax).default(organizationsControllerListMembersParamsOffsetDefault)
+  "offset": zod.int().min(organizationsControllerListMembersParamsOffsetMin).max(organizationsControllerListMembersParamsOffsetMax).default(organizationsControllerListMembersParamsOffsetDefault),
+  "search": zod.string().min(1).max(organizationsControllerListMembersParamsSearchMax).regex(organizationsControllerListMembersParamsSearchRegExp).optional(),
+  "role": zod.enum(['owner', 'admin', 'member']).optional()
 })
 
 export type OrganizationsControllerListMembersParams = zod.input<typeof OrganizationsControllerListMembersParams>;

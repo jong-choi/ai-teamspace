@@ -134,6 +134,12 @@ describe('조직과 멤버 E2E', () => {
     expect(JSON.stringify(listMembersOperation?.parameters)).toContain(
       '"limit"',
     );
+    expect(JSON.stringify(listMembersOperation?.parameters)).toContain(
+      '"search"',
+    );
+    expect(JSON.stringify(listMembersOperation?.parameters)).toContain(
+      '"role"',
+    );
     expect(JSON.stringify(listMembersOperation?.responses['200'])).toContain(
       '"items"',
     );
@@ -258,7 +264,7 @@ describe('조직과 멤버 E2E', () => {
       ordinaryMember.userId,
       OrganizationRoleSchema.enum.member,
     );
-    await addMember(
+    const secondMemberId = await addMember(
       organizationId,
       secondMember.userId,
       OrganizationRoleSchema.enum.member,
@@ -275,6 +281,31 @@ describe('조직과 멤버 E2E', () => {
     expect(listResponse.status).toBe(200);
     expect(listResponse.body.items).toHaveLength(2);
     expect(listResponse.body.total).toBe(3);
+
+    const searchResponse = await owner.agent.get(
+      `/organizations/${organizationId}/members?search=ordinarymember`,
+    );
+    expect(searchResponse.status).toBe(200);
+    expect(searchResponse.body.total).toBe(1);
+    expect(searchResponse.body.items).toHaveLength(1);
+    expect(searchResponse.body.items[0].userId).toBe(ordinaryMember.userId);
+
+    const roleFilterResponse = await owner.agent.get(
+      `/organizations/${organizationId}/members?role=member`,
+    );
+    expect(roleFilterResponse.status).toBe(200);
+    expect(roleFilterResponse.body.total).toBe(2);
+    expect(roleFilterResponse.body.items).toHaveLength(2);
+
+    const invalidRoleResponse = await owner.agent.get(
+      `/organizations/${organizationId}/members?role=guest`,
+    );
+    expect(invalidRoleResponse.status).toBe(400);
+
+    const blankSearchResponse = await owner.agent.get(
+      `/organizations/${organizationId}/members?search=%20%20`,
+    );
+    expect(blankSearchResponse.status).toBe(400);
 
     const memberForbiddenResponse = await secondMember.agent
       .patch(
@@ -293,6 +324,14 @@ describe('조직과 멤버 E2E', () => {
       .send({ role: OrganizationRoleSchema.enum.admin });
     expect(promoteResponse.status).toBe(200);
     expect(promoteResponse.body.role).toBe(OrganizationRoleSchema.enum.admin);
+
+    const adminUpdateResponse = await ordinaryMember.agent
+      .patch(`/organizations/${organizationId}/members/${secondMemberId}/role`)
+      .send({ role: OrganizationRoleSchema.enum.admin });
+    expect(adminUpdateResponse.status).toBe(200);
+    expect(adminUpdateResponse.body.role).toBe(
+      OrganizationRoleSchema.enum.admin,
+    );
 
     const foreignTargetResponse = await owner.agent
       .patch(`/organizations/${organizationId}/members/${foreignMemberId}/role`)
@@ -384,11 +423,11 @@ describe('조직과 멤버 E2E', () => {
     expect(storedMember?.role).toBe(OrganizationRoleSchema.enum.admin);
   });
 
-  it('동시 owner 감소 요청은 모두 차단하고 owner membership을 보존한다', async () => {
-    const owner = await createUser('concurrent-owner');
+  it('서로 다른 owner의 동시 감소 요청을 모두 차단해 owner invariant를 유지한다', async () => {
+    const firstOwner = await createUser('concurrent-first-owner');
     const secondOwner = await createUser('concurrent-second-owner');
     const organizationId = await createOrganization(
-      owner,
+      firstOwner,
       'concurrent-owner-org',
     );
     const secondOwnerMemberId = await addMember(
@@ -396,27 +435,41 @@ describe('조직과 멤버 E2E', () => {
       secondOwner.userId,
       OrganizationRoleSchema.enum.owner,
     );
-
-    const [demoteResponse, removeResponse] = await Promise.all([
-      owner.agent
-        .patch(
-          `/organizations/${organizationId}/members/${secondOwnerMemberId}/role`,
-        )
-        .send({ role: OrganizationRoleSchema.enum.admin }),
-      owner.agent.delete(
-        `/organizations/${organizationId}/members/${secondOwnerMemberId}`,
-      ),
-    ]);
-
-    expect(demoteResponse.status).toBe(409);
-    expect(removeResponse.status).toBe(409);
-
-    const [storedMember] = await database
+    const [firstOwnerMember] = await database
       .select()
       .from(member)
-      .where(eq(member.id, secondOwnerMemberId));
+      .where(
+        and(
+          eq(member.organizationId, organizationId),
+          eq(member.userId, firstOwner.userId),
+        ),
+      );
 
-    expect(storedMember?.role).toBe(OrganizationRoleSchema.enum.owner);
+    const [removeResponse, demoteResponse] = await Promise.all([
+      firstOwner.agent.delete(
+        `/organizations/${organizationId}/members/${secondOwnerMemberId}`,
+      ),
+      secondOwner.agent
+        .patch(
+          `/organizations/${organizationId}/members/${firstOwnerMember!.id}/role`,
+        )
+        .send({ role: OrganizationRoleSchema.enum.admin }),
+    ]);
+
+    expect(removeResponse.status).toBe(409);
+    expect(removeResponse.body.errorCode).toBe('OWNER_TRANSFER_REQUIRED');
+    expect(demoteResponse.status).toBe(409);
+    expect(demoteResponse.body.errorCode).toBe('OWNER_TRANSFER_REQUIRED');
+
+    const storedOwners = await database
+      .select()
+      .from(member)
+      .where(eq(member.organizationId, organizationId));
+    expect(
+      storedOwners.filter(
+        ({ role }) => role === OrganizationRoleSchema.enum.owner,
+      ),
+    ).toHaveLength(2);
   });
 
   it('동일 non-owner에 동시 삭제가 들어와도 최종 membership은 제거된다', async () => {
@@ -454,14 +507,14 @@ describe('조직과 멤버 E2E', () => {
     expect(storedMembers).toHaveLength(0);
   });
 
-  it('non-owner self leave와 remove 재요청의 not-found contract를 지킨다', async () => {
+  it('generic self removal을 차단하고 remove 재요청은 not-found를 반환한다', async () => {
     const owner = await createUser('remove-owner');
-    const selfLeavingMember = await createUser('self-leaving-member');
+    const selfRemovingMember = await createUser('self-removing-member');
     const removableMember = await createUser('removable-member');
     const organizationId = await createOrganization(owner, 'remove-org');
-    const selfLeavingMemberId = await addMember(
+    const selfRemovingMemberId = await addMember(
       organizationId,
-      selfLeavingMember.userId,
+      selfRemovingMember.userId,
       OrganizationRoleSchema.enum.member,
     );
     const removableMemberId = await addMember(
@@ -470,9 +523,13 @@ describe('조직과 멤버 E2E', () => {
       OrganizationRoleSchema.enum.member,
     );
 
-    await selfLeavingMember.agent
-      .delete(`/organizations/${organizationId}/members/${selfLeavingMemberId}`)
-      .expect(204);
+    const selfRemoveResponse = await selfRemovingMember.agent.delete(
+      `/organizations/${organizationId}/members/${selfRemovingMemberId}`,
+    );
+    expect(selfRemoveResponse.status).toBe(409);
+    expect(selfRemoveResponse.body.errorCode).toBe(
+      'SELF_MEMBER_REMOVAL_NOT_SUPPORTED',
+    );
 
     await owner.agent
       .delete(`/organizations/${organizationId}/members/${removableMemberId}`)
@@ -483,6 +540,12 @@ describe('조직과 멤버 E2E', () => {
     );
     expect(repeatedDelete.status).toBe(404);
     expect(repeatedDelete.body.errorCode).toBe('ORGANIZATION_MEMBER_NOT_FOUND');
+
+    const selfMembership = await database
+      .select()
+      .from(member)
+      .where(eq(member.id, selfRemovingMemberId));
+    expect(selfMembership).toHaveLength(1);
   });
   it('쿠키 인증 변경 요청의 미허용 Origin과 누락된 Origin을 거절한다', async () => {
     const actor = await createUser('origin-guard');
@@ -529,7 +592,7 @@ describe('조직과 멤버 E2E', () => {
   });
 
   it.each(['삭제', '강등'] as const)(
-    '사전 조회 후 owner로 승격된 대상의 %s를 실제 쓰기에서 거절한다',
+    '사전 조회 후 owner로 승격된 대상의 %s 요청을 실제 쓰기에서 거절한다',
     async (operation) => {
       const actor = await createUser('race-owner');
       const targetUser = await createUser('race-target');

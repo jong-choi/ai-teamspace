@@ -7,8 +7,8 @@ import {
 import type { OrganizationAccess } from '#server/organizations/domain/organization-access.js';
 import type { OrganizationMember } from '#server/organizations/domain/organization-member.js';
 import {
+  assertMemberRemovalAllowed,
   assertMemberRoleChangeAllowed,
-  decideMemberRemoval,
 } from '#server/organizations/domain/organization-policy.js';
 import type { ActiveOrganization } from '#server/organizations/dto/active-organization.dto.js';
 import type { CreateOrganizationInput } from '#server/organizations/dto/create-organization.dto.js';
@@ -146,15 +146,10 @@ export class OrganizationsService {
       throw new OrganizationMemberNotFoundError();
     }
 
-    const decision = decideMemberRemoval({
+    assertMemberRemovalAllowed({
       actorUserId: context.userId,
       target,
     });
-
-    if (decision === 'leave') {
-      await this.organizationProvider.leave(context, organizationId);
-      return;
-    }
 
     await this.organizationProvider.removeMember(
       context,

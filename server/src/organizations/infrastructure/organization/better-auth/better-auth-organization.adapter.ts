@@ -38,14 +38,27 @@ const credentialSchema = z.record(
 );
 
 type AuthApi = Auth['api'];
+type AuthContext = Awaited<Auth['$context']>;
 type AuthOrganization = Awaited<
   ReturnType<AuthApi['listOrganizations']>
 >[number];
 type AuthMemberList = Awaited<ReturnType<AuthApi['listMembers']>>;
 type AuthListedMember = AuthMemberList['members'][number];
+type AuthMemberIdentity = Pick<AuthListedMember, 'id' | 'userId'>;
+type AuthUserIdentity = Pick<Auth['$Infer']['Session']['user'], 'id'>;
 type AuthUpdatedMember = Awaited<ReturnType<AuthApi['updateMemberRole']>>;
+type AuthWhere = NonNullable<
+  Parameters<AuthContext['adapter']['findMany']>[0]['where']
+>[number];
 type ListMembersContext = NonNullable<Parameters<AuthApi['listMembers']>[0]>;
 type ListMembersQuery = NonNullable<ListMembersContext['query']>;
+
+const memberSearchUserFields = [
+  'name',
+  'email',
+  'username',
+  'displayUsername',
+] as const;
 
 const memberIdFilter = {
   filterField: 'id',
@@ -55,6 +68,13 @@ const memberIdFilter = {
   ListMembersQuery,
   'filterField' | 'filterOperator' | 'limit'
 >;
+
+function escapeLikeSearchValue(value: string): string {
+  return value
+    .replaceAll('\\', '\\\\')
+    .replaceAll('%', '\\%')
+    .replaceAll('_', '\\_');
+}
 
 @Injectable()
 export class BetterAuthOrganizationAdapter extends OrganizationProvider {
@@ -122,23 +142,21 @@ export class BetterAuthOrganizationAdapter extends OrganizationProvider {
     organizationId: string,
     query: QueryOrganizationMembersInput,
   ): Promise<OrganizationMemberList> {
-    const result = await this.call(() =>
-      this.authService.api.listMembers({
-        headers: this.headers(context),
-        query: {
-          organizationId,
-          limit: query.limit,
-          offset: query.offset,
-        },
-      }),
-    );
+    const search = query.search?.trim();
+    if (!search) {
+      return this.listMemberPage(context, organizationId, query);
+    }
 
-    return {
-      items: result.members.map((member) => this.mapMember(member)),
-      total: result.total,
-      limit: query.limit,
-      offset: query.offset,
-    };
+    const authContext = await this.call(
+      () => this.authService.instance.$context,
+    );
+    return this.searchMemberPage(
+      authContext,
+      context,
+      organizationId,
+      query,
+      search,
+    );
   }
 
   async getMember(
@@ -197,18 +215,6 @@ export class BetterAuthOrganizationAdapter extends OrganizationProvider {
     );
   }
 
-  async leave(
-    context: OrganizationActorContext,
-    organizationId: string,
-  ): Promise<void> {
-    await this.call(() =>
-      this.authService.api.leaveOrganization({
-        body: { organizationId },
-        headers: this.headers(context),
-      }),
-    );
-  }
-
   async setActive(
     context: OrganizationActorContext,
     organizationId: string | null,
@@ -221,6 +227,149 @@ export class BetterAuthOrganizationAdapter extends OrganizationProvider {
     );
 
     return organizationId ? this.getAccess(context, organizationId) : null;
+  }
+
+  private async listMemberPage(
+    context: OrganizationActorContext,
+    organizationId: string,
+    query: QueryOrganizationMembersInput,
+  ): Promise<OrganizationMemberList> {
+    const roleFilter = query.role
+      ? ({
+          filterField: 'role',
+          filterOperator: 'eq',
+          filterValue: query.role,
+        } satisfies Pick<
+          ListMembersQuery,
+          'filterField' | 'filterOperator' | 'filterValue'
+        >)
+      : {};
+    const result = await this.call(() =>
+      this.authService.api.listMembers({
+        headers: this.headers(context),
+        query: {
+          organizationId,
+          limit: query.limit,
+          offset: query.offset,
+          sortBy: 'id',
+          sortDirection: 'asc',
+          ...roleFilter,
+        },
+      }),
+    );
+
+    return this.toMemberList(result.members, result.total, query);
+  }
+
+  private async searchMemberPage(
+    authContext: AuthContext,
+    context: OrganizationActorContext,
+    organizationId: string,
+    query: QueryOrganizationMembersInput,
+    search: string,
+  ): Promise<OrganizationMemberList> {
+    const memberWhere: AuthWhere[] = [
+      { field: 'organizationId', value: organizationId },
+      ...(query.role ? [{ field: 'role', value: query.role }] : []),
+    ];
+    const candidates = await this.call(() =>
+      authContext.adapter.findMany<AuthMemberIdentity>({
+        model: 'member',
+        where: memberWhere,
+        select: ['id', 'userId'],
+        sortBy: { field: 'id', direction: 'asc' },
+      }),
+    );
+
+    if (candidates.length === 0) {
+      return this.toMemberList([], 0, query);
+    }
+
+    const escapedSearch = escapeLikeSearchValue(search);
+    const userWhere: AuthWhere[] = [
+      {
+        field: 'id',
+        operator: 'in',
+        value: candidates.map((member) => member.userId),
+      },
+      ...memberSearchUserFields.map((field): AuthWhere => ({
+        field,
+        operator: 'contains',
+        connector: 'OR',
+        mode: 'insensitive',
+        value: escapedSearch,
+      })),
+    ];
+    const users = await this.call(() =>
+      authContext.adapter.findMany<AuthUserIdentity>({
+        model: 'user',
+        where: userWhere,
+        select: ['id'],
+      }),
+    );
+    const matchedUserIds = new Set(users.map((user) => user.id));
+    const matchedMembers = candidates.filter((member) =>
+      matchedUserIds.has(member.userId),
+    );
+    const total = matchedMembers.length;
+    const pageMemberIds = matchedMembers
+      .slice(query.offset, query.offset + query.limit)
+      .map((member) => member.id);
+
+    return this.hydrateMemberPage(
+      context,
+      organizationId,
+      pageMemberIds,
+      total,
+      query,
+    );
+  }
+
+  private async hydrateMemberPage(
+    context: OrganizationActorContext,
+    organizationId: string,
+    memberIds: string[],
+    total: number,
+    query: QueryOrganizationMembersInput,
+  ): Promise<OrganizationMemberList> {
+    if (memberIds.length === 0) {
+      return this.toMemberList([], total, query);
+    }
+
+    const result = await this.call(() =>
+      this.authService.api.listMembers({
+        headers: this.headers(context),
+        query: {
+          organizationId,
+          limit: memberIds.length,
+          filterField: 'id',
+          filterOperator: 'in',
+          filterValue: memberIds,
+        },
+      }),
+    );
+    const membersById = new Map(
+      result.members.map((member) => [member.id, member]),
+    );
+    const members = memberIds.flatMap((memberId) => {
+      const member = membersById.get(memberId);
+      return member ? [member] : [];
+    });
+
+    return this.toMemberList(members, total, query);
+  }
+
+  private toMemberList(
+    members: AuthListedMember[],
+    total: number,
+    query: QueryOrganizationMembersInput,
+  ): OrganizationMemberList {
+    return {
+      items: members.map((member) => this.mapMember(member)),
+      total,
+      limit: query.limit,
+      offset: query.offset,
+    };
   }
 
   private headers(context: OrganizationActorContext) {

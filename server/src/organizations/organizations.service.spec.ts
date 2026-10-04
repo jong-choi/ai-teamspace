@@ -2,6 +2,7 @@ import {
   OrganizationMemberNotFoundError,
   OrganizationNotFoundError,
   OwnerTransferRequiredError,
+  SelfMemberRemovalNotSupportedError,
   SelfRoleChangeNotSupportedError,
 } from '#server/organizations/domain/organization.error.js';
 import type { OrganizationMember } from '#server/organizations/domain/organization-member.js';
@@ -22,7 +23,6 @@ class FakeOrganizationProvider extends OrganizationProvider {
   getMember = jest.fn<OrganizationProvider['getMember']>();
   changeMemberRole = jest.fn<OrganizationProvider['changeMemberRole']>();
   removeMember = jest.fn<OrganizationProvider['removeMember']>();
-  leave = jest.fn<OrganizationProvider['leave']>();
   setActive = jest.fn<OrganizationProvider['setActive']>();
 }
 
@@ -148,10 +148,9 @@ describe('조직 서비스', () => {
 
     expect(provider.changeMemberRole).not.toHaveBeenCalled();
     expect(provider.removeMember).not.toHaveBeenCalled();
-    expect(provider.leave).not.toHaveBeenCalled();
   });
 
-  it('non-owner 자기 삭제는 leave capability를 사용한다', async () => {
+  it('자기 자신 제거는 generic member API에서 차단한다', async () => {
     const target = member({ userId: context.userId });
     provider.getAccess.mockResolvedValue({
       organization: {
@@ -165,9 +164,10 @@ describe('조직 서비스', () => {
     });
     provider.getMember.mockResolvedValue(target);
 
-    await service.removeMember(context, 'organization-a', target.id);
+    await expect(
+      service.removeMember(context, 'organization-a', target.id),
+    ).rejects.toBeInstanceOf(SelfMemberRemovalNotSupportedError);
 
-    expect(provider.leave).toHaveBeenCalledWith(context, 'organization-a');
     expect(provider.removeMember).not.toHaveBeenCalled();
   });
 

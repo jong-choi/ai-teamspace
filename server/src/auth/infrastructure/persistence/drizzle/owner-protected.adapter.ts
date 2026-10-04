@@ -4,27 +4,34 @@ import {
 } from '#server/organizations/domain/organization.error.js';
 import { OrganizationRoleSchema } from '#server/organizations/domain/organization-role.js';
 
-import type { DBAdapter, DBTransactionAdapter } from 'better-auth/adapters';
+import type {
+  DBAdapter,
+  DBTransactionAdapter,
+  Where,
+} from 'better-auth/adapters';
 
-// Better Auth가 소유하는 mutation의 조건을 확장한다. Work OS에서 auth table을 직접 변경하지 않는다.
+const nonOwnerRoleFilter: Where = {
+  field: 'role',
+  operator: 'in',
+  value: OrganizationRoleSchema.options.filter(
+    (role) => role !== OrganizationRoleSchema.enum.owner,
+  ),
+};
+
+// Better Auth가 소유하는 mutation을 우회하지 않고, generic member API가 owner를 직접 감소시키지 못하게 write 시점에 보호한다.
 export function protectOrganizationOwners(adapter: DBAdapter): DBAdapter {
   return {
     ...protectMemberMutations(adapter),
     transaction: (operation) =>
-      adapter.transaction((tx) => operation(protectMemberMutations(tx))),
+      adapter.transaction((transaction) =>
+        operation(protectMemberMutations(transaction)),
+      ),
   };
 }
 
 function protectMemberMutations(
   adapter: DBTransactionAdapter,
 ): DBTransactionAdapter {
-  const nonOwner = {
-    field: 'role',
-    operator: 'in',
-    value: OrganizationRoleSchema.options.filter(
-      (role) => role !== OrganizationRoleSchema.enum.owner,
-    ),
-  } as const;
   return {
     ...adapter,
     async update<T>(input: Parameters<DBAdapter['update']>[0]) {
@@ -35,34 +42,45 @@ function protectMemberMutations(
       ) {
         return adapter.update<T>(input);
       }
+
       const updated = await adapter.update<T>({
         ...input,
-        where: [...input.where, nonOwner],
+        where: [...input.where, nonOwnerRoleFilter],
       });
-      if (!updated) {
-        const exists = await adapter.findOne({
-          model: input.model,
-          where: input.where,
-        });
-        if (exists) throw new OwnerTransferRequiredError();
-        throw new OrganizationMemberNotFoundError();
+      if (updated) {
+        return updated;
       }
-      return updated;
+
+      const exists = await adapter.findOne({
+        model: input.model,
+        where: input.where,
+      });
+      if (exists) {
+        throw new OwnerTransferRequiredError();
+      }
+      throw new OrganizationMemberNotFoundError();
     },
     async delete(input) {
-      if (input.model !== 'member') return adapter.delete(input);
+      if (input.model !== 'member') {
+        return adapter.delete(input);
+      }
+
       const deleted = await adapter.deleteMany({
         ...input,
-        where: [...input.where, nonOwner],
+        where: [...input.where, nonOwnerRoleFilter],
       });
-      if (!deleted) {
-        const exists = await adapter.findOne({
-          model: input.model,
-          where: input.where,
-        });
-        if (exists) throw new OwnerTransferRequiredError();
-        throw new OrganizationMemberNotFoundError();
+      if (deleted) {
+        return;
       }
+
+      const exists = await adapter.findOne({
+        model: input.model,
+        where: input.where,
+      });
+      if (exists) {
+        throw new OwnerTransferRequiredError();
+      }
+      throw new OrganizationMemberNotFoundError();
     },
   };
 }

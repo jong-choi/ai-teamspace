@@ -110,6 +110,12 @@ export default tseslint.config(
           mode: 'full',
         },
         {
+          type: 'auth-persistence-reference',
+          pattern:
+            'server/src/auth/infrastructure/persistence/drizzle/auth-organization-reference.ts',
+          mode: 'full',
+        },
+        {
           type: 'schema-aggregator',
           pattern: 'server/src/database/schema.ts',
           mode: 'full',

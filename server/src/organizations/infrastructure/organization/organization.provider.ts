@@ -5,12 +5,9 @@ import type { OrganizationRole } from '#server/organizations/domain/organization
 import type { CreateOrganizationInput } from '#server/organizations/dto/create-organization.dto.js';
 import type { OrganizationMemberList } from '#server/organizations/dto/organization-member-list.dto.js';
 import type { QueryOrganizationMembersInput } from '#server/organizations/dto/query-organization-members.dto.js';
+import type { OrganizationActorContext } from '#server/organizations/organization-actor-context.js';
 
-export interface OrganizationActorContext {
-  userId: string;
-  activeOrganizationIdCandidate?: string;
-  providerCredential: unknown;
-}
+export type { OrganizationActorContext } from '#server/organizations/organization-actor-context.js';
 
 export abstract class OrganizationProvider {
   abstract listForActor(

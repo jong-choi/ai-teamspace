@@ -1,4 +1,5 @@
 import { Pressable, ScrollView, View } from 'react-native';
+import { useRouter } from 'expo-router';
 
 import {
   DropdownMenu,
@@ -35,7 +36,7 @@ const NAVIGATION_ITEMS = [
   { id: 'teams', label: '팀', icon: Shapes },
   { id: 'projects', label: '프로젝트', icon: FolderKanban },
   { id: 'tasks', label: '업무', icon: CheckSquare },
-  { id: 'docs', label: '문서', icon: FileText },
+  { id: 'wiki', label: '위키', icon: FileText },
   { id: 'ai', label: 'AI', icon: Sparkles, badge: 'AGENT' },
   { id: 'settings', label: '설정', icon: Settings },
 ] as const;
@@ -51,6 +52,8 @@ export function DashboardNavigationContent({
   activeItem = 'home',
   organizationName,
 }: DashboardNavigationContentProps) {
+  const router = useRouter();
+
   return (
     <View className="min-h-0 flex-1">
       <ScrollView
@@ -74,13 +77,18 @@ export function DashboardNavigationContent({
           {NAVIGATION_ITEMS.map((item) => {
             const active = item.id === activeItem;
             const aiItem = item.id === 'ai';
+            const navigable = item.id === 'wiki';
 
             return (
-              <View
+              <Pressable
+                accessibilityRole={navigable ? 'link' : undefined}
+                disabled={!navigable}
                 key={item.id}
+                onPress={navigable ? () => router.push('/wiki') : undefined}
                 className={cn(
                   'flex-row items-center justify-between rounded-md px-3 py-2 lg:px-2.5 lg:py-1.5',
                   active && 'bg-accent',
+                  navigable && !active && 'web:hover:bg-accent/60',
                 )}
               >
                 <View className="flex-row items-center gap-2.5">
@@ -113,7 +121,7 @@ export function DashboardNavigationContent({
                     </Text>
                   </View>
                 ) : null}
-              </View>
+              </Pressable>
             );
           })}
         </View>

@@ -1,0 +1,453 @@
+import { useEffect, useState } from 'react';
+import { Pressable, ScrollView, View } from 'react-native';
+
+import type {
+  WikiFolder,
+  WikiTree as WikiTreeData,
+  WikiTreeDocument,
+} from '@repo/client/api-client/schemas';
+import { Button } from '@repo/client/rnr/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@repo/client/rnr/components/ui/dropdown-menu';
+import { Icon } from '@repo/client/rnr/components/ui/icon';
+import { Text } from '@repo/client/rnr/components/ui/text';
+import { cn } from '@repo/client/rnr/lib/utils';
+import {
+  getWikiExpandedAncestorIds,
+  getWikiTreeChildren,
+} from '@core/features/wiki/wiki-tree-model';
+
+import {
+  ChevronDown,
+  ChevronRight,
+  FilePlus2,
+  FileText,
+  Folder,
+  FolderPlus,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  Trash2,
+  X,
+} from 'lucide-react-native';
+
+export type WikiTreeTarget =
+  | { kind: 'folder'; item: WikiFolder }
+  | { kind: 'document'; item: WikiTreeDocument };
+
+type WikiTreeProps = {
+  activeDocumentId?: string;
+  drawerOpen: boolean;
+  onCloseDrawer: () => void;
+  onCreateDocument: (folderId: string | null) => void;
+  onCreateFolder: (parentFolderId: string | null) => void;
+  onDeleteItem: (target: WikiTreeTarget) => void;
+  onManageItem: (target: WikiTreeTarget) => void;
+  onSelectDocument: (documentId: string) => void;
+  tree: WikiTreeData;
+};
+
+export function WikiTree({
+  activeDocumentId,
+  drawerOpen,
+  onCloseDrawer,
+  onCreateDocument,
+  onCreateFolder,
+  onDeleteItem,
+  onManageItem,
+  onSelectDocument,
+  tree,
+}: WikiTreeProps) {
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
+    () => new Set(getWikiExpandedAncestorIds(tree, activeDocumentId)),
+  );
+  const activeAncestorKey = getWikiExpandedAncestorIds(
+    tree,
+    activeDocumentId,
+  ).join(':');
+
+  useEffect(() => {
+    if (!activeAncestorKey) return;
+    const ancestorIds = activeAncestorKey.split(':');
+    setExpandedFolders((current) => {
+      const next = new Set(current);
+      for (const folderId of ancestorIds) next.add(folderId);
+      return next;
+    });
+  }, [activeAncestorKey]);
+
+  const isExpanded = (folderId: string) => expandedFolders.has(folderId);
+  const toggleFolder = (folderId: string) => {
+    setExpandedFolders((current) => {
+      const next = new Set(current);
+      if (next.has(folderId)) next.delete(folderId);
+      else next.add(folderId);
+      return next;
+    });
+  };
+
+  const content = (
+    <TreeSurface
+      activeDocumentId={activeDocumentId}
+      isExpanded={isExpanded}
+      onCloseDrawer={onCloseDrawer}
+      onCreateDocument={onCreateDocument}
+      onCreateFolder={onCreateFolder}
+      onDeleteItem={onDeleteItem}
+      onManageItem={onManageItem}
+      onSelectDocument={onSelectDocument}
+      onToggleFolder={toggleFolder}
+      tree={tree}
+    />
+  );
+
+  return (
+    <>
+      <View className="hidden w-56 shrink-0 border-r border-border bg-muted/30 md:flex">
+        {content}
+      </View>
+      <View
+        className={cn(
+          'absolute inset-y-0 left-0 z-30 w-72 border-r border-border bg-background shadow-xl md:hidden',
+          drawerOpen ? 'flex' : 'hidden',
+        )}
+      >
+        {content}
+      </View>
+    </>
+  );
+}
+
+type TreeSurfaceProps = Omit<WikiTreeProps, 'drawerOpen'> & {
+  isExpanded: (folderId: string) => boolean;
+  onToggleFolder: (folderId: string) => void;
+};
+
+function TreeSurface({
+  activeDocumentId,
+  isExpanded,
+  onCloseDrawer,
+  onCreateDocument,
+  onCreateFolder,
+  onDeleteItem,
+  onManageItem,
+  onSelectDocument,
+  onToggleFolder,
+  tree,
+}: TreeSurfaceProps) {
+  return (
+    <View className="min-h-0 flex-1">
+      <View className="h-11 shrink-0 flex-row items-center justify-between border-b border-border px-3">
+        <Text className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          위키 탐색기
+        </Text>
+        <View className="flex-row items-center gap-0.5">
+          <Button
+            accessibilityLabel="새 폴더"
+            className="h-7 w-7"
+            onPress={() => onCreateFolder(null)}
+            size="icon"
+            variant="ghost"
+          >
+            <Icon as={FolderPlus} className="size-3.5 text-muted-foreground" />
+          </Button>
+          <Button
+            accessibilityLabel="새 문서"
+            className="h-7 w-7"
+            onPress={() => onCreateDocument(null)}
+            size="icon"
+            variant="ghost"
+          >
+            <Icon as={FilePlus2} className="size-3.5 text-muted-foreground" />
+          </Button>
+          <Button
+            accessibilityLabel="위키 탐색기 닫기"
+            className="ml-1 h-7 w-7 md:hidden"
+            onPress={onCloseDrawer}
+            size="icon"
+            variant="ghost"
+          >
+            <Icon as={X} className="size-4 text-muted-foreground" />
+          </Button>
+        </View>
+      </View>
+
+      <ScrollView
+        className="min-h-0 flex-1"
+        contentContainerClassName="p-2 pb-6"
+        showsVerticalScrollIndicator={false}
+      >
+        <WikiTreeBranch
+          activeDocumentId={activeDocumentId}
+          depth={0}
+          isExpanded={isExpanded}
+          onCreateDocument={onCreateDocument}
+          onCreateFolder={onCreateFolder}
+          onDeleteItem={onDeleteItem}
+          onManageItem={onManageItem}
+          onSelectDocument={onSelectDocument}
+          onToggleFolder={onToggleFolder}
+          parentFolderId={null}
+          tree={tree}
+        />
+      </ScrollView>
+    </View>
+  );
+}
+
+type WikiTreeBranchProps = {
+  activeDocumentId?: string;
+  depth: number;
+  isExpanded: (folderId: string) => boolean;
+  onCreateDocument: (folderId: string | null) => void;
+  onCreateFolder: (parentFolderId: string | null) => void;
+  onDeleteItem: (target: WikiTreeTarget) => void;
+  onManageItem: (target: WikiTreeTarget) => void;
+  onSelectDocument: (documentId: string) => void;
+  onToggleFolder: (folderId: string) => void;
+  parentFolderId: string | null;
+  tree: WikiTreeData;
+};
+
+function WikiTreeBranch({
+  activeDocumentId,
+  depth,
+  isExpanded,
+  onCreateDocument,
+  onCreateFolder,
+  onDeleteItem,
+  onManageItem,
+  onSelectDocument,
+  onToggleFolder,
+  parentFolderId,
+  tree,
+}: WikiTreeBranchProps) {
+  const { documents, folders } = getWikiTreeChildren(tree, parentFolderId);
+
+  if (folders.length === 0 && documents.length === 0 && depth === 0) {
+    return (
+      <View className="items-center px-3 py-8">
+        <Text className="text-center text-xs leading-5 text-muted-foreground">
+          아직 위키 문서가 없습니다. 새 폴더나 문서를 만들어 시작하세요.
+        </Text>
+      </View>
+    );
+  }
+
+  return (
+    <View className="gap-0.5">
+      {folders.map((folder) => {
+        const expanded = isExpanded(folder.id);
+        return (
+          <View key={folder.id}>
+            <TreeFolderRow
+              depth={depth}
+              expanded={expanded}
+              folder={folder}
+              onCreateDocument={onCreateDocument}
+              onCreateFolder={onCreateFolder}
+              onDeleteItem={onDeleteItem}
+              onManageItem={onManageItem}
+              onToggleFolder={onToggleFolder}
+            />
+            {expanded ? (
+              <WikiTreeBranch
+                activeDocumentId={activeDocumentId}
+                depth={depth + 1}
+                isExpanded={isExpanded}
+                onCreateDocument={onCreateDocument}
+                onCreateFolder={onCreateFolder}
+                onDeleteItem={onDeleteItem}
+                onManageItem={onManageItem}
+                onSelectDocument={onSelectDocument}
+                onToggleFolder={onToggleFolder}
+                parentFolderId={folder.id}
+                tree={tree}
+              />
+            ) : null}
+          </View>
+        );
+      })}
+      {documents.length > 0 ? (
+        <View
+          className={cn(
+            'gap-0.5',
+            depth === 0 &&
+              folders.length > 0 &&
+              'mt-1 border-t border-border/60 pt-1',
+          )}
+        >
+          {documents.map((document) => (
+            <TreeDocumentRow
+              active={document.id === activeDocumentId}
+              depth={depth}
+              document={document}
+              key={document.id}
+              onDeleteItem={onDeleteItem}
+              onManageItem={onManageItem}
+              onSelectDocument={onSelectDocument}
+            />
+          ))}
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+function TreeFolderRow({
+  depth,
+  expanded,
+  folder,
+  onCreateDocument,
+  onCreateFolder,
+  onDeleteItem,
+  onManageItem,
+  onToggleFolder,
+}: {
+  depth: number;
+  expanded: boolean;
+  folder: WikiFolder;
+  onCreateDocument: (folderId: string | null) => void;
+  onCreateFolder: (parentFolderId: string | null) => void;
+  onDeleteItem: (target: WikiTreeTarget) => void;
+  onManageItem: (target: WikiTreeTarget) => void;
+  onToggleFolder: (folderId: string) => void;
+}) {
+  const target = { kind: 'folder' as const, item: folder };
+  return (
+    <View
+      className="group flex-row items-center rounded-md pr-0.5 web:hover:bg-accent/60"
+      style={{ paddingLeft: Math.min(depth, 6) * 12 }}
+    >
+      <Pressable
+        accessibilityLabel={`${folder.name} 폴더 ${expanded ? '접기' : '펼치기'}`}
+        className="min-w-0 flex-1 flex-row items-center gap-1.5 px-1.5 py-1"
+        onPress={() => onToggleFolder(folder.id)}
+      >
+        <Icon
+          as={expanded ? ChevronDown : ChevronRight}
+          className="size-3.5 shrink-0 text-muted-foreground"
+        />
+        <Icon as={Folder} className="size-3.5 shrink-0 text-muted-foreground" />
+        <Text className="min-w-0 flex-1 truncate text-xs font-medium text-muted-foreground">
+          {folder.name}
+        </Text>
+      </Pressable>
+      <Pressable
+        accessibilityLabel={`${folder.name}에 새 문서 만들기`}
+        className="size-6 items-center justify-center rounded web:opacity-0 web:group-hover:opacity-100"
+        hitSlop={6}
+        onPress={() => onCreateDocument(folder.id)}
+      >
+        <Icon as={Plus} className="size-3 text-muted-foreground" />
+      </Pressable>
+      <ItemActions
+        onCreateFolder={() => onCreateFolder(folder.id)}
+        onDelete={() => onDeleteItem(target)}
+        onManage={() => onManageItem(target)}
+      />
+    </View>
+  );
+}
+
+function TreeDocumentRow({
+  active,
+  depth,
+  document,
+  onDeleteItem,
+  onManageItem,
+  onSelectDocument,
+}: {
+  active: boolean;
+  depth: number;
+  document: WikiTreeDocument;
+  onDeleteItem: (target: WikiTreeTarget) => void;
+  onManageItem: (target: WikiTreeTarget) => void;
+  onSelectDocument: (documentId: string) => void;
+}) {
+  const target = { kind: 'document' as const, item: document };
+  return (
+    <View
+      className={cn(
+        'group flex-row items-center rounded-md pr-0.5',
+        active ? 'bg-accent' : 'web:hover:bg-accent/60',
+      )}
+      style={{ paddingLeft: Math.min(depth, 6) * 12 + 20 }}
+    >
+      <Pressable
+        accessibilityLabel={`${document.title} 문서 열기`}
+        className="min-w-0 flex-1 flex-row items-center gap-1.5 px-1.5 py-1"
+        onPress={() => onSelectDocument(document.id)}
+      >
+        <Icon
+          as={FileText}
+          className={cn(
+            'size-3.5 shrink-0 text-muted-foreground',
+            active && 'text-foreground',
+          )}
+        />
+        <Text
+          className={cn(
+            'min-w-0 flex-1 truncate text-xs text-muted-foreground',
+            active && 'font-semibold text-foreground',
+          )}
+        >
+          {document.title}
+        </Text>
+      </Pressable>
+      <ItemActions
+        onDelete={() => onDeleteItem(target)}
+        onManage={() => onManageItem(target)}
+      />
+    </View>
+  );
+}
+
+function ItemActions({
+  onCreateFolder,
+  onDelete,
+  onManage,
+}: {
+  onCreateFolder?: () => void;
+  onDelete: () => void;
+  onManage: () => void;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Pressable
+          accessibilityLabel="항목 메뉴"
+          className="size-6 items-center justify-center rounded web:opacity-0 web:group-hover:opacity-100"
+          hitSlop={6}
+        >
+          <Icon
+            as={MoreHorizontal}
+            className="size-3.5 text-muted-foreground"
+          />
+        </Pressable>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-44" side="bottom">
+        {onCreateFolder ? (
+          <DropdownMenuItem onPress={onCreateFolder}>
+            <Icon as={FolderPlus} className="size-3.5 text-muted-foreground" />
+            <Text>하위 폴더</Text>
+          </DropdownMenuItem>
+        ) : null}
+        {onCreateFolder ? <DropdownMenuSeparator /> : null}
+        <DropdownMenuItem onPress={onManage}>
+          <Icon as={Pencil} className="size-3.5 text-muted-foreground" />
+          <Text>이름 · 위치 변경</Text>
+        </DropdownMenuItem>
+        <DropdownMenuItem onPress={onDelete} variant="destructive">
+          <Icon as={Trash2} className="size-3.5 text-destructive" />
+          <Text>삭제</Text>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}

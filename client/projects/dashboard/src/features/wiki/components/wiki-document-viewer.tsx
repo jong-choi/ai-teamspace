@@ -1,0 +1,166 @@
+import { useMemo } from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import Markdown from 'react-native-markdown-display';
+
+import type { WikiDocument } from '@repo/client/api-client/schemas';
+import { Text } from '@repo/client/rnr/components/ui/text';
+
+import { useColorScheme } from 'nativewind';
+
+export function WikiDocumentViewer({ document }: { document: WikiDocument }) {
+  const { colorScheme } = useColorScheme();
+  const markdownStyles = useMemo(
+    () => createMarkdownStyles(colorScheme === 'dark'),
+    [colorScheme],
+  );
+
+  return (
+    <ScrollView
+      className="min-h-0 flex-1 bg-background"
+      contentContainerClassName="w-full max-w-4xl self-center p-8"
+      showsVerticalScrollIndicator={false}
+    >
+      {document.contentMarkdown.trim() ? (
+        <Markdown style={markdownStyles}>{document.contentMarkdown}</Markdown>
+      ) : (
+        <View className="rounded-lg border border-dashed border-border px-5 py-8">
+          <Text className="text-center text-xs leading-5 text-muted-foreground">
+            아직 내용이 없는 문서입니다.
+          </Text>
+        </View>
+      )}
+    </ScrollView>
+  );
+}
+
+function createMarkdownStyles(dark: boolean) {
+  const foreground = dark ? '#f4f4f5' : '#18181b';
+  const muted = dark ? '#a1a1aa' : '#71717a';
+  const border = dark ? '#27272a' : '#e4e4e7';
+  const surface = dark ? '#18181b' : '#f4f4f5';
+
+  return StyleSheet.create({
+    body: {
+      color: foreground,
+      fontSize: 13,
+      lineHeight: 22,
+    },
+    heading1: {
+      color: foreground,
+      fontSize: 24,
+      fontWeight: '700',
+      lineHeight: 32,
+      marginBottom: 14,
+      marginTop: 10,
+    },
+    heading2: {
+      color: foreground,
+      fontSize: 19,
+      fontWeight: '700',
+      lineHeight: 28,
+      marginBottom: 10,
+      marginTop: 24,
+    },
+    heading3: {
+      color: foreground,
+      fontSize: 16,
+      fontWeight: '600',
+      lineHeight: 24,
+      marginBottom: 8,
+      marginTop: 20,
+    },
+    paragraph: {
+      color: foreground,
+      marginBottom: 12,
+      marginTop: 0,
+    },
+    strong: {
+      color: foreground,
+      fontWeight: '700',
+    },
+    em: {
+      color: foreground,
+    },
+    link: {
+      color: dark ? '#d4d4d8' : '#3f3f46',
+      textDecorationLine: 'underline',
+    },
+    bullet_list: {
+      marginBottom: 12,
+    },
+    ordered_list: {
+      marginBottom: 12,
+    },
+    list_item: {
+      marginBottom: 3,
+    },
+    blockquote: {
+      backgroundColor: 'transparent',
+      borderColor: border,
+      borderLeftWidth: 3,
+      color: muted,
+      marginBottom: 14,
+      paddingLeft: 14,
+    },
+    code_inline: {
+      backgroundColor: surface,
+      borderColor: border,
+      borderRadius: 4,
+      borderWidth: StyleSheet.hairlineWidth,
+      color: foreground,
+      fontFamily: 'monospace',
+      fontSize: 12,
+      paddingHorizontal: 4,
+      paddingVertical: 2,
+    },
+    code_block: {
+      backgroundColor: surface,
+      borderColor: border,
+      borderRadius: 8,
+      borderWidth: StyleSheet.hairlineWidth,
+      color: foreground,
+      fontFamily: 'monospace',
+      fontSize: 12,
+      lineHeight: 19,
+      marginBottom: 16,
+      padding: 14,
+    },
+    fence: {
+      backgroundColor: surface,
+      borderColor: border,
+      borderRadius: 8,
+      borderWidth: StyleSheet.hairlineWidth,
+      color: foreground,
+      fontFamily: 'monospace',
+      fontSize: 12,
+      lineHeight: 19,
+      marginBottom: 16,
+      padding: 14,
+    },
+    hr: {
+      backgroundColor: border,
+      height: StyleSheet.hairlineWidth,
+      marginBottom: 20,
+      marginTop: 20,
+    },
+    table: {
+      borderColor: border,
+      borderWidth: StyleSheet.hairlineWidth,
+      marginBottom: 16,
+    },
+    tr: {
+      borderBottomColor: border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+    },
+    th: {
+      color: foreground,
+      fontWeight: '600',
+      padding: 8,
+    },
+    td: {
+      color: foreground,
+      padding: 8,
+    },
+  });
+}

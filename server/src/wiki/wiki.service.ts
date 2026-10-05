@@ -3,13 +3,20 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { OrganizationActorContext } from '#server/organizations/organization-actor-context.js';
 import { OrganizationsService } from '#server/organizations/organizations.service.js';
 import {
+  WikiDocumentEditLockRequiredError,
+  WikiDocumentLockedError,
   WikiDocumentNotFoundError,
+  WikiDocumentRevisionNotFoundError,
   WikiFolderNotEmptyError,
   WikiFolderNotFoundError,
   WikiInvalidFolderMoveError,
 } from '#server/wiki/domain/wiki.error.js';
 import type { CreateWikiDocumentInput } from '#server/wiki/dto/create-wiki-document.dto.js';
 import type { CreateWikiFolderInput } from '#server/wiki/dto/create-wiki-folder.dto.js';
+import type {
+  SaveWikiDocumentContentInput,
+  WikiDocumentSaveResultResponse,
+} from '#server/wiki/dto/save-wiki-document-content.dto.js';
 import type { UpdateWikiDocumentInput } from '#server/wiki/dto/update-wiki-document.dto.js';
 import type { UpdateWikiFolderInput } from '#server/wiki/dto/update-wiki-folder.dto.js';
 import {
@@ -17,9 +24,24 @@ import {
   type WikiDocumentResponse,
 } from '#server/wiki/dto/wiki-document.dto.js';
 import {
+  toWikiDocumentRevisionResponse,
+  toWikiDocumentRevisionSummaryResponse,
+  type WikiDocumentHistoryResponse,
+  type WikiDocumentRevisionResponse,
+} from '#server/wiki/dto/wiki-document-history.dto.js';
+import {
+  toWikiEditLockStateResponse,
+  type WikiEditLockStateResponse,
+} from '#server/wiki/dto/wiki-edit-lock.dto.js';
+import {
   toWikiFolderResponse,
   type WikiFolderResponse,
 } from '#server/wiki/dto/wiki-folder.dto.js';
+import type {
+  QueryWikiSearchInput,
+  WikiSearchResultResponse,
+} from '#server/wiki/dto/wiki-search.dto.js';
+import { WikiSearchResultSchema } from '#server/wiki/dto/wiki-search.dto.js';
 import {
   toWikiTreeResponse,
   type WikiTreeResponse,
@@ -160,14 +182,11 @@ export class WikiService {
       input.folderId === undefined ? current.folderId : input.folderId;
     await this.assertFolderExists(organizationId, folderId);
 
-    const updated = await this.wikiRepository.updateDocument({
+    const updated = await this.wikiRepository.updateDocumentMetadata({
       organizationId,
       documentId,
       folderId,
       title: input.title ?? current.title,
-      ...(input.contentMarkdown === undefined
-        ? {}
-        : { contentMarkdown: input.contentMarkdown }),
       actorUserId: context.userId,
     });
     if (!updated) {
@@ -187,6 +206,142 @@ export class WikiService {
     ) {
       throw new WikiDocumentNotFoundError();
     }
+  }
+
+  async acquireEditLock(
+    context: OrganizationActorContext,
+    organizationId: string,
+    documentId: string,
+  ): Promise<WikiEditLockStateResponse> {
+    await this.assertOrganizationAccess(context, organizationId);
+    await this.requireDocument(organizationId, documentId);
+    const lock = await this.wikiRepository.acquireEditLock({
+      organizationId,
+      documentId,
+      actorUserId: context.userId,
+    });
+    return toWikiEditLockStateResponse(lock, context.userId);
+  }
+
+  async renewEditLock(
+    context: OrganizationActorContext,
+    organizationId: string,
+    documentId: string,
+  ): Promise<WikiEditLockStateResponse> {
+    await this.assertOrganizationAccess(context, organizationId);
+    await this.requireDocument(organizationId, documentId);
+    const lock = await this.wikiRepository.renewEditLock({
+      organizationId,
+      documentId,
+      actorUserId: context.userId,
+    });
+    if (lock && lock.lockedByUserId !== context.userId) {
+      throw new WikiDocumentLockedError();
+    }
+    return toWikiEditLockStateResponse(lock, context.userId);
+  }
+
+  async releaseEditLock(
+    context: OrganizationActorContext,
+    organizationId: string,
+    documentId: string,
+  ): Promise<WikiEditLockStateResponse> {
+    await this.assertOrganizationAccess(context, organizationId);
+    await this.requireDocument(organizationId, documentId);
+    const lock = await this.wikiRepository.releaseEditLock({
+      organizationId,
+      documentId,
+      actorUserId: context.userId,
+    });
+    if (lock && lock.lockedByUserId !== context.userId) {
+      throw new WikiDocumentLockedError();
+    }
+    return toWikiEditLockStateResponse(lock, context.userId);
+  }
+
+  async saveDocumentContent(
+    context: OrganizationActorContext,
+    organizationId: string,
+    documentId: string,
+    input: SaveWikiDocumentContentInput,
+  ): Promise<WikiDocumentSaveResultResponse> {
+    await this.assertOrganizationAccess(context, organizationId);
+    const result = await this.wikiRepository.saveDocumentContent({
+      organizationId,
+      documentId,
+      contentMarkdown: input.contentMarkdown,
+      baseRevision: input.baseRevision,
+      actorUserId: context.userId,
+    });
+
+    switch (result.status) {
+      case 'not_found':
+        throw new WikiDocumentNotFoundError();
+      case 'lock_required':
+        throw new WikiDocumentEditLockRequiredError();
+      case 'locked_by_other':
+        throw new WikiDocumentLockedError();
+      case 'conflict_copy_created':
+        return {
+          status: 'conflict-copy-created',
+          conflictCopyCreated: true,
+          document: toWikiDocumentResponse(result.document),
+          conflictCopy: toWikiDocumentResponse(result.conflictCopy),
+        };
+      case 'saved':
+        return {
+          status: 'saved',
+          conflictCopyCreated: false,
+          document: toWikiDocumentResponse(result.document),
+          conflictCopy: null,
+        };
+    }
+  }
+
+  async listDocumentHistory(
+    context: OrganizationActorContext,
+    organizationId: string,
+    documentId: string,
+  ): Promise<WikiDocumentHistoryResponse> {
+    await this.assertOrganizationAccess(context, organizationId);
+    await this.requireDocument(organizationId, documentId);
+    const revisions = await this.wikiRepository.listDocumentRevisions(
+      organizationId,
+      documentId,
+    );
+    return {
+      items: revisions.map(toWikiDocumentRevisionSummaryResponse),
+    };
+  }
+
+  async getDocumentRevision(
+    context: OrganizationActorContext,
+    organizationId: string,
+    documentId: string,
+    revision: number,
+  ): Promise<WikiDocumentRevisionResponse> {
+    await this.assertOrganizationAccess(context, organizationId);
+    await this.requireDocument(organizationId, documentId);
+    const result = await this.wikiRepository.findDocumentRevision(
+      organizationId,
+      documentId,
+      revision,
+    );
+    if (!result) {
+      throw new WikiDocumentRevisionNotFoundError();
+    }
+    return toWikiDocumentRevisionResponse(result);
+  }
+
+  async search(
+    context: OrganizationActorContext,
+    organizationId: string,
+    input: QueryWikiSearchInput,
+  ): Promise<WikiSearchResultResponse> {
+    await this.assertOrganizationAccess(context, organizationId);
+    return WikiSearchResultSchema.parse({
+      items: await this.wikiRepository.search(organizationId, input.q),
+    });
   }
 
   private async assertOrganizationAccess(

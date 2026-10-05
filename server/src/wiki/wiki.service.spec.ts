@@ -1,6 +1,9 @@
 import type { OrganizationActorContext } from '#server/organizations/organization-actor-context.js';
 import type { OrganizationsService } from '#server/organizations/organizations.service.js';
 import {
+  WikiDocumentEditLockRequiredError,
+  WikiDocumentLockedError,
+  WikiDocumentRevisionNotFoundError,
   WikiFolderNotEmptyError,
   WikiFolderNotFoundError,
   WikiInvalidFolderMoveError,
@@ -9,6 +12,8 @@ import type {
   WikiDocument,
   WikiDocumentSummary,
 } from '#server/wiki/domain/wiki-document.js';
+import type { WikiDocumentRevision } from '#server/wiki/domain/wiki-document-revision.js';
+import type { WikiEditLock } from '#server/wiki/domain/wiki-edit-lock.js';
 import type { WikiFolder } from '#server/wiki/domain/wiki-folder.js';
 import { WikiRepository } from '#server/wiki/infrastructure/persistence/wiki.repository.js';
 import { WikiService } from '#server/wiki/wiki.service.js';
@@ -23,8 +28,15 @@ class FakeWikiRepository extends WikiRepository {
   deleteFolder = jest.fn<WikiRepository['deleteFolder']>();
   findDocumentById = jest.fn<WikiRepository['findDocumentById']>();
   createDocument = jest.fn<WikiRepository['createDocument']>();
-  updateDocument = jest.fn<WikiRepository['updateDocument']>();
+  updateDocumentMetadata = jest.fn<WikiRepository['updateDocumentMetadata']>();
   deleteDocument = jest.fn<WikiRepository['deleteDocument']>();
+  acquireEditLock = jest.fn<WikiRepository['acquireEditLock']>();
+  renewEditLock = jest.fn<WikiRepository['renewEditLock']>();
+  releaseEditLock = jest.fn<WikiRepository['releaseEditLock']>();
+  saveDocumentContent = jest.fn<WikiRepository['saveDocumentContent']>();
+  listDocumentRevisions = jest.fn<WikiRepository['listDocumentRevisions']>();
+  findDocumentRevision = jest.fn<WikiRepository['findDocumentRevision']>();
+  search = jest.fn<WikiRepository['search']>();
 }
 
 class FakeOrganizationsService {
@@ -80,6 +92,29 @@ function documentSummary(value: WikiDocument): WikiDocumentSummary {
     updatedByUserId: value.updatedByUserId,
     createdAt: value.createdAt,
     updatedAt: value.updatedAt,
+  };
+}
+
+function editLock(input: Partial<WikiEditLock> = {}): WikiEditLock {
+  return {
+    documentId: input.documentId ?? '22222222-2222-4222-8222-222222222222',
+    organizationId: input.organizationId ?? 'organization-a',
+    lockedByUserId: input.lockedByUserId ?? context.userId,
+    acquiredAt: input.acquiredAt ?? new Date('2026-10-05T00:00:00.000Z'),
+    expiresAt: input.expiresAt ?? new Date('2026-10-05T00:01:00.000Z'),
+  };
+}
+
+function revision(
+  input: Partial<WikiDocumentRevision> = {},
+): WikiDocumentRevision {
+  return {
+    documentId: input.documentId ?? '22222222-2222-4222-8222-222222222222',
+    organizationId: input.organizationId ?? 'organization-a',
+    revision: input.revision ?? 1,
+    editorUserId: input.editorUserId ?? context.userId,
+    contentMarkdown: input.contentMarkdown ?? '# 문서',
+    createdAt: input.createdAt ?? new Date('2026-10-05T00:00:00.000Z'),
   };
 }
 
@@ -207,5 +242,196 @@ describe('위키 서비스', () => {
         '11111111-1111-4111-8111-111111111111',
       ),
     ).rejects.toBeInstanceOf(WikiFolderNotEmptyError);
+  });
+
+  it('edit lock 획득 결과에서 현재 actor 소유 여부를 명시한다', async () => {
+    const target = document({
+      id: '22222222-2222-4222-8222-222222222222',
+      title: '문서',
+    });
+    repository.findDocumentById.mockResolvedValue(target);
+    repository.acquireEditLock.mockResolvedValue(editLock());
+
+    await expect(
+      service.acquireEditLock(context, 'organization-a', target.id),
+    ).resolves.toMatchObject({
+      locked: true,
+      ownedByActor: true,
+      lockedBy: context.userId,
+    });
+  });
+
+  it('다른 actor의 edit lock은 획득하지 않고 상태를 그대로 전달한다', async () => {
+    const target = document({
+      id: '22222222-2222-4222-8222-222222222222',
+      title: '문서',
+    });
+    repository.findDocumentById.mockResolvedValue(target);
+    repository.acquireEditLock.mockResolvedValue(
+      editLock({ lockedByUserId: 'other-user' }),
+    );
+
+    await expect(
+      service.acquireEditLock(context, 'organization-a', target.id),
+    ).resolves.toMatchObject({
+      locked: true,
+      ownedByActor: false,
+      lockedBy: 'other-user',
+    });
+  });
+
+  it('다른 actor의 lock을 renew하거나 release하지 못하게 한다', async () => {
+    const target = document({
+      id: '22222222-2222-4222-8222-222222222222',
+      title: '문서',
+    });
+    const otherActorLock = editLock({ lockedByUserId: 'other-user' });
+    repository.findDocumentById.mockResolvedValue(target);
+    repository.renewEditLock.mockResolvedValue(otherActorLock);
+    repository.releaseEditLock.mockResolvedValue(otherActorLock);
+
+    await expect(
+      service.renewEditLock(context, 'organization-a', target.id),
+    ).rejects.toBeInstanceOf(WikiDocumentLockedError);
+    await expect(
+      service.releaseEditLock(context, 'organization-a', target.id),
+    ).rejects.toBeInstanceOf(WikiDocumentLockedError);
+  });
+
+  it('유효한 lock 없이 content 저장을 허용하지 않는다', async () => {
+    repository.saveDocumentContent.mockResolvedValue({
+      status: 'lock_required',
+    });
+
+    await expect(
+      service.saveDocumentContent(
+        context,
+        'organization-a',
+        '22222222-2222-4222-8222-222222222222',
+        { contentMarkdown: '# 변경', baseRevision: 1 },
+      ),
+    ).rejects.toBeInstanceOf(WikiDocumentEditLockRequiredError);
+  });
+
+  it('다른 actor lock 상태에서 content 저장을 허용하지 않는다', async () => {
+    repository.saveDocumentContent.mockResolvedValue({
+      status: 'locked_by_other',
+    });
+
+    await expect(
+      service.saveDocumentContent(
+        context,
+        'organization-a',
+        '22222222-2222-4222-8222-222222222222',
+        { contentMarkdown: '# 변경', baseRevision: 1 },
+      ),
+    ).rejects.toBeInstanceOf(WikiDocumentLockedError);
+  });
+
+  it('stale revision 저장은 canonical 문서를 유지하고 conflict copy를 반환한다', async () => {
+    const canonical = document({
+      id: '22222222-2222-4222-8222-222222222222',
+      title: 'API 설계',
+      contentMarkdown: '# 최신',
+      revision: 3,
+    });
+    const conflictCopy = document({
+      id: '33333333-3333-4333-8333-333333333333',
+      title: 'API 설계 (01)',
+      contentMarkdown: '# 내 변경',
+      revision: 1,
+    });
+    repository.saveDocumentContent.mockResolvedValue({
+      status: 'conflict_copy_created',
+      document: canonical,
+      conflictCopy,
+    });
+
+    await expect(
+      service.saveDocumentContent(context, 'organization-a', canonical.id, {
+        contentMarkdown: '# 내 변경',
+        baseRevision: 2,
+      }),
+    ).resolves.toMatchObject({
+      status: 'conflict-copy-created',
+      conflictCopyCreated: true,
+      document: { id: canonical.id, revision: 3, contentMarkdown: '# 최신' },
+      conflictCopy: {
+        id: conflictCopy.id,
+        title: 'API 설계 (01)',
+        contentMarkdown: '# 내 변경',
+      },
+    });
+  });
+
+  it('history list/detail은 조직 범위 document를 확인하고 snapshot을 직렬화한다', async () => {
+    const target = document({
+      id: '22222222-2222-4222-8222-222222222222',
+      title: '문서',
+    });
+    const history = revision({ documentId: target.id, revision: 2 });
+    repository.findDocumentById.mockResolvedValue(target);
+    repository.listDocumentRevisions.mockResolvedValue([
+      {
+        documentId: history.documentId,
+        organizationId: history.organizationId,
+        revision: history.revision,
+        editorUserId: history.editorUserId,
+        createdAt: history.createdAt,
+      },
+    ]);
+    repository.findDocumentRevision.mockResolvedValue(history);
+
+    await expect(
+      service.listDocumentHistory(context, 'organization-a', target.id),
+    ).resolves.toEqual({
+      items: [
+        expect.objectContaining({
+          revision: 2,
+          createdAt: '2026-10-05T00:00:00.000Z',
+        }),
+      ],
+    });
+    await expect(
+      service.getDocumentRevision(context, 'organization-a', target.id, 2),
+    ).resolves.toMatchObject({
+      revision: 2,
+      contentMarkdown: '# 문서',
+    });
+  });
+
+  it('없는 revision은 전용 not-found 오류로 변환한다', async () => {
+    const target = document({
+      id: '22222222-2222-4222-8222-222222222222',
+      title: '문서',
+    });
+    repository.findDocumentById.mockResolvedValue(target);
+    repository.findDocumentRevision.mockResolvedValue(null);
+
+    await expect(
+      service.getDocumentRevision(context, 'organization-a', target.id, 99),
+    ).rejects.toBeInstanceOf(WikiDocumentRevisionNotFoundError);
+  });
+
+  it('검색은 organization access를 확인한 뒤 repository 결과를 반환한다', async () => {
+    repository.search.mockResolvedValue([
+      {
+        kind: 'document',
+        id: '22222222-2222-4222-8222-222222222222',
+        parentFolderId: null,
+        name: 'API 설계',
+        matchedIn: ['content'],
+      },
+    ]);
+
+    await expect(
+      service.search(context, 'organization-a', { q: 'oauth' }),
+    ).resolves.toEqual({
+      items: [expect.objectContaining({ name: 'API 설계' })],
+    });
+    expect(organizations.getDetail).toHaveBeenCalledWith(
+      context,
+      'organization-a',
+    );
   });
 });

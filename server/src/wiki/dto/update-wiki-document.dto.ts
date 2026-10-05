@@ -1,27 +1,21 @@
-import { wikiDocumentSelectSchema } from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-document.zod.js';
 import { wikiEntrySelectSchema } from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-entry.zod.js';
 
 import { z } from 'zod';
 
-const optionalDocumentUpdateFields = {
+const optionalDocumentMetadataFields = {
   folderId: wikiEntrySelectSchema.shape.parentFolderId.optional(),
   title: wikiEntrySelectSchema.shape.name.optional(),
-  contentMarkdown: wikiDocumentSelectSchema.shape.contentMarkdown.optional(),
 };
 
 export const UpdateWikiDocumentSchema = z
   .union([
     z.object({
-      ...optionalDocumentUpdateFields,
+      ...optionalDocumentMetadataFields,
       folderId: wikiEntrySelectSchema.shape.parentFolderId,
     }),
     z.object({
-      ...optionalDocumentUpdateFields,
+      ...optionalDocumentMetadataFields,
       title: wikiEntrySelectSchema.shape.name,
-    }),
-    z.object({
-      ...optionalDocumentUpdateFields,
-      contentMarkdown: wikiDocumentSelectSchema.shape.contentMarkdown,
     }),
   ])
   .meta({ id: 'UpdateWikiDocument' });

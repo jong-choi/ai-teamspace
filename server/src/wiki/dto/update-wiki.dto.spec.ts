@@ -1,7 +1,8 @@
+import { SaveWikiDocumentContentSchema } from '#server/wiki/dto/save-wiki-document-content.dto.js';
 import { UpdateWikiDocumentSchema } from '#server/wiki/dto/update-wiki-document.dto.js';
 import { UpdateWikiFolderSchema } from '#server/wiki/dto/update-wiki-folder.dto.js';
 
-describe('위키 PATCH DTO', () => {
+describe('위키 수정 DTO', () => {
   it('폴더 PATCH는 최소 한 필드를 요구한다', () => {
     expect(UpdateWikiFolderSchema.safeParse({}).success).toBe(false);
     expect(
@@ -12,13 +13,32 @@ describe('위키 PATCH DTO', () => {
     ).toBe(true);
   });
 
-  it('문서 PATCH는 최소 한 필드를 요구한다', () => {
+  it('문서 metadata PATCH는 최소 한 필드를 요구하고 content 저장을 섞지 않는다', () => {
     expect(UpdateWikiDocumentSchema.safeParse({}).success).toBe(false);
-    expect(
-      UpdateWikiDocumentSchema.safeParse({ contentMarkdown: '# 변경' }).success,
-    ).toBe(true);
     expect(UpdateWikiDocumentSchema.safeParse({ folderId: null }).success).toBe(
       true,
     );
+    expect(
+      UpdateWikiDocumentSchema.safeParse({ title: '이름 변경' }).success,
+    ).toBe(true);
+  });
+
+  it('문서 content 저장은 Markdown과 baseRevision을 함께 요구한다', () => {
+    expect(
+      SaveWikiDocumentContentSchema.safeParse({ contentMarkdown: '# 변경' })
+        .success,
+    ).toBe(false);
+    expect(
+      SaveWikiDocumentContentSchema.safeParse({
+        contentMarkdown: '# 변경',
+        baseRevision: 1,
+      }).success,
+    ).toBe(true);
+    expect(
+      SaveWikiDocumentContentSchema.safeParse({
+        contentMarkdown: '# 변경',
+        baseRevision: 0,
+      }).success,
+    ).toBe(false);
   });
 });

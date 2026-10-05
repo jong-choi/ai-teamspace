@@ -1,0 +1,5 @@
+ALTER TABLE "wiki_entry" DROP CONSTRAINT "wiki_entry_parent_folder_id_wiki_entry_id_fk";
+--> statement-breakpoint
+ALTER TABLE "wiki_document_edit_lock" ADD CONSTRAINT "wiki_document_edit_lock_entry_organization_fk" FOREIGN KEY ("document_id","organization_id") REFERENCES "public"."wiki_entry"("id","organization_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "wiki_document_revision" ADD CONSTRAINT "wiki_document_revision_entry_organization_fk" FOREIGN KEY ("document_id","organization_id") REFERENCES "public"."wiki_entry"("id","organization_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "wiki_entry" ADD CONSTRAINT "wiki_entry_parent_organization_fk" FOREIGN KEY ("parent_folder_id","organization_id") REFERENCES "public"."wiki_entry"("id","organization_id") ON DELETE restrict ON UPDATE no action;

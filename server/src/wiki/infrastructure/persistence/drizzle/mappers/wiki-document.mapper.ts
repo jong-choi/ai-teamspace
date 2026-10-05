@@ -40,13 +40,14 @@ export function toWikiDocumentEntryInsert(input: {
   folderId: string | null;
   title: string;
   actorUserId: string;
+  position?: number;
 }) {
   return wikiEntryInsertSchema.parse({
     organizationId: input.organizationId,
     parentFolderId: input.folderId,
     kind: 'document',
     name: input.title,
-    position: 0,
+    position: input.position ?? 0,
     createdByUserId: input.actorUserId,
   });
 }

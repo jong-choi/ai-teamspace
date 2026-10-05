@@ -40,7 +40,12 @@ import {
   OrganizationMember,
   OrganizationMemberList,
   WikiDocument,
+  WikiDocumentHistory,
+  WikiDocumentRevision,
+  WikiDocumentSaveResult,
+  WikiEditLockState,
   WikiFolder,
+  WikiSearchResult,
   WikiTree
 } from './schemas';
 import type {
@@ -59,8 +64,10 @@ import type {
   OrganizationsControllerListMembersParams,
   OrganizationsControllerSetActiveBody,
   ProblemDetails,
+  SaveWikiDocumentContent,
   UpdateWikiDocument,
-  UpdateWikiFolder
+  UpdateWikiFolder,
+  WikiControllerSearchParams
 } from './schemas';
 
 import { workOsFetcher } from '../runtime';
@@ -2271,6 +2278,105 @@ export function useWikiControllerGetTreeSuspense<TData = Awaited<ReturnType<type
 
 
 
+export const getWikiControllerSearchUrl = (organizationId: string,
+    params: WikiControllerSearchParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/organizations/${organizationId}/wiki/search?${stringifiedParams}` : `/organizations/${organizationId}/wiki/search`
+}
+
+export const wikiControllerSearch = async (organizationId: string,
+    params: WikiControllerSearchParams, options?: Parameters<typeof workOsFetcher>[1]): Promise<WikiSearchResult> => {
+
+  return workOsFetcher<WikiSearchResult>(getWikiControllerSearchUrl(organizationId,params),
+  {
+    ...options,
+    method: 'GET'
+
+    ,
+    schema: WikiSearchResult
+  }
+);}
+
+
+
+
+
+export const getWikiControllerSearchQueryKey = (organizationId: string,
+    params?: WikiControllerSearchParams,) => {
+    return [
+    `/organizations/${organizationId}/wiki/search`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getWikiControllerSearchSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof wikiControllerSearch>>, TError = ErrorType<ProblemDetails>>(organizationId: string,
+    params: WikiControllerSearchParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof wikiControllerSearch>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getWikiControllerSearchQueryKey(organizationId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof wikiControllerSearch>>> = ({ signal }) => wikiControllerSearch(organizationId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof wikiControllerSearch>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
+}
+
+export type WikiControllerSearchSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof wikiControllerSearch>>>
+export type WikiControllerSearchSuspenseQueryError = ErrorType<ProblemDetails>
+
+
+export function useWikiControllerSearchSuspense<TData = Awaited<ReturnType<typeof wikiControllerSearch>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    params: WikiControllerSearchParams, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof wikiControllerSearch>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useWikiControllerSearchSuspense<TData = Awaited<ReturnType<typeof wikiControllerSearch>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    params: WikiControllerSearchParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof wikiControllerSearch>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useWikiControllerSearchSuspense<TData = Awaited<ReturnType<typeof wikiControllerSearch>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    params: WikiControllerSearchParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof wikiControllerSearch>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useWikiControllerSearchSuspense<TData = Awaited<ReturnType<typeof wikiControllerSearch>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    params: WikiControllerSearchParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof wikiControllerSearch>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getWikiControllerSearchSuspenseQueryOptions(organizationId,params,options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getWikiControllerCreateFolderUrl = (organizationId: string,) => {
 
 
@@ -2842,3 +2948,488 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getWikiControllerDeleteDocumentMutationOptions(options), queryClient);
     }
+
+export const getWikiControllerAcquireEditLockUrl = (organizationId: string,
+    documentId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/wiki/documents/${documentId}/edit-lock`
+}
+
+export const wikiControllerAcquireEditLock = async (organizationId: string,
+    documentId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<WikiEditLockState> => {
+
+  return workOsFetcher<WikiEditLockState>(getWikiControllerAcquireEditLockUrl(organizationId,documentId),
+  {
+    ...options,
+    method: 'POST'
+
+    ,
+    schema: WikiEditLockState
+  }
+);}
+
+
+
+
+
+export const getWikiControllerAcquireEditLockMutationKey = () => ['wikiControllerAcquireEditLock'] as const;
+
+export const getWikiControllerAcquireEditLockMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof wikiControllerAcquireEditLock>>, TError,WikiControllerAcquireEditLockMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof wikiControllerAcquireEditLock>>, TError,WikiControllerAcquireEditLockMutationVariables, TContext> => {
+
+const mutationKey = getWikiControllerAcquireEditLockMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof wikiControllerAcquireEditLock>>, WikiControllerAcquireEditLockMutationVariables> = (props) => {
+          const {organizationId,documentId} = props ?? {};
+
+          return  wikiControllerAcquireEditLock(organizationId,documentId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type WikiControllerAcquireEditLockMutationResult = NonNullable<Awaited<ReturnType<typeof wikiControllerAcquireEditLock>>>
+
+    export type WikiControllerAcquireEditLockMutationError = ErrorType<ProblemDetails>
+    export type WikiControllerAcquireEditLockMutationVariables = {organizationId: string;documentId: string}
+
+    export const useWikiControllerAcquireEditLock = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof wikiControllerAcquireEditLock>>, TError,WikiControllerAcquireEditLockMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof wikiControllerAcquireEditLock>>,
+        TError,
+        WikiControllerAcquireEditLockMutationVariables,
+        TContext
+      > => {
+      return useMutation(getWikiControllerAcquireEditLockMutationOptions(options), queryClient);
+    }
+
+export const getWikiControllerRenewEditLockUrl = (organizationId: string,
+    documentId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/wiki/documents/${documentId}/edit-lock`
+}
+
+export const wikiControllerRenewEditLock = async (organizationId: string,
+    documentId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<WikiEditLockState> => {
+
+  return workOsFetcher<WikiEditLockState>(getWikiControllerRenewEditLockUrl(organizationId,documentId),
+  {
+    ...options,
+    method: 'PUT'
+
+    ,
+    schema: WikiEditLockState
+  }
+);}
+
+
+
+
+
+export const getWikiControllerRenewEditLockMutationKey = () => ['wikiControllerRenewEditLock'] as const;
+
+export const getWikiControllerRenewEditLockMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof wikiControllerRenewEditLock>>, TError,WikiControllerRenewEditLockMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof wikiControllerRenewEditLock>>, TError,WikiControllerRenewEditLockMutationVariables, TContext> => {
+
+const mutationKey = getWikiControllerRenewEditLockMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof wikiControllerRenewEditLock>>, WikiControllerRenewEditLockMutationVariables> = (props) => {
+          const {organizationId,documentId} = props ?? {};
+
+          return  wikiControllerRenewEditLock(organizationId,documentId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type WikiControllerRenewEditLockMutationResult = NonNullable<Awaited<ReturnType<typeof wikiControllerRenewEditLock>>>
+
+    export type WikiControllerRenewEditLockMutationError = ErrorType<ProblemDetails>
+    export type WikiControllerRenewEditLockMutationVariables = {organizationId: string;documentId: string}
+
+    export const useWikiControllerRenewEditLock = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof wikiControllerRenewEditLock>>, TError,WikiControllerRenewEditLockMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof wikiControllerRenewEditLock>>,
+        TError,
+        WikiControllerRenewEditLockMutationVariables,
+        TContext
+      > => {
+      return useMutation(getWikiControllerRenewEditLockMutationOptions(options), queryClient);
+    }
+
+export const getWikiControllerReleaseEditLockUrl = (organizationId: string,
+    documentId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/wiki/documents/${documentId}/edit-lock`
+}
+
+export const wikiControllerReleaseEditLock = async (organizationId: string,
+    documentId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<WikiEditLockState> => {
+
+  return workOsFetcher<WikiEditLockState>(getWikiControllerReleaseEditLockUrl(organizationId,documentId),
+  {
+    ...options,
+    method: 'DELETE'
+
+    ,
+    schema: WikiEditLockState
+  }
+);}
+
+
+
+
+
+export const getWikiControllerReleaseEditLockMutationKey = () => ['wikiControllerReleaseEditLock'] as const;
+
+export const getWikiControllerReleaseEditLockMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof wikiControllerReleaseEditLock>>, TError,WikiControllerReleaseEditLockMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof wikiControllerReleaseEditLock>>, TError,WikiControllerReleaseEditLockMutationVariables, TContext> => {
+
+const mutationKey = getWikiControllerReleaseEditLockMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof wikiControllerReleaseEditLock>>, WikiControllerReleaseEditLockMutationVariables> = (props) => {
+          const {organizationId,documentId} = props ?? {};
+
+          return  wikiControllerReleaseEditLock(organizationId,documentId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type WikiControllerReleaseEditLockMutationResult = NonNullable<Awaited<ReturnType<typeof wikiControllerReleaseEditLock>>>
+
+    export type WikiControllerReleaseEditLockMutationError = ErrorType<ProblemDetails>
+    export type WikiControllerReleaseEditLockMutationVariables = {organizationId: string;documentId: string}
+
+    export const useWikiControllerReleaseEditLock = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof wikiControllerReleaseEditLock>>, TError,WikiControllerReleaseEditLockMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof wikiControllerReleaseEditLock>>,
+        TError,
+        WikiControllerReleaseEditLockMutationVariables,
+        TContext
+      > => {
+      return useMutation(getWikiControllerReleaseEditLockMutationOptions(options), queryClient);
+    }
+
+export const getWikiControllerSaveDocumentContentUrl = (organizationId: string,
+    documentId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/wiki/documents/${documentId}/content`
+}
+
+export const wikiControllerSaveDocumentContent = async (organizationId: string,
+    documentId: string,
+    saveWikiDocumentContent: SaveWikiDocumentContent, options?: Parameters<typeof workOsFetcher>[1]): Promise<WikiDocumentSaveResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<WikiDocumentSaveResult>(getWikiControllerSaveDocumentContentUrl(organizationId,documentId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(saveWikiDocumentContent),
+    schema: WikiDocumentSaveResult
+  }
+);}
+
+
+
+
+
+export const getWikiControllerSaveDocumentContentMutationKey = () => ['wikiControllerSaveDocumentContent'] as const;
+
+export const getWikiControllerSaveDocumentContentMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof wikiControllerSaveDocumentContent>>, TError,WikiControllerSaveDocumentContentMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof wikiControllerSaveDocumentContent>>, TError,WikiControllerSaveDocumentContentMutationVariables, TContext> => {
+
+const mutationKey = getWikiControllerSaveDocumentContentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof wikiControllerSaveDocumentContent>>, WikiControllerSaveDocumentContentMutationVariables> = (props) => {
+          const {organizationId,documentId,data} = props ?? {};
+
+          return  wikiControllerSaveDocumentContent(organizationId,documentId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type WikiControllerSaveDocumentContentMutationResult = NonNullable<Awaited<ReturnType<typeof wikiControllerSaveDocumentContent>>>
+    export type WikiControllerSaveDocumentContentMutationBody = SaveWikiDocumentContent
+    export type WikiControllerSaveDocumentContentMutationError = ErrorType<ProblemDetails>
+    export type WikiControllerSaveDocumentContentMutationVariables = {organizationId: string;documentId: string;data: SaveWikiDocumentContent}
+
+    export const useWikiControllerSaveDocumentContent = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof wikiControllerSaveDocumentContent>>, TError,WikiControllerSaveDocumentContentMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof wikiControllerSaveDocumentContent>>,
+        TError,
+        WikiControllerSaveDocumentContentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getWikiControllerSaveDocumentContentMutationOptions(options), queryClient);
+    }
+
+export const getWikiControllerListDocumentHistoryUrl = (organizationId: string,
+    documentId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/wiki/documents/${documentId}/history`
+}
+
+export const wikiControllerListDocumentHistory = async (organizationId: string,
+    documentId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<WikiDocumentHistory> => {
+
+  return workOsFetcher<WikiDocumentHistory>(getWikiControllerListDocumentHistoryUrl(organizationId,documentId),
+  {
+    ...options,
+    method: 'GET'
+
+    ,
+    schema: WikiDocumentHistory
+  }
+);}
+
+
+
+
+
+export const getWikiControllerListDocumentHistoryQueryKey = (organizationId: string,
+    documentId: string,) => {
+    return [
+    `/organizations/${organizationId}/wiki/documents/${documentId}/history`
+    ] as const;
+    }
+
+
+export const getWikiControllerListDocumentHistorySuspenseQueryOptions = <TData = Awaited<ReturnType<typeof wikiControllerListDocumentHistory>>, TError = ErrorType<ProblemDetails>>(organizationId: string,
+    documentId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof wikiControllerListDocumentHistory>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getWikiControllerListDocumentHistoryQueryKey(organizationId,documentId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof wikiControllerListDocumentHistory>>> = ({ signal }) => wikiControllerListDocumentHistory(organizationId,documentId, { signal, ...requestOptions });
+
+
+
+
+
+   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof wikiControllerListDocumentHistory>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
+}
+
+export type WikiControllerListDocumentHistorySuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof wikiControllerListDocumentHistory>>>
+export type WikiControllerListDocumentHistorySuspenseQueryError = ErrorType<ProblemDetails>
+
+
+export function useWikiControllerListDocumentHistorySuspense<TData = Awaited<ReturnType<typeof wikiControllerListDocumentHistory>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    documentId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof wikiControllerListDocumentHistory>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useWikiControllerListDocumentHistorySuspense<TData = Awaited<ReturnType<typeof wikiControllerListDocumentHistory>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    documentId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof wikiControllerListDocumentHistory>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useWikiControllerListDocumentHistorySuspense<TData = Awaited<ReturnType<typeof wikiControllerListDocumentHistory>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    documentId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof wikiControllerListDocumentHistory>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useWikiControllerListDocumentHistorySuspense<TData = Awaited<ReturnType<typeof wikiControllerListDocumentHistory>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    documentId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof wikiControllerListDocumentHistory>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getWikiControllerListDocumentHistorySuspenseQueryOptions(organizationId,documentId,options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getWikiControllerGetDocumentRevisionUrl = (organizationId: string,
+    documentId: string,
+    revision: number,) => {
+
+
+
+
+  return `/organizations/${organizationId}/wiki/documents/${documentId}/history/${revision}`
+}
+
+export const wikiControllerGetDocumentRevision = async (organizationId: string,
+    documentId: string,
+    revision: number, options?: Parameters<typeof workOsFetcher>[1]): Promise<WikiDocumentRevision> => {
+
+  return workOsFetcher<WikiDocumentRevision>(getWikiControllerGetDocumentRevisionUrl(organizationId,documentId,revision),
+  {
+    ...options,
+    method: 'GET'
+
+    ,
+    schema: WikiDocumentRevision
+  }
+);}
+
+
+
+
+
+export const getWikiControllerGetDocumentRevisionQueryKey = (organizationId: string,
+    documentId: string,
+    revision: number,) => {
+    return [
+    `/organizations/${organizationId}/wiki/documents/${documentId}/history/${revision}`
+    ] as const;
+    }
+
+
+export const getWikiControllerGetDocumentRevisionSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof wikiControllerGetDocumentRevision>>, TError = ErrorType<ProblemDetails>>(organizationId: string,
+    documentId: string,
+    revision: number, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof wikiControllerGetDocumentRevision>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getWikiControllerGetDocumentRevisionQueryKey(organizationId,documentId,revision);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof wikiControllerGetDocumentRevision>>> = ({ signal }) => wikiControllerGetDocumentRevision(organizationId,documentId,revision, { signal, ...requestOptions });
+
+
+
+
+
+   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof wikiControllerGetDocumentRevision>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
+}
+
+export type WikiControllerGetDocumentRevisionSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof wikiControllerGetDocumentRevision>>>
+export type WikiControllerGetDocumentRevisionSuspenseQueryError = ErrorType<ProblemDetails>
+
+
+export function useWikiControllerGetDocumentRevisionSuspense<TData = Awaited<ReturnType<typeof wikiControllerGetDocumentRevision>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    documentId: string,
+    revision: number, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof wikiControllerGetDocumentRevision>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useWikiControllerGetDocumentRevisionSuspense<TData = Awaited<ReturnType<typeof wikiControllerGetDocumentRevision>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    documentId: string,
+    revision: number, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof wikiControllerGetDocumentRevision>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useWikiControllerGetDocumentRevisionSuspense<TData = Awaited<ReturnType<typeof wikiControllerGetDocumentRevision>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    documentId: string,
+    revision: number, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof wikiControllerGetDocumentRevision>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useWikiControllerGetDocumentRevisionSuspense<TData = Awaited<ReturnType<typeof wikiControllerGetDocumentRevision>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    documentId: string,
+    revision: number, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof wikiControllerGetDocumentRevision>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getWikiControllerGetDocumentRevisionSuspenseQueryOptions(organizationId,documentId,revision,options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}

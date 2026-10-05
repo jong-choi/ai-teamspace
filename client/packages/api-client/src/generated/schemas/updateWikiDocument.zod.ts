@@ -10,22 +10,14 @@ export const updateWikiDocumentOneFolderIdRegExp = new RegExp('^([0-9a-fA-F]{8}-
 
 export const updateWikiDocumentTwoFolderIdRegExp = new RegExp('^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$');
 
-export const updateWikiDocumentThreeFolderIdRegExp = new RegExp('^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$');
-
 
 
 export const UpdateWikiDocument = zod.union([zod.object({
   "folderId": zod.uuid().regex(updateWikiDocumentOneFolderIdRegExp).nullable(),
-  "title": zod.string().min(1).optional(),
-  "contentMarkdown": zod.string().optional()
+  "title": zod.string().min(1).optional()
 }),zod.object({
   "folderId": zod.uuid().regex(updateWikiDocumentTwoFolderIdRegExp).nullish(),
-  "title": zod.string().min(1),
-  "contentMarkdown": zod.string().optional()
-}),zod.object({
-  "folderId": zod.uuid().regex(updateWikiDocumentThreeFolderIdRegExp).nullish(),
-  "title": zod.string().min(1).optional(),
-  "contentMarkdown": zod.string()
+  "title": zod.string().min(1)
 })]);
 
 export type UpdateWikiDocument = zod.input<typeof UpdateWikiDocument>;

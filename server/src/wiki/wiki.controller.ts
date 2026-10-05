@@ -9,9 +9,12 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseIntPipe,
   ParseUUIDPipe,
   Patch,
   Post,
+  Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -33,6 +36,11 @@ import {
   type CreateWikiFolderInput,
 } from '#server/wiki/dto/create-wiki-folder.dto.js';
 import {
+  SaveWikiDocumentContentDto,
+  type SaveWikiDocumentContentInput,
+  WikiDocumentSaveResultDto,
+} from '#server/wiki/dto/save-wiki-document-content.dto.js';
+import {
   UpdateWikiDocumentDto,
   type UpdateWikiDocumentInput,
 } from '#server/wiki/dto/update-wiki-document.dto.js';
@@ -41,7 +49,17 @@ import {
   type UpdateWikiFolderInput,
 } from '#server/wiki/dto/update-wiki-folder.dto.js';
 import { WikiDocumentDto } from '#server/wiki/dto/wiki-document.dto.js';
+import {
+  WikiDocumentHistoryDto,
+  WikiDocumentRevisionDto,
+} from '#server/wiki/dto/wiki-document-history.dto.js';
+import { WikiEditLockStateDto } from '#server/wiki/dto/wiki-edit-lock.dto.js';
 import { WikiFolderDto } from '#server/wiki/dto/wiki-folder.dto.js';
+import {
+  QueryWikiSearchDto,
+  type QueryWikiSearchInput,
+  WikiSearchResultDto,
+} from '#server/wiki/dto/wiki-search.dto.js';
 import { WikiTreeDto } from '#server/wiki/dto/wiki-tree.dto.js';
 import { WikiService } from '#server/wiki/wiki.service.js';
 
@@ -72,6 +90,21 @@ export class WikiController {
     return this.wikiService.getTree(
       toOrganizationActorContext(session, headers),
       organizationId,
+    );
+  }
+
+  @Get('search')
+  @ApiOkResponse({ standardSchema: WikiSearchResultDto.schema })
+  search(
+    @Session() session: UserSession<Auth>,
+    @Headers() headers: IncomingHttpHeaders,
+    @Param('organizationId') organizationId: string,
+    @Query({ schema: QueryWikiSearchDto.schema }) query: QueryWikiSearchInput,
+  ): Promise<WikiSearchResultDto> {
+    return this.wikiService.search(
+      toOrganizationActorContext(session, headers),
+      organizationId,
+      query,
     );
   }
 
@@ -187,6 +220,103 @@ export class WikiController {
       toOrganizationActorContext(session, headers),
       organizationId,
       documentId,
+    );
+  }
+
+  @Post('documents/:documentId/edit-lock')
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ standardSchema: WikiEditLockStateDto.schema })
+  acquireEditLock(
+    @Session() session: UserSession<Auth>,
+    @Headers() headers: IncomingHttpHeaders,
+    @Param('organizationId') organizationId: string,
+    @Param('documentId', new ParseUUIDPipe()) documentId: string,
+  ): Promise<WikiEditLockStateDto> {
+    return this.wikiService.acquireEditLock(
+      toOrganizationActorContext(session, headers),
+      organizationId,
+      documentId,
+    );
+  }
+
+  @Put('documents/:documentId/edit-lock')
+  @ApiOkResponse({ standardSchema: WikiEditLockStateDto.schema })
+  renewEditLock(
+    @Session() session: UserSession<Auth>,
+    @Headers() headers: IncomingHttpHeaders,
+    @Param('organizationId') organizationId: string,
+    @Param('documentId', new ParseUUIDPipe()) documentId: string,
+  ): Promise<WikiEditLockStateDto> {
+    return this.wikiService.renewEditLock(
+      toOrganizationActorContext(session, headers),
+      organizationId,
+      documentId,
+    );
+  }
+
+  @Delete('documents/:documentId/edit-lock')
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ standardSchema: WikiEditLockStateDto.schema })
+  releaseEditLock(
+    @Session() session: UserSession<Auth>,
+    @Headers() headers: IncomingHttpHeaders,
+    @Param('organizationId') organizationId: string,
+    @Param('documentId', new ParseUUIDPipe()) documentId: string,
+  ): Promise<WikiEditLockStateDto> {
+    return this.wikiService.releaseEditLock(
+      toOrganizationActorContext(session, headers),
+      organizationId,
+      documentId,
+    );
+  }
+
+  @Put('documents/:documentId/content')
+  @ApiOkResponse({ standardSchema: WikiDocumentSaveResultDto.schema })
+  saveDocumentContent(
+    @Session() session: UserSession<Auth>,
+    @Headers() headers: IncomingHttpHeaders,
+    @Param('organizationId') organizationId: string,
+    @Param('documentId', new ParseUUIDPipe()) documentId: string,
+    @Body({ schema: SaveWikiDocumentContentDto.schema })
+    input: SaveWikiDocumentContentInput,
+  ): Promise<WikiDocumentSaveResultDto> {
+    return this.wikiService.saveDocumentContent(
+      toOrganizationActorContext(session, headers),
+      organizationId,
+      documentId,
+      input,
+    );
+  }
+
+  @Get('documents/:documentId/history')
+  @ApiOkResponse({ standardSchema: WikiDocumentHistoryDto.schema })
+  listDocumentHistory(
+    @Session() session: UserSession<Auth>,
+    @Headers() headers: IncomingHttpHeaders,
+    @Param('organizationId') organizationId: string,
+    @Param('documentId', new ParseUUIDPipe()) documentId: string,
+  ): Promise<WikiDocumentHistoryDto> {
+    return this.wikiService.listDocumentHistory(
+      toOrganizationActorContext(session, headers),
+      organizationId,
+      documentId,
+    );
+  }
+
+  @Get('documents/:documentId/history/:revision')
+  @ApiOkResponse({ standardSchema: WikiDocumentRevisionDto.schema })
+  getDocumentRevision(
+    @Session() session: UserSession<Auth>,
+    @Headers() headers: IncomingHttpHeaders,
+    @Param('organizationId') organizationId: string,
+    @Param('documentId', new ParseUUIDPipe()) documentId: string,
+    @Param('revision', new ParseIntPipe()) revision: number,
+  ): Promise<WikiDocumentRevisionDto> {
+    return this.wikiService.getDocumentRevision(
+      toOrganizationActorContext(session, headers),
+      organizationId,
+      documentId,
+      revision,
     );
   }
 }

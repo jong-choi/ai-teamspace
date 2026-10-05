@@ -1,13 +1,14 @@
 import { createZodDto } from '#server/common/dto/create-zod-dto.js';
 import { wikiDocumentInsertSchema } from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-document.zod.js';
-import { wikiEntryInsertSchema } from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-entry.zod.js';
 
 import { z } from 'zod';
 
 export const CreateWikiDocumentSchema = z
   .object({
-    folderId: wikiEntryInsertSchema.shape.parentFolderId.optional(),
-    title: wikiEntryInsertSchema.shape.name,
+    parentDocumentId:
+      wikiDocumentInsertSchema.shape.parentDocumentId.optional(),
+    title: wikiDocumentInsertSchema.shape.title,
+    position: wikiDocumentInsertSchema.shape.position.optional(),
     contentMarkdown: wikiDocumentInsertSchema.shape.contentMarkdown.optional(),
   })
   .meta({ id: 'CreateWikiDocument' });

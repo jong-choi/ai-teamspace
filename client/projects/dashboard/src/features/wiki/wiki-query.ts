@@ -10,8 +10,9 @@ import type {
   WikiDocument,
   WikiDocumentHistory,
   WikiDocumentRevision,
-  WikiTree,
+  WikiTreeOutput,
 } from '@repo/client/api-client/schemas';
+import { WikiTree } from '@repo/client/api-client/schemas';
 
 export function useActiveOrganization() {
   return useOrganizationsControllerGetActiveSuspense<OrganizationAccess | null>(
@@ -24,7 +25,11 @@ export function useActiveOrganization() {
 }
 
 export function useWikiTree(organizationId: string) {
-  return useWikiControllerGetTreeSuspense<WikiTree>(organizationId);
+  return useWikiControllerGetTreeSuspense<WikiTreeOutput>(organizationId, {
+    query: {
+      select: (response) => WikiTree.parse(response),
+    },
+  });
 }
 
 export function useWikiDocument(organizationId: string, documentId: string) {

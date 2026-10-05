@@ -6,17 +6,14 @@ import {
 } from '#server-source/auth/infrastructure/persistence/drizzle/generated/auth.schema';
 import { DatabaseModule } from '#server-source/database/database.module';
 import { DatabaseService } from '#server-source/database/database.service';
-import {
-  WikiFolderNotFoundError,
-  WikiInvalidFolderMoveError,
-} from '#server-source/wiki/domain/wiki.error';
+import { WikiInvalidDocumentMoveError } from '#server-source/wiki/domain/wiki.error';
 import { WikiDrizzlePersistenceModule } from '#server-source/wiki/infrastructure/persistence/drizzle/drizzle-persistence.module';
-import { wikiDocumentEditLock } from '#server-source/wiki/infrastructure/persistence/drizzle/schema/wiki-document-edit-lock.schema';
-import { wikiDocumentRevision } from '#server-source/wiki/infrastructure/persistence/drizzle/schema/wiki-document-revision.schema';
-import { wikiEntry } from '#server-source/wiki/infrastructure/persistence/drizzle/schema/wiki-entry.schema';
+import { wikiCollection } from '#server-source/wiki/infrastructure/persistence/drizzle/schema/wiki-collection.schema';
+import { wikiDocumentRevisionCollaborator } from '#server-source/wiki/infrastructure/persistence/drizzle/schema/wiki-document-revision-collaborator.schema';
 import { WikiRepository } from '#server-source/wiki/infrastructure/persistence/wiki.repository';
 
-import { eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
+import * as Y from 'yjs';
 
 const actorUserId = 'wiki-repository-actor';
 const otherActorUserId = 'wiki-repository-other-actor';
@@ -25,11 +22,16 @@ const organizationAId = 'wiki-repository-organization-a';
 const organizationBId = 'wiki-repository-organization-b';
 const organizationIds = [organizationAId, organizationBId] as const;
 
-function expectDefined<T>(value: T | null | undefined): T {
-  if (value === null || value === undefined) {
-    throw new Error('테스트에 필요한 위키 저장 결과가 없습니다.');
-  }
-  return value;
+function collaborationState(markdown: string): Uint8Array {
+  const document = new Y.Doc();
+  document.getText('markdown').insert(0, markdown);
+  return Y.encodeStateAsUpdate(document);
+}
+
+function markdownFromState(state: Uint8Array): string {
+  const document = new Y.Doc();
+  Y.applyUpdate(document, state);
+  return document.getText('markdown').toJSON();
 }
 
 describe('위키 Drizzle 저장소 통합', () => {
@@ -47,9 +49,6 @@ describe('위키 Drizzle 저장소 통합', () => {
   });
 
   beforeEach(async () => {
-    await database
-      .delete(wikiEntry)
-      .where(inArray(wikiEntry.organizationId, organizationIds));
     await database
       .delete(organization)
       .where(inArray(organization.id, organizationIds));
@@ -87,487 +86,271 @@ describe('위키 Drizzle 저장소 통합', () => {
 
   afterAll(async () => {
     await database
-      .delete(wikiEntry)
-      .where(inArray(wikiEntry.organizationId, organizationIds));
-    await database
       .delete(organization)
       .where(inArray(organization.id, organizationIds));
     await database.delete(user).where(inArray(user.id, actorUserIds));
     await moduleRef.close();
   });
 
-  it('중첩 폴더와 문서를 만들고 같은 부모의 폴더·문서 이름을 하나의 suffix 정책으로 할당한다', async () => {
-    const root = await repository.createFolder({
+  it('organization당 collection 하나에서 중첩 문서를 만들고 sibling 제목을 직렬화한다', async () => {
+    const root = await repository.createDocument({
       organizationId: organizationAId,
-      parentFolderId: null,
-      name: '제품',
+      parentDocumentId: null,
+      title: '제품',
       position: 0,
-      createdByUserId: actorUserId,
-    });
-    const nested = await repository.createFolder({
-      organizationId: organizationAId,
-      parentFolderId: root.id,
-      name: 'API',
-      position: 0,
-      createdByUserId: actorUserId,
-    });
-    const folderWithConflictingName = await repository.createFolder({
-      organizationId: organizationAId,
-      parentFolderId: nested.id,
-      name: '설계 문서',
-      position: 0,
-      createdByUserId: actorUserId,
-    });
-    const documentWithConflictingName = await repository.createDocument({
-      organizationId: organizationAId,
-      folderId: nested.id,
-      title: '설계 문서',
-      contentMarkdown: '# 설계',
+      contentMarkdown: '',
+      collaborationState: collaborationState(''),
+      collaborationSchemaVersion: 1,
       actorUserId,
     });
 
-    expect(folderWithConflictingName.name).toBe('설계 문서');
-    expect(documentWithConflictingName.title).toBe('설계 문서 (01)');
+    const [first, second] = await Promise.all([
+      repository.createDocument({
+        organizationId: organizationAId,
+        parentDocumentId: root.id,
+        title: '설계 문서',
+        position: 0,
+        contentMarkdown: '# 첫 문서',
+        collaborationState: collaborationState('# 첫 문서'),
+        collaborationSchemaVersion: 1,
+        actorUserId,
+      }),
+      repository.createDocument({
+        organizationId: organizationAId,
+        parentDocumentId: root.id,
+        title: '설계 문서',
+        position: 1,
+        contentMarkdown: '# 둘째 문서',
+        collaborationState: collaborationState('# 둘째 문서'),
+        collaborationSchemaVersion: 1,
+        actorUserId,
+      }),
+    ]);
+
+    expect(new Set([first.title, second.title])).toEqual(
+      new Set(['설계 문서', '설계 문서 (01)']),
+    );
+    const collections = await database
+      .select()
+      .from(wikiCollection)
+      .where(eq(wikiCollection.organizationId, organizationAId));
+    expect(collections).toHaveLength(1);
 
     const tree = await repository.getTreeForOrganization(organizationAId);
-    expect(tree.folders.map(({ name }) => name).sort()).toEqual(
-      ['제품', 'API', '설계 문서'].sort(),
+    expect(tree.map(({ id }) => id)).toEqual(
+      expect.arrayContaining([root.id, first.id, second.id]),
     );
-    expect(tree.documents).toHaveLength(1);
-    expect(tree.documents[0]).toMatchObject({
-      folderId: nested.id,
-      title: '설계 문서 (01)',
-      revision: 1,
+  });
+
+  it('문서를 자기 하위 문서로 이동해 cycle을 만들지 못하게 한다', async () => {
+    const root = await repository.createDocument({
+      organizationId: organizationAId,
+      parentDocumentId: null,
+      title: '상위',
+      position: 0,
+      contentMarkdown: '',
+      collaborationState: collaborationState(''),
+      collaborationSchemaVersion: 1,
+      actorUserId,
     });
+    const child = await repository.createDocument({
+      organizationId: organizationAId,
+      parentDocumentId: root.id,
+      title: '하위',
+      position: 0,
+      contentMarkdown: '',
+      collaborationState: collaborationState(''),
+      collaborationSchemaVersion: 1,
+      actorUserId,
+    });
+
     await expect(
-      repository.listDocumentRevisions(
-        organizationAId,
-        documentWithConflictingName.id,
-      ),
-    ).resolves.toHaveLength(1);
-  });
-
-  it('동시 동일 이름 생성에서도 DB 제약을 기준으로 서로 다른 이름을 확정한다', async () => {
-    const created = await Promise.all([
-      repository.createFolder({
+      repository.updateDocumentMetadata({
         organizationId: organizationAId,
-        parentFolderId: null,
-        name: '동시 생성',
-        position: 0,
-        createdByUserId: actorUserId,
-      }),
-      repository.createDocument({
-        organizationId: organizationAId,
-        folderId: null,
-        title: '동시 생성',
-        contentMarkdown: '',
+        documentId: root.id,
+        parentDocumentId: child.id,
+        title: root.title,
+        position: root.position,
         actorUserId,
       }),
-    ]);
-
-    expect(
-      created.map((item) => ('name' in item ? item.name : item.title)).sort(),
-    ).toEqual(['동시 생성', '동시 생성 (01)']);
+    ).rejects.toBeInstanceOf(WikiInvalidDocumentMoveError);
   });
 
-  it('rename과 move는 metadata revision을 올리지 않고 content 저장만 revision을 증가시킨다', async () => {
-    const source = await repository.createFolder({
+  it('하위 문서가 있으면 부모 문서를 삭제하지 않는다', async () => {
+    const root = await repository.createDocument({
       organizationId: organizationAId,
-      parentFolderId: null,
-      name: '원본',
+      parentDocumentId: null,
+      title: '상위',
       position: 0,
-      createdByUserId: actorUserId,
-    });
-    const target = await repository.createFolder({
-      organizationId: organizationAId,
-      parentFolderId: null,
-      name: '대상',
-      position: 1,
-      createdByUserId: actorUserId,
-    });
-    await repository.createFolder({
-      organizationId: organizationAId,
-      parentFolderId: target.id,
-      name: '이름',
-      position: 0,
-      createdByUserId: actorUserId,
-    });
-    const moving = await repository.createFolder({
-      organizationId: organizationAId,
-      parentFolderId: source.id,
-      name: '이름',
-      position: 0,
-      createdByUserId: actorUserId,
-    });
-
-    const moved = expectDefined(
-      await repository.updateFolder({
-        organizationId: organizationAId,
-        folderId: moving.id,
-        parentFolderId: target.id,
-        name: moving.name,
-        position: moving.position,
-      }),
-    );
-    expect(moved).toMatchObject({
-      parentFolderId: target.id,
-      name: '이름 (01)',
-    });
-
-    const document = await repository.createDocument({
-      organizationId: organizationAId,
-      folderId: source.id,
-      title: '문서',
-      contentMarkdown: '초기',
+      contentMarkdown: '',
+      collaborationState: collaborationState(''),
+      collaborationSchemaVersion: 1,
       actorUserId,
-    });
-    const metadataUpdated = expectDefined(
-      await repository.updateDocumentMetadata({
-        organizationId: organizationAId,
-        documentId: document.id,
-        folderId: target.id,
-        title: '문서',
-        actorUserId,
-      }),
-    );
-    expect(metadataUpdated).toMatchObject({
-      folderId: target.id,
-      contentMarkdown: '초기',
-      revision: 1,
-    });
-
-    await repository.acquireEditLock({
-      organizationId: organizationAId,
-      documentId: document.id,
-      actorUserId,
-    });
-    const saved = await repository.saveDocumentContent({
-      organizationId: organizationAId,
-      documentId: document.id,
-      contentMarkdown: '수정',
-      baseRevision: 1,
-      actorUserId,
-    });
-    expect(saved).toMatchObject({
-      status: 'saved',
-      document: {
-        folderId: target.id,
-        contentMarkdown: '수정',
-        revision: 2,
-      },
-    });
-  });
-
-  it('하위 항목이 있는 폴더 삭제를 거부하고 조직 범위를 격리한다', async () => {
-    const parent = await repository.createFolder({
-      organizationId: organizationAId,
-      parentFolderId: null,
-      name: '삭제 대상',
-      position: 0,
-      createdByUserId: actorUserId,
     });
     await repository.createDocument({
       organizationId: organizationAId,
-      folderId: parent.id,
-      title: '하위 문서',
-      contentMarkdown: '',
-      actorUserId,
-    });
-    const otherOrganizationFolder = await repository.createFolder({
-      organizationId: organizationBId,
-      parentFolderId: null,
-      name: '다른 조직',
+      parentDocumentId: root.id,
+      title: '하위',
       position: 0,
-      createdByUserId: actorUserId,
+      contentMarkdown: '',
+      collaborationState: collaborationState(''),
+      collaborationSchemaVersion: 1,
+      actorUserId,
     });
 
     await expect(
-      repository.deleteFolder(organizationAId, parent.id),
+      repository.deleteDocument(organizationAId, root.id),
     ).resolves.toBe('not_empty');
-    await expect(
-      repository.findFolderById(organizationAId, otherOrganizationFolder.id),
-    ).resolves.toBeNull();
   });
 
-  it('다른 organization의 폴더를 parent로 참조하지 못하게 DB 경계에서 차단한다', async () => {
-    const otherOrganizationFolder = await repository.createFolder({
-      organizationId: organizationBId,
-      parentFolderId: null,
-      name: '다른 조직 부모',
+  it('stale Yjs snapshot을 현재 DB state와 merge해 기존 struct를 잃지 않는다', async () => {
+    const initialMarkdown = '# 시작';
+    const initialState = collaborationState(initialMarkdown);
+    const created = await repository.createDocument({
+      organizationId: organizationAId,
+      parentDocumentId: null,
+      title: '공동편집',
       position: 0,
-      createdByUserId: actorUserId,
+      contentMarkdown: initialMarkdown,
+      collaborationState: initialState,
+      collaborationSchemaVersion: 1,
+      actorUserId,
     });
 
-    await expect(
-      repository.createFolder({
-        organizationId: organizationAId,
-        parentFolderId: otherOrganizationFolder.id,
-        name: '잘못된 하위 폴더',
-        position: 0,
-        createdByUserId: actorUserId,
-      }),
-    ).rejects.toBeInstanceOf(WikiFolderNotFoundError);
-    await expect(
-      repository.createDocument({
-        organizationId: organizationAId,
-        folderId: otherOrganizationFolder.id,
-        title: '잘못된 하위 문서',
-        contentMarkdown: '',
-        actorUserId,
-      }),
-    ).rejects.toBeInstanceOf(WikiFolderNotFoundError);
+    const clientA = new Y.Doc();
+    const clientB = new Y.Doc();
+    Y.applyUpdate(clientA, initialState);
+    Y.applyUpdate(clientB, initialState);
+    clientA.getText('markdown').insert(initialMarkdown.length, ' A');
+    clientB.getText('markdown').insert(initialMarkdown.length, ' B');
+    const stateA = Y.encodeStateAsUpdate(clientA);
+    const stateB = Y.encodeStateAsUpdate(clientB);
+
+    await repository.persistCollaborationSnapshot({
+      organizationId: organizationAId,
+      documentId: created.id,
+      encodedState: stateA,
+      contentMarkdown: clientA.getText('markdown').toJSON(),
+      lastEditorUserId: actorUserId,
+      collaboratorUserIds: [actorUserId],
+      schemaVersion: 1,
+      createCheckpoint: false,
+    });
+    const mergedResult = await repository.persistCollaborationSnapshot({
+      organizationId: organizationAId,
+      documentId: created.id,
+      encodedState: stateB,
+      contentMarkdown: clientB.getText('markdown').toJSON(),
+      lastEditorUserId: otherActorUserId,
+      collaboratorUserIds: [actorUserId, otherActorUserId],
+      schemaVersion: 1,
+      createCheckpoint: true,
+    });
+
+    const expected = new Y.Doc();
+    Y.applyUpdate(expected, stateA);
+    Y.applyUpdate(expected, stateB);
+    const expectedMarkdown = expected.getText('markdown').toJSON();
+    expect(mergedResult.contentMarkdown).toBe(expectedMarkdown);
+    expect(markdownFromState(mergedResult.encodedState)).toBe(expectedMarkdown);
+    expect(mergedResult.revision).toBe(2);
+    expect(mergedResult.checkpointCreated).toBe(true);
+
+    const persisted = await repository.loadCollaborationState(
+      organizationAId,
+      created.id,
+    );
+    expect(persisted).not.toBeNull();
+    expect(persisted?.contentMarkdown).toBe(expectedMarkdown);
+    if (persisted) {
+      expect(markdownFromState(persisted.collaborationState)).toBe(
+        expectedMarkdown,
+      );
+    }
+
+    const collaborators = await database
+      .select()
+      .from(wikiDocumentRevisionCollaborator)
+      .where(
+        and(
+          eq(wikiDocumentRevisionCollaborator.documentId, created.id),
+          eq(wikiDocumentRevisionCollaborator.revision, 2),
+        ),
+      )
+      .orderBy(wikiDocumentRevisionCollaborator.ordinal);
+    expect(collaborators.map(({ userId }) => userId)).toEqual([
+      actorUserId,
+      otherActorUserId,
+    ]);
+
+    const history = await repository.listDocumentRevisions(
+      organizationAId,
+      created.id,
+    );
+    expect(history[0]).toMatchObject({
+      revision: 2,
+      collaboratorUserIds: [actorUserId, otherActorUserId],
+    });
+    const revision = await repository.findDocumentRevision(
+      organizationAId,
+      created.id,
+      2,
+    );
+    expect(revision?.collaboratorUserIds).toEqual([
+      actorUserId,
+      otherActorUserId,
+    ]);
   });
 
-  it('동시 폴더 이동에서도 cycle이 생기지 않도록 직렬화한다', async () => {
-    const folderA = await repository.createFolder({
+  it('같은 stale snapshot 재시도는 이미 merge된 Yjs state를 되돌리지 않는다', async () => {
+    const created = await repository.createDocument({
       organizationId: organizationAId,
-      parentFolderId: null,
-      name: '폴더 A',
+      parentDocumentId: null,
+      title: '재시도',
       position: 0,
-      createdByUserId: actorUserId,
+      contentMarkdown: '초기',
+      collaborationState: collaborationState('초기'),
+      collaborationSchemaVersion: 1,
+      actorUserId,
     });
-    const folderB = await repository.createFolder({
-      organizationId: organizationAId,
-      parentFolderId: null,
-      name: '폴더 B',
-      position: 1,
-      createdByUserId: actorUserId,
-    });
-
-    const results = await Promise.allSettled([
-      repository.updateFolder({
-        organizationId: organizationAId,
-        folderId: folderA.id,
-        parentFolderId: folderB.id,
-        name: folderA.name,
-        position: folderA.position,
-      }),
-      repository.updateFolder({
-        organizationId: organizationAId,
-        folderId: folderB.id,
-        parentFolderId: folderA.id,
-        name: folderB.name,
-        position: folderB.position,
-      }),
-    ]);
-
-    expect(results.filter(({ status }) => status === 'fulfilled')).toHaveLength(
-      1,
+    const base = await repository.loadCollaborationState(
+      organizationAId,
+      created.id,
     );
-    const rejected = results.find(({ status }) => status === 'rejected');
-    expect(rejected).toMatchObject({
-      status: 'rejected',
-      reason: expect.any(WikiInvalidFolderMoveError),
-    });
-
-    const persistedA = expectDefined(
-      await repository.findFolderById(organizationAId, folderA.id),
-    );
-    const persistedB = expectDefined(
-      await repository.findFolderById(organizationAId, folderB.id),
-    );
-    expect(
-      persistedA.parentFolderId === persistedB.id &&
-        persistedB.parentFolderId === persistedA.id,
-    ).toBe(false);
-  });
-
-  it('동시 acquire에서는 한 owner만 확정되고 release 및 stale takeover가 동작한다', async () => {
-    const document = await repository.createDocument({
+    if (!base) {
+      throw new Error('테스트 문서 Yjs 상태가 없습니다.');
+    }
+    const stale = new Y.Doc();
+    Y.applyUpdate(stale, base.collaborationState);
+    stale.getText('markdown').insert(2, ' 변경');
+    const staleState = Y.encodeStateAsUpdate(stale);
+    const input = {
       organizationId: organizationAId,
-      folderId: null,
-      title: '잠금 문서',
-      contentMarkdown: '',
-      actorUserId,
+      documentId: created.id,
+      encodedState: staleState,
+      contentMarkdown: stale.getText('markdown').toJSON(),
+      lastEditorUserId: actorUserId,
+      collaboratorUserIds: [actorUserId],
+      schemaVersion: 1,
+      createCheckpoint: true,
+    } as const;
+
+    const first = await repository.persistCollaborationSnapshot(input);
+    const retried = await repository.persistCollaborationSnapshot(input);
+
+    expect(first).toMatchObject({
+      changed: true,
+      checkpointCreated: true,
+      revision: 2,
     });
-
-    const [actorLock, otherLock] = await Promise.all([
-      repository.acquireEditLock({
-        organizationId: organizationAId,
-        documentId: document.id,
-        actorUserId,
-      }),
-      repository.acquireEditLock({
-        organizationId: organizationAId,
-        documentId: document.id,
-        actorUserId: otherActorUserId,
-      }),
-    ]);
-    const winner = expectDefined(actorLock).lockedByUserId;
-    expect(expectDefined(otherLock).lockedByUserId).toBe(winner);
-    expect([actorUserId, otherActorUserId]).toContain(winner);
-
-    const loser = winner === actorUserId ? otherActorUserId : actorUserId;
-    const loserRelease = await repository.releaseEditLock({
-      organizationId: organizationAId,
-      documentId: document.id,
-      actorUserId: loser,
+    expect(retried).toMatchObject({
+      changed: false,
+      checkpointCreated: false,
+      revision: 2,
+      contentMarkdown: '초기 변경',
     });
-    expect(expectDefined(loserRelease).lockedByUserId).toBe(winner);
-
     await expect(
-      repository.releaseEditLock({
-        organizationId: organizationAId,
-        documentId: document.id,
-        actorUserId: winner,
-      }),
-    ).resolves.toBeNull();
-    await expect(
-      repository.acquireEditLock({
-        organizationId: organizationAId,
-        documentId: document.id,
-        actorUserId: loser,
-      }),
-    ).resolves.toMatchObject({ lockedByUserId: loser });
-
-    await database
-      .update(wikiDocumentEditLock)
-      .set({ expiresAt: new Date(0) })
-      .where(eq(wikiDocumentEditLock.documentId, document.id));
-    await expect(
-      repository.acquireEditLock({
-        organizationId: organizationAId,
-        documentId: document.id,
-        actorUserId: winner,
-      }),
-    ).resolves.toMatchObject({ lockedByUserId: winner });
-  });
-
-  it('stale revision은 원본을 덮지 않고 연속 conflict copy와 history를 남긴다', async () => {
-    const document = await repository.createDocument({
-      organizationId: organizationAId,
-      folderId: null,
-      title: 'API 설계',
-      contentMarkdown: 'revision 1',
-      actorUserId,
-    });
-    await repository.acquireEditLock({
-      organizationId: organizationAId,
-      documentId: document.id,
-      actorUserId,
-    });
-
-    const saved = await repository.saveDocumentContent({
-      organizationId: organizationAId,
-      documentId: document.id,
-      contentMarkdown: 'revision 2',
-      baseRevision: 1,
-      actorUserId,
-    });
-    expect(saved).toMatchObject({ status: 'saved', document: { revision: 2 } });
-
-    const firstConflict = await repository.saveDocumentContent({
-      organizationId: organizationAId,
-      documentId: document.id,
-      contentMarkdown: 'stale A',
-      baseRevision: 1,
-      actorUserId,
-    });
-    const secondConflict = await repository.saveDocumentContent({
-      organizationId: organizationAId,
-      documentId: document.id,
-      contentMarkdown: 'stale B',
-      baseRevision: 1,
-      actorUserId,
-    });
-    expect(firstConflict).toMatchObject({
-      status: 'conflict_copy_created',
-      document: { contentMarkdown: 'revision 2', revision: 2 },
-      conflictCopy: { title: 'API 설계 (01)', contentMarkdown: 'stale A' },
-    });
-    expect(secondConflict).toMatchObject({
-      status: 'conflict_copy_created',
-      document: { contentMarkdown: 'revision 2', revision: 2 },
-      conflictCopy: { title: 'API 설계 (02)', contentMarkdown: 'stale B' },
-    });
-
-    await expect(
-      repository.findDocumentById(organizationAId, document.id),
-    ).resolves.toMatchObject({ contentMarkdown: 'revision 2', revision: 2 });
-    await expect(
-      repository.listDocumentRevisions(organizationAId, document.id),
-    ).resolves.toEqual([
-      expect.objectContaining({ revision: 2 }),
-      expect.objectContaining({ revision: 1 }),
-    ]);
-    await expect(
-      repository.findDocumentRevision(organizationAId, document.id, 1),
-    ).resolves.toMatchObject({ contentMarkdown: 'revision 1' });
-  });
-
-  it('Part 1 문서처럼 history row가 없어도 현재 revision을 baseline으로 조회한다', async () => {
-    const document = await repository.createDocument({
-      organizationId: organizationAId,
-      folderId: null,
-      title: '기존 문서',
-      contentMarkdown: '현재 내용',
-      actorUserId,
-    });
-    await database
-      .delete(wikiDocumentRevision)
-      .where(eq(wikiDocumentRevision.documentId, document.id));
-
-    await expect(
-      repository.listDocumentRevisions(organizationAId, document.id),
-    ).resolves.toEqual([
-      expect.objectContaining({
-        revision: document.revision,
-        editorUserId: document.updatedByUserId,
-      }),
-    ]);
-    await expect(
-      repository.findDocumentRevision(
-        organizationAId,
-        document.id,
-        document.revision,
-      ),
-    ).resolves.toMatchObject({
-      contentMarkdown: '현재 내용',
-      revision: document.revision,
-    });
-  });
-
-  it('folder name, document title, Markdown를 검색하고 organization을 격리한다', async () => {
-    await repository.createFolder({
-      organizationId: organizationAId,
-      parentFolderId: null,
-      name: '제품 전략',
-      position: 0,
-      createdByUserId: actorUserId,
-    });
-    await repository.createDocument({
-      organizationId: organizationAId,
-      folderId: null,
-      title: 'OAuth 설계',
-      contentMarkdown: '토큰 회전 정책을 기록한다.',
-      actorUserId,
-    });
-    await repository.createDocument({
-      organizationId: organizationBId,
-      folderId: null,
-      title: 'OAuth 다른 조직',
-      contentMarkdown: '토큰 회전 비밀 문서',
-      actorUserId,
-    });
-
-    await expect(repository.search(organizationAId, '전략')).resolves.toEqual([
-      expect.objectContaining({ kind: 'folder', name: '제품 전략' }),
-    ]);
-    await expect(repository.search(organizationAId, 'OAuth')).resolves.toEqual([
-      expect.objectContaining({
-        kind: 'document',
-        name: 'OAuth 설계',
-        matchedIn: ['name'],
-      }),
-    ]);
-    await expect(
-      repository.search(organizationAId, '토큰 회전'),
-    ).resolves.toEqual([
-      expect.objectContaining({
-        kind: 'document',
-        name: 'OAuth 설계',
-        matchedIn: ['content'],
-      }),
-    ]);
+      repository.listDocumentRevisions(organizationAId, created.id),
+    ).resolves.toHaveLength(2);
   });
 });

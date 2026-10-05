@@ -1,43 +1,46 @@
 import { Pressable, ScrollView, View } from 'react-native';
 
 import type {
-  WikiTree,
-  WikiTreeDocument,
+  WikiDocumentTreeNode,
+  WikiTreeOutput as WikiTree,
 } from '@repo/client/api-client/schemas';
 import { Button } from '@repo/client/rnr/components/ui/button';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
+import type { WikiCollaborator } from '@core/features/wiki/collaboration/wiki-awareness';
 import type {
+  WikiCollaborationIndicator,
   WikiEditorMode,
-  WikiSaveIndicator,
-} from '@core/features/wiki/use-wiki-edit-session';
+} from '@core/features/wiki/use-wiki-collaboration-session';
 import { getWikiDocumentBreadcrumb } from '@core/features/wiki/wiki-tree-model';
 
 import { Download, FolderTree, History } from 'lucide-react-native';
 
 type WikiHeaderProps = {
-  activeDocument?: WikiTreeDocument;
+  activeDocument?: WikiDocumentTreeNode;
+  collaborators?: readonly WikiCollaborator[];
+  editModeDisabled?: boolean;
   mode?: WikiEditorMode;
-  modeChangePending?: boolean;
   onExport?: () => void;
   onModeChange?: (mode: WikiEditorMode) => void;
   onOpenHistory?: () => void;
   onOpenTree: () => void;
   onOpenWikiRoot: () => void;
-  saveIndicator?: WikiSaveIndicator;
+  saveIndicator?: WikiCollaborationIndicator;
   tree: WikiTree;
 };
 
-const defaultIndicator: WikiSaveIndicator = {
-  label: '읽기 전용',
-  tone: 'saved',
+const defaultIndicator: WikiCollaborationIndicator = {
+  label: '연결 중…',
+  tone: 'pending',
 };
 
 export function WikiHeader({
   activeDocument,
+  collaborators = [],
+  editModeDisabled = false,
   mode = 'view',
-  modeChangePending = false,
   onExport,
   onModeChange,
   onOpenHistory,
@@ -106,15 +109,16 @@ export function WikiHeader({
       </View>
 
       <View className="shrink-0 flex-row items-center gap-2 md:gap-3">
+        <WikiCollaboratorFacepile collaborators={collaborators} />
         <View
-          accessibilityLabel={`저장 상태: ${saveIndicator.label}`}
+          accessibilityLabel={`동기화 상태: ${saveIndicator.label}`}
           accessible
           className="flex-row items-center gap-1.5"
         >
           <View
             className={cn(
               'size-1.5 rounded-full',
-              saveIndicatorDotClass(saveIndicator.tone),
+              indicatorDotClass(saveIndicator.tone),
             )}
           />
           <Text className="hidden text-[11px] text-muted-foreground sm:flex">
@@ -125,19 +129,19 @@ export function WikiHeader({
         <View className="flex-row items-center rounded-lg border border-border bg-muted p-0.5">
           <WikiModeButton
             active={mode === 'view'}
-            disabled={modeChangePending}
+            disabled={false}
             label="보기"
             onPress={() => onModeChange?.('view')}
           />
           <WikiModeButton
             active={mode === 'edit'}
-            disabled={!actionsEnabled || modeChangePending}
+            disabled={!actionsEnabled || editModeDisabled}
             label="편집"
             onPress={() => onModeChange?.('edit')}
           />
           <WikiModeButton
             active={mode === 'split'}
-            disabled={!actionsEnabled || modeChangePending}
+            disabled={!actionsEnabled || editModeDisabled}
             label="분할"
             onPress={() => onModeChange?.('split')}
           />
@@ -168,15 +172,53 @@ export function WikiHeader({
   );
 }
 
+function WikiCollaboratorFacepile({
+  collaborators,
+}: {
+  collaborators: readonly WikiCollaborator[];
+}) {
+  const visible = collaborators.slice(0, 3);
+  const remaining = Math.max(0, collaborators.length - visible.length);
+  if (visible.length === 0) return null;
+
+  return (
+    <View
+      accessibilityLabel={`공동편집 참여자 ${collaborators.map(({ name }) => name).join(', ')}`}
+      accessible
+      className="hidden flex-row items-center sm:flex"
+    >
+      {visible.map((collaborator, index) => (
+        <View
+          className={cn(
+            'size-6 items-center justify-center rounded-full border border-background',
+            index > 0 && '-ml-1.5',
+          )}
+          key={collaborator.userId}
+          style={{ backgroundColor: collaborator.color }}
+        >
+          <Text className="text-[9px] font-semibold text-white">
+            {collaborator.name.slice(0, 1).toUpperCase()}
+          </Text>
+        </View>
+      ))}
+      {remaining > 0 ? (
+        <View className="-ml-1.5 size-6 items-center justify-center rounded-full border border-background bg-muted">
+          <Text className="text-[9px] font-semibold text-muted-foreground">
+            +{remaining}
+          </Text>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
 function WikiModeButton({
   active,
-  className,
   disabled,
   label,
   onPress,
 }: {
   active: boolean;
-  className?: string;
   disabled: boolean;
   label: string;
   onPress: () => void;
@@ -189,7 +231,6 @@ function WikiModeButton({
         'rounded-md px-2.5 py-1',
         active ? 'bg-background shadow-sm' : 'web:hover:bg-background/50',
         disabled && 'opacity-40',
-        className,
       )}
       disabled={disabled}
       onPress={onPress}
@@ -206,14 +247,15 @@ function WikiModeButton({
   );
 }
 
-function saveIndicatorDotClass(tone: WikiSaveIndicator['tone']): string {
+function indicatorDotClass(tone: WikiCollaborationIndicator['tone']): string {
   switch (tone) {
     case 'saved':
       return 'bg-emerald-500';
     case 'pending':
     case 'warning':
       return 'bg-amber-500';
-    case 'locked':
+    case 'readonly':
+      return 'bg-muted-foreground';
     case 'error':
       return 'bg-red-500';
   }

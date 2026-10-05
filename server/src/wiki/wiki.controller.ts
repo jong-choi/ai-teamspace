@@ -13,7 +13,6 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
-  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -32,29 +31,15 @@ import {
   type CreateWikiDocumentInput,
 } from '#server/wiki/dto/create-wiki-document.dto.js';
 import {
-  CreateWikiFolderDto,
-  type CreateWikiFolderInput,
-} from '#server/wiki/dto/create-wiki-folder.dto.js';
-import {
-  SaveWikiDocumentContentDto,
-  type SaveWikiDocumentContentInput,
-  WikiDocumentSaveResultDto,
-} from '#server/wiki/dto/save-wiki-document-content.dto.js';
-import {
   UpdateWikiDocumentDto,
   type UpdateWikiDocumentInput,
 } from '#server/wiki/dto/update-wiki-document.dto.js';
-import {
-  UpdateWikiFolderDto,
-  type UpdateWikiFolderInput,
-} from '#server/wiki/dto/update-wiki-folder.dto.js';
+import { WikiCollaborationSessionDto } from '#server/wiki/dto/wiki-collaboration-session.dto.js';
 import { WikiDocumentDto } from '#server/wiki/dto/wiki-document.dto.js';
 import {
   WikiDocumentHistoryDto,
   WikiDocumentRevisionDto,
 } from '#server/wiki/dto/wiki-document-history.dto.js';
-import { WikiEditLockStateDto } from '#server/wiki/dto/wiki-edit-lock.dto.js';
-import { WikiFolderDto } from '#server/wiki/dto/wiki-folder.dto.js';
 import {
   QueryWikiSearchDto,
   type QueryWikiSearchInput,
@@ -62,6 +47,7 @@ import {
 } from '#server/wiki/dto/wiki-search.dto.js';
 import { WikiTreeDto } from '#server/wiki/dto/wiki-tree.dto.js';
 import { WikiService } from '#server/wiki/wiki.service.js';
+import { WikiCollaborationService } from '#server/wiki/wiki-collaboration.service.js';
 
 import { Session, type UserSession } from '@thallesp/nestjs-better-auth';
 import { ApiProblemResponse } from 'nest-problem-details-filter/swagger';
@@ -78,7 +64,10 @@ const problemDetailsSchema = { $ref: '#/components/schemas/ProblemDetails' };
 @Controller('organizations/:organizationId/wiki')
 @UseGuards(TrustedOriginGuard)
 export class WikiController {
-  constructor(private readonly wikiService: WikiService) {}
+  constructor(
+    private readonly wikiService: WikiService,
+    private readonly collaborationService: WikiCollaborationService,
+  ) {}
 
   @Get('tree')
   @ApiOkResponse({ standardSchema: WikiTreeDto.schema })
@@ -108,55 +97,6 @@ export class WikiController {
     );
   }
 
-  @Post('folders')
-  @HttpCode(HttpStatus.CREATED)
-  @ApiCreatedResponse({ standardSchema: WikiFolderDto.schema })
-  createFolder(
-    @Session() session: UserSession<Auth>,
-    @Headers() headers: IncomingHttpHeaders,
-    @Param('organizationId') organizationId: string,
-    @Body({ schema: CreateWikiFolderDto.schema }) input: CreateWikiFolderInput,
-  ): Promise<WikiFolderDto> {
-    return this.wikiService.createFolder(
-      toOrganizationActorContext(session, headers),
-      organizationId,
-      input,
-    );
-  }
-
-  @Patch('folders/:folderId')
-  @ApiOkResponse({ standardSchema: WikiFolderDto.schema })
-  updateFolder(
-    @Session() session: UserSession<Auth>,
-    @Headers() headers: IncomingHttpHeaders,
-    @Param('organizationId') organizationId: string,
-    @Param('folderId', new ParseUUIDPipe()) folderId: string,
-    @Body({ schema: UpdateWikiFolderDto.schema }) input: UpdateWikiFolderInput,
-  ): Promise<WikiFolderDto> {
-    return this.wikiService.updateFolder(
-      toOrganizationActorContext(session, headers),
-      organizationId,
-      folderId,
-      input,
-    );
-  }
-
-  @Delete('folders/:folderId')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiNoContentResponse()
-  async deleteFolder(
-    @Session() session: UserSession<Auth>,
-    @Headers() headers: IncomingHttpHeaders,
-    @Param('organizationId') organizationId: string,
-    @Param('folderId', new ParseUUIDPipe()) folderId: string,
-  ): Promise<void> {
-    await this.wikiService.deleteFolder(
-      toOrganizationActorContext(session, headers),
-      organizationId,
-      folderId,
-    );
-  }
-
   @Post('documents')
   @HttpCode(HttpStatus.CREATED)
   @ApiCreatedResponse({ standardSchema: WikiDocumentDto.schema })
@@ -180,7 +120,7 @@ export class WikiController {
     @Session() session: UserSession<Auth>,
     @Headers() headers: IncomingHttpHeaders,
     @Param('organizationId') organizationId: string,
-    @Param('documentId', new ParseUUIDPipe()) documentId: string,
+    @Param('documentId', ParseUUIDPipe) documentId: string,
   ): Promise<WikiDocumentDto> {
     return this.wikiService.getDocument(
       toOrganizationActorContext(session, headers),
@@ -195,7 +135,7 @@ export class WikiController {
     @Session() session: UserSession<Auth>,
     @Headers() headers: IncomingHttpHeaders,
     @Param('organizationId') organizationId: string,
-    @Param('documentId', new ParseUUIDPipe()) documentId: string,
+    @Param('documentId', ParseUUIDPipe) documentId: string,
     @Body({ schema: UpdateWikiDocumentDto.schema })
     input: UpdateWikiDocumentInput,
   ): Promise<WikiDocumentDto> {
@@ -214,7 +154,7 @@ export class WikiController {
     @Session() session: UserSession<Auth>,
     @Headers() headers: IncomingHttpHeaders,
     @Param('organizationId') organizationId: string,
-    @Param('documentId', new ParseUUIDPipe()) documentId: string,
+    @Param('documentId', ParseUUIDPipe) documentId: string,
   ): Promise<void> {
     await this.wikiService.deleteDocument(
       toOrganizationActorContext(session, headers),
@@ -223,68 +163,18 @@ export class WikiController {
     );
   }
 
-  @Post('documents/:documentId/edit-lock')
-  @HttpCode(HttpStatus.OK)
-  @ApiOkResponse({ standardSchema: WikiEditLockStateDto.schema })
-  acquireEditLock(
+  @Post('documents/:documentId/collaboration-session')
+  @ApiOkResponse({ standardSchema: WikiCollaborationSessionDto.schema })
+  createCollaborationSession(
     @Session() session: UserSession<Auth>,
     @Headers() headers: IncomingHttpHeaders,
     @Param('organizationId') organizationId: string,
-    @Param('documentId', new ParseUUIDPipe()) documentId: string,
-  ): Promise<WikiEditLockStateDto> {
-    return this.wikiService.acquireEditLock(
+    @Param('documentId', ParseUUIDPipe) documentId: string,
+  ): Promise<WikiCollaborationSessionDto> {
+    return this.collaborationService.createSession(
       toOrganizationActorContext(session, headers),
       organizationId,
       documentId,
-    );
-  }
-
-  @Put('documents/:documentId/edit-lock')
-  @ApiOkResponse({ standardSchema: WikiEditLockStateDto.schema })
-  renewEditLock(
-    @Session() session: UserSession<Auth>,
-    @Headers() headers: IncomingHttpHeaders,
-    @Param('organizationId') organizationId: string,
-    @Param('documentId', new ParseUUIDPipe()) documentId: string,
-  ): Promise<WikiEditLockStateDto> {
-    return this.wikiService.renewEditLock(
-      toOrganizationActorContext(session, headers),
-      organizationId,
-      documentId,
-    );
-  }
-
-  @Delete('documents/:documentId/edit-lock')
-  @HttpCode(HttpStatus.OK)
-  @ApiOkResponse({ standardSchema: WikiEditLockStateDto.schema })
-  releaseEditLock(
-    @Session() session: UserSession<Auth>,
-    @Headers() headers: IncomingHttpHeaders,
-    @Param('organizationId') organizationId: string,
-    @Param('documentId', new ParseUUIDPipe()) documentId: string,
-  ): Promise<WikiEditLockStateDto> {
-    return this.wikiService.releaseEditLock(
-      toOrganizationActorContext(session, headers),
-      organizationId,
-      documentId,
-    );
-  }
-
-  @Put('documents/:documentId/content')
-  @ApiOkResponse({ standardSchema: WikiDocumentSaveResultDto.schema })
-  saveDocumentContent(
-    @Session() session: UserSession<Auth>,
-    @Headers() headers: IncomingHttpHeaders,
-    @Param('organizationId') organizationId: string,
-    @Param('documentId', new ParseUUIDPipe()) documentId: string,
-    @Body({ schema: SaveWikiDocumentContentDto.schema })
-    input: SaveWikiDocumentContentInput,
-  ): Promise<WikiDocumentSaveResultDto> {
-    return this.wikiService.saveDocumentContent(
-      toOrganizationActorContext(session, headers),
-      organizationId,
-      documentId,
-      input,
     );
   }
 
@@ -294,7 +184,7 @@ export class WikiController {
     @Session() session: UserSession<Auth>,
     @Headers() headers: IncomingHttpHeaders,
     @Param('organizationId') organizationId: string,
-    @Param('documentId', new ParseUUIDPipe()) documentId: string,
+    @Param('documentId', ParseUUIDPipe) documentId: string,
   ): Promise<WikiDocumentHistoryDto> {
     return this.wikiService.listDocumentHistory(
       toOrganizationActorContext(session, headers),
@@ -309,8 +199,8 @@ export class WikiController {
     @Session() session: UserSession<Auth>,
     @Headers() headers: IncomingHttpHeaders,
     @Param('organizationId') organizationId: string,
-    @Param('documentId', new ParseUUIDPipe()) documentId: string,
-    @Param('revision', new ParseIntPipe()) revision: number,
+    @Param('documentId', ParseUUIDPipe) documentId: string,
+    @Param('revision', ParseIntPipe) revision: number,
   ): Promise<WikiDocumentRevisionDto> {
     return this.wikiService.getDocumentRevision(
       toOrganizationActorContext(session, headers),

@@ -6,19 +6,18 @@
  */
 import * as zod from 'zod';
 
-export const updateWikiDocumentOneFolderIdRegExp = new RegExp('^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$');
+export const updateWikiDocumentParentDocumentIdRegExp = new RegExp('^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$');
 
-export const updateWikiDocumentTwoFolderIdRegExp = new RegExp('^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$');
+export const updateWikiDocumentPositionMin = 0;
+export const updateWikiDocumentPositionMax = 9007199254740991;
 
 
 
-export const UpdateWikiDocument = zod.union([zod.object({
-  "folderId": zod.uuid().regex(updateWikiDocumentOneFolderIdRegExp).nullable(),
-  "title": zod.string().min(1).optional()
-}),zod.object({
-  "folderId": zod.uuid().regex(updateWikiDocumentTwoFolderIdRegExp).nullish(),
-  "title": zod.string().min(1)
-})]);
+export const UpdateWikiDocument = zod.object({
+  "parentDocumentId": zod.uuid().regex(updateWikiDocumentParentDocumentIdRegExp).nullish(),
+  "title": zod.string().min(1).optional(),
+  "position": zod.int().min(updateWikiDocumentPositionMin).max(updateWikiDocumentPositionMax).optional()
+});
 
 export type UpdateWikiDocument = zod.input<typeof UpdateWikiDocument>;
 export type UpdateWikiDocumentOutput = zod.output<typeof UpdateWikiDocument>;

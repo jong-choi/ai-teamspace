@@ -8,6 +8,7 @@ import { DashboardErrorBoundary } from '@core/app/error/dashboard-error-boundary
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 import { ChatRealtimeBoundary } from '@core/features/chat/chat-realtime-boundary';
 import { ExpoDashboardPlatformProvider } from '@/lib/dashboard-platform';
+import { ExpoWikiCollaborationPlatformProvider } from '@/lib/wiki-collaboration-platform';
 
 import { PortalHost } from '@rn-primitives/portal';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -16,14 +17,16 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ExpoDashboardPlatformProvider>
-        <SessionQueryClientProvider>
-          <DashboardErrorBoundary title="앱을 불러오지 못했습니다">
-            <ChatRealtimeBoundary>
-              <Stack screenOptions={{ headerShown: false }} />
-              <PortalHost />
-            </ChatRealtimeBoundary>
-          </DashboardErrorBoundary>
-        </SessionQueryClientProvider>
+        <ExpoWikiCollaborationPlatformProvider>
+          <SessionQueryClientProvider>
+            <DashboardErrorBoundary title="앱을 불러오지 못했습니다">
+              <ChatRealtimeBoundary>
+                <Stack screenOptions={{ headerShown: false }} />
+                <PortalHost />
+              </ChatRealtimeBoundary>
+            </DashboardErrorBoundary>
+          </SessionQueryClientProvider>
+        </ExpoWikiCollaborationPlatformProvider>
       </ExpoDashboardPlatformProvider>
     </SafeAreaProvider>
   );

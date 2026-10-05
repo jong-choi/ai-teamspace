@@ -112,7 +112,10 @@ function WikiHistoryContent({
                 {formatRevisionTime(revision.createdAt)}
               </Text>
               <Text className="mt-0.5 truncate text-[10px] text-muted-foreground">
-                {revision.editorUserId}
+                {formatRevisionCollaborators(
+                  revision.collaboratorUserIds,
+                  revision.editorUserId,
+                )}
               </Text>
             </Pressable>
           );
@@ -157,17 +160,34 @@ function WikiHistoryRevision({
       contentContainerClassName="p-5"
       showsVerticalScrollIndicator={false}
     >
-      <View className="mb-4 flex-row items-center justify-between border-b border-border pb-3">
-        <Text className="text-xs font-semibold">
-          revision {detail.revision}
-        </Text>
-        <Text className="text-[10px] text-muted-foreground">
-          {formatRevisionTime(detail.createdAt)}
+      <View className="mb-4 border-b border-border pb-3">
+        <View className="flex-row items-center justify-between">
+          <Text className="text-xs font-semibold">
+            revision {detail.revision}
+          </Text>
+          <Text className="text-[10px] text-muted-foreground">
+            {formatRevisionTime(detail.createdAt)}
+          </Text>
+        </View>
+        <Text className="mt-1 text-[10px] text-muted-foreground">
+          {formatRevisionCollaborators(
+            detail.collaboratorUserIds,
+            detail.editorUserId,
+          )}
         </Text>
       </View>
       <WikiMarkdownContent contentMarkdown={detail.contentMarkdown} />
     </ScrollView>
   );
+}
+
+function formatRevisionCollaborators(
+  collaboratorUserIds: readonly string[],
+  editorUserId: string,
+): string {
+  const collaborators =
+    collaboratorUserIds.length > 0 ? collaboratorUserIds : [editorUserId];
+  return `참여자 ${collaborators.join(', ')}`;
 }
 
 function formatRevisionTime(value: string): string {

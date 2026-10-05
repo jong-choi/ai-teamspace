@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 
 import {
   OrganizationMemberNotFoundError,
@@ -17,6 +17,7 @@ import type { OrganizationMemberList } from '#server/organizations/dto/organizat
 import type { QueryOrganizationMembersInput } from '#server/organizations/dto/query-organization-members.dto.js';
 import type { SetActiveOrganizationInput } from '#server/organizations/dto/set-active-organization.dto.js';
 import type { UpdateOrganizationMemberRoleInput } from '#server/organizations/dto/update-organization-member-role.dto.js';
+import { OrganizationPublicEventPublisher } from '#server/organizations/infrastructure/events/organization-public-event.provider.js';
 import {
   type OrganizationActorContext,
   OrganizationProvider,
@@ -24,7 +25,12 @@ import {
 
 @Injectable()
 export class OrganizationsService {
-  constructor(private readonly organizationProvider: OrganizationProvider) {}
+  private readonly logger = new Logger(OrganizationsService.name);
+
+  constructor(
+    private readonly organizationProvider: OrganizationProvider,
+    private readonly publicEventPublisher: OrganizationPublicEventPublisher,
+  ) {}
 
   async list(context: OrganizationActorContext): Promise<OrganizationList> {
     return {
@@ -122,12 +128,18 @@ export class OrganizationsService {
       nextRole: input.role,
     });
 
-    return this.organizationProvider.changeMemberRole(
+    const updated = await this.organizationProvider.changeMemberRole(
       context,
       organizationId,
       target,
       input.role,
     );
+    await this.publishAuthorizationChanged({
+      organizationId,
+      userId: target.userId,
+      reason: 'member-role-changed',
+    });
+    return updated;
   }
 
   async removeMember(
@@ -156,5 +168,25 @@ export class OrganizationsService {
       organizationId,
       memberId,
     );
+    await this.publishAuthorizationChanged({
+      organizationId,
+      userId: target.userId,
+      reason: 'member-removed',
+    });
+  }
+
+  private async publishAuthorizationChanged(
+    event: Parameters<
+      OrganizationPublicEventPublisher['publishAuthorizationChanged']
+    >[0],
+  ): Promise<void> {
+    try {
+      await this.publicEventPublisher.publishAuthorizationChanged(event);
+    } catch (error) {
+      this.logger.error(
+        `조직 권한 invalidation event 발행에 실패했습니다: organization=${event.organizationId}, user=${event.userId}`,
+        error,
+      );
+    }
   }
 }

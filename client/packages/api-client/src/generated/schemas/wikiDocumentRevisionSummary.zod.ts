@@ -10,6 +10,7 @@ export const wikiDocumentRevisionSummaryDocumentIdRegExp = new RegExp('^([0-9a-f
 export const wikiDocumentRevisionSummaryRevisionMin = -2147483648;
 export const wikiDocumentRevisionSummaryRevisionMax = 2147483647;
 
+
 export const wikiDocumentRevisionSummaryCreatedAtRegExp = new RegExp('^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$');
 
 
@@ -18,6 +19,7 @@ export const WikiDocumentRevisionSummary = zod.object({
   "organizationId": zod.string(),
   "revision": zod.int().min(wikiDocumentRevisionSummaryRevisionMin).max(wikiDocumentRevisionSummaryRevisionMax),
   "editorUserId": zod.string(),
+  "collaboratorUserIds": zod.array(zod.string().min(1)),
   "createdAt": zod.iso.datetime({"offset":true}).regex(wikiDocumentRevisionSummaryCreatedAtRegExp)
 });
 

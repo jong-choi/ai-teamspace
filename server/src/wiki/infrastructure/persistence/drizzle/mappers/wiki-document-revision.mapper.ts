@@ -7,10 +7,12 @@ import {
 
 export function toWikiDocumentRevisionDomain(
   row: unknown,
+  collaboratorUserIds: readonly string[],
 ): WikiDocumentRevision {
-  return WikiDocumentRevisionSchema.parse(
-    wikiDocumentRevisionSelectSchema.parse(row),
-  );
+  return WikiDocumentRevisionSchema.parse({
+    ...wikiDocumentRevisionSelectSchema.parse(row),
+    collaboratorUserIds,
+  });
 }
 
 export function toWikiDocumentRevisionInsert(input: {

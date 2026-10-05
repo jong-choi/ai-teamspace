@@ -136,7 +136,7 @@ describe('채팅 E2E', () => {
       .post(`/chat/conversations/${conversationId}/messages`)
       .send({ text: '안녕하세요' });
     expect(sent.status).toBe(201);
-    expect(sent.body.content).toEqual({ text: '안녕하세요' });
+    expect(sent.body.content).toEqual({ type: 'text', text: '안녕하세요' });
     const messageId = sent.body.id as string;
 
     const recipientList = await recipient.agent.get('/chat/conversations');
@@ -154,7 +154,7 @@ describe('채팅 E2E', () => {
     expect(history.body.items).toEqual([
       expect.objectContaining({
         id: messageId,
-        content: { text: '안녕하세요' },
+        content: { type: 'text', text: '안녕하세요' },
       }),
     ]);
 
@@ -176,7 +176,10 @@ describe('채팅 E2E', () => {
       .patch(`/chat/conversations/${conversationId}/messages/${messageId}`)
       .send({ text: '수정된 메시지' });
     expect(edited.status).toBe(200);
-    expect(edited.body.content).toEqual({ text: '수정된 메시지' });
+    expect(edited.body.content).toEqual({
+      type: 'text',
+      text: '수정된 메시지',
+    });
     expect(edited.body.editedAt).toEqual(expect.any(String));
 
     await recipient.agent

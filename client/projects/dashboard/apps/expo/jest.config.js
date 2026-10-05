@@ -1,4 +1,11 @@
+const path = require('node:path');
+
 const lucideReactNative = require.resolve('lucide-react-native');
+const lib0Package = require.resolve('lib0/package.json');
+const lib0NodeWebCrypto = path.join(
+  path.dirname(lib0Package),
+  'dist/webcrypto.node.cjs',
+);
 
 module.exports = {
   preset: 'jest-expo',
@@ -6,6 +13,7 @@ module.exports = {
   roots: ['<rootDir>/src', '<rootDir>/../../src'],
   moduleNameMapper: {
     '^lucide-react-native$': lucideReactNative,
+    '^lib0/webcrypto$': lib0NodeWebCrypto,
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@core/(.*)$': '<rootDir>/../../src/$1',
     '^@repo/client/api-client$':

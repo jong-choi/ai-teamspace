@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
-import type { WikiTree as WikiTreeData } from '@repo/client/api-client/schemas';
+import type { WikiTreeOutput as WikiTreeData } from '@repo/client/api-client/schemas';
 import { cn } from '@repo/client/rnr/lib/utils';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 import {
@@ -15,24 +15,25 @@ import {
   WikiTree,
   type WikiTreeTarget,
 } from '@core/features/wiki/components/wiki-tree';
-import { useWikiEditSession } from '@core/features/wiki/use-wiki-edit-session';
+import { useWikiCollaborationSession } from '@core/features/wiki/use-wiki-collaboration-session';
 import { createWikiMarkdownFileName } from '@core/features/wiki/wiki-export';
 import { useWikiDocument } from '@core/features/wiki/wiki-query';
+import { findWikiDocumentNode } from '@core/features/wiki/wiki-tree-model';
 
 type BeforeNavigateHandler = () => Promise<boolean>;
+type AfterDeleteHandler = () => Promise<void>;
 
 type WikiDocumentWorkspaceProps = {
   documentId: string;
   drawerOpen: boolean;
   onCloseDrawer: () => void;
-  onCreateDocument: (folderId: string | null) => void;
-  onCreateFolder: (parentFolderId: string | null) => void;
+  onCreateDocument: (parentDocumentId: string | null) => void;
   onDeleteItem: (target: WikiTreeTarget) => void;
   onManageItem: (target: WikiTreeTarget) => void;
-  onNavigateConflictCopy: (documentId: string) => void;
   onNavigateDocument: (documentId: string) => void;
   onOpenTree: () => void;
   onOpenWikiRoot: () => void;
+  onRegisterAfterDelete: (handler: AfterDeleteHandler | null) => void;
   onRegisterBeforeNavigate: (handler: BeforeNavigateHandler | null) => void;
   organizationId: string;
   tree: WikiTreeData;
@@ -43,51 +44,41 @@ export function WikiDocumentWorkspace({
   drawerOpen,
   onCloseDrawer,
   onCreateDocument,
-  onCreateFolder,
   onDeleteItem,
   onManageItem,
-  onNavigateConflictCopy,
   onNavigateDocument,
   onOpenTree,
   onOpenWikiRoot,
+  onRegisterAfterDelete,
   onRegisterBeforeNavigate,
   organizationId,
   tree,
 }: WikiDocumentWorkspaceProps) {
   const document = useWikiDocument(organizationId, documentId).data;
+  const activeDocument = findWikiDocumentNode(tree, documentId) ?? undefined;
   const { exportMarkdown, notifyError, notifySuccess } = useDashboardPlatform();
   const [historyOpen, setHistoryOpen] = useState(false);
-  const editSession = useWikiEditSession({
-    document,
+  const collaboration = useWikiCollaborationSession({
+    documentId,
     organizationId,
-    onConflictCopy: (conflictCopy) => onNavigateConflictCopy(conflictCopy.id),
   });
 
   useEffect(() => {
-    onRegisterBeforeNavigate(
-      editSession.mode === 'view' ? null : editSession.prepareToLeave,
-    );
+    onRegisterBeforeNavigate(collaboration.prepareToLeave);
     return () => onRegisterBeforeNavigate(null);
-  }, [editSession.mode, editSession.prepareToLeave, onRegisterBeforeNavigate]);
+  }, [collaboration.prepareToLeave, onRegisterBeforeNavigate]);
+
+  useEffect(() => {
+    onRegisterAfterDelete(collaboration.clearLocalState);
+    return () => onRegisterAfterDelete(null);
+  }, [collaboration.clearLocalState, onRegisterAfterDelete]);
 
   const handleExport = async () => {
-    const outcome = await editSession.saveNow();
-    if (outcome === 'error' || outcome === 'conflict') {
-      if (outcome === 'error') {
-        notifyError({
-          id: 'wiki-export-unsaved',
-          title: '저장되지 않은 문서는 내보낼 수 없습니다',
-          description: '저장 상태를 확인한 뒤 다시 시도해 주세요.',
-        });
-      }
-      return;
-    }
-
     try {
       const fileName = createWikiMarkdownFileName(document.title);
       await exportMarkdown({
         fileName,
-        contentMarkdown: editSession.draft,
+        contentMarkdown: collaboration.exportMarkdown(document.contentMarkdown),
       });
       notifySuccess({
         id: 'wiki-export',
@@ -106,15 +97,16 @@ export function WikiDocumentWorkspace({
   return (
     <View className="relative min-h-0 flex-1 overflow-hidden bg-background">
       <WikiHeader
-        activeDocument={tree.documents.find((item) => item.id === documentId)}
-        mode={editSession.mode}
-        modeChangePending={editSession.modeChangePending}
+        activeDocument={activeDocument}
+        collaborators={collaboration.collaborators}
+        editModeDisabled={collaboration.editModeDisabled}
+        mode={collaboration.mode}
         onExport={() => void handleExport()}
-        onModeChange={(mode) => void editSession.requestMode(mode)}
+        onModeChange={collaboration.requestMode}
         onOpenHistory={() => setHistoryOpen(true)}
         onOpenTree={onOpenTree}
         onOpenWikiRoot={onOpenWikiRoot}
-        saveIndicator={editSession.saveIndicator}
+        saveIndicator={collaboration.indicator}
         tree={tree}
       />
 
@@ -124,7 +116,6 @@ export function WikiDocumentWorkspace({
           drawerOpen={drawerOpen}
           onCloseDrawer={onCloseDrawer}
           onCreateDocument={onCreateDocument}
-          onCreateFolder={onCreateFolder}
           onDeleteItem={onDeleteItem}
           onManageItem={onManageItem}
           onSelectDocument={onNavigateDocument}
@@ -141,28 +132,36 @@ export function WikiDocumentWorkspace({
         />
 
         <View className="min-h-0 min-w-0 flex-1 bg-background">
-          {editSession.mode === 'view' ? (
+          {collaboration.mode === 'view' ? (
             <WikiDocumentViewer document={document} />
-          ) : editSession.mode === 'edit' ? (
+          ) : collaboration.mode === 'edit' ? (
             <WikiMarkdownEditor
-              editable={editSession.lockOwned}
-              onChangeText={editSession.setDraft}
-              value={editSession.draft}
+              collaborators={collaboration.collaborators}
+              editable={collaboration.editable}
+              onChangeText={collaboration.setMarkdown}
+              onCompositionEnd={collaboration.endComposition}
+              onCompositionStart={collaboration.beginComposition}
+              onSelectionChange={collaboration.updateSelection}
+              value={collaboration.editorMarkdown}
             />
           ) : (
             <View className="min-h-0 flex-1 md:flex-row">
               <View className="min-h-0 flex-1">
                 <WikiMarkdownEditor
+                  collaborators={collaboration.collaborators}
                   compact
-                  editable={editSession.lockOwned}
-                  onChangeText={editSession.setDraft}
-                  value={editSession.draft}
+                  editable={collaboration.editable}
+                  onChangeText={collaboration.setMarkdown}
+                  onCompositionEnd={collaboration.endComposition}
+                  onCompositionStart={collaboration.beginComposition}
+                  onSelectionChange={collaboration.updateSelection}
+                  value={collaboration.editorMarkdown}
                 />
               </View>
               <View className="min-h-0 flex-1 border-t border-border md:border-l md:border-t-0">
                 <WikiMarkdownViewer
                   compact
-                  contentMarkdown={editSession.draft}
+                  contentMarkdown={collaboration.liveMarkdown}
                 />
               </View>
             </View>

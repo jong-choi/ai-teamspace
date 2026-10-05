@@ -2,63 +2,64 @@ import { Injectable } from '@nestjs/common';
 
 import { DatabaseService } from '#server/database/database.service.js';
 import {
-  WikiFolderNotFoundError,
-  WikiInvalidFolderMoveError,
+  WikiCollaborationStateCorruptedError,
+  WikiDocumentHistoryCorruptedError,
+  WikiDocumentNotFoundError,
+  WikiInvalidDocumentMoveError,
 } from '#server/wiki/domain/wiki.error.js';
 import type {
   WikiDocument,
   WikiDocumentSummary,
 } from '#server/wiki/domain/wiki-document.js';
+import { WikiDocumentCollaborationStateSchema } from '#server/wiki/domain/wiki-document-collaboration-state.js';
 import type {
   WikiDocumentRevision,
   WikiDocumentRevisionSummary,
 } from '#server/wiki/domain/wiki-document-revision.js';
-import {
-  WIKI_EDIT_LOCK_LEASE_SECONDS,
-  type WikiEditLock,
-} from '#server/wiki/domain/wiki-edit-lock.js';
-import { buildWikiEntryNameCandidate } from '#server/wiki/domain/wiki-entry-name.js';
-import {
-  toWikiDocumentDomain,
-  toWikiDocumentEntryInsert,
-  toWikiDocumentEntryUpdate,
-  toWikiDocumentInsert,
-  toWikiDocumentUpdate,
-} from '#server/wiki/infrastructure/persistence/drizzle/mappers/wiki-document.mapper.js';
+import { allocateWikiDocumentTitle } from '#server/wiki/domain/wiki-document-title.js';
+import { toWikiDocumentDomain } from '#server/wiki/infrastructure/persistence/drizzle/mappers/wiki-document.mapper.js';
 import {
   toWikiDocumentRevisionDomain,
   toWikiDocumentRevisionInsert,
 } from '#server/wiki/infrastructure/persistence/drizzle/mappers/wiki-document-revision.mapper.js';
-import { toWikiEditLockDomain } from '#server/wiki/infrastructure/persistence/drizzle/mappers/wiki-edit-lock.mapper.js';
-import {
-  toWikiFolderDomain,
-  toWikiFolderInsert,
-  toWikiFolderUpdate,
-} from '#server/wiki/infrastructure/persistence/drizzle/mappers/wiki-folder.mapper.js';
-import { isPostgresConstraintViolation } from '#server/wiki/infrastructure/persistence/drizzle/postgres-error.js';
+import { wikiCollection } from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-collection.schema.js';
 import { wikiDocument } from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-document.schema.js';
-import { wikiDocumentEditLock } from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-document-edit-lock.schema.js';
-import { wikiDocumentRevision } from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-document-revision.schema.js';
-import { wikiEntry } from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-entry.schema.js';
 import {
-  type CreateWikiDocumentPersistenceInput,
-  type CreateWikiFolderPersistenceInput,
-  type DeleteWikiFolderResult,
-  type SaveWikiDocumentContentPersistenceInput,
-  type SaveWikiDocumentContentPersistenceResult,
-  type UpdateWikiDocumentMetadataPersistenceInput,
-  type UpdateWikiFolderPersistenceInput,
-  type WikiEditLockPersistenceInput,
-  WikiRepository,
-  type WikiSearchMatch,
-  type WikiTree,
+  wikiDocumentInsertSchema,
+  wikiDocumentUpdateSchema,
+} from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-document.zod.js';
+import { wikiDocumentRevision } from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-document-revision.schema.js';
+import { wikiDocumentRevisionCollaborator } from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-document-revision-collaborator.schema.js';
+import type {
+  CreateWikiDocumentPersistenceInput,
+  DeleteWikiDocumentResult,
+  PersistWikiCollaborationSnapshotInput,
+  PersistWikiCollaborationSnapshotResult,
+  UpdateWikiDocumentMetadataPersistenceInput,
+  WikiSearchMatch,
+  WikiTree,
 } from '#server/wiki/infrastructure/persistence/wiki.repository.js';
+import { WikiRepository } from '#server/wiki/infrastructure/persistence/wiki.repository.js';
 
-import { and, asc, desc, eq, gt, ilike, lte, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, ne, or, sql } from 'drizzle-orm';
+import * as Y from 'yjs';
 
-const wikiEntryNameConstraint = 'wiki_entry_organization_parent_name_unique';
-const wikiEntryParentFolderConstraint = 'wiki_entry_parent_organization_fk';
 const wikiSearchResultLimit = 50;
+
+const wikiDocumentPublicSelection = {
+  id: wikiDocument.id,
+  collectionId: wikiDocument.collectionId,
+  organizationId: wikiDocument.organizationId,
+  parentDocumentId: wikiDocument.parentDocumentId,
+  title: wikiDocument.title,
+  position: wikiDocument.position,
+  contentMarkdown: wikiDocument.contentMarkdown,
+  revision: wikiDocument.revision,
+  createdByUserId: wikiDocument.createdByUserId,
+  updatedByUserId: wikiDocument.updatedByUserId,
+  createdAt: wikiDocument.createdAt,
+  updatedAt: wikiDocument.updatedAt,
+};
 
 type WikiTransaction = Parameters<
   Parameters<DatabaseService['db']['transaction']>[0]
@@ -70,194 +71,36 @@ export class WikiDrizzleRepository extends WikiRepository {
     super();
   }
 
+  async checkCollaborationReady(): Promise<void> {
+    await this.database.db
+      .select({ collaborationState: wikiDocument.collaborationState })
+      .from(wikiDocument)
+      .limit(1);
+  }
+
   async getTreeForOrganization(organizationId: string): Promise<WikiTree> {
     const rows = await this.database.db
-      .select({ entry: wikiEntry, document: wikiDocument })
-      .from(wikiEntry)
-      .leftJoin(wikiDocument, eq(wikiDocument.id, wikiEntry.id))
-      .where(eq(wikiEntry.organizationId, organizationId))
+      .select(wikiDocumentPublicSelection)
+      .from(wikiDocument)
+      .where(eq(wikiDocument.organizationId, organizationId))
       .orderBy(
-        asc(wikiEntry.parentFolderId),
-        asc(wikiEntry.position),
-        asc(wikiEntry.name),
-        asc(wikiEntry.id),
+        asc(wikiDocument.parentDocumentId),
+        asc(wikiDocument.position),
+        asc(wikiDocument.title),
+        asc(wikiDocument.id),
       );
 
-    const folders = [];
-    const documents: WikiDocumentSummary[] = [];
-
-    for (const row of rows) {
-      if (row.entry.kind === 'folder') {
-        folders.push(toWikiFolderDomain(row.entry));
-        continue;
-      }
-      if (!row.document) {
-        throw new Error('위키 문서 세부 행이 없습니다.');
-      }
-      documents.push(toWikiDocumentSummary(toWikiDocumentDomain(row)));
-    }
-
-    return { folders, documents };
-  }
-
-  async findFolderById(organizationId: string, folderId: string) {
-    const [row] = await this.database.db
-      .select()
-      .from(wikiEntry)
-      .where(
-        and(
-          eq(wikiEntry.organizationId, organizationId),
-          eq(wikiEntry.id, folderId),
-          eq(wikiEntry.kind, 'folder'),
-        ),
-      )
-      .limit(1);
-
-    return row ? toWikiFolderDomain(row) : null;
-  }
-
-  async createFolder(input: CreateWikiFolderPersistenceInput) {
-    for (let attempt = 0; ; attempt += 1) {
-      try {
-        const [row] = await this.database.db
-          .insert(wikiEntry)
-          .values(
-            toWikiFolderInsert({
-              ...input,
-              name: buildWikiEntryNameCandidate(input.name, attempt),
-            }),
-          )
-          .onConflictDoNothing({
-            target: [
-              wikiEntry.organizationId,
-              wikiEntry.parentFolderId,
-              wikiEntry.name,
-            ],
-          })
-          .returning();
-
-        if (row) {
-          return toWikiFolderDomain(row);
-        }
-      } catch (error) {
-        if (
-          isPostgresConstraintViolation(
-            error,
-            '23503',
-            wikiEntryParentFolderConstraint,
-          )
-        ) {
-          throw new WikiFolderNotFoundError({ cause: error });
-        }
-        throw error;
-      }
-    }
-  }
-
-  async updateFolder(input: UpdateWikiFolderPersistenceInput) {
-    for (let attempt = 0; ; attempt += 1) {
-      try {
-        return await this.database.db.transaction(async (transaction) => {
-          await lockWikiHierarchy(transaction, input.organizationId);
-          const [current] = await transaction
-            .select()
-            .from(wikiEntry)
-            .where(
-              and(
-                eq(wikiEntry.organizationId, input.organizationId),
-                eq(wikiEntry.id, input.folderId),
-                eq(wikiEntry.kind, 'folder'),
-              ),
-            )
-            .limit(1)
-            .for('update');
-
-          if (!current) {
-            return null;
-          }
-
-          await assertFolderMoveAllowedInTransaction(transaction, {
-            organizationId: input.organizationId,
-            folderId: input.folderId,
-            targetParentFolderId: input.parentFolderId,
-          });
-
-          const [row] = await transaction
-            .update(wikiEntry)
-            .set(
-              toWikiFolderUpdate({
-                parentFolderId: input.parentFolderId,
-                name: buildWikiEntryNameCandidate(input.name, attempt),
-                position: input.position,
-                updatedAt: new Date(),
-              }),
-            )
-            .where(eq(wikiEntry.id, input.folderId))
-            .returning();
-
-          return row ? toWikiFolderDomain(row) : null;
-        });
-      } catch (error) {
-        if (
-          isPostgresConstraintViolation(error, '23505', wikiEntryNameConstraint)
-        ) {
-          continue;
-        }
-        if (
-          isPostgresConstraintViolation(
-            error,
-            '23503',
-            wikiEntryParentFolderConstraint,
-          )
-        ) {
-          throw new WikiFolderNotFoundError({ cause: error });
-        }
-        throw error;
-      }
-    }
-  }
-
-  async deleteFolder(
-    organizationId: string,
-    folderId: string,
-  ): Promise<DeleteWikiFolderResult> {
-    try {
-      const [row] = await this.database.db
-        .delete(wikiEntry)
-        .where(
-          and(
-            eq(wikiEntry.organizationId, organizationId),
-            eq(wikiEntry.id, folderId),
-            eq(wikiEntry.kind, 'folder'),
-          ),
-        )
-        .returning({ id: wikiEntry.id });
-
-      return row ? 'deleted' : 'not_found';
-    } catch (error) {
-      if (
-        isPostgresConstraintViolation(
-          error,
-          '23503',
-          wikiEntryParentFolderConstraint,
-        )
-      ) {
-        return 'not_empty';
-      }
-      throw error;
-    }
+    return rows.map((row) => toWikiDocumentSummary(toWikiDocumentDomain(row)));
   }
 
   async findDocumentById(organizationId: string, documentId: string) {
     const [row] = await this.database.db
-      .select({ entry: wikiEntry, document: wikiDocument })
-      .from(wikiEntry)
-      .innerJoin(wikiDocument, eq(wikiDocument.id, wikiEntry.id))
+      .select(wikiDocumentPublicSelection)
+      .from(wikiDocument)
       .where(
         and(
-          eq(wikiEntry.organizationId, organizationId),
-          eq(wikiEntry.id, documentId),
-          eq(wikiEntry.kind, 'document'),
+          eq(wikiDocument.organizationId, organizationId),
+          eq(wikiDocument.id, documentId),
         ),
       )
       .limit(1);
@@ -265,359 +108,303 @@ export class WikiDrizzleRepository extends WikiRepository {
     return row ? toWikiDocumentDomain(row) : null;
   }
 
+  async loadCollaborationState(organizationId: string, documentId: string) {
+    const [row] = await this.database.db
+      .select({
+        id: wikiDocument.id,
+        organizationId: wikiDocument.organizationId,
+        contentMarkdown: wikiDocument.contentMarkdown,
+        collaborationState: wikiDocument.collaborationState,
+        collaborationSchemaVersion: wikiDocument.collaborationSchemaVersion,
+        collaborationPersistedAt: wikiDocument.collaborationPersistedAt,
+      })
+      .from(wikiDocument)
+      .where(
+        and(
+          eq(wikiDocument.organizationId, organizationId),
+          eq(wikiDocument.id, documentId),
+        ),
+      )
+      .limit(1);
+
+    return row ? WikiDocumentCollaborationStateSchema.parse(row) : null;
+  }
+
   async createDocument(input: CreateWikiDocumentPersistenceInput) {
-    for (let attempt = 0; ; attempt += 1) {
-      try {
-        const result = await this.database.db.transaction(
-          async (transaction) => {
-            const [entry] = await transaction
-              .insert(wikiEntry)
-              .values(
-                toWikiDocumentEntryInsert({
-                  ...input,
-                  title: buildWikiEntryNameCandidate(input.title, attempt),
-                }),
-              )
-              .onConflictDoNothing({
-                target: [
-                  wikiEntry.organizationId,
-                  wikiEntry.parentFolderId,
-                  wikiEntry.name,
-                ],
-              })
-              .returning();
-
-            if (!entry) {
-              return null;
-            }
-
-            const [document] = await transaction
-              .insert(wikiDocument)
-              .values(
-                toWikiDocumentInsert({
-                  id: entry.id,
-                  contentMarkdown: input.contentMarkdown,
-                  actorUserId: input.actorUserId,
-                }),
-              )
-              .returning();
-
-            if (!document) {
-              throw new Error('위키 문서 생성 결과가 없습니다.');
-            }
-
-            await transaction.insert(wikiDocumentRevision).values(
-              toWikiDocumentRevisionInsert({
-                documentId: entry.id,
-                organizationId: input.organizationId,
-                revision: document.revision,
-                editorUserId: input.actorUserId,
-                contentMarkdown: document.contentMarkdown,
-                createdAt: entry.updatedAt,
-              }),
-            );
-
-            return toWikiDocumentDomain({ entry, document });
-          },
-        );
-
-        if (result) {
-          return result;
-        }
-      } catch (error) {
-        if (
-          isPostgresConstraintViolation(
-            error,
-            '23503',
-            wikiEntryParentFolderConstraint,
-          )
-        ) {
-          throw new WikiFolderNotFoundError({ cause: error });
-        }
-        throw error;
-      }
+    const initialDocument = decodeWikiDocument(input.collaborationState);
+    if (
+      initialDocument.getText('markdown').toJSON() !== input.contentMarkdown
+    ) {
+      throw new WikiCollaborationStateCorruptedError();
     }
+    return this.database.db.transaction(async (transaction) => {
+      const collection = await ensureAndLockCollection(
+        transaction,
+        input.organizationId,
+      );
+      await assertParentExists(transaction, {
+        collectionId: collection.id,
+        organizationId: input.organizationId,
+        parentDocumentId: input.parentDocumentId,
+      });
+      const title = await allocateSiblingTitle(transaction, {
+        collectionId: collection.id,
+        parentDocumentId: input.parentDocumentId,
+        requestedTitle: input.title,
+      });
+      const now = new Date();
+      const [row] = await transaction
+        .insert(wikiDocument)
+        .values(
+          wikiDocumentInsertSchema.parse({
+            collectionId: collection.id,
+            organizationId: input.organizationId,
+            parentDocumentId: input.parentDocumentId,
+            title,
+            position: input.position,
+            contentMarkdown: input.contentMarkdown,
+            collaborationState: input.collaborationState,
+            collaborationSchemaVersion: input.collaborationSchemaVersion,
+            collaborationPersistedAt: now,
+            revision: 1,
+            createdByUserId: input.actorUserId,
+            updatedByUserId: input.actorUserId,
+            createdAt: now,
+            updatedAt: now,
+          }),
+        )
+        .returning();
+
+      if (!row) {
+        throw new Error('위키 문서 생성 결과가 없습니다.');
+      }
+
+      await transaction.insert(wikiDocumentRevision).values(
+        toWikiDocumentRevisionInsert({
+          documentId: row.id,
+          organizationId: input.organizationId,
+          revision: 1,
+          editorUserId: input.actorUserId,
+          contentMarkdown: input.contentMarkdown,
+          createdAt: now,
+        }),
+      );
+      await transaction.insert(wikiDocumentRevisionCollaborator).values({
+        documentId: row.id,
+        revision: 1,
+        userId: input.actorUserId,
+        ordinal: 0,
+      });
+
+      return toWikiDocumentDomain(row);
+    });
   }
 
   async updateDocumentMetadata(
     input: UpdateWikiDocumentMetadataPersistenceInput,
   ) {
-    for (let attempt = 0; ; attempt += 1) {
-      try {
-        return await this.database.db.transaction(async (transaction) => {
-          const [current] = await transaction
-            .select({ entry: wikiEntry, document: wikiDocument })
-            .from(wikiEntry)
-            .innerJoin(wikiDocument, eq(wikiDocument.id, wikiEntry.id))
-            .where(
-              and(
-                eq(wikiEntry.organizationId, input.organizationId),
-                eq(wikiEntry.id, input.documentId),
-                eq(wikiEntry.kind, 'document'),
-              ),
-            )
-            .limit(1)
-            .for('update', { of: [wikiEntry, wikiDocument] });
-
-          if (!current) {
-            return null;
-          }
-
-          const [entry] = await transaction
-            .update(wikiEntry)
-            .set(
-              toWikiDocumentEntryUpdate({
-                folderId: input.folderId,
-                title: buildWikiEntryNameCandidate(input.title, attempt),
-                updatedAt: new Date(),
-              }),
-            )
-            .where(eq(wikiEntry.id, input.documentId))
-            .returning();
-
-          const [document] = await transaction
-            .update(wikiDocument)
-            .set(
-              toWikiDocumentUpdate({
-                actorUserId: input.actorUserId,
-              }),
-            )
-            .where(eq(wikiDocument.id, input.documentId))
-            .returning();
-
-          if (!entry || !document) {
-            throw new Error('위키 문서 metadata 수정 결과가 없습니다.');
-          }
-
-          return toWikiDocumentDomain({ entry, document });
-        });
-      } catch (error) {
-        if (
-          isPostgresConstraintViolation(error, '23505', wikiEntryNameConstraint)
-        ) {
-          continue;
-        }
-        if (
-          isPostgresConstraintViolation(
-            error,
-            '23503',
-            wikiEntryParentFolderConstraint,
-          )
-        ) {
-          throw new WikiFolderNotFoundError({ cause: error });
-        }
-        throw error;
+    return this.database.db.transaction(async (transaction) => {
+      const collection = await lockCollectionForOrganization(
+        transaction,
+        input.organizationId,
+      );
+      if (!collection) {
+        return null;
       }
-    }
+      const current = await findDocumentForUpdate(transaction, {
+        collectionId: collection.id,
+        organizationId: input.organizationId,
+        documentId: input.documentId,
+      });
+      if (!current) {
+        return null;
+      }
+      await assertDocumentMoveAllowed(transaction, {
+        collectionId: collection.id,
+        organizationId: input.organizationId,
+        documentId: input.documentId,
+        parentDocumentId: input.parentDocumentId,
+      });
+      const title = await allocateSiblingTitle(transaction, {
+        collectionId: collection.id,
+        parentDocumentId: input.parentDocumentId,
+        requestedTitle: input.title,
+        excludedDocumentId: input.documentId,
+      });
+      const [row] = await transaction
+        .update(wikiDocument)
+        .set(
+          wikiDocumentUpdateSchema.parse({
+            parentDocumentId: input.parentDocumentId,
+            title,
+            position: input.position,
+            updatedByUserId: input.actorUserId,
+            updatedAt: new Date(),
+          }),
+        )
+        .where(
+          and(
+            eq(wikiDocument.organizationId, input.organizationId),
+            eq(wikiDocument.id, input.documentId),
+          ),
+        )
+        .returning();
+
+      return row ? toWikiDocumentDomain(row) : null;
+    });
   }
 
   async deleteDocument(
     organizationId: string,
     documentId: string,
-  ): Promise<boolean> {
-    const [row] = await this.database.db
-      .delete(wikiEntry)
-      .where(
-        and(
-          eq(wikiEntry.organizationId, organizationId),
-          eq(wikiEntry.id, documentId),
-          eq(wikiEntry.kind, 'document'),
-        ),
-      )
-      .returning({ id: wikiEntry.id });
-
-    return Boolean(row);
-  }
-
-  async acquireEditLock(
-    input: WikiEditLockPersistenceInput,
-  ): Promise<WikiEditLock | null> {
-    const [lock] = await this.database.db
-      .insert(wikiDocumentEditLock)
-      .values({
-        documentId: input.documentId,
-        organizationId: input.organizationId,
-        lockedByUserId: input.actorUserId,
-        acquiredAt: databaseNow(),
-        expiresAt: editLockExpiry(),
-      })
-      .onConflictDoUpdate({
-        target: wikiDocumentEditLock.documentId,
-        set: {
-          organizationId: input.organizationId,
-          lockedByUserId: input.actorUserId,
-          acquiredAt: databaseNow(),
-          expiresAt: editLockExpiry(),
-        },
-        setWhere: or(
-          eq(wikiDocumentEditLock.lockedByUserId, input.actorUserId),
-          lte(wikiDocumentEditLock.expiresAt, databaseNow()),
-        ),
-      })
-      .returning();
-
-    if (lock) {
-      return toWikiEditLockDomain(lock);
-    }
-    return this.findActiveEditLock(input.organizationId, input.documentId);
-  }
-
-  async renewEditLock(
-    input: WikiEditLockPersistenceInput,
-  ): Promise<WikiEditLock | null> {
-    const [lock] = await this.database.db
-      .update(wikiDocumentEditLock)
-      .set({ expiresAt: editLockExpiry() })
-      .where(
-        and(
-          eq(wikiDocumentEditLock.documentId, input.documentId),
-          eq(wikiDocumentEditLock.organizationId, input.organizationId),
-          eq(wikiDocumentEditLock.lockedByUserId, input.actorUserId),
-          gt(wikiDocumentEditLock.expiresAt, databaseNow()),
-        ),
-      )
-      .returning();
-
-    if (lock) {
-      return toWikiEditLockDomain(lock);
-    }
-    return this.findActiveEditLock(input.organizationId, input.documentId);
-  }
-
-  async releaseEditLock(
-    input: WikiEditLockPersistenceInput,
-  ): Promise<WikiEditLock | null> {
-    const [released] = await this.database.db
-      .delete(wikiDocumentEditLock)
-      .where(
-        and(
-          eq(wikiDocumentEditLock.documentId, input.documentId),
-          eq(wikiDocumentEditLock.organizationId, input.organizationId),
-          eq(wikiDocumentEditLock.lockedByUserId, input.actorUserId),
-        ),
-      )
-      .returning({ documentId: wikiDocumentEditLock.documentId });
-
-    if (released) {
-      return null;
-    }
-    return this.findActiveEditLock(input.organizationId, input.documentId);
-  }
-
-  async saveDocumentContent(
-    input: SaveWikiDocumentContentPersistenceInput,
-  ): Promise<SaveWikiDocumentContentPersistenceResult> {
+  ): Promise<DeleteWikiDocumentResult> {
     return this.database.db.transaction(async (transaction) => {
-      const [current] = await transaction
-        .select({ entry: wikiEntry, document: wikiDocument })
-        .from(wikiEntry)
-        .innerJoin(wikiDocument, eq(wikiDocument.id, wikiEntry.id))
+      const collection = await lockCollectionForOrganization(
+        transaction,
+        organizationId,
+      );
+      if (!collection) {
+        return 'not_found';
+      }
+      const current = await findDocumentForUpdate(transaction, {
+        collectionId: collection.id,
+        organizationId,
+        documentId,
+      });
+      if (!current) {
+        return 'not_found';
+      }
+      const [child] = await transaction
+        .select({ id: wikiDocument.id })
+        .from(wikiDocument)
         .where(
           and(
-            eq(wikiEntry.organizationId, input.organizationId),
-            eq(wikiEntry.id, input.documentId),
-            eq(wikiEntry.kind, 'document'),
+            eq(wikiDocument.collectionId, collection.id),
+            eq(wikiDocument.organizationId, organizationId),
+            eq(wikiDocument.parentDocumentId, documentId),
           ),
         )
-        .limit(1)
-        .for('update', { of: [wikiEntry, wikiDocument] });
-
-      if (!current) {
-        return { status: 'not_found' };
+        .limit(1);
+      if (child) {
+        return 'not_empty';
       }
-
-      const [activeLock] = await transaction
-        .select()
-        .from(wikiDocumentEditLock)
+      const [deleted] = await transaction
+        .delete(wikiDocument)
         .where(
           and(
-            eq(wikiDocumentEditLock.documentId, input.documentId),
-            eq(wikiDocumentEditLock.organizationId, input.organizationId),
-            gt(wikiDocumentEditLock.expiresAt, databaseNow()),
+            eq(wikiDocument.organizationId, organizationId),
+            eq(wikiDocument.id, documentId),
+          ),
+        )
+        .returning({ id: wikiDocument.id });
+      return deleted ? 'deleted' : 'not_found';
+    });
+  }
+
+  async persistCollaborationSnapshot(
+    input: PersistWikiCollaborationSnapshotInput,
+  ): Promise<PersistWikiCollaborationSnapshotResult> {
+    return this.database.db.transaction(async (transaction) => {
+      const [current] = await transaction
+        .select()
+        .from(wikiDocument)
+        .where(
+          and(
+            eq(wikiDocument.organizationId, input.organizationId),
+            eq(wikiDocument.id, input.documentId),
           ),
         )
         .limit(1)
         .for('update');
-
-      if (!activeLock) {
-        return { status: 'lock_required' };
+      if (!current) {
+        throw new WikiDocumentNotFoundError();
       }
-      if (activeLock.lockedByUserId !== input.actorUserId) {
-        return { status: 'locked_by_other' };
+
+      const incoming = decodeWikiDocument(input.encodedState);
+      if (incoming.getText('markdown').toJSON() !== input.contentMarkdown) {
+        throw new WikiCollaborationStateCorruptedError();
+      }
+      const merged = decodeWikiDocument(current.collaborationState);
+      Y.applyUpdate(merged, input.encodedState);
+      const mergedState = Y.encodeStateAsUpdate(merged);
+      const mergedMarkdown = merged.getText('markdown').toJSON();
+      const stateChanged = !buffersEqual(
+        current.collaborationState,
+        mergedState,
+      );
+      const contentChanged = current.contentMarkdown !== mergedMarkdown;
+      const now = new Date();
+
+      let nextRevision = current.revision;
+      let checkpointCreated = false;
+      if (input.createCheckpoint) {
+        const [latestCheckpoint] = await transaction
+          .select({ contentMarkdown: wikiDocumentRevision.contentMarkdown })
+          .from(wikiDocumentRevision)
+          .where(
+            and(
+              eq(wikiDocumentRevision.documentId, input.documentId),
+              eq(wikiDocumentRevision.revision, current.revision),
+            ),
+          )
+          .limit(1);
+        if (!latestCheckpoint) {
+          throw new WikiDocumentHistoryCorruptedError();
+        }
+        if (latestCheckpoint.contentMarkdown !== mergedMarkdown) {
+          nextRevision = current.revision + 1;
+          checkpointCreated = true;
+        }
       }
 
       await transaction
-        .insert(wikiDocumentRevision)
-        .values(
-          toWikiDocumentRevisionInsert({
-            documentId: current.entry.id,
-            organizationId: current.entry.organizationId,
-            revision: current.document.revision,
-            editorUserId: current.document.updatedByUserId,
-            contentMarkdown: current.document.contentMarkdown,
-            createdAt: current.entry.updatedAt,
-          }),
-        )
-        .onConflictDoNothing({
-          target: [
-            wikiDocumentRevision.documentId,
-            wikiDocumentRevision.revision,
-          ],
-        });
-
-      const canonicalDocument = toWikiDocumentDomain(current);
-      if (current.document.revision !== input.baseRevision) {
-        const conflictCopy = await createConflictCopy({
-          transaction,
-          entry: current.entry,
-          organizationId: input.organizationId,
-          contentMarkdown: input.contentMarkdown,
-          actorUserId: input.actorUserId,
-        });
-        return {
-          status: 'conflict_copy_created',
-          document: canonicalDocument,
-          conflictCopy,
-        };
-      }
-
-      const nextRevision = current.document.revision + 1;
-      const updatedAt = new Date();
-      const [entry] = await transaction
-        .update(wikiEntry)
-        .set({ updatedAt })
-        .where(eq(wikiEntry.id, input.documentId))
-        .returning();
-      const [document] = await transaction
         .update(wikiDocument)
         .set(
-          toWikiDocumentUpdate({
-            contentMarkdown: input.contentMarkdown,
+          wikiDocumentUpdateSchema.parse({
+            collaborationState: mergedState,
+            collaborationSchemaVersion: input.schemaVersion,
+            collaborationPersistedAt: now,
+            contentMarkdown: mergedMarkdown,
             revision: nextRevision,
-            actorUserId: input.actorUserId,
+            updatedByUserId: input.lastEditorUserId,
+            updatedAt: contentChanged ? now : current.updatedAt,
           }),
         )
-        .where(eq(wikiDocument.id, input.documentId))
-        .returning();
+        .where(eq(wikiDocument.id, input.documentId));
 
-      if (!entry || !document) {
-        throw new Error('위키 문서 저장 결과가 없습니다.');
+      if (checkpointCreated) {
+        await transaction.insert(wikiDocumentRevision).values(
+          toWikiDocumentRevisionInsert({
+            documentId: input.documentId,
+            organizationId: input.organizationId,
+            revision: nextRevision,
+            editorUserId: input.lastEditorUserId,
+            contentMarkdown: mergedMarkdown,
+            createdAt: now,
+          }),
+        );
+        const collaborators = uniqueCollaborators(
+          input.collaboratorUserIds,
+          input.lastEditorUserId,
+        );
+        if (collaborators.length > 0) {
+          await transaction.insert(wikiDocumentRevisionCollaborator).values(
+            collaborators.map((userId, ordinal) => ({
+              documentId: input.documentId,
+              revision: nextRevision,
+              userId,
+              ordinal,
+            })),
+          );
+        }
       }
 
-      await transaction.insert(wikiDocumentRevision).values(
-        toWikiDocumentRevisionInsert({
-          documentId: input.documentId,
-          organizationId: input.organizationId,
-          revision: nextRevision,
-          editorUserId: input.actorUserId,
-          contentMarkdown: input.contentMarkdown,
-          createdAt: updatedAt,
-        }),
-      );
-
       return {
-        status: 'saved',
-        document: toWikiDocumentDomain({ entry, document }),
+        changed: stateChanged || contentChanged,
+        checkpointCreated,
+        revision: nextRevision,
+        contentMarkdown: mergedMarkdown,
+        encodedState: mergedState,
       };
     });
   }
@@ -626,7 +413,7 @@ export class WikiDrizzleRepository extends WikiRepository {
     organizationId: string,
     documentId: string,
   ): Promise<WikiDocumentRevisionSummary[]> {
-    const [rows, currentDocument] = await Promise.all([
+    const [rows, collaboratorRows] = await Promise.all([
       this.database.db
         .select()
         .from(wikiDocumentRevision)
@@ -637,31 +424,35 @@ export class WikiDrizzleRepository extends WikiRepository {
           ),
         )
         .orderBy(desc(wikiDocumentRevision.revision)),
-      this.findDocumentById(organizationId, documentId),
-    ]);
-
-    const revisions = rows.map((row) =>
-      toWikiDocumentRevisionSummary(toWikiDocumentRevisionDomain(row)),
-    );
-    if (
-      currentDocument &&
-      !revisions.some(({ revision }) => revision === currentDocument.revision)
-    ) {
-      revisions.push(
-        toWikiDocumentRevisionSummary(
-          toCurrentWikiDocumentRevision(currentDocument),
+      this.database.db
+        .select({
+          revision: wikiDocumentRevisionCollaborator.revision,
+          userId: wikiDocumentRevisionCollaborator.userId,
+        })
+        .from(wikiDocumentRevisionCollaborator)
+        .where(eq(wikiDocumentRevisionCollaborator.documentId, documentId))
+        .orderBy(
+          asc(wikiDocumentRevisionCollaborator.revision),
+          asc(wikiDocumentRevisionCollaborator.ordinal),
         ),
-      );
-    }
-
-    return revisions.sort((left, right) => right.revision - left.revision);
+    ]);
+    const collaboratorsByRevision =
+      groupCollaboratorsByRevision(collaboratorRows);
+    return rows.map((row) =>
+      toWikiDocumentRevisionSummary(
+        toWikiDocumentRevisionDomain(
+          row,
+          collaboratorsByRevision.get(row.revision) ?? [],
+        ),
+      ),
+    );
   }
 
   async findDocumentRevision(
     organizationId: string,
     documentId: string,
     revision: number,
-  ) {
+  ): Promise<WikiDocumentRevision | null> {
     const [row] = await this.database.db
       .select()
       .from(wikiDocumentRevision)
@@ -673,277 +464,262 @@ export class WikiDrizzleRepository extends WikiRepository {
         ),
       )
       .limit(1);
-
-    if (row) {
-      return toWikiDocumentRevisionDomain(row);
+    if (!row) {
+      return null;
     }
-
-    const currentDocument = await this.findDocumentById(
-      organizationId,
-      documentId,
+    const collaboratorRows = await this.database.db
+      .select({ userId: wikiDocumentRevisionCollaborator.userId })
+      .from(wikiDocumentRevisionCollaborator)
+      .where(
+        and(
+          eq(wikiDocumentRevisionCollaborator.documentId, documentId),
+          eq(wikiDocumentRevisionCollaborator.revision, revision),
+        ),
+      )
+      .orderBy(asc(wikiDocumentRevisionCollaborator.ordinal));
+    return toWikiDocumentRevisionDomain(
+      row,
+      collaboratorRows.map(({ userId }) => userId),
     );
-    return currentDocument?.revision === revision
-      ? toCurrentWikiDocumentRevision(currentDocument)
-      : null;
   }
 
   async search(
     organizationId: string,
     query: string,
   ): Promise<WikiSearchMatch[]> {
-    const normalizedQuery = query.trim();
-    const pattern = toLikeContainsPattern(normalizedQuery);
-    const documentNameMatched = sql<boolean>`${wikiEntry.name} ilike ${pattern}`;
-    const documentContentMatched = sql<boolean>`${wikiDocument.contentMarkdown} ilike ${pattern}`;
-    const [folders, documents] = await Promise.all([
-      this.database.db
-        .select({ entry: wikiEntry })
-        .from(wikiEntry)
-        .where(
-          and(
-            eq(wikiEntry.organizationId, organizationId),
-            eq(wikiEntry.kind, 'folder'),
-            ilike(wikiEntry.name, pattern),
-          ),
-        )
-        .orderBy(asc(wikiEntry.name), asc(wikiEntry.id))
-        .limit(wikiSearchResultLimit),
-      this.database.db
-        .select({
-          entry: wikiEntry,
-          document: wikiDocument,
-          nameMatched: documentNameMatched,
-          contentMatched: documentContentMatched,
-        })
-        .from(wikiEntry)
-        .innerJoin(wikiDocument, eq(wikiDocument.id, wikiEntry.id))
-        .where(
-          and(
-            eq(wikiEntry.organizationId, organizationId),
-            eq(wikiEntry.kind, 'document'),
-            or(documentNameMatched, documentContentMatched),
-          ),
-        )
-        .orderBy(asc(wikiEntry.name), asc(wikiEntry.id))
-        .limit(wikiSearchResultLimit),
-    ]);
-
-    const matches: WikiSearchMatch[] = [
-      ...folders.map(({ entry }) => ({
-        kind: 'folder' as const,
-        id: entry.id,
-        parentFolderId: entry.parentFolderId,
-        name: entry.name,
-        matchedIn: ['name' as const],
-      })),
-      ...documents.map(({ entry, nameMatched, contentMatched }) => {
-        const matchedIn: Array<'name' | 'content'> = [];
-        if (nameMatched) {
-          matchedIn.push('name');
-        }
-        if (contentMatched) {
-          matchedIn.push('content');
-        }
-        return {
-          kind: 'document' as const,
-          id: entry.id,
-          parentFolderId: entry.parentFolderId,
-          name: entry.name,
-          matchedIn,
-        };
-      }),
-    ];
-
-    return matches
-      .sort((left, right) =>
-        left.name === right.name
-          ? left.id.localeCompare(right.id)
-          : left.name.localeCompare(right.name),
-      )
-      .slice(0, wikiSearchResultLimit);
-  }
-
-  private async findActiveEditLock(
-    organizationId: string,
-    documentId: string,
-  ): Promise<WikiEditLock | null> {
-    const [row] = await this.database.db
-      .select()
-      .from(wikiDocumentEditLock)
+    const pattern = toLikeContainsPattern(query.trim());
+    const titleMatched = sql<boolean>`${wikiDocument.title} ilike ${pattern}`;
+    const contentMatched = sql<boolean>`${wikiDocument.contentMarkdown} ilike ${pattern}`;
+    const rows = await this.database.db
+      .select({
+        documentId: wikiDocument.id,
+        parentDocumentId: wikiDocument.parentDocumentId,
+        title: wikiDocument.title,
+        titleMatched,
+        contentMatched,
+      })
+      .from(wikiDocument)
       .where(
         and(
-          eq(wikiDocumentEditLock.organizationId, organizationId),
-          eq(wikiDocumentEditLock.documentId, documentId),
-          gt(wikiDocumentEditLock.expiresAt, databaseNow()),
+          eq(wikiDocument.organizationId, organizationId),
+          or(titleMatched, contentMatched),
         ),
       )
-      .limit(1);
+      .orderBy(asc(wikiDocument.title), asc(wikiDocument.id))
+      .limit(wikiSearchResultLimit);
 
-    return row ? toWikiEditLockDomain(row) : null;
+    return rows.map((row) => ({
+      documentId: row.documentId,
+      parentDocumentId: row.parentDocumentId,
+      title: row.title,
+      matchedIn: [
+        ...(row.titleMatched ? (['title'] as const) : []),
+        ...(row.contentMatched ? (['content'] as const) : []),
+      ],
+    }));
   }
 }
 
-function toWikiDocumentSummary(
-  document: ReturnType<typeof toWikiDocumentDomain>,
-) {
-  return {
-    id: document.id,
-    organizationId: document.organizationId,
-    folderId: document.folderId,
-    title: document.title,
-    revision: document.revision,
-    createdByUserId: document.createdByUserId,
-    updatedByUserId: document.updatedByUserId,
-    createdAt: document.createdAt,
-    updatedAt: document.updatedAt,
-  } satisfies WikiDocumentSummary;
+function toWikiDocumentSummary(document: WikiDocument): WikiDocumentSummary {
+  const { contentMarkdown, ...summary } = document;
+  void contentMarkdown;
+  return summary;
 }
 
 function toWikiDocumentRevisionSummary(
-  revision: ReturnType<typeof toWikiDocumentRevisionDomain>,
+  revision: WikiDocumentRevision,
 ): WikiDocumentRevisionSummary {
-  return {
-    documentId: revision.documentId,
-    organizationId: revision.organizationId,
-    revision: revision.revision,
-    editorUserId: revision.editorUserId,
-    createdAt: revision.createdAt,
-  };
+  const { contentMarkdown, ...summary } = revision;
+  void contentMarkdown;
+  return summary;
 }
 
-function toCurrentWikiDocumentRevision(
-  document: WikiDocument,
-): WikiDocumentRevision {
-  const isInitialRevision = document.revision === 1;
-  return {
-    documentId: document.id,
-    organizationId: document.organizationId,
-    revision: document.revision,
-    editorUserId: isInitialRevision
-      ? document.createdByUserId
-      : document.updatedByUserId,
-    contentMarkdown: document.contentMarkdown,
-    createdAt: isInitialRevision ? document.createdAt : document.updatedAt,
-  };
+async function ensureAndLockCollection(
+  transaction: WikiTransaction,
+  organizationId: string,
+) {
+  await transaction
+    .insert(wikiCollection)
+    .values({ organizationId })
+    .onConflictDoNothing({ target: wikiCollection.organizationId });
+  const collection = await lockCollectionForOrganization(
+    transaction,
+    organizationId,
+  );
+  if (!collection) {
+    throw new Error('위키 collection 생성 결과가 없습니다.');
+  }
+  return collection;
 }
 
-function databaseNow() {
-  return sql<Date>`clock_timestamp()`;
+async function lockCollectionForOrganization(
+  transaction: WikiTransaction,
+  organizationId: string,
+) {
+  const [collection] = await transaction
+    .select()
+    .from(wikiCollection)
+    .where(eq(wikiCollection.organizationId, organizationId))
+    .limit(1)
+    .for('update');
+  return collection ?? null;
 }
 
-function editLockExpiry() {
-  return sql<Date>`clock_timestamp() + (${WIKI_EDIT_LOCK_LEASE_SECONDS} * interval '1 second')`;
+async function assertParentExists(
+  transaction: WikiTransaction,
+  input: {
+    collectionId: string;
+    organizationId: string;
+    parentDocumentId: string | null;
+  },
+): Promise<void> {
+  if (input.parentDocumentId === null) {
+    return;
+  }
+  const [parent] = await transaction
+    .select({ id: wikiDocument.id })
+    .from(wikiDocument)
+    .where(
+      and(
+        eq(wikiDocument.collectionId, input.collectionId),
+        eq(wikiDocument.organizationId, input.organizationId),
+        eq(wikiDocument.id, input.parentDocumentId),
+      ),
+    )
+    .limit(1);
+  if (!parent) {
+    throw new WikiDocumentNotFoundError();
+  }
+}
+
+async function findDocumentForUpdate(
+  transaction: WikiTransaction,
+  input: {
+    collectionId: string;
+    organizationId: string;
+    documentId: string;
+  },
+) {
+  const [row] = await transaction
+    .select()
+    .from(wikiDocument)
+    .where(
+      and(
+        eq(wikiDocument.collectionId, input.collectionId),
+        eq(wikiDocument.organizationId, input.organizationId),
+        eq(wikiDocument.id, input.documentId),
+      ),
+    )
+    .limit(1)
+    .for('update');
+  return row ?? null;
+}
+
+async function assertDocumentMoveAllowed(
+  transaction: WikiTransaction,
+  input: {
+    collectionId: string;
+    organizationId: string;
+    documentId: string;
+    parentDocumentId: string | null;
+  },
+): Promise<void> {
+  let currentId = input.parentDocumentId;
+  const visited = new Set<string>();
+  while (currentId !== null) {
+    if (currentId === input.documentId || visited.has(currentId)) {
+      throw new WikiInvalidDocumentMoveError();
+    }
+    visited.add(currentId);
+    const [current] = await transaction
+      .select({ parentDocumentId: wikiDocument.parentDocumentId })
+      .from(wikiDocument)
+      .where(
+        and(
+          eq(wikiDocument.collectionId, input.collectionId),
+          eq(wikiDocument.organizationId, input.organizationId),
+          eq(wikiDocument.id, currentId),
+        ),
+      )
+      .limit(1);
+    if (!current) {
+      throw new WikiDocumentNotFoundError();
+    }
+    currentId = current.parentDocumentId;
+  }
+}
+
+async function allocateSiblingTitle(
+  transaction: WikiTransaction,
+  input: {
+    collectionId: string;
+    parentDocumentId: string | null;
+    requestedTitle: string;
+    excludedDocumentId?: string;
+  },
+): Promise<string> {
+  const conditions = [
+    eq(wikiDocument.collectionId, input.collectionId),
+    input.parentDocumentId === null
+      ? sql`${wikiDocument.parentDocumentId} is null`
+      : eq(wikiDocument.parentDocumentId, input.parentDocumentId),
+  ];
+  if (input.excludedDocumentId) {
+    conditions.push(ne(wikiDocument.id, input.excludedDocumentId));
+  }
+  const siblings = await transaction
+    .select({ title: wikiDocument.title })
+    .from(wikiDocument)
+    .where(and(...conditions));
+  return allocateWikiDocumentTitle(
+    input.requestedTitle,
+    new Set(siblings.map(({ title }) => title)),
+  );
+}
+
+function decodeWikiDocument(encodedState: Uint8Array): Y.Doc {
+  try {
+    const document = new Y.Doc();
+    Y.applyUpdate(document, encodedState);
+    document.getText('markdown');
+    return document;
+  } catch (error) {
+    throw new WikiCollaborationStateCorruptedError({ cause: error });
+  }
+}
+
+function buffersEqual(left: Uint8Array, right: Uint8Array): boolean {
+  return Buffer.from(left).equals(Buffer.from(right));
+}
+
+function groupCollaboratorsByRevision(
+  rows: readonly { revision: number; userId: string }[],
+): Map<number, string[]> {
+  const result = new Map<number, string[]>();
+  for (const row of rows) {
+    const collaborators = result.get(row.revision) ?? [];
+    collaborators.push(row.userId);
+    result.set(row.revision, collaborators);
+  }
+  return result;
+}
+
+function uniqueCollaborators(
+  collaboratorUserIds: readonly string[],
+  lastEditorUserId: string,
+): string[] {
+  const result: string[] = [];
+  const seen = new Set<string>();
+  for (const userId of [...collaboratorUserIds, lastEditorUserId]) {
+    if (!seen.has(userId)) {
+      seen.add(userId);
+      result.push(userId);
+    }
+  }
+  return result;
 }
 
 function toLikeContainsPattern(query: string): string {
   const escaped = query.replace(/[\\%_]/g, '\\$&');
   return `%${escaped}%`;
-}
-
-async function lockWikiHierarchy(
-  transaction: WikiTransaction,
-  organizationId: string,
-): Promise<void> {
-  await transaction.execute(
-    sql`select pg_advisory_xact_lock(hashtextextended(${`wiki-hierarchy:${organizationId}`}, 0))`,
-  );
-}
-
-async function assertFolderMoveAllowedInTransaction(
-  transaction: WikiTransaction,
-  input: {
-    organizationId: string;
-    folderId: string;
-    targetParentFolderId: string | null;
-  },
-): Promise<void> {
-  let currentFolderId = input.targetParentFolderId;
-  const visited = new Set<string>();
-
-  while (currentFolderId !== null) {
-    if (currentFolderId === input.folderId || visited.has(currentFolderId)) {
-      throw new WikiInvalidFolderMoveError();
-    }
-    visited.add(currentFolderId);
-
-    const [folder] = await transaction
-      .select({ parentFolderId: wikiEntry.parentFolderId })
-      .from(wikiEntry)
-      .where(
-        and(
-          eq(wikiEntry.organizationId, input.organizationId),
-          eq(wikiEntry.id, currentFolderId),
-          eq(wikiEntry.kind, 'folder'),
-        ),
-      )
-      .limit(1)
-      .for('update');
-
-    if (!folder) {
-      throw new WikiFolderNotFoundError();
-    }
-    currentFolderId = folder.parentFolderId;
-  }
-}
-
-async function createConflictCopy(input: {
-  transaction: WikiTransaction;
-  entry: typeof wikiEntry.$inferSelect;
-  organizationId: string;
-  contentMarkdown: string;
-  actorUserId: string;
-}) {
-  for (let attempt = 1; ; attempt += 1) {
-    const [entry] = await input.transaction
-      .insert(wikiEntry)
-      .values(
-        toWikiDocumentEntryInsert({
-          organizationId: input.organizationId,
-          folderId: input.entry.parentFolderId,
-          title: buildWikiEntryNameCandidate(input.entry.name, attempt),
-          actorUserId: input.actorUserId,
-          position: input.entry.position,
-        }),
-      )
-      .onConflictDoNothing({
-        target: [
-          wikiEntry.organizationId,
-          wikiEntry.parentFolderId,
-          wikiEntry.name,
-        ],
-      })
-      .returning();
-
-    if (!entry) {
-      continue;
-    }
-
-    const [document] = await input.transaction
-      .insert(wikiDocument)
-      .values(
-        toWikiDocumentInsert({
-          id: entry.id,
-          contentMarkdown: input.contentMarkdown,
-          actorUserId: input.actorUserId,
-        }),
-      )
-      .returning();
-
-    if (!document) {
-      throw new Error('위키 충돌 사본 생성 결과가 없습니다.');
-    }
-
-    await input.transaction.insert(wikiDocumentRevision).values(
-      toWikiDocumentRevisionInsert({
-        documentId: entry.id,
-        organizationId: input.organizationId,
-        revision: document.revision,
-        editorUserId: input.actorUserId,
-        contentMarkdown: document.contentMarkdown,
-        createdAt: entry.updatedAt,
-      }),
-    );
-
-    return toWikiDocumentDomain({ entry, document });
-  }
 }

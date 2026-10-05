@@ -6,18 +6,17 @@
  */
 import * as zod from 'zod';
 
-export const wikiSearchResultItemIdRegExp = new RegExp('^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$');
-export const wikiSearchResultItemParentFolderIdRegExp = new RegExp('^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$');
+export const wikiSearchResultItemDocumentIdRegExp = new RegExp('^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$');
+export const wikiSearchResultItemParentDocumentIdRegExp = new RegExp('^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$');
 
 
 
 
 export const WikiSearchResultItem = zod.object({
-  "kind": zod.enum(['folder', 'document']),
-  "id": zod.uuid().regex(wikiSearchResultItemIdRegExp),
-  "parentFolderId": zod.uuid().regex(wikiSearchResultItemParentFolderIdRegExp).nullable(),
-  "name": zod.string().min(1),
-  "matchedIn": zod.array(zod.enum(['name', 'content'])).min(1)
+  "documentId": zod.uuid().regex(wikiSearchResultItemDocumentIdRegExp),
+  "parentDocumentId": zod.uuid().regex(wikiSearchResultItemParentDocumentIdRegExp).nullable(),
+  "title": zod.string().min(1),
+  "matchedIn": zod.array(zod.enum(['title', 'content'])).min(1)
 });
 
 export type WikiSearchResultItem = zod.input<typeof WikiSearchResultItem>;

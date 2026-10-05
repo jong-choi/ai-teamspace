@@ -1,3 +1,5 @@
+import { Logger } from '@nestjs/common';
+
 import {
   OrganizationMemberNotFoundError,
   OrganizationNotFoundError,
@@ -7,6 +9,7 @@ import {
 } from '#server/organizations/domain/organization.error.js';
 import type { OrganizationMember } from '#server/organizations/domain/organization-member.js';
 import { OrganizationRoleSchema } from '#server/organizations/domain/organization-role.js';
+import { OrganizationPublicEventPublisher } from '#server/organizations/infrastructure/events/organization-public-event.provider.js';
 import {
   type OrganizationActorContext,
   OrganizationProvider,
@@ -24,6 +27,11 @@ class FakeOrganizationProvider extends OrganizationProvider {
   changeMemberRole = jest.fn<OrganizationProvider['changeMemberRole']>();
   removeMember = jest.fn<OrganizationProvider['removeMember']>();
   setActive = jest.fn<OrganizationProvider['setActive']>();
+}
+
+class FakeOrganizationPublicEventPublisher extends OrganizationPublicEventPublisher {
+  publishAuthorizationChanged =
+    jest.fn<OrganizationPublicEventPublisher['publishAuthorizationChanged']>();
 }
 
 const context: OrganizationActorContext = {
@@ -70,11 +78,17 @@ function access(role: OrganizationMember['role']) {
 
 describe('조직 서비스', () => {
   let provider: FakeOrganizationProvider;
+  let publicEventPublisher: FakeOrganizationPublicEventPublisher;
   let service: OrganizationsService;
 
   beforeEach(() => {
     provider = new FakeOrganizationProvider();
-    service = new OrganizationsService(provider);
+    publicEventPublisher = new FakeOrganizationPublicEventPublisher();
+    service = new OrganizationsService(provider, publicEventPublisher);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('stale active organization은 읽기 중 수정하지 않고 null로 반환한다', async () => {
@@ -104,6 +118,41 @@ describe('조직 서비스', () => {
       'organization-a',
       target,
       target.role,
+    );
+    expect(
+      publicEventPublisher.publishAuthorizationChanged,
+    ).toHaveBeenCalledWith({
+      organizationId: 'organization-a',
+      userId: target.userId,
+      reason: 'member-role-changed',
+    });
+  });
+
+  it('권한 변경이 완료된 뒤 event 발행이 실패해도 mutation 결과를 반환한다', async () => {
+    const target = member();
+    const updated = member({ role: OrganizationRoleSchema.enum.admin });
+    provider.getAccess.mockResolvedValue(
+      access(OrganizationRoleSchema.enum.owner),
+    );
+    provider.getMember.mockResolvedValue(target);
+    provider.changeMemberRole.mockResolvedValue(updated);
+    publicEventPublisher.publishAuthorizationChanged.mockRejectedValue(
+      new Error('queue unavailable'),
+    );
+    const logger = jest
+      .spyOn(Logger.prototype, 'error')
+      .mockImplementation(() => undefined);
+
+    await expect(
+      service.changeMemberRole(context, 'organization-a', target.id, {
+        role: OrganizationRoleSchema.enum.admin,
+      }),
+    ).resolves.toEqual(updated);
+    expect(logger).toHaveBeenCalledWith(
+      expect.stringContaining(
+        '조직 권한 invalidation event 발행에 실패했습니다',
+      ),
+      expect.any(Error),
     );
   });
 

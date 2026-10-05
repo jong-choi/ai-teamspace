@@ -5,12 +5,10 @@
  * OpenAPI spec version: 1.0
  */
 import * as zod from 'zod';
-import { WikiFolder } from './wikiFolder.zod';
-import { WikiTreeDocument } from './wikiTreeDocument.zod';
+import { WikiDocumentTreeNode } from './wikiDocumentTreeNode.zod';
 
 export const WikiTree = zod.object({
-  "folders": zod.array(WikiFolder),
-  "documents": zod.array(WikiTreeDocument)
+  "documents": zod.array(WikiDocumentTreeNode)
 });
 
 export type WikiTree = zod.input<typeof WikiTree>;

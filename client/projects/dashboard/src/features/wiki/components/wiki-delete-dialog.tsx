@@ -10,10 +10,12 @@ import {
   DialogTitle,
 } from '@repo/client/rnr/components/ui/dialog';
 import { Text } from '@repo/client/rnr/components/ui/text';
+import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 import type { WikiTreeTarget } from '@core/features/wiki/components/wiki-tree';
 import { useWikiMutations } from '@core/features/wiki/use-wiki-mutations';
 
 type WikiDeleteDialogProps = {
+  afterDelete?: () => Promise<void>;
   beforeDelete?: () => Promise<boolean>;
   onDeletedDocument: (documentId: string) => void;
   onOpenChange: (open: boolean) => void;
@@ -23,6 +25,7 @@ type WikiDeleteDialogProps = {
 };
 
 export function WikiDeleteDialog({
+  afterDelete,
   beforeDelete,
   onDeletedDocument,
   onOpenChange,
@@ -31,18 +34,23 @@ export function WikiDeleteDialog({
   target,
 }: WikiDeleteDialogProps) {
   const mutations = useWikiMutations(organizationId);
-  const label = target.kind === 'folder' ? target.item.name : target.item.title;
+  const { notifyError } = useDashboardPlatform();
 
   const submit = async () => {
     if (mutations.pending) return;
     if (beforeDelete && !(await beforeDelete())) return;
     try {
-      if (target.kind === 'folder') {
-        await mutations.deleteFolder(target.item.id);
-      } else {
-        await mutations.deleteDocument(target.item.id);
-        onDeletedDocument(target.item.id);
+      await mutations.deleteDocument(target.item.id);
+      try {
+        await afterDelete?.();
+      } catch {
+        notifyError({
+          id: 'wiki-local-delete-cleanup',
+          title: '삭제한 문서의 로컬 초안을 정리하지 못했습니다',
+          description: '앱을 다시 열면 로컬 저장소 정리를 다시 시도해 주세요.',
+        });
       }
+      onDeletedDocument(target.item.id);
       onOpenChange(false);
     } catch {
       // mutation error notification은 공용 hook에서 처리한다.
@@ -56,14 +64,10 @@ export function WikiDeleteDialog({
     >
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>
-            {target.kind === 'folder' ? '폴더' : '문서'} 삭제
-          </DialogTitle>
+          <DialogTitle>문서 삭제</DialogTitle>
           <DialogDescription>
-            “{label}”을 삭제합니다.
-            {target.kind === 'folder'
-              ? ' 하위 항목이 있는 폴더는 서버가 삭제를 거부합니다.'
-              : ' 삭제한 문서는 복구할 수 없습니다.'}
+            “{target.item.title}”을 삭제합니다. 하위 문서가 있으면 서버가 삭제를
+            거부합니다.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

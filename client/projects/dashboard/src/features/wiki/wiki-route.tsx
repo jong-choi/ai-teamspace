@@ -12,6 +12,7 @@ import {
   DashboardQueryBoundary,
   DashboardState,
 } from '@core/app/state/dashboard-query-state';
+import { useWikiCollaborationPlatform } from '@core/features/wiki/collaboration/wiki-collaboration-platform';
 import { WikiCreateDialog } from '@core/features/wiki/components/wiki-create-dialog';
 import { WikiDeleteDialog } from '@core/features/wiki/components/wiki-delete-dialog';
 import { WikiDocumentWorkspace } from '@core/features/wiki/components/wiki-document-workspace';
@@ -33,8 +34,7 @@ type WikiRouteProps = {
 };
 
 type CreateRequest = {
-  kind: 'folder' | 'document';
-  parentFolderId: string | null;
+  parentDocumentId: string | null;
 };
 
 export function WikiRoute({ documentId }: WikiRouteProps) {
@@ -112,8 +112,10 @@ function WikiWorkspace({
 }) {
   const router = useRouter();
   const navigation = useNavigation();
+  const { clearLocalStore } = useWikiCollaborationPlatform();
   const tree = useWikiTree(organizationId).data;
   const beforeNavigateRef = useRef<(() => Promise<boolean>) | null>(null);
+  const afterDeleteRef = useRef<(() => Promise<void>) | null>(null);
   const allowNextRemovalRef = useRef(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [createRequest, setCreateRequest] = useState<CreateRequest | null>(
@@ -169,6 +171,12 @@ function WikiWorkspace({
     },
     [],
   );
+  const registerAfterDelete = useCallback(
+    (handler: (() => Promise<void>) | null) => {
+      afterDeleteRef.current = handler;
+    },
+    [],
+  );
 
   useEffect(
     () =>
@@ -204,23 +212,17 @@ function WikiWorkspace({
             documentId={documentId}
             drawerOpen={drawerOpen}
             onCloseDrawer={() => setDrawerOpen(false)}
-            onCreateDocument={(folderId) =>
-              setCreateRequest({ kind: 'document', parentFolderId: folderId })
-            }
-            onCreateFolder={(parentFolderId) =>
-              setCreateRequest({ kind: 'folder', parentFolderId })
+            onCreateDocument={(parentDocumentId) =>
+              setCreateRequest({ parentDocumentId })
             }
             onDeleteItem={setDeleteTarget}
             onManageItem={setManageTarget}
-            onNavigateConflictCopy={(nextDocumentId) => {
-              beforeNavigateRef.current = null;
-              navigateDocument(nextDocumentId);
-            }}
             onNavigateDocument={(nextDocumentId) =>
               void selectDocument(nextDocumentId)
             }
             onOpenTree={() => setDrawerOpen(true)}
             onOpenWikiRoot={() => void openWikiRoot()}
+            onRegisterAfterDelete={registerAfterDelete}
             onRegisterBeforeNavigate={registerBeforeNavigate}
             organizationId={organizationId}
             tree={tree}
@@ -237,11 +239,8 @@ function WikiWorkspace({
             <WikiTree
               drawerOpen={drawerOpen}
               onCloseDrawer={() => setDrawerOpen(false)}
-              onCreateDocument={(folderId) =>
-                setCreateRequest({ kind: 'document', parentFolderId: folderId })
-              }
-              onCreateFolder={(parentFolderId) =>
-                setCreateRequest({ kind: 'folder', parentFolderId })
+              onCreateDocument={(parentDocumentId) =>
+                setCreateRequest({ parentDocumentId })
               }
               onDeleteItem={setDeleteTarget}
               onManageItem={setManageTarget}
@@ -273,20 +272,19 @@ function WikiWorkspace({
 
       {createRequest ? (
         <WikiCreateDialog
-          key={`${createRequest.kind}-${createRequest.parentFolderId ?? 'root'}`}
-          kind={createRequest.kind}
+          key={createRequest.parentDocumentId ?? 'root'}
           onCreatedDocument={(createdDocumentId) =>
             void selectDocument(createdDocumentId)
           }
           onOpenChange={(open) => !open && setCreateRequest(null)}
           open
           organizationId={organizationId}
-          parentFolderId={createRequest.parentFolderId}
+          parentDocumentId={createRequest.parentDocumentId}
         />
       ) : null}
       {manageTarget ? (
         <WikiManageDialog
-          key={`${manageTarget.kind}-${manageTarget.item.id}`}
+          key={manageTarget.item.id}
           onOpenChange={(open) => !open && setManageTarget(null)}
           open
           organizationId={organizationId}
@@ -296,13 +294,22 @@ function WikiWorkspace({
       ) : null}
       {deleteTarget ? (
         <WikiDeleteDialog
+          afterDelete={async () => {
+            if (deleteTarget.item.id === documentId && afterDeleteRef.current) {
+              await afterDeleteRef.current();
+              return;
+            }
+            await clearLocalStore({
+              organizationId,
+              documentId: deleteTarget.item.id,
+            });
+          }}
           beforeDelete={
-            deleteTarget.kind === 'document' &&
             deleteTarget.item.id === documentId
               ? async () => (await beforeNavigateRef.current?.()) ?? true
               : undefined
           }
-          key={`${deleteTarget.kind}-${deleteTarget.item.id}`}
+          key={deleteTarget.item.id}
           onDeletedDocument={(deletedDocumentId) => {
             if (deletedDocumentId !== documentId) return;
             beforeNavigateRef.current = null;

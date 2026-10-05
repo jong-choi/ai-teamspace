@@ -7,7 +7,11 @@
 import * as zod from 'zod';
 
 export const wikiDocumentIdRegExp = new RegExp('^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$');
-export const wikiDocumentFolderIdRegExp = new RegExp('^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$');
+export const wikiDocumentCollectionIdRegExp = new RegExp('^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$');
+export const wikiDocumentParentDocumentIdRegExp = new RegExp('^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$');
+
+export const wikiDocumentPositionMin = 0;
+export const wikiDocumentPositionMax = 9007199254740991;
 
 export const wikiDocumentRevisionMin = -2147483648;
 export const wikiDocumentRevisionMax = 2147483647;
@@ -18,9 +22,11 @@ export const wikiDocumentUpdatedAtRegExp = new RegExp('^(?:(?:\\d\\d[2468][048]|
 
 export const WikiDocument = zod.object({
   "id": zod.uuid().regex(wikiDocumentIdRegExp),
+  "collectionId": zod.uuid().regex(wikiDocumentCollectionIdRegExp),
   "organizationId": zod.string(),
-  "folderId": zod.uuid().regex(wikiDocumentFolderIdRegExp).nullable(),
+  "parentDocumentId": zod.uuid().regex(wikiDocumentParentDocumentIdRegExp).nullable(),
   "title": zod.string().min(1),
+  "position": zod.int().min(wikiDocumentPositionMin).max(wikiDocumentPositionMax),
   "contentMarkdown": zod.string(),
   "revision": zod.int().min(wikiDocumentRevisionMin).max(wikiDocumentRevisionMax),
   "createdByUserId": zod.string(),

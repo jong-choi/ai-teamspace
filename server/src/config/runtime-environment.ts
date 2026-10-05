@@ -30,6 +30,11 @@ const redisUrlSchema = urlWithProtocols(
   'Redis URL은 redis:// 또는 rediss:// 형식이어야 합니다.',
 );
 
+const webSocketUrlSchema = urlWithProtocols(
+  ['ws:', 'wss:'],
+  'COLLABORATION_PUBLIC_URL은 ws:// 또는 wss:// 형식이어야 합니다.',
+);
+
 export const databaseEnvironmentSchema = z.object({
   DATABASE_URL: databaseUrlSchema,
 });
@@ -52,11 +57,21 @@ export const cacheEnvironmentSchema = z.object({
   REDIS_CACHE_URL: redisUrlSchema,
 });
 
+export const collaborationEnvironmentSchema = z.object({
+  COLLABORATION_PORT: z.coerce.number().int().min(1).max(65_535).default(3002),
+  COLLABORATION_PUBLIC_URL: webSocketUrlSchema,
+  COLLABORATION_JWT_SECRET: z.string().min(32),
+  REDIS_COLLABORATION_URL: redisUrlSchema,
+});
+
 export type DatabaseEnvironment = z.infer<typeof databaseEnvironmentSchema>;
 export type AuthEnvironment = z.infer<typeof authEnvironmentSchema>;
 export type ApiEnvironment = z.infer<typeof apiEnvironmentSchema>;
 export type QueueEnvironment = z.infer<typeof queueEnvironmentSchema>;
 export type CacheEnvironment = z.infer<typeof cacheEnvironmentSchema>;
+export type CollaborationEnvironment = z.infer<
+  typeof collaborationEnvironmentSchema
+>;
 
 export function parseDatabaseEnvironment(
   environment: NodeJS.ProcessEnv = process.env,
@@ -86,4 +101,10 @@ export function parseCacheEnvironment(
   environment: NodeJS.ProcessEnv = process.env,
 ): CacheEnvironment {
   return cacheEnvironmentSchema.parse(environment);
+}
+
+export function parseCollaborationEnvironment(
+  environment: NodeJS.ProcessEnv = process.env,
+): CollaborationEnvironment {
+  return collaborationEnvironmentSchema.parse(environment);
 }

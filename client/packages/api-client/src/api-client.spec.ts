@@ -5,10 +5,12 @@ import {
   organizationsControllerGetActive,
   organizationsControllerRemoveMember,
 } from '@repo/client/api-client';
+import type { WikiTreeOutput } from '@repo/client/api-client/schemas';
 import {
   ChatMessage,
   OrganizationInvitationsControllerCreateBody,
   OrganizationInvitationsControllerListParams,
+  WikiTree,
 } from '@repo/client/api-client/schemas';
 
 import { jest } from '@jest/globals';
@@ -137,5 +139,44 @@ describe('생성된 조직 API 계약', () => {
         },
       }).success,
     ).toBe(true);
+  });
+
+  it('위키 tree generated Zod는 재귀 document 타입을 unknown 없이 보존한다', () => {
+    const timestamp = '2026-10-05T00:00:00.000Z';
+    const tree: WikiTreeOutput = WikiTree.parse({
+      documents: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          collectionId: '22222222-2222-4222-8222-222222222222',
+          organizationId: 'organization',
+          parentDocumentId: null,
+          title: '상위 문서',
+          position: 0,
+          revision: 1,
+          createdByUserId: 'creator',
+          updatedByUserId: 'creator',
+          createdAt: timestamp,
+          updatedAt: timestamp,
+          children: [
+            {
+              id: '33333333-3333-4333-8333-333333333333',
+              collectionId: '22222222-2222-4222-8222-222222222222',
+              organizationId: 'organization',
+              parentDocumentId: '11111111-1111-4111-8111-111111111111',
+              title: '하위 문서',
+              position: 0,
+              revision: 1,
+              createdByUserId: 'creator',
+              updatedByUserId: 'creator',
+              createdAt: timestamp,
+              updatedAt: timestamp,
+              children: [],
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(tree.documents[0]?.children[0]?.title).toBe('하위 문서');
   });
 });

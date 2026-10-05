@@ -15,51 +15,39 @@ import { Text } from '@repo/client/rnr/components/ui/text';
 import { useWikiMutations } from '@core/features/wiki/use-wiki-mutations';
 
 type WikiCreateDialogProps = {
-  kind: 'folder' | 'document';
   onCreatedDocument: (documentId: string) => void;
   onOpenChange: (open: boolean) => void;
   open: boolean;
   organizationId: string;
-  parentFolderId: string | null;
+  parentDocumentId: string | null;
 };
 
 export function WikiCreateDialog({
-  kind,
   onCreatedDocument,
   onOpenChange,
   open,
   organizationId,
-  parentFolderId,
+  parentDocumentId,
 }: WikiCreateDialogProps) {
-  const [name, setName] = useState('');
+  const [title, setTitle] = useState('');
   const mutations = useWikiMutations(organizationId);
-  const trimmedName = name.trim();
+  const trimmedTitle = title.trim();
 
   const close = () => {
     if (mutations.pending) return;
-    setName('');
+    setTitle('');
     onOpenChange(false);
   };
 
   const submit = async () => {
-    if (!trimmedName || mutations.pending) return;
+    if (!trimmedTitle || mutations.pending) return;
     try {
-      if (kind === 'folder') {
-        await mutations.createFolder({
-          name: trimmedName,
-          parentFolderId,
-        });
-        setName('');
-        onOpenChange(false);
-        return;
-      }
-
       const document = await mutations.createDocument({
-        title: trimmedName,
-        folderId: parentFolderId,
+        title: trimmedTitle,
+        parentDocumentId,
         contentMarkdown: '',
       });
-      setName('');
+      setTitle('');
       onOpenChange(false);
       onCreatedDocument(document.id);
     } catch {
@@ -67,27 +55,26 @@ export function WikiCreateDialog({
     }
   };
 
-  const label = kind === 'folder' ? '폴더' : '문서';
   return (
     <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && close()}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>새 {label}</DialogTitle>
+          <DialogTitle>새 문서</DialogTitle>
           <DialogDescription>
-            {parentFolderId
-              ? `선택한 폴더 아래에 새 ${label}를 만듭니다.`
-              : `위키 루트에 새 ${label}를 만듭니다.`}
+            {parentDocumentId
+              ? '선택한 문서 아래에 새 하위 문서를 만듭니다.'
+              : '위키 루트에 새 문서를 만듭니다.'}
           </DialogDescription>
         </DialogHeader>
         <View className="gap-1.5">
-          <Text className="text-xs font-medium">{label} 이름</Text>
+          <Text className="text-xs font-medium">문서 이름</Text>
           <Input
             autoFocus
             editable={!mutations.pending}
-            onChangeText={setName}
+            onChangeText={setTitle}
             onSubmitEditing={() => void submit()}
-            placeholder={kind === 'folder' ? '예: 제품' : '예: API 설계'}
-            value={name}
+            placeholder="예: API 설계"
+            value={title}
           />
           <Text className="text-[10px] leading-4 text-muted-foreground">
             같은 위치에 동일한 이름이 있으면 서버가 (01), (02) suffix를
@@ -103,7 +90,7 @@ export function WikiCreateDialog({
             <Text>취소</Text>
           </Button>
           <Button
-            disabled={!trimmedName || mutations.pending}
+            disabled={!trimmedTitle || mutations.pending}
             onPress={() => void submit()}
           >
             {mutations.pending ? (

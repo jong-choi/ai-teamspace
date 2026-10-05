@@ -2,6 +2,7 @@ import {
   parseApiEnvironment,
   parseAuthEnvironment,
   parseCacheEnvironment,
+  parseCollaborationEnvironment,
   parseDatabaseEnvironment,
   parseQueueEnvironment,
 } from '#server/config/runtime-environment.js';
@@ -64,6 +65,30 @@ describe('런타임 환경 변수 검증', () => {
 
     expect(() =>
       parseCacheEnvironment({ REDIS_CACHE_URL: 'http://localhost:6381' }),
+    ).toThrow();
+  });
+
+  it('공동편집은 전용 Redis와 ws/wss public URL, 충분히 긴 secret을 요구한다', () => {
+    expect(
+      parseCollaborationEnvironment({
+        COLLABORATION_PORT: '4102',
+        COLLABORATION_PUBLIC_URL: 'wss://collaboration.example.com',
+        COLLABORATION_JWT_SECRET: 'c'.repeat(32),
+        REDIS_COLLABORATION_URL: 'rediss://collaboration.example.com:6382/2',
+      }),
+    ).toEqual({
+      COLLABORATION_PORT: 4102,
+      COLLABORATION_PUBLIC_URL: 'wss://collaboration.example.com',
+      COLLABORATION_JWT_SECRET: 'c'.repeat(32),
+      REDIS_COLLABORATION_URL: 'rediss://collaboration.example.com:6382/2',
+    });
+
+    expect(() =>
+      parseCollaborationEnvironment({
+        COLLABORATION_PUBLIC_URL: 'https://collaboration.example.com',
+        COLLABORATION_JWT_SECRET: 'short',
+        REDIS_COLLABORATION_URL: 'redis://localhost:6382',
+      }),
     ).toThrow();
   });
 });

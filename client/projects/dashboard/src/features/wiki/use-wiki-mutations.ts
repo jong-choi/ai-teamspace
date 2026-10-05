@@ -4,17 +4,12 @@ import {
   getWikiControllerGetDocumentQueryKey,
   getWikiControllerGetTreeQueryKey,
   useWikiControllerCreateDocument,
-  useWikiControllerCreateFolder,
   useWikiControllerDeleteDocument,
-  useWikiControllerDeleteFolder,
   useWikiControllerUpdateDocument,
-  useWikiControllerUpdateFolder,
 } from '@repo/client/api-client';
 import type {
   CreateWikiDocument,
-  CreateWikiFolder,
   UpdateWikiDocument,
-  UpdateWikiFolder,
 } from '@repo/client/api-client/schemas';
 import { useMutationErrorNotification } from '@core/app/error/use-mutation-error-notification';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
@@ -29,19 +24,10 @@ export function useWikiMutations(organizationId: string) {
     title: '위키를 변경하지 못했습니다',
     fallback: '잠시 후 다시 시도해 주세요.',
   });
-  const createFolderMutation = useWikiControllerCreateFolder({
-    mutation: { onError: notifyError },
-  });
   const createDocumentMutation = useWikiControllerCreateDocument({
     mutation: { onError: notifyError },
   });
-  const updateFolderMutation = useWikiControllerUpdateFolder({
-    mutation: { onError: notifyError },
-  });
   const updateDocumentMutation = useWikiControllerUpdateDocument({
-    mutation: { onError: notifyError },
-  });
-  const deleteFolderMutation = useWikiControllerDeleteFolder({
     mutation: { onError: notifyError },
   });
   const deleteDocumentMutation = useWikiControllerDeleteDocument({
@@ -69,24 +55,9 @@ export function useWikiMutations(organizationId: string) {
 
   return {
     pending:
-      createFolderMutation.isPending ||
       createDocumentMutation.isPending ||
-      updateFolderMutation.isPending ||
       updateDocumentMutation.isPending ||
-      deleteFolderMutation.isPending ||
       deleteDocumentMutation.isPending,
-    createFolder: async (data: CreateWikiFolder) => {
-      const folder = await createFolderMutation.mutateAsync({
-        organizationId,
-        data,
-      });
-      await invalidateTree();
-      notifySuccess({
-        title: '폴더를 만들었습니다',
-        description: folder.name,
-      });
-      return folder;
-    },
     createDocument: async (data: CreateWikiDocument) => {
       const document = await createDocumentMutation.mutateAsync({
         organizationId,
@@ -98,19 +69,6 @@ export function useWikiMutations(organizationId: string) {
         description: document.title,
       });
       return document;
-    },
-    updateFolder: async (folderId: string, data: UpdateWikiFolder) => {
-      const folder = await updateFolderMutation.mutateAsync({
-        organizationId,
-        folderId,
-        data,
-      });
-      await invalidateTree();
-      notifySuccess({
-        title: '폴더를 변경했습니다',
-        description: folder.name,
-      });
-      return folder;
     },
     updateDocument: async (documentId: string, data: UpdateWikiDocument) => {
       const document = await updateDocumentMutation.mutateAsync({
@@ -124,11 +82,6 @@ export function useWikiMutations(organizationId: string) {
         description: document.title,
       });
       return document;
-    },
-    deleteFolder: async (folderId: string) => {
-      await deleteFolderMutation.mutateAsync({ organizationId, folderId });
-      await invalidateTree();
-      notifySuccess({ title: '폴더를 삭제했습니다' });
     },
     deleteDocument: async (documentId: string) => {
       await deleteDocumentMutation.mutateAsync({ organizationId, documentId });

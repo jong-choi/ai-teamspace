@@ -1,79 +1,80 @@
 import type {
-  WikiFolder,
-  WikiTree,
-  WikiTreeDocument,
+  WikiDocumentTreeNode,
+  WikiTreeOutput as WikiTree,
 } from '@repo/client/api-client/schemas';
 
 export type WikiBreadcrumbSegment =
   | { id: 'wiki'; kind: 'root'; label: '위키' }
-  | { id: string; kind: 'folder'; label: string }
   | { id: string; kind: 'document'; label: string };
 
-export type WikiTreeChildren = {
-  folders: WikiFolder[];
-  documents: WikiTreeDocument[];
-};
-
-export function getWikiTreeChildren(
-  tree: WikiTree,
-  parentFolderId: string | null,
-): WikiTreeChildren {
-  return {
-    folders: tree.folders
-      .filter((folder) => folder.parentFolderId === parentFolderId)
-      .sort(compareByPositionThenName),
-    documents: tree.documents
-      .filter((document) => document.folderId === parentFolderId)
-      .sort(compareByTitle),
+export function flattenWikiDocuments(tree: WikiTree): WikiDocumentTreeNode[] {
+  const result: WikiDocumentTreeNode[] = [];
+  const visit = (documents: readonly WikiDocumentTreeNode[]) => {
+    for (const document of documents) {
+      result.push(document);
+      visit(document.children);
+    }
   };
+  visit(tree.documents);
+  return result;
 }
 
-export function getWikiFolderAncestors(
+export function findWikiDocumentNode(
   tree: WikiTree,
-  folderId: string | null,
-): WikiFolder[] {
-  if (folderId === null) return [];
+  documentId: string,
+): WikiDocumentTreeNode | null {
+  return flattenWikiDocuments(tree).find(({ id }) => id === documentId) ?? null;
+}
 
-  const foldersById = new Map(
-    tree.folders.map((folder) => [folder.id, folder]),
+export function getWikiDocumentAncestors(
+  tree: WikiTree,
+  documentId: string,
+): WikiDocumentTreeNode[] {
+  const documents = flattenWikiDocuments(tree);
+  const documentsById = new Map(
+    documents.map((document) => [document.id, document]),
   );
-  const ancestors: WikiFolder[] = [];
+  const document = documentsById.get(documentId);
+  if (!document) return [];
+
+  const ancestors: WikiDocumentTreeNode[] = [];
   const visited = new Set<string>();
-  let currentFolderId: string | null = folderId;
+  let parentDocumentId = document.parentDocumentId;
 
-  while (currentFolderId !== null) {
-    if (visited.has(currentFolderId)) break;
-    visited.add(currentFolderId);
-
-    const folder = foldersById.get(currentFolderId);
-    if (!folder) break;
-    ancestors.push(folder);
-    currentFolderId = folder.parentFolderId;
+  while (parentDocumentId !== null) {
+    if (visited.has(parentDocumentId)) break;
+    visited.add(parentDocumentId);
+    const parent = documentsById.get(parentDocumentId);
+    if (!parent) break;
+    ancestors.push(parent);
+    parentDocumentId = parent.parentDocumentId;
   }
 
   return ancestors.reverse();
 }
 
-export function getWikiFolderPathLabel(
+export function getWikiDocumentPathLabel(
   tree: WikiTree,
-  folderId: string,
+  documentId: string,
 ): string {
-  const ancestors = getWikiFolderAncestors(tree, folderId);
-  return ancestors.length > 0
-    ? ancestors.map((folder) => folder.name).join(' / ')
-    : '위키 루트';
+  const document = findWikiDocumentNode(tree, documentId);
+  if (!document) return '위키 루트';
+  return [
+    ...getWikiDocumentAncestors(tree, documentId).map(({ title }) => title),
+    document.title,
+  ].join(' / ');
 }
 
 export function getWikiDocumentBreadcrumb(
   tree: WikiTree,
-  document: Pick<WikiTreeDocument, 'id' | 'folderId' | 'title'>,
+  document: Pick<WikiDocumentTreeNode, 'id' | 'title'>,
 ): WikiBreadcrumbSegment[] {
   return [
     { id: 'wiki', kind: 'root', label: '위키' },
-    ...getWikiFolderAncestors(tree, document.folderId).map((folder) => ({
-      id: folder.id,
-      kind: 'folder' as const,
-      label: folder.name,
+    ...getWikiDocumentAncestors(tree, document.id).map((ancestor) => ({
+      id: ancestor.id,
+      kind: 'document' as const,
+      label: ancestor.title,
     })),
     { id: document.id, kind: 'document', label: document.title },
   ];
@@ -84,47 +85,43 @@ export function getWikiExpandedAncestorIds(
   documentId?: string,
 ): string[] {
   if (!documentId) return [];
-  const document = tree.documents.find((item) => item.id === documentId);
-  if (!document) return [];
-  return getWikiFolderAncestors(tree, document.folderId).map(
-    (folder) => folder.id,
-  );
+  return getWikiDocumentAncestors(tree, documentId).map(({ id }) => id);
 }
 
-export function getWikiFolderDescendantIds(
+export function getWikiDocumentDescendantIds(
   tree: WikiTree,
-  folderId: string,
+  documentId: string,
 ): Set<string> {
   const result = new Set<string>();
-  const queue = [folderId];
+  const document = findWikiDocumentNode(tree, documentId);
+  if (!document) return result;
 
+  const queue = [...document.children];
   while (queue.length > 0) {
-    const parentId = queue.shift();
-    if (!parentId) continue;
-
-    for (const folder of tree.folders) {
-      if (folder.parentFolderId !== parentId || result.has(folder.id)) continue;
-      result.add(folder.id);
-      queue.push(folder.id);
-    }
+    const child = queue.shift();
+    if (!child || result.has(child.id)) continue;
+    result.add(child.id);
+    queue.push(...child.children);
   }
-
   return result;
 }
 
-function compareByPositionThenName(
-  left: WikiFolder,
-  right: WikiFolder,
-): number {
-  if (left.position !== right.position) return left.position - right.position;
-  const byName = left.name.localeCompare(right.name, 'ko');
-  return byName === 0 ? left.id.localeCompare(right.id) : byName;
+export function getWikiTreeChildren(
+  tree: WikiTree,
+  parentDocumentId: string | null,
+): WikiDocumentTreeNode[] {
+  if (parentDocumentId === null) {
+    return [...tree.documents].sort(compareWikiDocuments);
+  }
+  const parent = findWikiDocumentNode(tree, parentDocumentId);
+  return parent ? [...parent.children].sort(compareWikiDocuments) : [];
 }
 
-function compareByTitle(
-  left: WikiTreeDocument,
-  right: WikiTreeDocument,
+function compareWikiDocuments(
+  left: WikiDocumentTreeNode,
+  right: WikiDocumentTreeNode,
 ): number {
+  if (left.position !== right.position) return left.position - right.position;
   const byTitle = left.title.localeCompare(right.title, 'ko');
   return byTitle === 0 ? left.id.localeCompare(right.id) : byTitle;
 }

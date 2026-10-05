@@ -126,11 +126,19 @@ describe('조직과 멤버 E2E', () => {
       document.paths['/organizations/{organizationId}/members']?.get;
 
     expect(createOperation?.requestBody).toBeDefined();
-    expect(createOperation?.responses['201']).toBeDefined();
-    expect(JSON.stringify(createOperation?.requestBody)).toContain('"slug"');
-    expect(JSON.stringify(createOperation?.responses['201'])).toContain(
-      '"organization"',
+    expect(createOperation?.responses['201']).toEqual(
+      expect.objectContaining({
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/OrganizationAccess' },
+          },
+        },
+      }),
     );
+    expect(JSON.stringify(createOperation?.requestBody)).toContain('"slug"');
+    expect(
+      JSON.stringify(document.components?.schemas?.OrganizationAccess),
+    ).toContain('"organization"');
     expect(JSON.stringify(listMembersOperation?.parameters)).toContain(
       '"limit"',
     );
@@ -140,9 +148,9 @@ describe('조직과 멤버 E2E', () => {
     expect(JSON.stringify(listMembersOperation?.parameters)).toContain(
       '"role"',
     );
-    expect(JSON.stringify(listMembersOperation?.responses['200'])).toContain(
-      '"items"',
-    );
+    expect(
+      JSON.stringify(document.components?.schemas?.OrganizationMemberList),
+    ).toContain('"items"');
   });
 
   it('raw Better Auth Organization HTTP facade는 막고 programmatic API는 유지한다', async () => {

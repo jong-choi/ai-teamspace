@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useNavigation, useRouter } from 'expo-router';
 
 import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
@@ -14,7 +14,7 @@ import {
 } from '@core/app/state/dashboard-query-state';
 import { WikiCreateDialog } from '@core/features/wiki/components/wiki-create-dialog';
 import { WikiDeleteDialog } from '@core/features/wiki/components/wiki-delete-dialog';
-import { WikiDocumentViewer } from '@core/features/wiki/components/wiki-document-viewer';
+import { WikiDocumentWorkspace } from '@core/features/wiki/components/wiki-document-workspace';
 import { WikiHeader } from '@core/features/wiki/components/wiki-header';
 import { WikiManageDialog } from '@core/features/wiki/components/wiki-manage-dialog';
 import {
@@ -23,7 +23,6 @@ import {
 } from '@core/features/wiki/components/wiki-tree';
 import {
   useActiveOrganization,
-  useWikiDocument,
   useWikiTree,
 } from '@core/features/wiki/wiki-query';
 
@@ -112,14 +111,16 @@ function WikiWorkspace({
   organizationId: string;
 }) {
   const router = useRouter();
+  const navigation = useNavigation();
   const tree = useWikiTree(organizationId).data;
+  const beforeNavigateRef = useRef<(() => Promise<boolean>) | null>(null);
+  const allowNextRemovalRef = useRef(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [createRequest, setCreateRequest] = useState<CreateRequest | null>(
     null,
   );
   const [manageTarget, setManageTarget] = useState<WikiTreeTarget | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<WikiTreeTarget | null>(null);
-  const activeDocument = tree.documents.find((item) => item.id === documentId);
 
   useEffect(() => {
     if (documentId || tree.documents.length === 0) return;
@@ -129,11 +130,7 @@ function WikiWorkspace({
     });
   }, [documentId, router, tree.documents]);
 
-  const openWikiRoot = useCallback(() => {
-    setDrawerOpen(false);
-    router.replace('/wiki');
-  }, [router]);
-  const selectDocument = useCallback(
+  const navigateDocument = useCallback(
     (nextDocumentId: string) => {
       setDrawerOpen(false);
       router.push({
@@ -144,65 +141,143 @@ function WikiWorkspace({
     [router],
   );
 
+  const selectDocument = useCallback(
+    async (nextDocumentId: string) => {
+      if (nextDocumentId === documentId) {
+        setDrawerOpen(false);
+        return;
+      }
+      const canNavigate = (await beforeNavigateRef.current?.()) ?? true;
+      if (!canNavigate) return;
+      beforeNavigateRef.current = null;
+      navigateDocument(nextDocumentId);
+    },
+    [documentId, navigateDocument],
+  );
+
+  const openWikiRoot = useCallback(async () => {
+    const canNavigate = (await beforeNavigateRef.current?.()) ?? true;
+    if (!canNavigate) return;
+    beforeNavigateRef.current = null;
+    setDrawerOpen(false);
+    router.replace('/wiki');
+  }, [router]);
+
+  const registerBeforeNavigate = useCallback(
+    (handler: (() => Promise<boolean>) | null) => {
+      beforeNavigateRef.current = handler;
+    },
+    [],
+  );
+
+  useEffect(
+    () =>
+      navigation.addListener('beforeRemove', (event) => {
+        if (allowNextRemovalRef.current) {
+          allowNextRemovalRef.current = false;
+          return;
+        }
+
+        const beforeNavigate = beforeNavigateRef.current;
+        if (!beforeNavigate) return;
+
+        event.preventDefault();
+        void beforeNavigate().then((canNavigate) => {
+          if (!canNavigate) return;
+          allowNextRemovalRef.current = true;
+          navigation.dispatch(event.data.action);
+        });
+      }),
+    [navigation],
+  );
+
   return (
     <View className="relative min-h-0 flex-1 overflow-hidden bg-background">
-      <WikiHeader
-        activeDocument={activeDocument}
-        onOpenTree={() => setDrawerOpen(true)}
-        onOpenWikiRoot={openWikiRoot}
-        tree={tree}
-      />
-      <View className="relative min-h-0 flex-1 flex-row overflow-hidden">
-        <WikiTree
-          activeDocumentId={documentId}
-          drawerOpen={drawerOpen}
-          onCloseDrawer={() => setDrawerOpen(false)}
-          onCreateDocument={(folderId) =>
-            setCreateRequest({ kind: 'document', parentFolderId: folderId })
-          }
-          onCreateFolder={(parentFolderId) =>
-            setCreateRequest({ kind: 'folder', parentFolderId })
-          }
-          onDeleteItem={setDeleteTarget}
-          onManageItem={setManageTarget}
-          onSelectDocument={selectDocument}
-          tree={tree}
-        />
+      {documentId ? (
+        <DashboardQueryBoundary
+          fallback={<DashboardLoading label="문서를 불러오는 중..." />}
+          resetKeys={[organizationId, documentId]}
+          title="문서를 불러오지 못했습니다"
+        >
+          <WikiDocumentWorkspace
+            key={documentId}
+            documentId={documentId}
+            drawerOpen={drawerOpen}
+            onCloseDrawer={() => setDrawerOpen(false)}
+            onCreateDocument={(folderId) =>
+              setCreateRequest({ kind: 'document', parentFolderId: folderId })
+            }
+            onCreateFolder={(parentFolderId) =>
+              setCreateRequest({ kind: 'folder', parentFolderId })
+            }
+            onDeleteItem={setDeleteTarget}
+            onManageItem={setManageTarget}
+            onNavigateConflictCopy={(nextDocumentId) => {
+              beforeNavigateRef.current = null;
+              navigateDocument(nextDocumentId);
+            }}
+            onNavigateDocument={(nextDocumentId) =>
+              void selectDocument(nextDocumentId)
+            }
+            onOpenTree={() => setDrawerOpen(true)}
+            onOpenWikiRoot={() => void openWikiRoot()}
+            onRegisterBeforeNavigate={registerBeforeNavigate}
+            organizationId={organizationId}
+            tree={tree}
+          />
+        </DashboardQueryBoundary>
+      ) : (
+        <>
+          <WikiHeader
+            onOpenTree={() => setDrawerOpen(true)}
+            onOpenWikiRoot={() => void openWikiRoot()}
+            tree={tree}
+          />
+          <View className="relative min-h-0 flex-1 flex-row overflow-hidden">
+            <WikiTree
+              drawerOpen={drawerOpen}
+              onCloseDrawer={() => setDrawerOpen(false)}
+              onCreateDocument={(folderId) =>
+                setCreateRequest({ kind: 'document', parentFolderId: folderId })
+              }
+              onCreateFolder={(parentFolderId) =>
+                setCreateRequest({ kind: 'folder', parentFolderId })
+              }
+              onDeleteItem={setDeleteTarget}
+              onManageItem={setManageTarget}
+              onSelectDocument={(nextDocumentId) =>
+                void selectDocument(nextDocumentId)
+              }
+              tree={tree}
+            />
 
-        <Pressable
-          accessibilityLabel="위키 탐색기 닫기"
-          className={cn(
-            'absolute inset-0 z-20 bg-zinc-950/50 md:hidden',
-            drawerOpen ? 'flex' : 'hidden',
-          )}
-          onPress={() => setDrawerOpen(false)}
-        />
+            <Pressable
+              accessibilityLabel="위키 탐색기 닫기"
+              className={cn(
+                'absolute inset-0 z-20 bg-zinc-950/50 md:hidden',
+                drawerOpen ? 'flex' : 'hidden',
+              )}
+              onPress={() => setDrawerOpen(false)}
+            />
 
-        <View className="min-h-0 min-w-0 flex-1 bg-background">
-          {documentId ? (
-            <DashboardQueryBoundary
-              fallback={<DashboardLoading label="문서를 불러오는 중..." />}
-              resetKeys={[organizationId, documentId]}
-              title="문서를 불러오지 못했습니다"
-            >
-              <WikiDocumentPane
-                documentId={documentId}
-                organizationId={organizationId}
-              />
-            </DashboardQueryBoundary>
-          ) : tree.documents.length === 0 ? (
-            <WikiLanding />
-          ) : (
-            <DashboardLoading label="첫 위키 문서를 여는 중..." />
-          )}
-        </View>
-      </View>
+            <View className="min-h-0 min-w-0 flex-1 bg-background">
+              {tree.documents.length === 0 ? (
+                <WikiLanding />
+              ) : (
+                <DashboardLoading label="첫 위키 문서를 여는 중..." />
+              )}
+            </View>
+          </View>
+        </>
+      )}
 
       {createRequest ? (
         <WikiCreateDialog
           key={`${createRequest.kind}-${createRequest.parentFolderId ?? 'root'}`}
           kind={createRequest.kind}
-          onCreatedDocument={selectDocument}
+          onCreatedDocument={(createdDocumentId) =>
+            void selectDocument(createdDocumentId)
+          }
           onOpenChange={(open) => !open && setCreateRequest(null)}
           open
           organizationId={organizationId}
@@ -221,9 +296,18 @@ function WikiWorkspace({
       ) : null}
       {deleteTarget ? (
         <WikiDeleteDialog
+          beforeDelete={
+            deleteTarget.kind === 'document' &&
+            deleteTarget.item.id === documentId
+              ? async () => (await beforeNavigateRef.current?.()) ?? true
+              : undefined
+          }
           key={`${deleteTarget.kind}-${deleteTarget.item.id}`}
           onDeletedDocument={(deletedDocumentId) => {
-            if (deletedDocumentId === documentId) openWikiRoot();
+            if (deletedDocumentId !== documentId) return;
+            beforeNavigateRef.current = null;
+            setDrawerOpen(false);
+            router.replace('/wiki');
           }}
           onOpenChange={(open) => !open && setDeleteTarget(null)}
           open
@@ -233,17 +317,6 @@ function WikiWorkspace({
       ) : null}
     </View>
   );
-}
-
-function WikiDocumentPane({
-  documentId,
-  organizationId,
-}: {
-  documentId: string;
-  organizationId: string;
-}) {
-  const document = useWikiDocument(organizationId, documentId).data;
-  return <WikiDocumentViewer document={document} />;
 }
 
 function WikiLanding() {

@@ -4,40 +4,61 @@ import Markdown from 'react-native-markdown-display';
 
 import type { WikiDocument } from '@repo/client/api-client/schemas';
 import { Text } from '@repo/client/rnr/components/ui/text';
+import { getWikiMarkdownPalette } from '@core/features/wiki/wiki-markdown-theme';
 
 import { useColorScheme } from 'nativewind';
 
 export function WikiDocumentViewer({ document }: { document: WikiDocument }) {
+  return <WikiMarkdownViewer contentMarkdown={document.contentMarkdown} />;
+}
+
+export function WikiMarkdownViewer({
+  contentMarkdown,
+  compact = false,
+}: {
+  contentMarkdown: string;
+  compact?: boolean;
+}) {
+  return (
+    <ScrollView
+      className="min-h-0 flex-1 bg-background"
+      contentContainerClassName={
+        compact ? 'w-full self-center p-6' : 'w-full max-w-4xl self-center p-8'
+      }
+      showsVerticalScrollIndicator={false}
+    >
+      <WikiMarkdownContent contentMarkdown={contentMarkdown} />
+    </ScrollView>
+  );
+}
+
+export function WikiMarkdownContent({
+  contentMarkdown,
+}: {
+  contentMarkdown: string;
+}) {
   const { colorScheme } = useColorScheme();
   const markdownStyles = useMemo(
     () => createMarkdownStyles(colorScheme === 'dark'),
     [colorScheme],
   );
 
-  return (
-    <ScrollView
-      className="min-h-0 flex-1 bg-background"
-      contentContainerClassName="w-full max-w-4xl self-center p-8"
-      showsVerticalScrollIndicator={false}
-    >
-      {document.contentMarkdown.trim() ? (
-        <Markdown style={markdownStyles}>{document.contentMarkdown}</Markdown>
-      ) : (
-        <View className="rounded-lg border border-dashed border-border px-5 py-8">
-          <Text className="text-center text-xs leading-5 text-muted-foreground">
-            아직 내용이 없는 문서입니다.
-          </Text>
-        </View>
-      )}
-    </ScrollView>
-  );
+  if (!contentMarkdown.trim()) {
+    return (
+      <View className="rounded-lg border border-dashed border-border px-5 py-8">
+        <Text className="text-center text-xs leading-5 text-muted-foreground">
+          아직 내용이 없는 문서입니다.
+        </Text>
+      </View>
+    );
+  }
+
+  return <Markdown style={markdownStyles}>{contentMarkdown}</Markdown>;
 }
 
 function createMarkdownStyles(dark: boolean) {
-  const foreground = dark ? '#f4f4f5' : '#18181b';
-  const muted = dark ? '#a1a1aa' : '#71717a';
-  const border = dark ? '#27272a' : '#e4e4e7';
-  const surface = dark ? '#18181b' : '#f4f4f5';
+  const { border, foreground, link, muted, surface } =
+    getWikiMarkdownPalette(dark);
 
   return StyleSheet.create({
     body: {
@@ -82,7 +103,7 @@ function createMarkdownStyles(dark: boolean) {
       color: foreground,
     },
     link: {
-      color: dark ? '#d4d4d8' : '#3f3f46',
+      color: link,
       textDecorationLine: 'underline',
     },
     bullet_list: {

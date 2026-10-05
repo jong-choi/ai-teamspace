@@ -14,6 +14,7 @@ import type { WikiTreeTarget } from '@core/features/wiki/components/wiki-tree';
 import { useWikiMutations } from '@core/features/wiki/use-wiki-mutations';
 
 type WikiDeleteDialogProps = {
+  beforeDelete?: () => Promise<boolean>;
   onDeletedDocument: (documentId: string) => void;
   onOpenChange: (open: boolean) => void;
   open: boolean;
@@ -22,6 +23,7 @@ type WikiDeleteDialogProps = {
 };
 
 export function WikiDeleteDialog({
+  beforeDelete,
   onDeletedDocument,
   onOpenChange,
   open,
@@ -33,6 +35,7 @@ export function WikiDeleteDialog({
 
   const submit = async () => {
     if (mutations.pending) return;
+    if (beforeDelete && !(await beforeDelete())) return;
     try {
       if (target.kind === 'folder') {
         await mutations.deleteFolder(target.item.id);

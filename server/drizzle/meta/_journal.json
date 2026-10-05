@@ -78,6 +78,13 @@
       "when": 1791229352684,
       "tag": "0010_sweet_galactus",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791238365581,
+      "tag": "0011_kanban_part_1",
+      "breakpoints": true
     }
   ]
 }

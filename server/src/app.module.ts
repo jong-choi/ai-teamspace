@@ -8,6 +8,7 @@ import { ChatModule } from '#server/chat/chat.module.js';
 import { ProblemDetailsFilter } from '#server/common/http/problem-details.filter.js';
 import { DatabaseModule } from '#server/database/database.module.js';
 import { OrganizationsModule } from '#server/organizations/organizations.module.js';
+import { ProjectsModule } from '#server/projects/projects.module.js';
 import { WikiModule } from '#server/wiki/wiki.module.js';
 
 import { NestProblemDetailsModule } from 'nest-problem-details-filter';
@@ -22,6 +23,7 @@ import { NestProblemDetailsModule } from 'nest-problem-details-filter';
     AuthModule,
     ChatModule,
     OrganizationsModule,
+    ProjectsModule,
     WikiModule,
   ],
   controllers: [AppController],

@@ -39,6 +39,12 @@ import {
   OrganizationList,
   OrganizationMember,
   OrganizationMemberList,
+  ProjectColumn,
+  ProjectColumnList,
+  ProjectDetail,
+  ProjectList,
+  TicketDetail,
+  TicketList,
   WikiCollaborationSession,
   WikiDocument,
   WikiDocumentHistory,
@@ -53,6 +59,9 @@ import type {
   ChatControllerMarkReadBody,
   ChatControllerSendMessageBody,
   ChatControllerUpdateMessageBody,
+  CreateProject,
+  CreateProjectColumn,
+  CreateTicket,
   CreateWikiDocument,
   OrganizationInvitationsControllerCreateBody,
   OrganizationInvitationsControllerListParams,
@@ -61,6 +70,9 @@ import type {
   OrganizationsControllerListMembersParams,
   OrganizationsControllerSetActiveBody,
   ProblemDetails,
+  UpdateProject,
+  UpdateProjectColumn,
+  UpdateTicket,
   UpdateWikiDocument,
   WikiControllerSearchParams
 } from './schemas';
@@ -2187,6 +2199,984 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getInvitationsControllerRejectMutationOptions(options), queryClient);
+    }
+
+export const getProjectsControllerListProjectsUrl = (organizationId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/projects`
+}
+
+export const projectsControllerListProjects = async (organizationId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<ProjectList> => {
+
+  return workOsFetcher<ProjectList>(getProjectsControllerListProjectsUrl(organizationId),
+  {
+    ...options,
+    method: 'GET'
+
+    ,
+    schema: ProjectList
+  }
+);}
+
+
+
+
+
+export const getProjectsControllerListProjectsQueryKey = (organizationId: string,) => {
+    return [
+    `/organizations/${organizationId}/projects`
+    ] as const;
+    }
+
+
+export const getProjectsControllerListProjectsSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof projectsControllerListProjects>>, TError = ErrorType<ProblemDetails>>(organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerListProjects>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getProjectsControllerListProjectsQueryKey(organizationId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof projectsControllerListProjects>>> = ({ signal }) => projectsControllerListProjects(organizationId, { signal, ...requestOptions });
+
+
+
+
+
+   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerListProjects>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
+}
+
+export type ProjectsControllerListProjectsSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof projectsControllerListProjects>>>
+export type ProjectsControllerListProjectsSuspenseQueryError = ErrorType<ProblemDetails>
+
+
+export function useProjectsControllerListProjectsSuspense<TData = Awaited<ReturnType<typeof projectsControllerListProjects>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerListProjects>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useProjectsControllerListProjectsSuspense<TData = Awaited<ReturnType<typeof projectsControllerListProjects>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerListProjects>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useProjectsControllerListProjectsSuspense<TData = Awaited<ReturnType<typeof projectsControllerListProjects>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerListProjects>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useProjectsControllerListProjectsSuspense<TData = Awaited<ReturnType<typeof projectsControllerListProjects>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerListProjects>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getProjectsControllerListProjectsSuspenseQueryOptions(organizationId,options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getProjectsControllerCreateProjectUrl = (organizationId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/projects`
+}
+
+export const projectsControllerCreateProject = async (organizationId: string,
+    createProject: CreateProject, options?: Parameters<typeof workOsFetcher>[1]): Promise<ProjectDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<ProjectDetail>(getProjectsControllerCreateProjectUrl(organizationId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createProject),
+    schema: ProjectDetail
+  }
+);}
+
+
+
+
+
+export const getProjectsControllerCreateProjectMutationKey = () => ['projectsControllerCreateProject'] as const;
+
+export const getProjectsControllerCreateProjectMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof projectsControllerCreateProject>>, TError,ProjectsControllerCreateProjectMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof projectsControllerCreateProject>>, TError,ProjectsControllerCreateProjectMutationVariables, TContext> => {
+
+const mutationKey = getProjectsControllerCreateProjectMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof projectsControllerCreateProject>>, ProjectsControllerCreateProjectMutationVariables> = (props) => {
+          const {organizationId,data} = props ?? {};
+
+          return  projectsControllerCreateProject(organizationId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ProjectsControllerCreateProjectMutationResult = NonNullable<Awaited<ReturnType<typeof projectsControllerCreateProject>>>
+    export type ProjectsControllerCreateProjectMutationBody = CreateProject
+    export type ProjectsControllerCreateProjectMutationError = ErrorType<ProblemDetails>
+    export type ProjectsControllerCreateProjectMutationVariables = {organizationId: string;data: CreateProject}
+
+    export const useProjectsControllerCreateProject = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof projectsControllerCreateProject>>, TError,ProjectsControllerCreateProjectMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof projectsControllerCreateProject>>,
+        TError,
+        ProjectsControllerCreateProjectMutationVariables,
+        TContext
+      > => {
+      return useMutation(getProjectsControllerCreateProjectMutationOptions(options), queryClient);
+    }
+
+export const getProjectsControllerGetProjectUrl = (organizationId: string,
+    projectId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/projects/${projectId}`
+}
+
+export const projectsControllerGetProject = async (organizationId: string,
+    projectId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<ProjectDetail> => {
+
+  return workOsFetcher<ProjectDetail>(getProjectsControllerGetProjectUrl(organizationId,projectId),
+  {
+    ...options,
+    method: 'GET'
+
+    ,
+    schema: ProjectDetail
+  }
+);}
+
+
+
+
+
+export const getProjectsControllerGetProjectQueryKey = (organizationId: string,
+    projectId: string,) => {
+    return [
+    `/organizations/${organizationId}/projects/${projectId}`
+    ] as const;
+    }
+
+
+export const getProjectsControllerGetProjectSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof projectsControllerGetProject>>, TError = ErrorType<ProblemDetails>>(organizationId: string,
+    projectId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerGetProject>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getProjectsControllerGetProjectQueryKey(organizationId,projectId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof projectsControllerGetProject>>> = ({ signal }) => projectsControllerGetProject(organizationId,projectId, { signal, ...requestOptions });
+
+
+
+
+
+   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerGetProject>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
+}
+
+export type ProjectsControllerGetProjectSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof projectsControllerGetProject>>>
+export type ProjectsControllerGetProjectSuspenseQueryError = ErrorType<ProblemDetails>
+
+
+export function useProjectsControllerGetProjectSuspense<TData = Awaited<ReturnType<typeof projectsControllerGetProject>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    projectId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerGetProject>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useProjectsControllerGetProjectSuspense<TData = Awaited<ReturnType<typeof projectsControllerGetProject>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    projectId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerGetProject>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useProjectsControllerGetProjectSuspense<TData = Awaited<ReturnType<typeof projectsControllerGetProject>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    projectId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerGetProject>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useProjectsControllerGetProjectSuspense<TData = Awaited<ReturnType<typeof projectsControllerGetProject>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    projectId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerGetProject>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getProjectsControllerGetProjectSuspenseQueryOptions(organizationId,projectId,options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getProjectsControllerUpdateProjectUrl = (organizationId: string,
+    projectId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/projects/${projectId}`
+}
+
+export const projectsControllerUpdateProject = async (organizationId: string,
+    projectId: string,
+    updateProject: UpdateProject, options?: Parameters<typeof workOsFetcher>[1]): Promise<ProjectDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<ProjectDetail>(getProjectsControllerUpdateProjectUrl(organizationId,projectId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateProject),
+    schema: ProjectDetail
+  }
+);}
+
+
+
+
+
+export const getProjectsControllerUpdateProjectMutationKey = () => ['projectsControllerUpdateProject'] as const;
+
+export const getProjectsControllerUpdateProjectMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof projectsControllerUpdateProject>>, TError,ProjectsControllerUpdateProjectMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof projectsControllerUpdateProject>>, TError,ProjectsControllerUpdateProjectMutationVariables, TContext> => {
+
+const mutationKey = getProjectsControllerUpdateProjectMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof projectsControllerUpdateProject>>, ProjectsControllerUpdateProjectMutationVariables> = (props) => {
+          const {organizationId,projectId,data} = props ?? {};
+
+          return  projectsControllerUpdateProject(organizationId,projectId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ProjectsControllerUpdateProjectMutationResult = NonNullable<Awaited<ReturnType<typeof projectsControllerUpdateProject>>>
+    export type ProjectsControllerUpdateProjectMutationBody = UpdateProject
+    export type ProjectsControllerUpdateProjectMutationError = ErrorType<ProblemDetails>
+    export type ProjectsControllerUpdateProjectMutationVariables = {organizationId: string;projectId: string;data: UpdateProject}
+
+    export const useProjectsControllerUpdateProject = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof projectsControllerUpdateProject>>, TError,ProjectsControllerUpdateProjectMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof projectsControllerUpdateProject>>,
+        TError,
+        ProjectsControllerUpdateProjectMutationVariables,
+        TContext
+      > => {
+      return useMutation(getProjectsControllerUpdateProjectMutationOptions(options), queryClient);
+    }
+
+export const getProjectsControllerListProjectColumnsUrl = (organizationId: string,
+    projectId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/projects/${projectId}/columns`
+}
+
+export const projectsControllerListProjectColumns = async (organizationId: string,
+    projectId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<ProjectColumnList> => {
+
+  return workOsFetcher<ProjectColumnList>(getProjectsControllerListProjectColumnsUrl(organizationId,projectId),
+  {
+    ...options,
+    method: 'GET'
+
+    ,
+    schema: ProjectColumnList
+  }
+);}
+
+
+
+
+
+export const getProjectsControllerListProjectColumnsQueryKey = (organizationId: string,
+    projectId: string,) => {
+    return [
+    `/organizations/${organizationId}/projects/${projectId}/columns`
+    ] as const;
+    }
+
+
+export const getProjectsControllerListProjectColumnsSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof projectsControllerListProjectColumns>>, TError = ErrorType<ProblemDetails>>(organizationId: string,
+    projectId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerListProjectColumns>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getProjectsControllerListProjectColumnsQueryKey(organizationId,projectId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof projectsControllerListProjectColumns>>> = ({ signal }) => projectsControllerListProjectColumns(organizationId,projectId, { signal, ...requestOptions });
+
+
+
+
+
+   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerListProjectColumns>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
+}
+
+export type ProjectsControllerListProjectColumnsSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof projectsControllerListProjectColumns>>>
+export type ProjectsControllerListProjectColumnsSuspenseQueryError = ErrorType<ProblemDetails>
+
+
+export function useProjectsControllerListProjectColumnsSuspense<TData = Awaited<ReturnType<typeof projectsControllerListProjectColumns>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    projectId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerListProjectColumns>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useProjectsControllerListProjectColumnsSuspense<TData = Awaited<ReturnType<typeof projectsControllerListProjectColumns>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    projectId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerListProjectColumns>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useProjectsControllerListProjectColumnsSuspense<TData = Awaited<ReturnType<typeof projectsControllerListProjectColumns>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    projectId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerListProjectColumns>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useProjectsControllerListProjectColumnsSuspense<TData = Awaited<ReturnType<typeof projectsControllerListProjectColumns>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    projectId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerListProjectColumns>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getProjectsControllerListProjectColumnsSuspenseQueryOptions(organizationId,projectId,options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getProjectsControllerCreateProjectColumnUrl = (organizationId: string,
+    projectId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/projects/${projectId}/columns`
+}
+
+export const projectsControllerCreateProjectColumn = async (organizationId: string,
+    projectId: string,
+    createProjectColumn: CreateProjectColumn, options?: Parameters<typeof workOsFetcher>[1]): Promise<ProjectColumn> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<ProjectColumn>(getProjectsControllerCreateProjectColumnUrl(organizationId,projectId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createProjectColumn),
+    schema: ProjectColumn
+  }
+);}
+
+
+
+
+
+export const getProjectsControllerCreateProjectColumnMutationKey = () => ['projectsControllerCreateProjectColumn'] as const;
+
+export const getProjectsControllerCreateProjectColumnMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof projectsControllerCreateProjectColumn>>, TError,ProjectsControllerCreateProjectColumnMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof projectsControllerCreateProjectColumn>>, TError,ProjectsControllerCreateProjectColumnMutationVariables, TContext> => {
+
+const mutationKey = getProjectsControllerCreateProjectColumnMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof projectsControllerCreateProjectColumn>>, ProjectsControllerCreateProjectColumnMutationVariables> = (props) => {
+          const {organizationId,projectId,data} = props ?? {};
+
+          return  projectsControllerCreateProjectColumn(organizationId,projectId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ProjectsControllerCreateProjectColumnMutationResult = NonNullable<Awaited<ReturnType<typeof projectsControllerCreateProjectColumn>>>
+    export type ProjectsControllerCreateProjectColumnMutationBody = CreateProjectColumn
+    export type ProjectsControllerCreateProjectColumnMutationError = ErrorType<ProblemDetails>
+    export type ProjectsControllerCreateProjectColumnMutationVariables = {organizationId: string;projectId: string;data: CreateProjectColumn}
+
+    export const useProjectsControllerCreateProjectColumn = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof projectsControllerCreateProjectColumn>>, TError,ProjectsControllerCreateProjectColumnMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof projectsControllerCreateProjectColumn>>,
+        TError,
+        ProjectsControllerCreateProjectColumnMutationVariables,
+        TContext
+      > => {
+      return useMutation(getProjectsControllerCreateProjectColumnMutationOptions(options), queryClient);
+    }
+
+export const getProjectsControllerUpdateProjectColumnUrl = (organizationId: string,
+    projectId: string,
+    columnId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/projects/${projectId}/columns/${columnId}`
+}
+
+export const projectsControllerUpdateProjectColumn = async (organizationId: string,
+    projectId: string,
+    columnId: string,
+    updateProjectColumn: UpdateProjectColumn, options?: Parameters<typeof workOsFetcher>[1]): Promise<ProjectColumn> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<ProjectColumn>(getProjectsControllerUpdateProjectColumnUrl(organizationId,projectId,columnId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateProjectColumn),
+    schema: ProjectColumn
+  }
+);}
+
+
+
+
+
+export const getProjectsControllerUpdateProjectColumnMutationKey = () => ['projectsControllerUpdateProjectColumn'] as const;
+
+export const getProjectsControllerUpdateProjectColumnMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof projectsControllerUpdateProjectColumn>>, TError,ProjectsControllerUpdateProjectColumnMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof projectsControllerUpdateProjectColumn>>, TError,ProjectsControllerUpdateProjectColumnMutationVariables, TContext> => {
+
+const mutationKey = getProjectsControllerUpdateProjectColumnMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof projectsControllerUpdateProjectColumn>>, ProjectsControllerUpdateProjectColumnMutationVariables> = (props) => {
+          const {organizationId,projectId,columnId,data} = props ?? {};
+
+          return  projectsControllerUpdateProjectColumn(organizationId,projectId,columnId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ProjectsControllerUpdateProjectColumnMutationResult = NonNullable<Awaited<ReturnType<typeof projectsControllerUpdateProjectColumn>>>
+    export type ProjectsControllerUpdateProjectColumnMutationBody = UpdateProjectColumn
+    export type ProjectsControllerUpdateProjectColumnMutationError = ErrorType<ProblemDetails>
+    export type ProjectsControllerUpdateProjectColumnMutationVariables = {organizationId: string;projectId: string;columnId: string;data: UpdateProjectColumn}
+
+    export const useProjectsControllerUpdateProjectColumn = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof projectsControllerUpdateProjectColumn>>, TError,ProjectsControllerUpdateProjectColumnMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof projectsControllerUpdateProjectColumn>>,
+        TError,
+        ProjectsControllerUpdateProjectColumnMutationVariables,
+        TContext
+      > => {
+      return useMutation(getProjectsControllerUpdateProjectColumnMutationOptions(options), queryClient);
+    }
+
+export const getProjectsControllerListTicketsUrl = (organizationId: string,
+    projectId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/projects/${projectId}/tickets`
+}
+
+export const projectsControllerListTickets = async (organizationId: string,
+    projectId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<TicketList> => {
+
+  return workOsFetcher<TicketList>(getProjectsControllerListTicketsUrl(organizationId,projectId),
+  {
+    ...options,
+    method: 'GET'
+
+    ,
+    schema: TicketList
+  }
+);}
+
+
+
+
+
+export const getProjectsControllerListTicketsQueryKey = (organizationId: string,
+    projectId: string,) => {
+    return [
+    `/organizations/${organizationId}/projects/${projectId}/tickets`
+    ] as const;
+    }
+
+
+export const getProjectsControllerListTicketsSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof projectsControllerListTickets>>, TError = ErrorType<ProblemDetails>>(organizationId: string,
+    projectId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerListTickets>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getProjectsControllerListTicketsQueryKey(organizationId,projectId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof projectsControllerListTickets>>> = ({ signal }) => projectsControllerListTickets(organizationId,projectId, { signal, ...requestOptions });
+
+
+
+
+
+   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerListTickets>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
+}
+
+export type ProjectsControllerListTicketsSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof projectsControllerListTickets>>>
+export type ProjectsControllerListTicketsSuspenseQueryError = ErrorType<ProblemDetails>
+
+
+export function useProjectsControllerListTicketsSuspense<TData = Awaited<ReturnType<typeof projectsControllerListTickets>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    projectId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerListTickets>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useProjectsControllerListTicketsSuspense<TData = Awaited<ReturnType<typeof projectsControllerListTickets>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    projectId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerListTickets>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useProjectsControllerListTicketsSuspense<TData = Awaited<ReturnType<typeof projectsControllerListTickets>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    projectId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerListTickets>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useProjectsControllerListTicketsSuspense<TData = Awaited<ReturnType<typeof projectsControllerListTickets>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    projectId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerListTickets>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getProjectsControllerListTicketsSuspenseQueryOptions(organizationId,projectId,options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getProjectsControllerCreateTicketUrl = (organizationId: string,
+    projectId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/projects/${projectId}/tickets`
+}
+
+export const projectsControllerCreateTicket = async (organizationId: string,
+    projectId: string,
+    createTicket: CreateTicket, options?: Parameters<typeof workOsFetcher>[1]): Promise<TicketDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<TicketDetail>(getProjectsControllerCreateTicketUrl(organizationId,projectId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createTicket),
+    schema: TicketDetail
+  }
+);}
+
+
+
+
+
+export const getProjectsControllerCreateTicketMutationKey = () => ['projectsControllerCreateTicket'] as const;
+
+export const getProjectsControllerCreateTicketMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof projectsControllerCreateTicket>>, TError,ProjectsControllerCreateTicketMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof projectsControllerCreateTicket>>, TError,ProjectsControllerCreateTicketMutationVariables, TContext> => {
+
+const mutationKey = getProjectsControllerCreateTicketMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof projectsControllerCreateTicket>>, ProjectsControllerCreateTicketMutationVariables> = (props) => {
+          const {organizationId,projectId,data} = props ?? {};
+
+          return  projectsControllerCreateTicket(organizationId,projectId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ProjectsControllerCreateTicketMutationResult = NonNullable<Awaited<ReturnType<typeof projectsControllerCreateTicket>>>
+    export type ProjectsControllerCreateTicketMutationBody = CreateTicket
+    export type ProjectsControllerCreateTicketMutationError = ErrorType<ProblemDetails>
+    export type ProjectsControllerCreateTicketMutationVariables = {organizationId: string;projectId: string;data: CreateTicket}
+
+    export const useProjectsControllerCreateTicket = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof projectsControllerCreateTicket>>, TError,ProjectsControllerCreateTicketMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof projectsControllerCreateTicket>>,
+        TError,
+        ProjectsControllerCreateTicketMutationVariables,
+        TContext
+      > => {
+      return useMutation(getProjectsControllerCreateTicketMutationOptions(options), queryClient);
+    }
+
+export const getProjectsControllerGetTicketUrl = (organizationId: string,
+    projectId: string,
+    ticketId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/projects/${projectId}/tickets/${ticketId}`
+}
+
+export const projectsControllerGetTicket = async (organizationId: string,
+    projectId: string,
+    ticketId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<TicketDetail> => {
+
+  return workOsFetcher<TicketDetail>(getProjectsControllerGetTicketUrl(organizationId,projectId,ticketId),
+  {
+    ...options,
+    method: 'GET'
+
+    ,
+    schema: TicketDetail
+  }
+);}
+
+
+
+
+
+export const getProjectsControllerGetTicketQueryKey = (organizationId: string,
+    projectId: string,
+    ticketId: string,) => {
+    return [
+    `/organizations/${organizationId}/projects/${projectId}/tickets/${ticketId}`
+    ] as const;
+    }
+
+
+export const getProjectsControllerGetTicketSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof projectsControllerGetTicket>>, TError = ErrorType<ProblemDetails>>(organizationId: string,
+    projectId: string,
+    ticketId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerGetTicket>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getProjectsControllerGetTicketQueryKey(organizationId,projectId,ticketId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof projectsControllerGetTicket>>> = ({ signal }) => projectsControllerGetTicket(organizationId,projectId,ticketId, { signal, ...requestOptions });
+
+
+
+
+
+   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerGetTicket>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
+}
+
+export type ProjectsControllerGetTicketSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof projectsControllerGetTicket>>>
+export type ProjectsControllerGetTicketSuspenseQueryError = ErrorType<ProblemDetails>
+
+
+export function useProjectsControllerGetTicketSuspense<TData = Awaited<ReturnType<typeof projectsControllerGetTicket>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    projectId: string,
+    ticketId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerGetTicket>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useProjectsControllerGetTicketSuspense<TData = Awaited<ReturnType<typeof projectsControllerGetTicket>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    projectId: string,
+    ticketId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerGetTicket>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useProjectsControllerGetTicketSuspense<TData = Awaited<ReturnType<typeof projectsControllerGetTicket>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    projectId: string,
+    ticketId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerGetTicket>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useProjectsControllerGetTicketSuspense<TData = Awaited<ReturnType<typeof projectsControllerGetTicket>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    projectId: string,
+    ticketId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerGetTicket>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getProjectsControllerGetTicketSuspenseQueryOptions(organizationId,projectId,ticketId,options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getProjectsControllerUpdateTicketUrl = (organizationId: string,
+    projectId: string,
+    ticketId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/projects/${projectId}/tickets/${ticketId}`
+}
+
+export const projectsControllerUpdateTicket = async (organizationId: string,
+    projectId: string,
+    ticketId: string,
+    updateTicket: UpdateTicket, options?: Parameters<typeof workOsFetcher>[1]): Promise<TicketDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<TicketDetail>(getProjectsControllerUpdateTicketUrl(organizationId,projectId,ticketId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateTicket),
+    schema: TicketDetail
+  }
+);}
+
+
+
+
+
+export const getProjectsControllerUpdateTicketMutationKey = () => ['projectsControllerUpdateTicket'] as const;
+
+export const getProjectsControllerUpdateTicketMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof projectsControllerUpdateTicket>>, TError,ProjectsControllerUpdateTicketMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof projectsControllerUpdateTicket>>, TError,ProjectsControllerUpdateTicketMutationVariables, TContext> => {
+
+const mutationKey = getProjectsControllerUpdateTicketMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof projectsControllerUpdateTicket>>, ProjectsControllerUpdateTicketMutationVariables> = (props) => {
+          const {organizationId,projectId,ticketId,data} = props ?? {};
+
+          return  projectsControllerUpdateTicket(organizationId,projectId,ticketId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ProjectsControllerUpdateTicketMutationResult = NonNullable<Awaited<ReturnType<typeof projectsControllerUpdateTicket>>>
+    export type ProjectsControllerUpdateTicketMutationBody = UpdateTicket
+    export type ProjectsControllerUpdateTicketMutationError = ErrorType<ProblemDetails>
+    export type ProjectsControllerUpdateTicketMutationVariables = {organizationId: string;projectId: string;ticketId: string;data: UpdateTicket}
+
+    export const useProjectsControllerUpdateTicket = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof projectsControllerUpdateTicket>>, TError,ProjectsControllerUpdateTicketMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof projectsControllerUpdateTicket>>,
+        TError,
+        ProjectsControllerUpdateTicketMutationVariables,
+        TContext
+      > => {
+      return useMutation(getProjectsControllerUpdateTicketMutationOptions(options), queryClient);
     }
 
 export const getWikiControllerGetTreeUrl = (organizationId: string,) => {

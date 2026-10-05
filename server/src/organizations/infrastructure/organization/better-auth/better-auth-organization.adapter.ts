@@ -179,6 +179,27 @@ export class BetterAuthOrganizationAdapter extends OrganizationProvider {
     return member ? this.mapMember(member) : null;
   }
 
+  async hasMemberUser(
+    organizationId: string,
+    userId: string,
+  ): Promise<boolean> {
+    const authContext = await this.call(
+      () => this.authService.instance.$context,
+    );
+    const member = await this.call(() =>
+      authContext.adapter.findOne<AuthMemberIdentity>({
+        model: 'member',
+        where: [
+          { field: 'organizationId', value: organizationId },
+          { field: 'userId', value: userId },
+        ],
+        select: ['id', 'userId'],
+      }),
+    );
+
+    return member !== null;
+  }
+
   async changeMemberRole(
     context: OrganizationActorContext,
     organizationId: string,

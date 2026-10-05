@@ -9,6 +9,7 @@ import { BetterAuthOrganizationModule } from '#server/organizations/infrastructu
 import { InvitationsController } from '#server/organizations/invitations.controller.js';
 import { OrganizationInvitationsController } from '#server/organizations/organization-invitations.controller.js';
 import { OrganizationInvitationsService } from '#server/organizations/organization-invitations.service.js';
+import { OrganizationMembershipService } from '#server/organizations/organization-membership.service.js';
 import { OrganizationsController } from '#server/organizations/organizations.controller.js';
 import { OrganizationsService } from '#server/organizations/organizations.service.js';
 
@@ -28,8 +29,9 @@ import { OrganizationsService } from '#server/organizations/organizations.servic
   providers: [
     OrganizationsService,
     OrganizationInvitationsService,
+    OrganizationMembershipService,
     TrustedOriginGuard,
   ],
-  exports: [OrganizationsService],
+  exports: [OrganizationsService, OrganizationMembershipService],
 })
 export class OrganizationsModule {}

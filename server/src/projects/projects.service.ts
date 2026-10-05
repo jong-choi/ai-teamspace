@@ -1,0 +1,548 @@
+import { Inject, Injectable } from '@nestjs/common';
+
+import {
+  AuthUserDirectoryService,
+  type AuthUserIdentity,
+} from '#server/auth/auth-user-directory.service.js';
+import type { OrganizationActorContext } from '#server/organizations/organization-actor-context.js';
+import { OrganizationMembershipService } from '#server/organizations/organization-membership.service.js';
+import {
+  ProjectArchivedError,
+  ProjectColumnNotFoundError,
+  ProjectNotFoundError,
+  ProjectUserNotMemberError,
+  TicketArchivedError,
+  TicketNotFoundError,
+} from '#server/projects/domain/project.error.js';
+import type { Ticket } from '#server/projects/domain/ticket.js';
+import type { CreateProjectInput } from '#server/projects/dto/create-project.dto.js';
+import type { CreateProjectColumnInput } from '#server/projects/dto/create-project-column.dto.js';
+import type { CreateTicketInput } from '#server/projects/dto/create-ticket.dto.js';
+import {
+  type ProjectDetailResponse,
+  type ProjectListResponse,
+  toProjectDetailResponse,
+  toProjectSummaryResponse,
+} from '#server/projects/dto/project.dto.js';
+import {
+  type ProjectColumnListResponse,
+  type ProjectColumnResponse,
+  toProjectColumnResponse,
+} from '#server/projects/dto/project-column.dto.js';
+import type { QueryTicketsInput } from '#server/projects/dto/query-tickets.dto.js';
+import {
+  type TicketDetailResponse,
+  type TicketListResponse,
+  toTicketDetailResponse,
+  toTicketSummaryResponse,
+} from '#server/projects/dto/ticket.dto.js';
+import type { UpdateProjectInput } from '#server/projects/dto/update-project.dto.js';
+import type { UpdateProjectColumnInput } from '#server/projects/dto/update-project-column.dto.js';
+import type { UpdateTicketInput } from '#server/projects/dto/update-ticket.dto.js';
+import {
+  ProjectRepository,
+  type ProjectSummaryReadModel,
+} from '#server/projects/infrastructure/persistence/project.repository.js';
+
+type ProjectUserDirectory = Pick<AuthUserDirectoryService, 'findByIds'>;
+type ProjectOrganizationMembership = Pick<
+  OrganizationMembershipService,
+  'requireAccess' | 'hasMemberUser'
+>;
+
+@Injectable()
+export class ProjectsService {
+  constructor(
+    private readonly projectRepository: ProjectRepository,
+    @Inject(OrganizationMembershipService)
+    private readonly organizationMembership: ProjectOrganizationMembership,
+    @Inject(AuthUserDirectoryService)
+    private readonly userDirectory: ProjectUserDirectory,
+  ) {}
+
+  async listProjects(
+    context: OrganizationActorContext,
+    organizationId: string,
+  ): Promise<ProjectListResponse> {
+    await this.organizationMembership.requireAccess(context, organizationId);
+    const projects = await this.projectRepository.listProjects(organizationId);
+    const usersById = await this.loadUsersById(
+      projects.flatMap(({ project }) =>
+        project.leadUserId ? [project.leadUserId] : [],
+      ),
+    );
+
+    return {
+      items: projects.map((model) =>
+        toProjectSummaryResponse(
+          model,
+          model.project.leadUserId
+            ? usersById.get(model.project.leadUserId)
+            : undefined,
+        ),
+      ),
+    };
+  }
+
+  async createProject(
+    context: OrganizationActorContext,
+    organizationId: string,
+    input: CreateProjectInput,
+  ): Promise<ProjectDetailResponse> {
+    await this.organizationMembership.requireAccess(context, organizationId);
+    await this.assertMemberUser(organizationId, input.leadUserId ?? null);
+
+    const project =
+      await this.projectRepository.createProjectWithDefaultColumns({
+        organizationId,
+        key: input.key,
+        name: input.name,
+        description: input.description ?? '',
+        leadUserId: input.leadUserId ?? null,
+        createdByUserId: context.userId,
+      });
+
+    const model = await this.requireProject(organizationId, project.id);
+    return this.toProjectDetail(model);
+  }
+
+  async getProject(
+    context: OrganizationActorContext,
+    organizationId: string,
+    projectId: string,
+  ): Promise<ProjectDetailResponse> {
+    await this.organizationMembership.requireAccess(context, organizationId);
+    return this.toProjectDetail(
+      await this.requireProject(organizationId, projectId),
+    );
+  }
+
+  async updateProject(
+    context: OrganizationActorContext,
+    organizationId: string,
+    projectId: string,
+    input: UpdateProjectInput,
+  ): Promise<ProjectDetailResponse> {
+    await this.organizationMembership.requireAccess(context, organizationId);
+    const current = await this.requireProject(organizationId, projectId);
+
+    if (current.project.archivedAt && !isProjectRestoreOnly(input)) {
+      throw new ProjectArchivedError();
+    }
+    if (input.leadUserId !== undefined) {
+      await this.assertMemberUser(organizationId, input.leadUserId);
+    }
+
+    if (input.name !== undefined) {
+      await this.requireProjectMutation(
+        this.projectRepository.renameProject(
+          organizationId,
+          projectId,
+          input.name,
+        ),
+      );
+    }
+    if (input.description !== undefined) {
+      await this.requireProjectMutation(
+        this.projectRepository.changeProjectDescription(
+          organizationId,
+          projectId,
+          input.description,
+        ),
+      );
+    }
+    if (input.leadUserId !== undefined) {
+      await this.requireProjectMutation(
+        this.projectRepository.changeProjectLead(
+          organizationId,
+          projectId,
+          input.leadUserId,
+        ),
+      );
+    }
+    if (input.archived !== undefined) {
+      await this.requireProjectMutation(
+        this.projectRepository.setProjectArchived(
+          organizationId,
+          projectId,
+          input.archived ? new Date() : null,
+        ),
+      );
+    }
+
+    return this.toProjectDetail(
+      await this.requireProject(organizationId, projectId),
+    );
+  }
+
+  async listColumns(
+    context: OrganizationActorContext,
+    organizationId: string,
+    projectId: string,
+  ): Promise<ProjectColumnListResponse> {
+    await this.organizationMembership.requireAccess(context, organizationId);
+    await this.requireProject(organizationId, projectId);
+    const columns = await this.projectRepository.listColumns(
+      organizationId,
+      projectId,
+    );
+    return { items: columns.map(toProjectColumnResponse) };
+  }
+
+  async createColumn(
+    context: OrganizationActorContext,
+    organizationId: string,
+    projectId: string,
+    input: CreateProjectColumnInput,
+  ): Promise<ProjectColumnResponse> {
+    await this.organizationMembership.requireAccess(context, organizationId);
+    const project = await this.requireProject(organizationId, projectId);
+    this.assertProjectWritable(project);
+
+    const column = await this.projectRepository.createColumn(
+      organizationId,
+      projectId,
+      input.name,
+    );
+    if (!column) {
+      throw new ProjectNotFoundError();
+    }
+    return toProjectColumnResponse(column);
+  }
+
+  async updateColumn(
+    context: OrganizationActorContext,
+    organizationId: string,
+    projectId: string,
+    columnId: string,
+    input: UpdateProjectColumnInput,
+  ): Promise<ProjectColumnResponse> {
+    await this.organizationMembership.requireAccess(context, organizationId);
+    const project = await this.requireProject(organizationId, projectId);
+    this.assertProjectWritable(project);
+
+    const column = await this.projectRepository.renameColumn(
+      organizationId,
+      projectId,
+      columnId,
+      input.name,
+    );
+    if (!column) {
+      throw new ProjectColumnNotFoundError();
+    }
+    return toProjectColumnResponse(column);
+  }
+
+  async listTickets(
+    context: OrganizationActorContext,
+    organizationId: string,
+    projectId: string,
+    query: QueryTicketsInput,
+  ): Promise<TicketListResponse> {
+    await this.organizationMembership.requireAccess(context, organizationId);
+    const project = await this.requireProject(organizationId, projectId);
+
+    if (query.columnId) {
+      await this.requireColumn(organizationId, projectId, query.columnId);
+    }
+    if (query.assigneeUserId) {
+      await this.assertMemberUser(organizationId, query.assigneeUserId);
+    }
+
+    const tickets = await this.projectRepository.listTickets({
+      organizationId,
+      projectId,
+      ...query,
+    });
+    const usersById = await this.loadUsersById(
+      tickets.flatMap(({ assigneeUserId }) =>
+        assigneeUserId ? [assigneeUserId] : [],
+      ),
+    );
+
+    return {
+      items: tickets.map((ticket) =>
+        toTicketSummaryResponse(
+          ticket,
+          project.project.key,
+          ticket.assigneeUserId
+            ? usersById.get(ticket.assigneeUserId)
+            : undefined,
+        ),
+      ),
+    };
+  }
+
+  async createTicket(
+    context: OrganizationActorContext,
+    organizationId: string,
+    projectId: string,
+    input: CreateTicketInput,
+  ): Promise<TicketDetailResponse> {
+    await this.organizationMembership.requireAccess(context, organizationId);
+    const project = await this.requireProject(organizationId, projectId);
+    this.assertProjectWritable(project);
+    await this.assertMemberUser(organizationId, input.assigneeUserId ?? null);
+
+    const result = await this.projectRepository.createTicketWithNumber({
+      organizationId,
+      projectId,
+      columnId: input.columnId,
+      title: input.title,
+      descriptionMarkdown: input.descriptionMarkdown ?? '',
+      priority: input.priority ?? 'medium',
+      assigneeUserId: input.assigneeUserId ?? null,
+      reporterUserId: context.userId,
+      dueAt: input.dueAt ? new Date(input.dueAt) : null,
+    });
+
+    if (result.kind === 'project_not_found') {
+      throw new ProjectNotFoundError();
+    }
+    if (result.kind === 'column_not_found') {
+      throw new ProjectColumnNotFoundError();
+    }
+
+    return this.toTicketDetail(project, result.ticket);
+  }
+
+  async getTicket(
+    context: OrganizationActorContext,
+    organizationId: string,
+    projectId: string,
+    ticketId: string,
+  ): Promise<TicketDetailResponse> {
+    await this.organizationMembership.requireAccess(context, organizationId);
+    const project = await this.requireProject(organizationId, projectId);
+    const ticket = await this.projectRepository.findTicketById(
+      organizationId,
+      projectId,
+      ticketId,
+    );
+    if (!ticket) {
+      throw new TicketNotFoundError();
+    }
+    return this.toTicketDetail(project, ticket);
+  }
+
+  async updateTicket(
+    context: OrganizationActorContext,
+    organizationId: string,
+    projectId: string,
+    ticketId: string,
+    input: UpdateTicketInput,
+  ): Promise<TicketDetailResponse> {
+    await this.organizationMembership.requireAccess(context, organizationId);
+    const project = await this.requireProject(organizationId, projectId);
+    this.assertProjectWritable(project);
+
+    const current = await this.projectRepository.findTicketById(
+      organizationId,
+      projectId,
+      ticketId,
+    );
+    if (!current) {
+      throw new TicketNotFoundError();
+    }
+    if (current.archivedAt && !isTicketRestoreOnly(input)) {
+      throw new TicketArchivedError();
+    }
+    if (input.assigneeUserId !== undefined) {
+      await this.assertMemberUser(organizationId, input.assigneeUserId);
+    }
+
+    if (input.title !== undefined || input.descriptionMarkdown !== undefined) {
+      await this.requireTicketMutation(
+        this.projectRepository.editTicketContent({
+          organizationId,
+          projectId,
+          ticketId,
+          title: input.title ?? current.title,
+          descriptionMarkdown:
+            input.descriptionMarkdown ?? current.descriptionMarkdown,
+        }),
+      );
+    }
+    if (input.priority !== undefined) {
+      await this.requireTicketMutation(
+        this.projectRepository.changeTicketPriority({
+          organizationId,
+          projectId,
+          ticketId,
+          priority: input.priority,
+        }),
+      );
+    }
+    if (input.assigneeUserId !== undefined) {
+      await this.requireTicketMutation(
+        this.projectRepository.assignTicket({
+          organizationId,
+          projectId,
+          ticketId,
+          assigneeUserId: input.assigneeUserId,
+        }),
+      );
+    }
+    if (input.dueAt !== undefined) {
+      await this.requireTicketMutation(
+        this.projectRepository.changeTicketDueAt({
+          organizationId,
+          projectId,
+          ticketId,
+          dueAt: input.dueAt ? new Date(input.dueAt) : null,
+        }),
+      );
+    }
+    if (input.archived !== undefined) {
+      await this.requireTicketMutation(
+        this.projectRepository.setTicketArchived({
+          organizationId,
+          projectId,
+          ticketId,
+          archivedAt: input.archived ? new Date() : null,
+        }),
+      );
+    }
+
+    const updated = await this.projectRepository.findTicketById(
+      organizationId,
+      projectId,
+      ticketId,
+    );
+    if (!updated) {
+      throw new TicketNotFoundError();
+    }
+    return this.toTicketDetail(project, updated);
+  }
+
+  private async toProjectDetail(
+    model: ProjectSummaryReadModel,
+  ): Promise<ProjectDetailResponse> {
+    const usersById = await this.loadUsersById(
+      model.project.leadUserId ? [model.project.leadUserId] : [],
+    );
+    return toProjectDetailResponse(
+      model,
+      model.project.leadUserId
+        ? usersById.get(model.project.leadUserId)
+        : undefined,
+    );
+  }
+
+  private async toTicketDetail(
+    project: ProjectSummaryReadModel,
+    ticket: Ticket,
+  ): Promise<TicketDetailResponse> {
+    const userIds = [
+      ticket.reporterUserId,
+      ...(ticket.assigneeUserId ? [ticket.assigneeUserId] : []),
+    ];
+    const usersById = await this.loadUsersById(userIds);
+    const reporter = usersById.get(ticket.reporterUserId);
+    if (!reporter) {
+      throw new Error('티켓 reporter 사용자 정보를 조회할 수 없습니다.');
+    }
+    return toTicketDetailResponse(
+      ticket,
+      project.project.key,
+      ticket.assigneeUserId ? usersById.get(ticket.assigneeUserId) : undefined,
+      reporter,
+    );
+  }
+
+  private async requireProject(
+    organizationId: string,
+    projectId: string,
+  ): Promise<ProjectSummaryReadModel> {
+    const project = await this.projectRepository.findProjectById(
+      organizationId,
+      projectId,
+    );
+    if (!project) {
+      throw new ProjectNotFoundError();
+    }
+    return project;
+  }
+
+  private async requireColumn(
+    organizationId: string,
+    projectId: string,
+    columnId: string,
+  ): Promise<void> {
+    const column = await this.projectRepository.findColumnById(
+      organizationId,
+      projectId,
+      columnId,
+    );
+    if (!column) {
+      throw new ProjectColumnNotFoundError();
+    }
+  }
+
+  private assertProjectWritable(project: ProjectSummaryReadModel): void {
+    if (project.project.archivedAt) {
+      throw new ProjectArchivedError();
+    }
+  }
+
+  private async assertMemberUser(
+    organizationId: string,
+    userId: string | null,
+  ): Promise<void> {
+    if (userId === null) {
+      return;
+    }
+    if (
+      !(await this.organizationMembership.hasMemberUser(organizationId, userId))
+    ) {
+      throw new ProjectUserNotMemberError();
+    }
+  }
+
+  private async loadUsersById(
+    userIds: readonly string[],
+  ): Promise<Map<string, AuthUserIdentity>> {
+    const uniqueUserIds = [...new Set(userIds)];
+    if (uniqueUserIds.length === 0) {
+      return new Map();
+    }
+    const users = await this.userDirectory.findByIds(uniqueUserIds);
+    return new Map(users.map((user) => [user.id, user]));
+  }
+
+  private async requireProjectMutation<T>(
+    result: Promise<T | null>,
+  ): Promise<void> {
+    if ((await result) === null) {
+      throw new ProjectNotFoundError();
+    }
+  }
+
+  private async requireTicketMutation<T>(
+    result: Promise<T | null>,
+  ): Promise<void> {
+    if ((await result) === null) {
+      throw new TicketNotFoundError();
+    }
+  }
+}
+
+function isProjectRestoreOnly(input: UpdateProjectInput): boolean {
+  return (
+    input.archived === false &&
+    input.name === undefined &&
+    input.description === undefined &&
+    input.leadUserId === undefined
+  );
+}
+
+function isTicketRestoreOnly(input: UpdateTicketInput): boolean {
+  return (
+    input.archived === false &&
+    input.title === undefined &&
+    input.descriptionMarkdown === undefined &&
+    input.priority === undefined &&
+    input.assigneeUserId === undefined &&
+    input.dueAt === undefined
+  );
+}

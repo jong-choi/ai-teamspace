@@ -25,6 +25,8 @@ class FakeOrganizationProvider extends OrganizationProvider {
   listMembers = jest.fn<OrganizationProvider['listMembers']>();
   getMember = jest.fn<OrganizationProvider['getMember']>();
   hasMemberUser = jest.fn<OrganizationProvider['hasMemberUser']>();
+  listMembersByUserIds =
+    jest.fn<OrganizationProvider['listMembersByUserIds']>();
   changeMemberRole = jest.fn<OrganizationProvider['changeMemberRole']>();
   removeMember = jest.fn<OrganizationProvider['removeMember']>();
   setActive = jest.fn<OrganizationProvider['setActive']>();

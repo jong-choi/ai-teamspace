@@ -22,4 +22,7 @@ export const OrganizationMemberSchema = z
   })
   .meta({ id: 'OrganizationMember' });
 
+export type OrganizationUserSummary = z.infer<
+  typeof OrganizationUserSummarySchema
+>;
 export type OrganizationMember = z.infer<typeof OrganizationMemberSchema>;

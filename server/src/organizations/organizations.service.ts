@@ -9,6 +9,7 @@ import type { OrganizationMember } from '#server/organizations/domain/organizati
 import {
   assertMemberRemovalAllowed,
   assertMemberRoleChangeAllowed,
+  assertOrganizationAdministrationAllowed,
 } from '#server/organizations/domain/organization-policy.js';
 import type { ActiveOrganization } from '#server/organizations/dto/active-organization.dto.js';
 import type { CreateOrganizationInput } from '#server/organizations/dto/create-organization.dto.js';
@@ -22,6 +23,8 @@ import {
   type OrganizationActorContext,
   OrganizationProvider,
 } from '#server/organizations/infrastructure/organization/organization.provider.js';
+
+const memberSearchPageSize = 100;
 
 @Injectable()
 export class OrganizationsService {
@@ -103,6 +106,57 @@ export class OrganizationsService {
       organizationId,
       query,
     );
+  }
+
+  async listMembersByUserIds(
+    context: OrganizationActorContext,
+    organizationId: string,
+    userIds: readonly string[],
+  ): Promise<OrganizationMember[]> {
+    await this.organizationProvider.getAccess(context, organizationId);
+    return this.organizationProvider.listMembersByUserIds(
+      context,
+      organizationId,
+      userIds,
+    );
+  }
+
+  async searchMemberUserIds(
+    context: OrganizationActorContext,
+    organizationId: string,
+    search: string,
+  ): Promise<string[]> {
+    await this.organizationProvider.getAccess(context, organizationId);
+
+    const userIds: string[] = [];
+    let offset = 0;
+
+    while (true) {
+      const page = await this.organizationProvider.listMembers(
+        context,
+        organizationId,
+        { limit: memberSearchPageSize, offset, search },
+      );
+      userIds.push(...page.items.map((member) => member.userId));
+
+      if (page.items.length === 0 || offset + page.items.length >= page.total) {
+        break;
+      }
+      offset += page.items.length;
+    }
+
+    return userIds;
+  }
+
+  async assertAdministrativeAccess(
+    context: OrganizationActorContext,
+    organizationId: string,
+  ): Promise<void> {
+    const access = await this.organizationProvider.getAccess(
+      context,
+      organizationId,
+    );
+    assertOrganizationAdministrationAllowed(access.role);
   }
 
   async changeMemberRole(

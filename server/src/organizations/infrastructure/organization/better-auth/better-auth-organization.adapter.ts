@@ -59,6 +59,7 @@ const memberSearchUserFields = [
   'username',
   'displayUsername',
 ] as const;
+const memberLookupBatchSize = 100;
 
 const memberIdFilter = {
   filterField: 'id',
@@ -198,6 +199,44 @@ export class BetterAuthOrganizationAdapter extends OrganizationProvider {
     );
 
     return member !== null;
+  }
+
+  async listMembersByUserIds(
+    context: OrganizationActorContext,
+    organizationId: string,
+    userIds: readonly string[],
+  ): Promise<OrganizationMember[]> {
+    const uniqueUserIds = [...new Set(userIds)];
+    if (uniqueUserIds.length === 0) return [];
+
+    const membersByUserId = new Map<string, AuthListedMember>();
+    for (
+      let offset = 0;
+      offset < uniqueUserIds.length;
+      offset += memberLookupBatchSize
+    ) {
+      const batch = uniqueUserIds.slice(offset, offset + memberLookupBatchSize);
+      const result = await this.call(() =>
+        this.authService.api.listMembers({
+          headers: this.headers(context),
+          query: {
+            organizationId,
+            limit: batch.length,
+            filterField: 'userId',
+            filterOperator: 'in',
+            filterValue: batch,
+          },
+        }),
+      );
+      for (const member of result.members) {
+        membersByUserId.set(member.userId, member);
+      }
+    }
+
+    return uniqueUserIds.flatMap((userId) => {
+      const member = membersByUserId.get(userId);
+      return member ? [this.mapMember(member)] : [];
+    });
   }
 
   async changeMemberRole(

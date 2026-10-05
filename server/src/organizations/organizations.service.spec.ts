@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common';
 
 import {
+  OrganizationAccessDeniedError,
   OrganizationMemberNotFoundError,
   OrganizationNotFoundError,
   OwnerTransferRequiredError,
@@ -25,6 +26,8 @@ class FakeOrganizationProvider extends OrganizationProvider {
   listMembers = jest.fn<OrganizationProvider['listMembers']>();
   getMember = jest.fn<OrganizationProvider['getMember']>();
   hasMemberUser = jest.fn<OrganizationProvider['hasMemberUser']>();
+  listMembersByUserIds =
+    jest.fn<OrganizationProvider['listMembersByUserIds']>();
   changeMemberRole = jest.fn<OrganizationProvider['changeMemberRole']>();
   removeMember = jest.fn<OrganizationProvider['removeMember']>();
   setActive = jest.fn<OrganizationProvider['setActive']>();
@@ -218,5 +221,78 @@ describe('조직 서비스', () => {
       }),
     ).rejects.toBeInstanceOf(OrganizationMemberNotFoundError);
     expect(provider.changeMemberRole).not.toHaveBeenCalled();
+  });
+
+  it('user id 기반 member 조회는 조직 접근을 확인한 뒤 provider에 위임한다', async () => {
+    const members = [member({ userId: 'member-one' })];
+    provider.getAccess.mockResolvedValue(
+      access(OrganizationRoleSchema.enum.member),
+    );
+    provider.listMembersByUserIds.mockResolvedValue(members);
+
+    await expect(
+      service.listMembersByUserIds(context, 'organization-a', ['member-one']),
+    ).resolves.toEqual(members);
+    expect(provider.getAccess).toHaveBeenCalledWith(context, 'organization-a');
+    expect(provider.listMembersByUserIds).toHaveBeenCalledWith(
+      context,
+      'organization-a',
+      ['member-one'],
+    );
+  });
+
+  it('member 검색 결과가 여러 페이지면 모든 user id를 이어서 반환한다', async () => {
+    const firstPage = Array.from({ length: 100 }, (_, index) =>
+      member({ userId: `member-${index}` }),
+    );
+    const lastMember = member({ userId: 'member-100' });
+    provider.getAccess.mockResolvedValue(
+      access(OrganizationRoleSchema.enum.member),
+    );
+    provider.listMembers
+      .mockResolvedValueOnce({
+        items: firstPage,
+        total: 101,
+        limit: 100,
+        offset: 0,
+      })
+      .mockResolvedValueOnce({
+        items: [lastMember],
+        total: 101,
+        limit: 100,
+        offset: 100,
+      });
+
+    const result = await service.searchMemberUserIds(
+      context,
+      'organization-a',
+      'member',
+    );
+
+    expect(result).toHaveLength(101);
+    expect(result[0]).toBe('member-0');
+    expect(result[100]).toBe('member-100');
+    expect(provider.listMembers).toHaveBeenNthCalledWith(
+      1,
+      context,
+      'organization-a',
+      { limit: 100, offset: 0, search: 'member' },
+    );
+    expect(provider.listMembers).toHaveBeenNthCalledWith(
+      2,
+      context,
+      'organization-a',
+      { limit: 100, offset: 100, search: 'member' },
+    );
+  });
+
+  it('일반 member의 조직 관리 권한 요청은 public policy 경계에서 거부한다', async () => {
+    provider.getAccess.mockResolvedValue(
+      access(OrganizationRoleSchema.enum.member),
+    );
+
+    await expect(
+      service.assertAdministrativeAccess(context, 'organization-a'),
+    ).rejects.toBeInstanceOf(OrganizationAccessDeniedError);
   });
 });

@@ -1,4 +1,7 @@
 import * as authSchema from '#server/auth/infrastructure/persistence/drizzle/generated/auth.schema.js';
+import * as meetingSchema from '#server/calendar/infrastructure/persistence/drizzle/schema/meeting.schema.js';
+import * as meetingAttendeeSchema from '#server/calendar/infrastructure/persistence/drizzle/schema/meeting-attendee.schema.js';
+import * as meetingRoomSchema from '#server/calendar/infrastructure/persistence/drizzle/schema/meeting-room.schema.js';
 import * as chatConversationSchema from '#server/chat/infrastructure/persistence/drizzle/schema/chat-conversation.schema.js';
 import * as chatMessageSchema from '#server/chat/infrastructure/persistence/drizzle/schema/chat-message.schema.js';
 import * as chatParticipantSchema from '#server/chat/infrastructure/persistence/drizzle/schema/chat-participant.schema.js';
@@ -17,6 +20,9 @@ import * as wikiDocumentRevisionCollaboratorSchema from '#server/wiki/infrastruc
 
 export const databaseSchema = {
   ...authSchema,
+  ...meetingAttendeeSchema,
+  ...meetingRoomSchema,
+  ...meetingSchema,
   ...chatConversationSchema,
   ...chatMessageSchema,
   ...chatParticipantSchema,

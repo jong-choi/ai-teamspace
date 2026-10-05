@@ -41,6 +41,12 @@ export abstract class OrganizationProvider {
     userId: string,
   ): Promise<boolean>;
 
+  abstract listMembersByUserIds(
+    context: OrganizationActorContext,
+    organizationId: string,
+    userIds: readonly string[],
+  ): Promise<OrganizationMember[]>;
+
   abstract changeMemberRole(
     context: OrganizationActorContext,
     organizationId: string,

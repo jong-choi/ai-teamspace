@@ -3,11 +3,13 @@ import { projectUpdateSchema } from '#server/projects/infrastructure/persistence
 
 import { z } from 'zod';
 
-export const UpdateProjectSchema = z
-  .object({
-    name: projectUpdateSchema.shape.name.optional(),
-    description: projectUpdateSchema.shape.description.optional(),
-    leadUserId: projectUpdateSchema.shape.leadUserId.optional(),
+export const UpdateProjectSchema = projectUpdateSchema
+  .pick({
+    name: true,
+    description: true,
+    leadUserId: true,
+  })
+  .extend({
     archived: z.boolean().optional(),
   })
   .refine(

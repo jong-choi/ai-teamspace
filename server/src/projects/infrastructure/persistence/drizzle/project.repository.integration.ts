@@ -352,6 +352,78 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
     ).resolves.toMatchObject({ priority: 'urgent' });
   });
 
+  it('티켓 보관은 활성 순서를 압축하고 복원은 컬럼 끝에 배치한다', async () => {
+    const createdProject =
+      await repository.createProjectWithDefaultColumns(createProjectInput);
+    const [column] = await repository.listColumns(
+      organizationId,
+      createdProject.id,
+    );
+    if (!column) {
+      throw new Error('기본 프로젝트 컬럼을 조회하지 못했습니다.');
+    }
+
+    const createdTickets = [];
+    for (const title of ['첫 번째', '두 번째', '세 번째']) {
+      const result = await repository.createTicketWithNumber({
+        organizationId,
+        projectId: createdProject.id,
+        columnId: column.id,
+        title,
+        descriptionMarkdown: '',
+        priority: 'medium',
+        assigneeUserId: null,
+        reporterUserId: actorUserId,
+        dueAt: null,
+      });
+      if (result.kind !== 'created') {
+        throw new Error(`보관 순서 테스트 티켓 생성 실패: ${result.kind}`);
+      }
+      createdTickets.push(result.ticket);
+    }
+    const [first, second, third] = createdTickets;
+    if (!first || !second || !third) {
+      throw new Error('보관 순서 테스트 티켓을 준비하지 못했습니다.');
+    }
+
+    await repository.setTicketArchived({
+      organizationId,
+      projectId: createdProject.id,
+      ticketId: second.id,
+      archivedAt: new Date('2026-10-06T03:00:00.000Z'),
+    });
+
+    await expect(
+      repository.listTickets({
+        organizationId,
+        projectId: createdProject.id,
+        columnId: column.id,
+      }),
+    ).resolves.toEqual([
+      expect.objectContaining({ id: first.id, position: 0 }),
+      expect.objectContaining({ id: third.id, position: 1 }),
+    ]);
+
+    await repository.setTicketArchived({
+      organizationId,
+      projectId: createdProject.id,
+      ticketId: second.id,
+      archivedAt: null,
+    });
+
+    await expect(
+      repository.listTickets({
+        organizationId,
+        projectId: createdProject.id,
+        columnId: column.id,
+      }),
+    ).resolves.toEqual([
+      expect.objectContaining({ id: first.id, position: 0 }),
+      expect.objectContaining({ id: third.id, position: 1 }),
+      expect.objectContaining({ id: second.id, position: 2 }),
+    ]);
+  });
+
   it('보관된 프로젝트에는 repository write도 적용하지 않는다', async () => {
     const createdProject =
       await repository.createProjectWithDefaultColumns(createProjectInput);

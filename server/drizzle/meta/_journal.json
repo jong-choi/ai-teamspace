@@ -85,6 +85,13 @@
       "when": 1791238365581,
       "tag": "0011_kanban_part_1",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1791242826874,
+      "tag": "0012_kanban_part_2",
+      "breakpoints": true
     }
   ]
 }

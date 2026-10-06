@@ -3,13 +3,14 @@ import { projectInsertSchema } from '#server/projects/infrastructure/persistence
 
 import { z } from 'zod';
 
-export const CreateProjectSchema = z
-  .object({
-    key: projectInsertSchema.shape.key,
-    name: projectInsertSchema.shape.name,
-    description: projectInsertSchema.shape.description.optional(),
-    leadUserId: projectInsertSchema.shape.leadUserId.optional(),
+export const CreateProjectSchema = projectInsertSchema
+  .pick({
+    key: true,
+    name: true,
+    description: true,
+    leadUserId: true,
   })
+  .partial({ leadUserId: true })
   .meta({ id: 'CreateProject' });
 
 export type CreateProjectInput = z.infer<typeof CreateProjectSchema>;

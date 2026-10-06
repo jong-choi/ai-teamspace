@@ -5,6 +5,11 @@ import * as chatParticipantSchema from '#server/chat/infrastructure/persistence/
 import * as projectSchema from '#server/projects/infrastructure/persistence/drizzle/schema/project.schema.js';
 import * as projectColumnSchema from '#server/projects/infrastructure/persistence/drizzle/schema/project-column.schema.js';
 import * as ticketSchema from '#server/projects/infrastructure/persistence/drizzle/schema/ticket.schema.js';
+import * as ticketChecklistSchema from '#server/projects/infrastructure/persistence/drizzle/schema/ticket-checklist.schema.js';
+import * as ticketChecklistItemSchema from '#server/projects/infrastructure/persistence/drizzle/schema/ticket-checklist-item.schema.js';
+import * as ticketCommentSchema from '#server/projects/infrastructure/persistence/drizzle/schema/ticket-comment.schema.js';
+import * as ticketLabelSchema from '#server/projects/infrastructure/persistence/drizzle/schema/ticket-label.schema.js';
+import * as ticketLabelAssignmentSchema from '#server/projects/infrastructure/persistence/drizzle/schema/ticket-label-assignment.schema.js';
 import * as wikiCollectionSchema from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-collection.schema.js';
 import * as wikiDocumentSchema from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-document.schema.js';
 import * as wikiDocumentRevisionSchema from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-document-revision.schema.js';
@@ -17,6 +22,11 @@ export const databaseSchema = {
   ...chatParticipantSchema,
   ...projectColumnSchema,
   ...projectSchema,
+  ...ticketChecklistItemSchema,
+  ...ticketChecklistSchema,
+  ...ticketCommentSchema,
+  ...ticketLabelAssignmentSchema,
+  ...ticketLabelSchema,
   ...ticketSchema,
   ...wikiCollectionSchema,
   ...wikiDocumentSchema,

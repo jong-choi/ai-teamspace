@@ -32,6 +32,8 @@ import {
   ChatMessage,
   ChatMessagePage,
   ChatRealtimeEvent,
+  MoveTicketChecklistItemResult,
+  MoveTicketResult,
   OrganizationAccess,
   OrganizationInvitation,
   OrganizationInvitationDetail,
@@ -43,7 +45,13 @@ import {
   ProjectColumnList,
   ProjectDetail,
   ProjectList,
+  TicketChecklist,
+  TicketChecklistItem,
+  TicketComment,
+  TicketCommentList,
   TicketDetail,
+  TicketLabel,
+  TicketLabelList,
   TicketList,
   WikiCollaborationSession,
   WikiDocument,
@@ -62,7 +70,13 @@ import type {
   CreateProject,
   CreateProjectColumn,
   CreateTicket,
+  CreateTicketChecklist,
+  CreateTicketChecklistItem,
+  CreateTicketComment,
+  CreateTicketLabel,
   CreateWikiDocument,
+  MoveTicket,
+  MoveTicketChecklistItem,
   OrganizationInvitationsControllerCreateBody,
   OrganizationInvitationsControllerListParams,
   OrganizationsControllerChangeMemberRoleBody,
@@ -73,6 +87,10 @@ import type {
   UpdateProject,
   UpdateProjectColumn,
   UpdateTicket,
+  UpdateTicketChecklist,
+  UpdateTicketChecklistItem,
+  UpdateTicketComment,
+  UpdateTicketLabel,
   UpdateWikiDocument,
   WikiControllerSearchParams
 } from './schemas';
@@ -3177,6 +3195,1463 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getProjectsControllerUpdateTicketMutationOptions(options), queryClient);
+    }
+
+export const getTicketWorkflowControllerListProjectLabelsUrl = (organizationId: string,
+    projectId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/projects/${projectId}/labels`
+}
+
+export const ticketWorkflowControllerListProjectLabels = async (organizationId: string,
+    projectId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<TicketLabelList> => {
+
+  return workOsFetcher<TicketLabelList>(getTicketWorkflowControllerListProjectLabelsUrl(organizationId,projectId),
+  {
+    ...options,
+    method: 'GET'
+
+    ,
+    schema: TicketLabelList
+  }
+);}
+
+
+
+
+
+export const getTicketWorkflowControllerListProjectLabelsQueryKey = (organizationId: string,
+    projectId: string,) => {
+    return [
+    `/organizations/${organizationId}/projects/${projectId}/labels`
+    ] as const;
+    }
+
+
+export const getTicketWorkflowControllerListProjectLabelsSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof ticketWorkflowControllerListProjectLabels>>, TError = ErrorType<ProblemDetails>>(organizationId: string,
+    projectId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof ticketWorkflowControllerListProjectLabels>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getTicketWorkflowControllerListProjectLabelsQueryKey(organizationId,projectId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof ticketWorkflowControllerListProjectLabels>>> = ({ signal }) => ticketWorkflowControllerListProjectLabels(organizationId,projectId, { signal, ...requestOptions });
+
+
+
+
+
+   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof ticketWorkflowControllerListProjectLabels>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
+}
+
+export type TicketWorkflowControllerListProjectLabelsSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof ticketWorkflowControllerListProjectLabels>>>
+export type TicketWorkflowControllerListProjectLabelsSuspenseQueryError = ErrorType<ProblemDetails>
+
+
+export function useTicketWorkflowControllerListProjectLabelsSuspense<TData = Awaited<ReturnType<typeof ticketWorkflowControllerListProjectLabels>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    projectId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof ticketWorkflowControllerListProjectLabels>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useTicketWorkflowControllerListProjectLabelsSuspense<TData = Awaited<ReturnType<typeof ticketWorkflowControllerListProjectLabels>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    projectId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof ticketWorkflowControllerListProjectLabels>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useTicketWorkflowControllerListProjectLabelsSuspense<TData = Awaited<ReturnType<typeof ticketWorkflowControllerListProjectLabels>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    projectId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof ticketWorkflowControllerListProjectLabels>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useTicketWorkflowControllerListProjectLabelsSuspense<TData = Awaited<ReturnType<typeof ticketWorkflowControllerListProjectLabels>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    projectId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof ticketWorkflowControllerListProjectLabels>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getTicketWorkflowControllerListProjectLabelsSuspenseQueryOptions(organizationId,projectId,options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getTicketWorkflowControllerCreateProjectLabelUrl = (organizationId: string,
+    projectId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/projects/${projectId}/labels`
+}
+
+export const ticketWorkflowControllerCreateProjectLabel = async (organizationId: string,
+    projectId: string,
+    createTicketLabel: CreateTicketLabel, options?: Parameters<typeof workOsFetcher>[1]): Promise<TicketLabel> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<TicketLabel>(getTicketWorkflowControllerCreateProjectLabelUrl(organizationId,projectId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createTicketLabel),
+    schema: TicketLabel
+  }
+);}
+
+
+
+
+
+export const getTicketWorkflowControllerCreateProjectLabelMutationKey = () => ['ticketWorkflowControllerCreateProjectLabel'] as const;
+
+export const getTicketWorkflowControllerCreateProjectLabelMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerCreateProjectLabel>>, TError,TicketWorkflowControllerCreateProjectLabelMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerCreateProjectLabel>>, TError,TicketWorkflowControllerCreateProjectLabelMutationVariables, TContext> => {
+
+const mutationKey = getTicketWorkflowControllerCreateProjectLabelMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof ticketWorkflowControllerCreateProjectLabel>>, TicketWorkflowControllerCreateProjectLabelMutationVariables> = (props) => {
+          const {organizationId,projectId,data} = props ?? {};
+
+          return  ticketWorkflowControllerCreateProjectLabel(organizationId,projectId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TicketWorkflowControllerCreateProjectLabelMutationResult = NonNullable<Awaited<ReturnType<typeof ticketWorkflowControllerCreateProjectLabel>>>
+    export type TicketWorkflowControllerCreateProjectLabelMutationBody = CreateTicketLabel
+    export type TicketWorkflowControllerCreateProjectLabelMutationError = ErrorType<ProblemDetails>
+    export type TicketWorkflowControllerCreateProjectLabelMutationVariables = {organizationId: string;projectId: string;data: CreateTicketLabel}
+
+    export const useTicketWorkflowControllerCreateProjectLabel = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerCreateProjectLabel>>, TError,TicketWorkflowControllerCreateProjectLabelMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof ticketWorkflowControllerCreateProjectLabel>>,
+        TError,
+        TicketWorkflowControllerCreateProjectLabelMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTicketWorkflowControllerCreateProjectLabelMutationOptions(options), queryClient);
+    }
+
+export const getTicketWorkflowControllerUpdateProjectLabelUrl = (organizationId: string,
+    projectId: string,
+    labelId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/projects/${projectId}/labels/${labelId}`
+}
+
+export const ticketWorkflowControllerUpdateProjectLabel = async (organizationId: string,
+    projectId: string,
+    labelId: string,
+    updateTicketLabel: UpdateTicketLabel, options?: Parameters<typeof workOsFetcher>[1]): Promise<TicketLabel> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<TicketLabel>(getTicketWorkflowControllerUpdateProjectLabelUrl(organizationId,projectId,labelId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateTicketLabel),
+    schema: TicketLabel
+  }
+);}
+
+
+
+
+
+export const getTicketWorkflowControllerUpdateProjectLabelMutationKey = () => ['ticketWorkflowControllerUpdateProjectLabel'] as const;
+
+export const getTicketWorkflowControllerUpdateProjectLabelMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerUpdateProjectLabel>>, TError,TicketWorkflowControllerUpdateProjectLabelMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerUpdateProjectLabel>>, TError,TicketWorkflowControllerUpdateProjectLabelMutationVariables, TContext> => {
+
+const mutationKey = getTicketWorkflowControllerUpdateProjectLabelMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof ticketWorkflowControllerUpdateProjectLabel>>, TicketWorkflowControllerUpdateProjectLabelMutationVariables> = (props) => {
+          const {organizationId,projectId,labelId,data} = props ?? {};
+
+          return  ticketWorkflowControllerUpdateProjectLabel(organizationId,projectId,labelId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TicketWorkflowControllerUpdateProjectLabelMutationResult = NonNullable<Awaited<ReturnType<typeof ticketWorkflowControllerUpdateProjectLabel>>>
+    export type TicketWorkflowControllerUpdateProjectLabelMutationBody = UpdateTicketLabel
+    export type TicketWorkflowControllerUpdateProjectLabelMutationError = ErrorType<ProblemDetails>
+    export type TicketWorkflowControllerUpdateProjectLabelMutationVariables = {organizationId: string;projectId: string;labelId: string;data: UpdateTicketLabel}
+
+    export const useTicketWorkflowControllerUpdateProjectLabel = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerUpdateProjectLabel>>, TError,TicketWorkflowControllerUpdateProjectLabelMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof ticketWorkflowControllerUpdateProjectLabel>>,
+        TError,
+        TicketWorkflowControllerUpdateProjectLabelMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTicketWorkflowControllerUpdateProjectLabelMutationOptions(options), queryClient);
+    }
+
+export const getTicketWorkflowControllerMoveTicketUrl = (organizationId: string,
+    projectId: string,
+    ticketId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/projects/${projectId}/tickets/${ticketId}/move`
+}
+
+export const ticketWorkflowControllerMoveTicket = async (organizationId: string,
+    projectId: string,
+    ticketId: string,
+    moveTicket: MoveTicket, options?: Parameters<typeof workOsFetcher>[1]): Promise<MoveTicketResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<MoveTicketResult>(getTicketWorkflowControllerMoveTicketUrl(organizationId,projectId,ticketId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(moveTicket),
+    schema: MoveTicketResult
+  }
+);}
+
+
+
+
+
+export const getTicketWorkflowControllerMoveTicketMutationKey = () => ['ticketWorkflowControllerMoveTicket'] as const;
+
+export const getTicketWorkflowControllerMoveTicketMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerMoveTicket>>, TError,TicketWorkflowControllerMoveTicketMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerMoveTicket>>, TError,TicketWorkflowControllerMoveTicketMutationVariables, TContext> => {
+
+const mutationKey = getTicketWorkflowControllerMoveTicketMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof ticketWorkflowControllerMoveTicket>>, TicketWorkflowControllerMoveTicketMutationVariables> = (props) => {
+          const {organizationId,projectId,ticketId,data} = props ?? {};
+
+          return  ticketWorkflowControllerMoveTicket(organizationId,projectId,ticketId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TicketWorkflowControllerMoveTicketMutationResult = NonNullable<Awaited<ReturnType<typeof ticketWorkflowControllerMoveTicket>>>
+    export type TicketWorkflowControllerMoveTicketMutationBody = MoveTicket
+    export type TicketWorkflowControllerMoveTicketMutationError = ErrorType<ProblemDetails>
+    export type TicketWorkflowControllerMoveTicketMutationVariables = {organizationId: string;projectId: string;ticketId: string;data: MoveTicket}
+
+    export const useTicketWorkflowControllerMoveTicket = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerMoveTicket>>, TError,TicketWorkflowControllerMoveTicketMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof ticketWorkflowControllerMoveTicket>>,
+        TError,
+        TicketWorkflowControllerMoveTicketMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTicketWorkflowControllerMoveTicketMutationOptions(options), queryClient);
+    }
+
+export const getTicketWorkflowControllerAttachTicketLabelUrl = (organizationId: string,
+    projectId: string,
+    ticketId: string,
+    labelId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/projects/${projectId}/tickets/${ticketId}/labels/${labelId}`
+}
+
+export const ticketWorkflowControllerAttachTicketLabel = async (organizationId: string,
+    projectId: string,
+    ticketId: string,
+    labelId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<TicketLabel> => {
+
+  return workOsFetcher<TicketLabel>(getTicketWorkflowControllerAttachTicketLabelUrl(organizationId,projectId,ticketId,labelId),
+  {
+    ...options,
+    method: 'PUT'
+
+    ,
+    schema: TicketLabel
+  }
+);}
+
+
+
+
+
+export const getTicketWorkflowControllerAttachTicketLabelMutationKey = () => ['ticketWorkflowControllerAttachTicketLabel'] as const;
+
+export const getTicketWorkflowControllerAttachTicketLabelMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerAttachTicketLabel>>, TError,TicketWorkflowControllerAttachTicketLabelMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerAttachTicketLabel>>, TError,TicketWorkflowControllerAttachTicketLabelMutationVariables, TContext> => {
+
+const mutationKey = getTicketWorkflowControllerAttachTicketLabelMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof ticketWorkflowControllerAttachTicketLabel>>, TicketWorkflowControllerAttachTicketLabelMutationVariables> = (props) => {
+          const {organizationId,projectId,ticketId,labelId} = props ?? {};
+
+          return  ticketWorkflowControllerAttachTicketLabel(organizationId,projectId,ticketId,labelId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TicketWorkflowControllerAttachTicketLabelMutationResult = NonNullable<Awaited<ReturnType<typeof ticketWorkflowControllerAttachTicketLabel>>>
+
+    export type TicketWorkflowControllerAttachTicketLabelMutationError = ErrorType<ProblemDetails>
+    export type TicketWorkflowControllerAttachTicketLabelMutationVariables = {organizationId: string;projectId: string;ticketId: string;labelId: string}
+
+    export const useTicketWorkflowControllerAttachTicketLabel = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerAttachTicketLabel>>, TError,TicketWorkflowControllerAttachTicketLabelMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof ticketWorkflowControllerAttachTicketLabel>>,
+        TError,
+        TicketWorkflowControllerAttachTicketLabelMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTicketWorkflowControllerAttachTicketLabelMutationOptions(options), queryClient);
+    }
+
+export const getTicketWorkflowControllerDetachTicketLabelUrl = (organizationId: string,
+    projectId: string,
+    ticketId: string,
+    labelId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/projects/${projectId}/tickets/${ticketId}/labels/${labelId}`
+}
+
+export const ticketWorkflowControllerDetachTicketLabel = async (organizationId: string,
+    projectId: string,
+    ticketId: string,
+    labelId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<void> => {
+
+  return workOsFetcher<void>(getTicketWorkflowControllerDetachTicketLabelUrl(organizationId,projectId,ticketId,labelId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getTicketWorkflowControllerDetachTicketLabelMutationKey = () => ['ticketWorkflowControllerDetachTicketLabel'] as const;
+
+export const getTicketWorkflowControllerDetachTicketLabelMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerDetachTicketLabel>>, TError,TicketWorkflowControllerDetachTicketLabelMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerDetachTicketLabel>>, TError,TicketWorkflowControllerDetachTicketLabelMutationVariables, TContext> => {
+
+const mutationKey = getTicketWorkflowControllerDetachTicketLabelMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof ticketWorkflowControllerDetachTicketLabel>>, TicketWorkflowControllerDetachTicketLabelMutationVariables> = (props) => {
+          const {organizationId,projectId,ticketId,labelId} = props ?? {};
+
+          return  ticketWorkflowControllerDetachTicketLabel(organizationId,projectId,ticketId,labelId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TicketWorkflowControllerDetachTicketLabelMutationResult = NonNullable<Awaited<ReturnType<typeof ticketWorkflowControllerDetachTicketLabel>>>
+
+    export type TicketWorkflowControllerDetachTicketLabelMutationError = ErrorType<ProblemDetails>
+    export type TicketWorkflowControllerDetachTicketLabelMutationVariables = {organizationId: string;projectId: string;ticketId: string;labelId: string}
+
+    export const useTicketWorkflowControllerDetachTicketLabel = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerDetachTicketLabel>>, TError,TicketWorkflowControllerDetachTicketLabelMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof ticketWorkflowControllerDetachTicketLabel>>,
+        TError,
+        TicketWorkflowControllerDetachTicketLabelMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTicketWorkflowControllerDetachTicketLabelMutationOptions(options), queryClient);
+    }
+
+export const getTicketWorkflowControllerCreateTicketChecklistUrl = (organizationId: string,
+    projectId: string,
+    ticketId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/projects/${projectId}/tickets/${ticketId}/checklists`
+}
+
+export const ticketWorkflowControllerCreateTicketChecklist = async (organizationId: string,
+    projectId: string,
+    ticketId: string,
+    createTicketChecklist: CreateTicketChecklist, options?: Parameters<typeof workOsFetcher>[1]): Promise<TicketChecklist> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<TicketChecklist>(getTicketWorkflowControllerCreateTicketChecklistUrl(organizationId,projectId,ticketId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createTicketChecklist),
+    schema: TicketChecklist
+  }
+);}
+
+
+
+
+
+export const getTicketWorkflowControllerCreateTicketChecklistMutationKey = () => ['ticketWorkflowControllerCreateTicketChecklist'] as const;
+
+export const getTicketWorkflowControllerCreateTicketChecklistMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerCreateTicketChecklist>>, TError,TicketWorkflowControllerCreateTicketChecklistMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerCreateTicketChecklist>>, TError,TicketWorkflowControllerCreateTicketChecklistMutationVariables, TContext> => {
+
+const mutationKey = getTicketWorkflowControllerCreateTicketChecklistMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof ticketWorkflowControllerCreateTicketChecklist>>, TicketWorkflowControllerCreateTicketChecklistMutationVariables> = (props) => {
+          const {organizationId,projectId,ticketId,data} = props ?? {};
+
+          return  ticketWorkflowControllerCreateTicketChecklist(organizationId,projectId,ticketId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TicketWorkflowControllerCreateTicketChecklistMutationResult = NonNullable<Awaited<ReturnType<typeof ticketWorkflowControllerCreateTicketChecklist>>>
+    export type TicketWorkflowControllerCreateTicketChecklistMutationBody = CreateTicketChecklist
+    export type TicketWorkflowControllerCreateTicketChecklistMutationError = ErrorType<ProblemDetails>
+    export type TicketWorkflowControllerCreateTicketChecklistMutationVariables = {organizationId: string;projectId: string;ticketId: string;data: CreateTicketChecklist}
+
+    export const useTicketWorkflowControllerCreateTicketChecklist = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerCreateTicketChecklist>>, TError,TicketWorkflowControllerCreateTicketChecklistMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof ticketWorkflowControllerCreateTicketChecklist>>,
+        TError,
+        TicketWorkflowControllerCreateTicketChecklistMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTicketWorkflowControllerCreateTicketChecklistMutationOptions(options), queryClient);
+    }
+
+export const getTicketWorkflowControllerUpdateTicketChecklistUrl = (organizationId: string,
+    projectId: string,
+    ticketId: string,
+    checklistId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/projects/${projectId}/tickets/${ticketId}/checklists/${checklistId}`
+}
+
+export const ticketWorkflowControllerUpdateTicketChecklist = async (organizationId: string,
+    projectId: string,
+    ticketId: string,
+    checklistId: string,
+    updateTicketChecklist: UpdateTicketChecklist, options?: Parameters<typeof workOsFetcher>[1]): Promise<TicketChecklist> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<TicketChecklist>(getTicketWorkflowControllerUpdateTicketChecklistUrl(organizationId,projectId,ticketId,checklistId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateTicketChecklist),
+    schema: TicketChecklist
+  }
+);}
+
+
+
+
+
+export const getTicketWorkflowControllerUpdateTicketChecklistMutationKey = () => ['ticketWorkflowControllerUpdateTicketChecklist'] as const;
+
+export const getTicketWorkflowControllerUpdateTicketChecklistMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerUpdateTicketChecklist>>, TError,TicketWorkflowControllerUpdateTicketChecklistMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerUpdateTicketChecklist>>, TError,TicketWorkflowControllerUpdateTicketChecklistMutationVariables, TContext> => {
+
+const mutationKey = getTicketWorkflowControllerUpdateTicketChecklistMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof ticketWorkflowControllerUpdateTicketChecklist>>, TicketWorkflowControllerUpdateTicketChecklistMutationVariables> = (props) => {
+          const {organizationId,projectId,ticketId,checklistId,data} = props ?? {};
+
+          return  ticketWorkflowControllerUpdateTicketChecklist(organizationId,projectId,ticketId,checklistId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TicketWorkflowControllerUpdateTicketChecklistMutationResult = NonNullable<Awaited<ReturnType<typeof ticketWorkflowControllerUpdateTicketChecklist>>>
+    export type TicketWorkflowControllerUpdateTicketChecklistMutationBody = UpdateTicketChecklist
+    export type TicketWorkflowControllerUpdateTicketChecklistMutationError = ErrorType<ProblemDetails>
+    export type TicketWorkflowControllerUpdateTicketChecklistMutationVariables = {organizationId: string;projectId: string;ticketId: string;checklistId: string;data: UpdateTicketChecklist}
+
+    export const useTicketWorkflowControllerUpdateTicketChecklist = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerUpdateTicketChecklist>>, TError,TicketWorkflowControllerUpdateTicketChecklistMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof ticketWorkflowControllerUpdateTicketChecklist>>,
+        TError,
+        TicketWorkflowControllerUpdateTicketChecklistMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTicketWorkflowControllerUpdateTicketChecklistMutationOptions(options), queryClient);
+    }
+
+export const getTicketWorkflowControllerRemoveTicketChecklistUrl = (organizationId: string,
+    projectId: string,
+    ticketId: string,
+    checklistId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/projects/${projectId}/tickets/${ticketId}/checklists/${checklistId}`
+}
+
+export const ticketWorkflowControllerRemoveTicketChecklist = async (organizationId: string,
+    projectId: string,
+    ticketId: string,
+    checklistId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<void> => {
+
+  return workOsFetcher<void>(getTicketWorkflowControllerRemoveTicketChecklistUrl(organizationId,projectId,ticketId,checklistId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getTicketWorkflowControllerRemoveTicketChecklistMutationKey = () => ['ticketWorkflowControllerRemoveTicketChecklist'] as const;
+
+export const getTicketWorkflowControllerRemoveTicketChecklistMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerRemoveTicketChecklist>>, TError,TicketWorkflowControllerRemoveTicketChecklistMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerRemoveTicketChecklist>>, TError,TicketWorkflowControllerRemoveTicketChecklistMutationVariables, TContext> => {
+
+const mutationKey = getTicketWorkflowControllerRemoveTicketChecklistMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof ticketWorkflowControllerRemoveTicketChecklist>>, TicketWorkflowControllerRemoveTicketChecklistMutationVariables> = (props) => {
+          const {organizationId,projectId,ticketId,checklistId} = props ?? {};
+
+          return  ticketWorkflowControllerRemoveTicketChecklist(organizationId,projectId,ticketId,checklistId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TicketWorkflowControllerRemoveTicketChecklistMutationResult = NonNullable<Awaited<ReturnType<typeof ticketWorkflowControllerRemoveTicketChecklist>>>
+
+    export type TicketWorkflowControllerRemoveTicketChecklistMutationError = ErrorType<ProblemDetails>
+    export type TicketWorkflowControllerRemoveTicketChecklistMutationVariables = {organizationId: string;projectId: string;ticketId: string;checklistId: string}
+
+    export const useTicketWorkflowControllerRemoveTicketChecklist = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerRemoveTicketChecklist>>, TError,TicketWorkflowControllerRemoveTicketChecklistMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof ticketWorkflowControllerRemoveTicketChecklist>>,
+        TError,
+        TicketWorkflowControllerRemoveTicketChecklistMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTicketWorkflowControllerRemoveTicketChecklistMutationOptions(options), queryClient);
+    }
+
+export const getTicketWorkflowControllerAddTicketChecklistItemUrl = (organizationId: string,
+    projectId: string,
+    ticketId: string,
+    checklistId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/projects/${projectId}/tickets/${ticketId}/checklists/${checklistId}/items`
+}
+
+export const ticketWorkflowControllerAddTicketChecklistItem = async (organizationId: string,
+    projectId: string,
+    ticketId: string,
+    checklistId: string,
+    createTicketChecklistItem: CreateTicketChecklistItem, options?: Parameters<typeof workOsFetcher>[1]): Promise<TicketChecklistItem> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<TicketChecklistItem>(getTicketWorkflowControllerAddTicketChecklistItemUrl(organizationId,projectId,ticketId,checklistId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createTicketChecklistItem),
+    schema: TicketChecklistItem
+  }
+);}
+
+
+
+
+
+export const getTicketWorkflowControllerAddTicketChecklistItemMutationKey = () => ['ticketWorkflowControllerAddTicketChecklistItem'] as const;
+
+export const getTicketWorkflowControllerAddTicketChecklistItemMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerAddTicketChecklistItem>>, TError,TicketWorkflowControllerAddTicketChecklistItemMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerAddTicketChecklistItem>>, TError,TicketWorkflowControllerAddTicketChecklistItemMutationVariables, TContext> => {
+
+const mutationKey = getTicketWorkflowControllerAddTicketChecklistItemMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof ticketWorkflowControllerAddTicketChecklistItem>>, TicketWorkflowControllerAddTicketChecklistItemMutationVariables> = (props) => {
+          const {organizationId,projectId,ticketId,checklistId,data} = props ?? {};
+
+          return  ticketWorkflowControllerAddTicketChecklistItem(organizationId,projectId,ticketId,checklistId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TicketWorkflowControllerAddTicketChecklistItemMutationResult = NonNullable<Awaited<ReturnType<typeof ticketWorkflowControllerAddTicketChecklistItem>>>
+    export type TicketWorkflowControllerAddTicketChecklistItemMutationBody = CreateTicketChecklistItem
+    export type TicketWorkflowControllerAddTicketChecklistItemMutationError = ErrorType<ProblemDetails>
+    export type TicketWorkflowControllerAddTicketChecklistItemMutationVariables = {organizationId: string;projectId: string;ticketId: string;checklistId: string;data: CreateTicketChecklistItem}
+
+    export const useTicketWorkflowControllerAddTicketChecklistItem = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerAddTicketChecklistItem>>, TError,TicketWorkflowControllerAddTicketChecklistItemMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof ticketWorkflowControllerAddTicketChecklistItem>>,
+        TError,
+        TicketWorkflowControllerAddTicketChecklistItemMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTicketWorkflowControllerAddTicketChecklistItemMutationOptions(options), queryClient);
+    }
+
+export const getTicketWorkflowControllerUpdateTicketChecklistItemUrl = (organizationId: string,
+    projectId: string,
+    ticketId: string,
+    checklistId: string,
+    itemId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/projects/${projectId}/tickets/${ticketId}/checklists/${checklistId}/items/${itemId}`
+}
+
+export const ticketWorkflowControllerUpdateTicketChecklistItem = async (organizationId: string,
+    projectId: string,
+    ticketId: string,
+    checklistId: string,
+    itemId: string,
+    updateTicketChecklistItem: UpdateTicketChecklistItem, options?: Parameters<typeof workOsFetcher>[1]): Promise<TicketChecklistItem> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<TicketChecklistItem>(getTicketWorkflowControllerUpdateTicketChecklistItemUrl(organizationId,projectId,ticketId,checklistId,itemId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateTicketChecklistItem),
+    schema: TicketChecklistItem
+  }
+);}
+
+
+
+
+
+export const getTicketWorkflowControllerUpdateTicketChecklistItemMutationKey = () => ['ticketWorkflowControllerUpdateTicketChecklistItem'] as const;
+
+export const getTicketWorkflowControllerUpdateTicketChecklistItemMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerUpdateTicketChecklistItem>>, TError,TicketWorkflowControllerUpdateTicketChecklistItemMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerUpdateTicketChecklistItem>>, TError,TicketWorkflowControllerUpdateTicketChecklistItemMutationVariables, TContext> => {
+
+const mutationKey = getTicketWorkflowControllerUpdateTicketChecklistItemMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof ticketWorkflowControllerUpdateTicketChecklistItem>>, TicketWorkflowControllerUpdateTicketChecklistItemMutationVariables> = (props) => {
+          const {organizationId,projectId,ticketId,checklistId,itemId,data} = props ?? {};
+
+          return  ticketWorkflowControllerUpdateTicketChecklistItem(organizationId,projectId,ticketId,checklistId,itemId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TicketWorkflowControllerUpdateTicketChecklistItemMutationResult = NonNullable<Awaited<ReturnType<typeof ticketWorkflowControllerUpdateTicketChecklistItem>>>
+    export type TicketWorkflowControllerUpdateTicketChecklistItemMutationBody = UpdateTicketChecklistItem
+    export type TicketWorkflowControllerUpdateTicketChecklistItemMutationError = ErrorType<ProblemDetails>
+    export type TicketWorkflowControllerUpdateTicketChecklistItemMutationVariables = {organizationId: string;projectId: string;ticketId: string;checklistId: string;itemId: string;data: UpdateTicketChecklistItem}
+
+    export const useTicketWorkflowControllerUpdateTicketChecklistItem = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerUpdateTicketChecklistItem>>, TError,TicketWorkflowControllerUpdateTicketChecklistItemMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof ticketWorkflowControllerUpdateTicketChecklistItem>>,
+        TError,
+        TicketWorkflowControllerUpdateTicketChecklistItemMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTicketWorkflowControllerUpdateTicketChecklistItemMutationOptions(options), queryClient);
+    }
+
+export const getTicketWorkflowControllerRemoveTicketChecklistItemUrl = (organizationId: string,
+    projectId: string,
+    ticketId: string,
+    checklistId: string,
+    itemId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/projects/${projectId}/tickets/${ticketId}/checklists/${checklistId}/items/${itemId}`
+}
+
+export const ticketWorkflowControllerRemoveTicketChecklistItem = async (organizationId: string,
+    projectId: string,
+    ticketId: string,
+    checklistId: string,
+    itemId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<void> => {
+
+  return workOsFetcher<void>(getTicketWorkflowControllerRemoveTicketChecklistItemUrl(organizationId,projectId,ticketId,checklistId,itemId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getTicketWorkflowControllerRemoveTicketChecklistItemMutationKey = () => ['ticketWorkflowControllerRemoveTicketChecklistItem'] as const;
+
+export const getTicketWorkflowControllerRemoveTicketChecklistItemMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerRemoveTicketChecklistItem>>, TError,TicketWorkflowControllerRemoveTicketChecklistItemMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerRemoveTicketChecklistItem>>, TError,TicketWorkflowControllerRemoveTicketChecklistItemMutationVariables, TContext> => {
+
+const mutationKey = getTicketWorkflowControllerRemoveTicketChecklistItemMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof ticketWorkflowControllerRemoveTicketChecklistItem>>, TicketWorkflowControllerRemoveTicketChecklistItemMutationVariables> = (props) => {
+          const {organizationId,projectId,ticketId,checklistId,itemId} = props ?? {};
+
+          return  ticketWorkflowControllerRemoveTicketChecklistItem(organizationId,projectId,ticketId,checklistId,itemId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TicketWorkflowControllerRemoveTicketChecklistItemMutationResult = NonNullable<Awaited<ReturnType<typeof ticketWorkflowControllerRemoveTicketChecklistItem>>>
+
+    export type TicketWorkflowControllerRemoveTicketChecklistItemMutationError = ErrorType<ProblemDetails>
+    export type TicketWorkflowControllerRemoveTicketChecklistItemMutationVariables = {organizationId: string;projectId: string;ticketId: string;checklistId: string;itemId: string}
+
+    export const useTicketWorkflowControllerRemoveTicketChecklistItem = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerRemoveTicketChecklistItem>>, TError,TicketWorkflowControllerRemoveTicketChecklistItemMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof ticketWorkflowControllerRemoveTicketChecklistItem>>,
+        TError,
+        TicketWorkflowControllerRemoveTicketChecklistItemMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTicketWorkflowControllerRemoveTicketChecklistItemMutationOptions(options), queryClient);
+    }
+
+export const getTicketWorkflowControllerMoveTicketChecklistItemUrl = (organizationId: string,
+    projectId: string,
+    ticketId: string,
+    checklistId: string,
+    itemId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/projects/${projectId}/tickets/${ticketId}/checklists/${checklistId}/items/${itemId}/move`
+}
+
+export const ticketWorkflowControllerMoveTicketChecklistItem = async (organizationId: string,
+    projectId: string,
+    ticketId: string,
+    checklistId: string,
+    itemId: string,
+    moveTicketChecklistItem: MoveTicketChecklistItem, options?: Parameters<typeof workOsFetcher>[1]): Promise<MoveTicketChecklistItemResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<MoveTicketChecklistItemResult>(getTicketWorkflowControllerMoveTicketChecklistItemUrl(organizationId,projectId,ticketId,checklistId,itemId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(moveTicketChecklistItem),
+    schema: MoveTicketChecklistItemResult
+  }
+);}
+
+
+
+
+
+export const getTicketWorkflowControllerMoveTicketChecklistItemMutationKey = () => ['ticketWorkflowControllerMoveTicketChecklistItem'] as const;
+
+export const getTicketWorkflowControllerMoveTicketChecklistItemMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerMoveTicketChecklistItem>>, TError,TicketWorkflowControllerMoveTicketChecklistItemMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerMoveTicketChecklistItem>>, TError,TicketWorkflowControllerMoveTicketChecklistItemMutationVariables, TContext> => {
+
+const mutationKey = getTicketWorkflowControllerMoveTicketChecklistItemMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof ticketWorkflowControllerMoveTicketChecklistItem>>, TicketWorkflowControllerMoveTicketChecklistItemMutationVariables> = (props) => {
+          const {organizationId,projectId,ticketId,checklistId,itemId,data} = props ?? {};
+
+          return  ticketWorkflowControllerMoveTicketChecklistItem(organizationId,projectId,ticketId,checklistId,itemId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TicketWorkflowControllerMoveTicketChecklistItemMutationResult = NonNullable<Awaited<ReturnType<typeof ticketWorkflowControllerMoveTicketChecklistItem>>>
+    export type TicketWorkflowControllerMoveTicketChecklistItemMutationBody = MoveTicketChecklistItem
+    export type TicketWorkflowControllerMoveTicketChecklistItemMutationError = ErrorType<ProblemDetails>
+    export type TicketWorkflowControllerMoveTicketChecklistItemMutationVariables = {organizationId: string;projectId: string;ticketId: string;checklistId: string;itemId: string;data: MoveTicketChecklistItem}
+
+    export const useTicketWorkflowControllerMoveTicketChecklistItem = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerMoveTicketChecklistItem>>, TError,TicketWorkflowControllerMoveTicketChecklistItemMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof ticketWorkflowControllerMoveTicketChecklistItem>>,
+        TError,
+        TicketWorkflowControllerMoveTicketChecklistItemMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTicketWorkflowControllerMoveTicketChecklistItemMutationOptions(options), queryClient);
+    }
+
+export const getTicketWorkflowControllerListTicketCommentsUrl = (organizationId: string,
+    projectId: string,
+    ticketId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/projects/${projectId}/tickets/${ticketId}/comments`
+}
+
+export const ticketWorkflowControllerListTicketComments = async (organizationId: string,
+    projectId: string,
+    ticketId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<TicketCommentList> => {
+
+  return workOsFetcher<TicketCommentList>(getTicketWorkflowControllerListTicketCommentsUrl(organizationId,projectId,ticketId),
+  {
+    ...options,
+    method: 'GET'
+
+    ,
+    schema: TicketCommentList
+  }
+);}
+
+
+
+
+
+export const getTicketWorkflowControllerListTicketCommentsQueryKey = (organizationId: string,
+    projectId: string,
+    ticketId: string,) => {
+    return [
+    `/organizations/${organizationId}/projects/${projectId}/tickets/${ticketId}/comments`
+    ] as const;
+    }
+
+
+export const getTicketWorkflowControllerListTicketCommentsSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof ticketWorkflowControllerListTicketComments>>, TError = ErrorType<ProblemDetails>>(organizationId: string,
+    projectId: string,
+    ticketId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof ticketWorkflowControllerListTicketComments>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getTicketWorkflowControllerListTicketCommentsQueryKey(organizationId,projectId,ticketId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof ticketWorkflowControllerListTicketComments>>> = ({ signal }) => ticketWorkflowControllerListTicketComments(organizationId,projectId,ticketId, { signal, ...requestOptions });
+
+
+
+
+
+   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof ticketWorkflowControllerListTicketComments>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
+}
+
+export type TicketWorkflowControllerListTicketCommentsSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof ticketWorkflowControllerListTicketComments>>>
+export type TicketWorkflowControllerListTicketCommentsSuspenseQueryError = ErrorType<ProblemDetails>
+
+
+export function useTicketWorkflowControllerListTicketCommentsSuspense<TData = Awaited<ReturnType<typeof ticketWorkflowControllerListTicketComments>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    projectId: string,
+    ticketId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof ticketWorkflowControllerListTicketComments>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useTicketWorkflowControllerListTicketCommentsSuspense<TData = Awaited<ReturnType<typeof ticketWorkflowControllerListTicketComments>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    projectId: string,
+    ticketId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof ticketWorkflowControllerListTicketComments>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useTicketWorkflowControllerListTicketCommentsSuspense<TData = Awaited<ReturnType<typeof ticketWorkflowControllerListTicketComments>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    projectId: string,
+    ticketId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof ticketWorkflowControllerListTicketComments>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useTicketWorkflowControllerListTicketCommentsSuspense<TData = Awaited<ReturnType<typeof ticketWorkflowControllerListTicketComments>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    projectId: string,
+    ticketId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof ticketWorkflowControllerListTicketComments>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getTicketWorkflowControllerListTicketCommentsSuspenseQueryOptions(organizationId,projectId,ticketId,options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getTicketWorkflowControllerCreateTicketCommentUrl = (organizationId: string,
+    projectId: string,
+    ticketId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/projects/${projectId}/tickets/${ticketId}/comments`
+}
+
+export const ticketWorkflowControllerCreateTicketComment = async (organizationId: string,
+    projectId: string,
+    ticketId: string,
+    createTicketComment: CreateTicketComment, options?: Parameters<typeof workOsFetcher>[1]): Promise<TicketComment> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<TicketComment>(getTicketWorkflowControllerCreateTicketCommentUrl(organizationId,projectId,ticketId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createTicketComment),
+    schema: TicketComment
+  }
+);}
+
+
+
+
+
+export const getTicketWorkflowControllerCreateTicketCommentMutationKey = () => ['ticketWorkflowControllerCreateTicketComment'] as const;
+
+export const getTicketWorkflowControllerCreateTicketCommentMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerCreateTicketComment>>, TError,TicketWorkflowControllerCreateTicketCommentMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerCreateTicketComment>>, TError,TicketWorkflowControllerCreateTicketCommentMutationVariables, TContext> => {
+
+const mutationKey = getTicketWorkflowControllerCreateTicketCommentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof ticketWorkflowControllerCreateTicketComment>>, TicketWorkflowControllerCreateTicketCommentMutationVariables> = (props) => {
+          const {organizationId,projectId,ticketId,data} = props ?? {};
+
+          return  ticketWorkflowControllerCreateTicketComment(organizationId,projectId,ticketId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TicketWorkflowControllerCreateTicketCommentMutationResult = NonNullable<Awaited<ReturnType<typeof ticketWorkflowControllerCreateTicketComment>>>
+    export type TicketWorkflowControllerCreateTicketCommentMutationBody = CreateTicketComment
+    export type TicketWorkflowControllerCreateTicketCommentMutationError = ErrorType<ProblemDetails>
+    export type TicketWorkflowControllerCreateTicketCommentMutationVariables = {organizationId: string;projectId: string;ticketId: string;data: CreateTicketComment}
+
+    export const useTicketWorkflowControllerCreateTicketComment = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerCreateTicketComment>>, TError,TicketWorkflowControllerCreateTicketCommentMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof ticketWorkflowControllerCreateTicketComment>>,
+        TError,
+        TicketWorkflowControllerCreateTicketCommentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTicketWorkflowControllerCreateTicketCommentMutationOptions(options), queryClient);
+    }
+
+export const getTicketWorkflowControllerUpdateTicketCommentUrl = (organizationId: string,
+    projectId: string,
+    ticketId: string,
+    commentId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/projects/${projectId}/tickets/${ticketId}/comments/${commentId}`
+}
+
+export const ticketWorkflowControllerUpdateTicketComment = async (organizationId: string,
+    projectId: string,
+    ticketId: string,
+    commentId: string,
+    updateTicketComment: UpdateTicketComment, options?: Parameters<typeof workOsFetcher>[1]): Promise<TicketComment> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<TicketComment>(getTicketWorkflowControllerUpdateTicketCommentUrl(organizationId,projectId,ticketId,commentId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateTicketComment),
+    schema: TicketComment
+  }
+);}
+
+
+
+
+
+export const getTicketWorkflowControllerUpdateTicketCommentMutationKey = () => ['ticketWorkflowControllerUpdateTicketComment'] as const;
+
+export const getTicketWorkflowControllerUpdateTicketCommentMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerUpdateTicketComment>>, TError,TicketWorkflowControllerUpdateTicketCommentMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerUpdateTicketComment>>, TError,TicketWorkflowControllerUpdateTicketCommentMutationVariables, TContext> => {
+
+const mutationKey = getTicketWorkflowControllerUpdateTicketCommentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof ticketWorkflowControllerUpdateTicketComment>>, TicketWorkflowControllerUpdateTicketCommentMutationVariables> = (props) => {
+          const {organizationId,projectId,ticketId,commentId,data} = props ?? {};
+
+          return  ticketWorkflowControllerUpdateTicketComment(organizationId,projectId,ticketId,commentId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TicketWorkflowControllerUpdateTicketCommentMutationResult = NonNullable<Awaited<ReturnType<typeof ticketWorkflowControllerUpdateTicketComment>>>
+    export type TicketWorkflowControllerUpdateTicketCommentMutationBody = UpdateTicketComment
+    export type TicketWorkflowControllerUpdateTicketCommentMutationError = ErrorType<ProblemDetails>
+    export type TicketWorkflowControllerUpdateTicketCommentMutationVariables = {organizationId: string;projectId: string;ticketId: string;commentId: string;data: UpdateTicketComment}
+
+    export const useTicketWorkflowControllerUpdateTicketComment = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerUpdateTicketComment>>, TError,TicketWorkflowControllerUpdateTicketCommentMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof ticketWorkflowControllerUpdateTicketComment>>,
+        TError,
+        TicketWorkflowControllerUpdateTicketCommentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTicketWorkflowControllerUpdateTicketCommentMutationOptions(options), queryClient);
+    }
+
+export const getTicketWorkflowControllerRemoveTicketCommentUrl = (organizationId: string,
+    projectId: string,
+    ticketId: string,
+    commentId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/projects/${projectId}/tickets/${ticketId}/comments/${commentId}`
+}
+
+export const ticketWorkflowControllerRemoveTicketComment = async (organizationId: string,
+    projectId: string,
+    ticketId: string,
+    commentId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<void> => {
+
+  return workOsFetcher<void>(getTicketWorkflowControllerRemoveTicketCommentUrl(organizationId,projectId,ticketId,commentId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getTicketWorkflowControllerRemoveTicketCommentMutationKey = () => ['ticketWorkflowControllerRemoveTicketComment'] as const;
+
+export const getTicketWorkflowControllerRemoveTicketCommentMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerRemoveTicketComment>>, TError,TicketWorkflowControllerRemoveTicketCommentMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerRemoveTicketComment>>, TError,TicketWorkflowControllerRemoveTicketCommentMutationVariables, TContext> => {
+
+const mutationKey = getTicketWorkflowControllerRemoveTicketCommentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof ticketWorkflowControllerRemoveTicketComment>>, TicketWorkflowControllerRemoveTicketCommentMutationVariables> = (props) => {
+          const {organizationId,projectId,ticketId,commentId} = props ?? {};
+
+          return  ticketWorkflowControllerRemoveTicketComment(organizationId,projectId,ticketId,commentId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TicketWorkflowControllerRemoveTicketCommentMutationResult = NonNullable<Awaited<ReturnType<typeof ticketWorkflowControllerRemoveTicketComment>>>
+
+    export type TicketWorkflowControllerRemoveTicketCommentMutationError = ErrorType<ProblemDetails>
+    export type TicketWorkflowControllerRemoveTicketCommentMutationVariables = {organizationId: string;projectId: string;ticketId: string;commentId: string}
+
+    export const useTicketWorkflowControllerRemoveTicketComment = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerRemoveTicketComment>>, TError,TicketWorkflowControllerRemoveTicketCommentMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof ticketWorkflowControllerRemoveTicketComment>>,
+        TError,
+        TicketWorkflowControllerRemoveTicketCommentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTicketWorkflowControllerRemoveTicketCommentMutationOptions(options), queryClient);
     }
 
 export const getWikiControllerGetTreeUrl = (organizationId: string,) => {

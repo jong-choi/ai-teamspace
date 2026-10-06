@@ -15,6 +15,7 @@ import {
   TicketNotFoundError,
 } from '#server/projects/domain/project.error.js';
 import type { Ticket } from '#server/projects/domain/ticket.js';
+import type { TicketComment } from '#server/projects/domain/ticket-comment.js';
 import type { CreateProjectInput } from '#server/projects/dto/create-project.dto.js';
 import type { CreateProjectColumnInput } from '#server/projects/dto/create-project-column.dto.js';
 import type { CreateTicketInput } from '#server/projects/dto/create-ticket.dto.js';
@@ -36,6 +37,10 @@ import {
   toTicketDetailResponse,
   toTicketSummaryResponse,
 } from '#server/projects/dto/ticket.dto.js';
+import {
+  type TicketCommentResponse,
+  toTicketCommentResponse,
+} from '#server/projects/dto/ticket-comment.dto.js';
 import type { UpdateProjectInput } from '#server/projects/dto/update-project.dto.js';
 import type { UpdateProjectColumnInput } from '#server/projects/dto/update-project-column.dto.js';
 import type { UpdateTicketInput } from '#server/projects/dto/update-ticket.dto.js';
@@ -43,6 +48,11 @@ import {
   ProjectRepository,
   type ProjectSummaryReadModel,
 } from '#server/projects/infrastructure/persistence/project.repository.js';
+import {
+  type TicketCardMetadata,
+  type TicketDetailChildren,
+  TicketWorkflowRepository,
+} from '#server/projects/infrastructure/persistence/ticket-workflow.repository.js';
 
 type ProjectUserDirectory = Pick<AuthUserDirectoryService, 'findByIds'>;
 type ProjectOrganizationMembership = Pick<
@@ -54,6 +64,7 @@ type ProjectOrganizationMembership = Pick<
 export class ProjectsService {
   constructor(
     private readonly projectRepository: ProjectRepository,
+    private readonly ticketWorkflowRepository: TicketWorkflowRepository,
     @Inject(OrganizationMembershipService)
     private readonly organizationMembership: ProjectOrganizationMembership,
     @Inject(AuthUserDirectoryService)
@@ -102,8 +113,9 @@ export class ProjectsService {
         createdByUserId: context.userId,
       });
 
-    const model = await this.requireProject(organizationId, project.id);
-    return this.toProjectDetail(model);
+    return this.toProjectDetail(
+      await this.requireProject(organizationId, project.id),
+    );
   }
 
   async getProject(
@@ -254,10 +266,20 @@ export class ProjectsService {
       projectId,
       ...query,
     });
-    const usersById = await this.loadUsersById(
-      tickets.flatMap(({ assigneeUserId }) =>
-        assigneeUserId ? [assigneeUserId] : [],
+    const [usersById, metadata] = await Promise.all([
+      this.loadUsersById(
+        tickets.flatMap(({ assigneeUserId }) =>
+          assigneeUserId ? [assigneeUserId] : [],
+        ),
       ),
+      this.ticketWorkflowRepository.loadCardMetadata(
+        organizationId,
+        projectId,
+        tickets.map(({ id }) => id),
+      ),
+    ]);
+    const metadataByTicketId = new Map(
+      metadata.map((item) => [item.ticketId, item]),
     );
 
     return {
@@ -268,6 +290,8 @@ export class ProjectsService {
           ticket.assigneeUserId
             ? usersById.get(ticket.assigneeUserId)
             : undefined,
+          metadataByTicketId.get(ticket.id) ??
+            emptyTicketCardMetadata(ticket.id),
         ),
       ),
     };
@@ -314,15 +338,10 @@ export class ProjectsService {
   ): Promise<TicketDetailResponse> {
     await this.organizationMembership.requireAccess(context, organizationId);
     const project = await this.requireProject(organizationId, projectId);
-    const ticket = await this.projectRepository.findTicketById(
-      organizationId,
-      projectId,
-      ticketId,
+    return this.toTicketDetail(
+      project,
+      await this.requireTicket(organizationId, projectId, ticketId),
     );
-    if (!ticket) {
-      throw new TicketNotFoundError();
-    }
-    return this.toTicketDetail(project, ticket);
   }
 
   async updateTicket(
@@ -336,14 +355,11 @@ export class ProjectsService {
     const project = await this.requireProject(organizationId, projectId);
     this.assertProjectWritable(project);
 
-    const current = await this.projectRepository.findTicketById(
+    const current = await this.requireTicket(
       organizationId,
       projectId,
       ticketId,
     );
-    if (!current) {
-      throw new TicketNotFoundError();
-    }
     if (current.archivedAt && !isTicketRestoreOnly(input)) {
       throw new TicketArchivedError();
     }
@@ -404,15 +420,10 @@ export class ProjectsService {
       );
     }
 
-    const updated = await this.projectRepository.findTicketById(
-      organizationId,
-      projectId,
-      ticketId,
+    return this.toTicketDetail(
+      project,
+      await this.requireTicket(organizationId, projectId, ticketId),
     );
-    if (!updated) {
-      throw new TicketNotFoundError();
-    }
-    return this.toTicketDetail(project, updated);
   }
 
   private async toProjectDetail(
@@ -433,21 +444,48 @@ export class ProjectsService {
     project: ProjectSummaryReadModel,
     ticket: Ticket,
   ): Promise<TicketDetailResponse> {
-    const userIds = [
+    const children = await this.ticketWorkflowRepository.loadDetailChildren(
+      project.project.organizationId,
+      project.project.id,
+      ticket.id,
+    );
+    if (!children) {
+      throw new TicketNotFoundError();
+    }
+    const usersById = await this.loadUsersById([
       ticket.reporterUserId,
       ...(ticket.assigneeUserId ? [ticket.assigneeUserId] : []),
-    ];
-    const usersById = await this.loadUsersById(userIds);
+      ...children.comments.map(({ authorUserId }) => authorUserId),
+    ]);
     const reporter = usersById.get(ticket.reporterUserId);
     if (!reporter) {
       throw new Error('티켓 reporter 사용자 정보를 조회할 수 없습니다.');
     }
+
     return toTicketDetailResponse(
       ticket,
       project.project.key,
       ticket.assigneeUserId ? usersById.get(ticket.assigneeUserId) : undefined,
       reporter,
+      {
+        metadata: metadataFromDetailChildren(ticket.id, children),
+        checklists: children.checklists,
+        comments: this.mapCommentResponses(children.comments, usersById),
+      },
     );
+  }
+
+  private mapCommentResponses(
+    comments: readonly TicketComment[],
+    usersById: ReadonlyMap<string, AuthUserIdentity>,
+  ): TicketCommentResponse[] {
+    return comments.map((comment) => {
+      const author = usersById.get(comment.authorUserId);
+      if (!author) {
+        throw new Error('티켓 댓글 작성자 사용자 정보를 조회할 수 없습니다.');
+      }
+      return toTicketCommentResponse(comment, author);
+    });
   }
 
   private async requireProject(
@@ -477,6 +515,22 @@ export class ProjectsService {
     if (!column) {
       throw new ProjectColumnNotFoundError();
     }
+  }
+
+  private async requireTicket(
+    organizationId: string,
+    projectId: string,
+    ticketId: string,
+  ): Promise<Ticket> {
+    const ticket = await this.projectRepository.findTicketById(
+      organizationId,
+      projectId,
+      ticketId,
+    );
+    if (!ticket) {
+      throw new TicketNotFoundError();
+    }
+    return ticket;
   }
 
   private assertProjectWritable(project: ProjectSummaryReadModel): void {
@@ -525,6 +579,35 @@ export class ProjectsService {
       throw new TicketNotFoundError();
     }
   }
+}
+
+function emptyTicketCardMetadata(ticketId: string): TicketCardMetadata {
+  return {
+    ticketId,
+    labels: [],
+    checklistItemTotal: 0,
+    checklistItemCompleted: 0,
+    commentCount: 0,
+  };
+}
+
+function metadataFromDetailChildren(
+  ticketId: string,
+  children: TicketDetailChildren,
+): TicketCardMetadata {
+  let checklistItemTotal = 0;
+  let checklistItemCompleted = 0;
+  for (const { items } of children.checklists) {
+    checklistItemTotal += items.length;
+    checklistItemCompleted += items.filter(({ completed }) => completed).length;
+  }
+  return {
+    ticketId,
+    labels: children.labels,
+    checklistItemTotal,
+    checklistItemCompleted,
+    commentCount: children.comments.length,
+  };
 }
 
 function isProjectRestoreOnly(input: UpdateProjectInput): boolean {

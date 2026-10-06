@@ -6,6 +6,9 @@
  */
 import * as zod from 'zod';
 import { ProjectUserSummary } from './projectUserSummary.zod';
+import { TicketChecklist } from './ticketChecklist.zod';
+import { TicketComment } from './ticketComment.zod';
+import { TicketLabel } from './ticketLabel.zod';
 
 export const ticketDetailIdRegExp = new RegExp('^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$');
 export const ticketDetailProjectIdRegExp = new RegExp('^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$');
@@ -17,6 +20,15 @@ export const ticketDetailNumberMax = 2147483647;
 export const ticketDetailPositionMin = 0;
 export const ticketDetailPositionMax = 9007199254740991;
 
+
+export const ticketDetailChecklistItemTotalMin = 0;
+export const ticketDetailChecklistItemTotalMax = 9007199254740991;
+
+export const ticketDetailChecklistItemCompletedMin = 0;
+export const ticketDetailChecklistItemCompletedMax = 9007199254740991;
+
+export const ticketDetailCommentCountMin = 0;
+export const ticketDetailCommentCountMax = 9007199254740991;
 
 export const ticketDetailDueAtRegExp = new RegExp('^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$');
 export const ticketDetailUpdatedAtRegExp = new RegExp('^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$');
@@ -34,10 +46,16 @@ export const TicketDetail = zod.object({
   "position": zod.int().min(ticketDetailPositionMin).max(ticketDetailPositionMax),
   "key": zod.string().min(1),
   "assignee": zod.union([ProjectUserSummary,zod.null()]),
+  "labels": zod.array(TicketLabel),
+  "checklistItemTotal": zod.int().min(ticketDetailChecklistItemTotalMin).max(ticketDetailChecklistItemTotalMax),
+  "checklistItemCompleted": zod.int().min(ticketDetailChecklistItemCompletedMin).max(ticketDetailChecklistItemCompletedMax),
+  "commentCount": zod.int().min(ticketDetailCommentCountMin).max(ticketDetailCommentCountMax),
   "dueAt": zod.iso.datetime({"offset":true}).regex(ticketDetailDueAtRegExp).nullable(),
   "updatedAt": zod.iso.datetime({"offset":true}).regex(ticketDetailUpdatedAtRegExp),
   "descriptionMarkdown": zod.string(),
   "reporter": ProjectUserSummary,
+  "checklists": zod.array(TicketChecklist),
+  "comments": zod.array(TicketComment),
   "createdAt": zod.iso.datetime({"offset":true}).regex(ticketDetailCreatedAtRegExp),
   "archivedAt": zod.iso.datetime({"offset":true}).regex(ticketDetailArchivedAtRegExp).nullable()
 });

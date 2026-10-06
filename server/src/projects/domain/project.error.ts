@@ -71,3 +71,80 @@ export class ProjectArchivedError extends ApplicationError {
     );
   }
 }
+
+export class TicketMoveReferenceInvalidError extends ApplicationError {
+  constructor(options?: ErrorOptions) {
+    super(
+      'TICKET_MOVE_REFERENCE_INVALID',
+      'bad_request',
+      '티켓 이동 기준이 대상 컬럼에 존재하지 않습니다.',
+      options,
+    );
+  }
+}
+
+export class TicketLabelNotFoundError extends ApplicationError {
+  constructor(options?: ErrorOptions) {
+    super(
+      'TICKET_LABEL_NOT_FOUND',
+      'not_found',
+      '티켓 라벨을 찾을 수 없습니다.',
+      options,
+    );
+  }
+}
+
+export class TicketChecklistNotFoundError extends ApplicationError {
+  constructor(options?: ErrorOptions) {
+    super(
+      'TICKET_CHECKLIST_NOT_FOUND',
+      'not_found',
+      '티켓 체크리스트를 찾을 수 없습니다.',
+      options,
+    );
+  }
+}
+
+export class TicketChecklistItemNotFoundError extends ApplicationError {
+  constructor(options?: ErrorOptions) {
+    super(
+      'TICKET_CHECKLIST_ITEM_NOT_FOUND',
+      'not_found',
+      '티켓 체크리스트 항목을 찾을 수 없습니다.',
+      options,
+    );
+  }
+}
+
+export class TicketChecklistMoveReferenceInvalidError extends ApplicationError {
+  constructor(options?: ErrorOptions) {
+    super(
+      'TICKET_CHECKLIST_MOVE_REFERENCE_INVALID',
+      'bad_request',
+      '체크리스트 이동 기준 항목을 찾을 수 없습니다.',
+      options,
+    );
+  }
+}
+
+export class TicketCommentNotFoundError extends ApplicationError {
+  constructor(options?: ErrorOptions) {
+    super(
+      'TICKET_COMMENT_NOT_FOUND',
+      'not_found',
+      '티켓 댓글을 찾을 수 없습니다.',
+      options,
+    );
+  }
+}
+
+export class TicketCommentAuthorRequiredError extends ApplicationError {
+  constructor(options?: ErrorOptions) {
+    super(
+      'TICKET_COMMENT_AUTHOR_REQUIRED',
+      'forbidden',
+      '댓글 작성자만 수정하거나 삭제할 수 있습니다.',
+      options,
+    );
+  }
+}

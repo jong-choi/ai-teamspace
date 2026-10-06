@@ -13,6 +13,7 @@ import {
   ProjectRepository,
   type ProjectSummaryReadModel,
 } from '#server/projects/infrastructure/persistence/project.repository.js';
+import { TicketWorkflowRepository } from '#server/projects/infrastructure/persistence/ticket-workflow.repository.js';
 import { ProjectsService } from '#server/projects/projects.service.js';
 
 import { jest } from '@jest/globals';
@@ -40,6 +41,34 @@ class FakeProjectRepository extends ProjectRepository {
   assignTicket = jest.fn<ProjectRepository['assignTicket']>();
   changeTicketDueAt = jest.fn<ProjectRepository['changeTicketDueAt']>();
   setTicketArchived = jest.fn<ProjectRepository['setTicketArchived']>();
+}
+
+class FakeTicketWorkflowRepository extends TicketWorkflowRepository {
+  loadCardMetadata = jest.fn<TicketWorkflowRepository['loadCardMetadata']>();
+  loadDetailChildren =
+    jest.fn<TicketWorkflowRepository['loadDetailChildren']>();
+  moveTicket = jest.fn<TicketWorkflowRepository['moveTicket']>();
+  listLabels = jest.fn<TicketWorkflowRepository['listLabels']>();
+  createLabel = jest.fn<TicketWorkflowRepository['createLabel']>();
+  updateLabel = jest.fn<TicketWorkflowRepository['updateLabel']>();
+  attachLabel = jest.fn<TicketWorkflowRepository['attachLabel']>();
+  detachLabel = jest.fn<TicketWorkflowRepository['detachLabel']>();
+  createChecklist = jest.fn<TicketWorkflowRepository['createChecklist']>();
+  renameChecklist = jest.fn<TicketWorkflowRepository['renameChecklist']>();
+  removeChecklist = jest.fn<TicketWorkflowRepository['removeChecklist']>();
+  addChecklistItem = jest.fn<TicketWorkflowRepository['addChecklistItem']>();
+  renameChecklistItem =
+    jest.fn<TicketWorkflowRepository['renameChecklistItem']>();
+  toggleChecklistItem =
+    jest.fn<TicketWorkflowRepository['toggleChecklistItem']>();
+  moveChecklistItem = jest.fn<TicketWorkflowRepository['moveChecklistItem']>();
+  removeChecklistItem =
+    jest.fn<TicketWorkflowRepository['removeChecklistItem']>();
+  listComments = jest.fn<TicketWorkflowRepository['listComments']>();
+  findComment = jest.fn<TicketWorkflowRepository['findComment']>();
+  createComment = jest.fn<TicketWorkflowRepository['createComment']>();
+  updateComment = jest.fn<TicketWorkflowRepository['updateComment']>();
+  removeComment = jest.fn<TicketWorkflowRepository['removeComment']>();
 }
 
 type MembershipBoundary = Pick<
@@ -110,6 +139,7 @@ function user(id: string): AuthUserIdentity {
 
 describe('프로젝트 서비스', () => {
   let repository: FakeProjectRepository;
+  let workflowRepository: FakeTicketWorkflowRepository;
   let membership: {
     requireAccess: jest.MockedFunction<MembershipBoundary['requireAccess']>;
     hasMemberUser: jest.MockedFunction<MembershipBoundary['hasMemberUser']>;
@@ -121,6 +151,7 @@ describe('프로젝트 서비스', () => {
 
   beforeEach(() => {
     repository = new FakeProjectRepository();
+    workflowRepository = new FakeTicketWorkflowRepository();
     membership = {
       requireAccess: jest.fn<MembershipBoundary['requireAccess']>(),
       hasMemberUser: jest.fn<MembershipBoundary['hasMemberUser']>(),
@@ -140,7 +171,18 @@ describe('프로젝트 서비스', () => {
     });
     membership.hasMemberUser.mockResolvedValue(true);
     userDirectory.findByIds.mockResolvedValue([]);
-    service = new ProjectsService(repository, membership, userDirectory);
+    workflowRepository.loadCardMetadata.mockResolvedValue([]);
+    workflowRepository.loadDetailChildren.mockResolvedValue({
+      labels: [],
+      checklists: [],
+      comments: [],
+    });
+    service = new ProjectsService(
+      repository,
+      workflowRepository,
+      membership,
+      userDirectory,
+    );
   });
 
   it('프로젝트 목록은 lead 사용자를 한 번에 조회하고 실제 통계를 반환한다', async () => {

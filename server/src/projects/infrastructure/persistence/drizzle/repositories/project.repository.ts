@@ -51,6 +51,10 @@ type ProjectStats = {
   doneTicketCount: number;
 };
 
+type ProjectTransaction = Parameters<
+  Parameters<DatabaseService['db']['transaction']>[0]
+>[0];
+
 type TicketMutationInput = {
   organizationId: string;
   projectId: string;
@@ -540,16 +544,100 @@ export class ProjectDrizzleRepository extends ProjectRepository {
     });
   }
 
-  setTicketArchived(input: {
+  async setTicketArchived(input: {
     organizationId: string;
     projectId: string;
     ticketId: string;
     archivedAt: Date | null;
   }): Promise<Ticket | null> {
-    return this.updateTicketAndTouchProject({
-      ...input,
-      requireActiveTicket: false,
-      values: { archivedAt: input.archivedAt },
+    return this.database.db.transaction(async (transaction) => {
+      const [projectRow] = await transaction
+        .select({ id: project.id })
+        .from(project)
+        .where(
+          and(
+            eq(project.id, input.projectId),
+            eq(project.organizationId, input.organizationId),
+            isNull(project.archivedAt),
+          ),
+        )
+        .for('update')
+        .limit(1);
+      if (!projectRow) {
+        return null;
+      }
+
+      const [current] = await transaction
+        .select()
+        .from(ticket)
+        .where(
+          and(
+            eq(ticket.id, input.ticketId),
+            eq(ticket.organizationId, input.organizationId),
+            eq(ticket.projectId, input.projectId),
+          ),
+        )
+        .for('update')
+        .limit(1);
+      if (!current) {
+        return null;
+      }
+
+      const now = new Date();
+      let position = current.position;
+      const restoring =
+        input.archivedAt === null && current.archivedAt !== null;
+      if (restoring) {
+        const [positionRow] = await transaction
+          .select({ position: max(ticket.position) })
+          .from(ticket)
+          .where(
+            and(
+              eq(ticket.organizationId, input.organizationId),
+              eq(ticket.projectId, input.projectId),
+              eq(ticket.columnId, current.columnId),
+              isNull(ticket.archivedAt),
+            ),
+          );
+        position = (positionRow?.position ?? -1) + 1;
+      }
+
+      const [row] = await transaction
+        .update(ticket)
+        .set(
+          toTicketUpdate({
+            archivedAt: input.archivedAt,
+            position,
+            updatedAt: now,
+          }),
+        )
+        .where(eq(ticket.id, input.ticketId))
+        .returning();
+      if (!row) {
+        throw new Error('티켓 보관 상태 변경 결과가 없습니다.');
+      }
+
+      if (input.archivedAt !== null && current.archivedAt === null) {
+        await normalizeActiveTicketOrder(
+          transaction,
+          input.organizationId,
+          input.projectId,
+          current.columnId,
+          now,
+        );
+      }
+
+      await transaction
+        .update(project)
+        .set(toProjectUpdate({ updatedAt: now }))
+        .where(
+          and(
+            eq(project.id, input.projectId),
+            eq(project.organizationId, input.organizationId),
+          ),
+        );
+
+      return toTicketDomain(row);
     });
   }
 
@@ -688,6 +776,44 @@ export class ProjectDrizzleRepository extends ProjectRepository {
     }
 
     return statsByProjectId;
+  }
+}
+
+async function normalizeActiveTicketOrder(
+  transaction: ProjectTransaction,
+  organizationId: string,
+  projectId: string,
+  columnId: string,
+  updatedAt: Date,
+): Promise<void> {
+  const rows = await transaction
+    .select()
+    .from(ticket)
+    .where(
+      and(
+        eq(ticket.organizationId, organizationId),
+        eq(ticket.projectId, projectId),
+        eq(ticket.columnId, columnId),
+        isNull(ticket.archivedAt),
+      ),
+    )
+    .orderBy(asc(ticket.position), asc(ticket.id))
+    .for('update');
+
+  for (const [position, row] of rows.entries()) {
+    if (row.position === position) {
+      continue;
+    }
+    await transaction
+      .update(ticket)
+      .set(toTicketUpdate({ position, updatedAt }))
+      .where(
+        and(
+          eq(ticket.id, row.id),
+          eq(ticket.organizationId, organizationId),
+          eq(ticket.projectId, projectId),
+        ),
+      );
   }
 }
 

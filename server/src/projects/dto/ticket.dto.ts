@@ -5,7 +5,23 @@ import {
   ProjectUserSummarySchema,
   toProjectUserSummary,
 } from '#server/projects/dto/project.dto.js';
+import {
+  TicketChecklistResponseSchema,
+  toTicketChecklistResponse,
+} from '#server/projects/dto/ticket-checklist.dto.js';
+import {
+  type TicketCommentResponse,
+  TicketCommentResponseSchema,
+} from '#server/projects/dto/ticket-comment.dto.js';
+import {
+  TicketLabelResponseSchema,
+  toTicketLabelResponse,
+} from '#server/projects/dto/ticket-label.dto.js';
 import { ticketSelectSchema } from '#server/projects/infrastructure/persistence/drizzle/schema/ticket.zod.js';
+import type {
+  TicketCardMetadata,
+  TicketChecklistReadModel,
+} from '#server/projects/infrastructure/persistence/ticket-workflow.repository.js';
 
 import { z } from 'zod';
 
@@ -22,6 +38,10 @@ export const TicketSummarySchema = ticketSelectSchema
   .extend({
     key: z.string().min(1),
     assignee: ProjectUserSummarySchema.nullable(),
+    labels: z.array(TicketLabelResponseSchema),
+    checklistItemTotal: z.number().int().nonnegative(),
+    checklistItemCompleted: z.number().int().nonnegative(),
+    commentCount: z.number().int().nonnegative(),
     dueAt: z.string().datetime().nullable(),
     updatedAt: z.string().datetime(),
   })
@@ -30,6 +50,8 @@ export const TicketSummarySchema = ticketSelectSchema
 export const TicketDetailSchema = TicketSummarySchema.extend({
   descriptionMarkdown: ticketSelectSchema.shape.descriptionMarkdown,
   reporter: ProjectUserSummarySchema,
+  checklists: z.array(TicketChecklistResponseSchema),
+  comments: z.array(TicketCommentResponseSchema),
   createdAt: z.string().datetime(),
   archivedAt: z.string().datetime().nullable(),
 }).meta({ id: 'TicketDetail' });
@@ -42,10 +64,17 @@ export type TicketSummaryResponse = z.infer<typeof TicketSummarySchema>;
 export type TicketDetailResponse = z.infer<typeof TicketDetailSchema>;
 export type TicketListResponse = z.infer<typeof TicketListSchema>;
 
+export type TicketDetailProjection = {
+  metadata: TicketCardMetadata;
+  checklists: readonly TicketChecklistReadModel[];
+  comments: readonly TicketCommentResponse[];
+};
+
 export function toTicketSummaryResponse(
   ticket: Ticket,
   projectKey: string,
   assignee: AuthUserIdentity | undefined,
+  metadata: TicketCardMetadata,
 ): TicketSummaryResponse {
   return TicketSummarySchema.parse({
     id: ticket.id,
@@ -56,6 +85,10 @@ export function toTicketSummaryResponse(
     title: ticket.title,
     priority: ticket.priority,
     assignee: toProjectUserSummary(assignee),
+    labels: metadata.labels.map(toTicketLabelResponse),
+    checklistItemTotal: metadata.checklistItemTotal,
+    checklistItemCompleted: metadata.checklistItemCompleted,
+    commentCount: metadata.commentCount,
     position: ticket.position,
     dueAt: ticket.dueAt?.toISOString() ?? null,
     updatedAt: ticket.updatedAt.toISOString(),
@@ -67,6 +100,7 @@ export function toTicketDetailResponse(
   projectKey: string,
   assignee: AuthUserIdentity | undefined,
   reporter: AuthUserIdentity,
+  projection: TicketDetailProjection,
 ): TicketDetailResponse {
   const reporterSummary = toProjectUserSummary(reporter);
   if (!reporterSummary) {
@@ -74,9 +108,18 @@ export function toTicketDetailResponse(
   }
 
   return TicketDetailSchema.parse({
-    ...toTicketSummaryResponse(ticket, projectKey, assignee),
+    ...toTicketSummaryResponse(
+      ticket,
+      projectKey,
+      assignee,
+      projection.metadata,
+    ),
     descriptionMarkdown: ticket.descriptionMarkdown,
     reporter: reporterSummary,
+    checklists: projection.checklists.map(({ checklist, items }) =>
+      toTicketChecklistResponse(checklist, items),
+    ),
+    comments: projection.comments,
     createdAt: ticket.createdAt.toISOString(),
     archivedAt: ticket.archivedAt?.toISOString() ?? null,
   });

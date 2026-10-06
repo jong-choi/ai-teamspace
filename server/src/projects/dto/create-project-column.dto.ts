@@ -3,10 +3,8 @@ import { projectColumnInsertSchema } from '#server/projects/infrastructure/persi
 
 import { z } from 'zod';
 
-export const CreateProjectColumnSchema = z
-  .object({
-    name: projectColumnInsertSchema.shape.name,
-  })
+export const CreateProjectColumnSchema = projectColumnInsertSchema
+  .pick({ name: true })
   .meta({ id: 'CreateProjectColumn' });
 
 export type CreateProjectColumnInput = z.infer<

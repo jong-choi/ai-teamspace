@@ -3,13 +3,14 @@ import { ticketUpdateSchema } from '#server/projects/infrastructure/persistence/
 
 import { z } from 'zod';
 
-export const UpdateTicketSchema = z
-  .object({
-    title: ticketUpdateSchema.shape.title.optional(),
-    descriptionMarkdown:
-      ticketUpdateSchema.shape.descriptionMarkdown.optional(),
-    priority: ticketUpdateSchema.shape.priority.optional(),
-    assigneeUserId: ticketUpdateSchema.shape.assigneeUserId.optional(),
+export const UpdateTicketSchema = ticketUpdateSchema
+  .pick({
+    title: true,
+    descriptionMarkdown: true,
+    priority: true,
+    assigneeUserId: true,
+  })
+  .extend({
     dueAt: z.string().datetime().nullable().optional(),
     archived: z.boolean().optional(),
   })

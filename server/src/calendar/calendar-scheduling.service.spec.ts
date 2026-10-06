@@ -17,6 +17,7 @@ import type { MeetingRecurrenceSeries } from '@/calendar/domain/meeting-recurren
 import { CalendarRepository } from '@/calendar/infrastructure/persistence/calendar.repository';
 import { CalendarProjectReferenceProvider } from '@/calendar/infrastructure/project/calendar-project-reference.provider';
 import { CalendarReminderScheduler } from '@/calendar/infrastructure/reminder/calendar-reminder-scheduler.provider';
+import { RecurrenceSchedulingPlanService } from '@/calendar/recurrence-scheduling-plan.service';
 import type { OrganizationMember } from '@/organizations/domain/organization-member';
 import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
 import type { OrganizationsService } from '@/organizations/organizations.service';
@@ -204,6 +205,11 @@ describe('캘린더 scheduling 서비스', () => {
       organizationsService,
     );
     const conflictPolicy = new CalendarSchedulingConflictPolicy();
+    const recurrenceService = new CalendarRecurrenceService();
+    const recurrencePlanService = new RecurrenceSchedulingPlanService(
+      repository,
+      recurrenceService,
+    );
     availabilityService = new CalendarAvailabilityService(
       repository,
       meetingLoader,
@@ -225,7 +231,8 @@ describe('캘린더 scheduling 서비스', () => {
       meetingLoader,
       meetingPolicy,
       presenter,
-      new CalendarRecurrenceService(),
+      recurrenceService,
+      recurrencePlanService,
       participantPolicy,
       conflictPolicy,
       projectProvider,

@@ -22,6 +22,7 @@ import { CalendarSchedulingService } from '@/calendar/calendar-scheduling.servic
 import { CalendarDrizzlePersistenceModule } from '@/calendar/infrastructure/persistence/drizzle/drizzle-persistence.module';
 import { ProjectsCalendarReferenceModule } from '@/calendar/infrastructure/project/projects/projects-calendar-reference.module';
 import { BullMqCalendarReminderModule } from '@/calendar/infrastructure/reminder/bullmq/bullmq-calendar-reminder.module';
+import { RecurrenceSchedulingPlanService } from '@/calendar/recurrence-scheduling-plan.service';
 import { TrustedOriginGuard } from '@/common/http/trusted-origin.guard';
 import { OrganizationsModule } from '@/organizations/organizations.module';
 
@@ -52,6 +53,7 @@ import { OrganizationsModule } from '@/organizations/organizations.module';
     CalendarSchedulingConflictPolicy,
     CalendarParticipationService,
     CalendarRecurrenceService,
+    RecurrenceSchedulingPlanService,
     CalendarSchedulingService,
     CalendarIcsService,
     TrustedOriginGuard,

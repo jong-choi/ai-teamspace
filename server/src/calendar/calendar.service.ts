@@ -1,12 +1,10 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 
+import { CalendarMeetingLoader } from '#server/calendar/calendar-meeting.loader.js';
+import { CalendarMeetingPolicy } from '#server/calendar/calendar-meeting.policy.js';
 import { CalendarMeetingPresenterService } from '#server/calendar/calendar-meeting-presenter.service.js';
 import {
-  CalendarInvalidLocationError,
-  CalendarInvalidTimeRangeError,
-  CalendarMeetingCanceledError,
   CalendarMeetingNotFoundError,
-  CalendarMeetingRoomInactiveError,
   CalendarMeetingRoomNotFoundError,
 } from '#server/calendar/domain/calendar.error.js';
 import type { Meeting } from '#server/calendar/domain/meeting.js';
@@ -28,10 +26,7 @@ import type {
   UpdateMeetingNotesInput,
 } from '#server/calendar/dto/update-meeting-content.dto.js';
 import type { UpdateMeetingRoomInput } from '#server/calendar/dto/update-meeting-room.dto.js';
-import {
-  type CalendarMeetingDetailRecord,
-  CalendarRepository,
-} from '#server/calendar/infrastructure/persistence/calendar.repository.js';
+import { CalendarRepository } from '#server/calendar/infrastructure/persistence/calendar.repository.js';
 import { CalendarProjectReferenceProvider } from '#server/calendar/infrastructure/project/calendar-project-reference.provider.js';
 import { CalendarReminderScheduler } from '#server/calendar/infrastructure/reminder/calendar-reminder-scheduler.provider.js';
 import type { OrganizationActorContext } from '#server/organizations/organization-actor-context.js';
@@ -53,6 +48,8 @@ export class CalendarService {
 
   constructor(
     private readonly calendarRepository: CalendarRepository,
+    private readonly meetingLoader: CalendarMeetingLoader,
+    private readonly meetingPolicy: CalendarMeetingPolicy,
     @Inject(CalendarMeetingPresenterService)
     private readonly presenter: CalendarMeetingPresenter,
     private readonly projectReferenceProvider: CalendarProjectReferenceProvider,
@@ -69,7 +66,7 @@ export class CalendarService {
     await this.organizationsService.getDetail(context, organizationId);
     const from = new Date(query.from);
     const to = new Date(query.to);
-    this.assertTimeRange(from, to);
+    this.meetingPolicy.assertTimeRange(from, to);
 
     const searchParticipantUserIds = query.search
       ? await this.organizationsService.searchMemberUserIds(
@@ -101,7 +98,7 @@ export class CalendarService {
     await this.organizationsService.getDetail(context, organizationId);
     return this.presenter.presentDetail(
       organizationId,
-      await this.requireMeeting(organizationId, meetingId),
+      await this.meetingLoader.requireMeeting(organizationId, meetingId),
     );
   }
 
@@ -112,9 +109,12 @@ export class CalendarService {
     input: UpdateMeetingInput,
   ): Promise<MeetingDetailResponse> {
     await this.organizationsService.getDetail(context, organizationId);
-    const current = await this.requireMeeting(organizationId, meetingId);
-    this.assertMeetingActive(current);
-    await this.assertMeetingModificationAccess(
+    const current = await this.meetingLoader.requireMeeting(
+      organizationId,
+      meetingId,
+    );
+    this.meetingPolicy.assertActive(current);
+    await this.meetingPolicy.assertModificationAccess(
       context,
       organizationId,
       current,
@@ -173,9 +173,12 @@ export class CalendarService {
     input: UpdateMeetingAgendaInput,
   ): Promise<MeetingDetailResponse> {
     await this.organizationsService.getDetail(context, organizationId);
-    const current = await this.requireMeeting(organizationId, meetingId);
-    this.assertMeetingActive(current);
-    await this.assertMeetingModificationAccess(
+    const current = await this.meetingLoader.requireMeeting(
+      organizationId,
+      meetingId,
+    );
+    this.meetingPolicy.assertActive(current);
+    await this.meetingPolicy.assertModificationAccess(
       context,
       organizationId,
       current,
@@ -199,9 +202,12 @@ export class CalendarService {
     input: UpdateMeetingNotesInput,
   ): Promise<MeetingDetailResponse> {
     await this.organizationsService.getDetail(context, organizationId);
-    const current = await this.requireMeeting(organizationId, meetingId);
-    this.assertMeetingActive(current);
-    await this.assertMeetingModificationAccess(
+    const current = await this.meetingLoader.requireMeeting(
+      organizationId,
+      meetingId,
+    );
+    this.meetingPolicy.assertActive(current);
+    await this.meetingPolicy.assertModificationAccess(
       context,
       organizationId,
       current,
@@ -292,65 +298,6 @@ export class CalendarService {
     });
     if (!room) throw new CalendarMeetingRoomNotFoundError();
     return toMeetingRoomResponse(room);
-  }
-
-  async requireMeeting(
-    organizationId: string,
-    meetingId: string,
-  ): Promise<CalendarMeetingDetailRecord> {
-    const record = await this.calendarRepository.findMeetingById(
-      organizationId,
-      meetingId,
-    );
-    if (!record) throw new CalendarMeetingNotFoundError();
-    return record;
-  }
-
-  async assertMeetingModificationAccess(
-    context: OrganizationActorContext,
-    organizationId: string,
-    record: CalendarMeetingDetailRecord,
-  ): Promise<void> {
-    if (record.meeting.organizerUserId !== context.userId) {
-      await this.organizationsService.assertAdministrativeAccess(
-        context,
-        organizationId,
-      );
-    }
-  }
-
-  async requireSelectableMeetingRoom(
-    organizationId: string,
-    meetingRoomId: string,
-  ): Promise<void> {
-    const room = await this.calendarRepository.findMeetingRoomById(
-      organizationId,
-      meetingRoomId,
-    );
-    if (!room) throw new CalendarMeetingRoomNotFoundError();
-    if (!room.active) throw new CalendarMeetingRoomInactiveError();
-  }
-
-  assertMeetingActive(record: CalendarMeetingDetailRecord): void {
-    if (record.meeting.canceledAt) throw new CalendarMeetingCanceledError();
-  }
-
-  assertTimeRange(startAt: Date, endAt: Date): void {
-    if (endAt.getTime() <= startAt.getTime()) {
-      throw new CalendarInvalidTimeRangeError();
-    }
-  }
-
-  assertLocation(
-    locationType: Meeting['locationType'],
-    meetingRoomId: string | null,
-  ): void {
-    if (
-      (locationType === 'meeting_room' && meetingRoomId === null) ||
-      (locationType !== 'meeting_room' && meetingRoomId !== null)
-    ) {
-      throw new CalendarInvalidLocationError();
-    }
   }
 
   private async syncReminder(meeting: Meeting): Promise<void> {

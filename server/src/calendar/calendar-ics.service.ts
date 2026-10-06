@@ -4,7 +4,7 @@ import {
   AuthUserDirectoryService,
   type AuthUserIdentity,
 } from '#server/auth/auth-user-directory.service.js';
-import { CalendarService } from '#server/calendar/calendar.service.js';
+import { CalendarMeetingLoader } from '#server/calendar/calendar-meeting.loader.js';
 import { CalendarIcsGenerationError } from '#server/calendar/domain/calendar.error.js';
 import type { MeetingAttendee } from '#server/calendar/domain/meeting-attendee.js';
 import type { MeetingRecurrenceSeries } from '#server/calendar/domain/meeting-recurrence-series.js';
@@ -62,14 +62,11 @@ export type CalendarIcsDocument = {
   filename: string;
 };
 
-type CalendarIcsMeetingReader = Pick<CalendarService, 'requireMeeting'>;
-
 @Injectable()
 export class CalendarIcsService {
   constructor(
     private readonly calendarRepository: CalendarRepository,
-    @Inject(CalendarService)
-    private readonly calendarService: CalendarIcsMeetingReader,
+    private readonly meetingLoader: CalendarMeetingLoader,
     @Inject(AuthUserDirectoryService)
     private readonly userDirectory: Pick<AuthUserDirectoryService, 'findByIds'>,
     @Inject(OrganizationsService)
@@ -85,7 +82,7 @@ export class CalendarIcsService {
     meetingId: string,
   ): Promise<CalendarIcsDocument> {
     await this.organizationsService.getDetail(context, organizationId);
-    const selected = await this.calendarService.requireMeeting(
+    const selected = await this.meetingLoader.requireMeeting(
       organizationId,
       meetingId,
     );

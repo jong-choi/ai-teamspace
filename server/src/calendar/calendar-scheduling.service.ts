@@ -2,7 +2,8 @@ import { randomUUID } from 'node:crypto';
 
 import { Inject, Injectable, Logger } from '@nestjs/common';
 
-import { CalendarService } from '#server/calendar/calendar.service.js';
+import { CalendarMeetingLoader } from '#server/calendar/calendar-meeting.loader.js';
+import { CalendarMeetingPolicy } from '#server/calendar/calendar-meeting.policy.js';
 import { CalendarMeetingPresenterService } from '#server/calendar/calendar-meeting-presenter.service.js';
 import { CalendarRecurrenceService } from '#server/calendar/calendar-recurrence.service.js';
 import {
@@ -45,16 +46,6 @@ type CalendarOrganizationsAccess = Pick<
   'getDetail' | 'listMembersByUserIds'
 >;
 
-type CalendarSchedulingBaseService = Pick<
-  CalendarService,
-  | 'requireMeeting'
-  | 'assertMeetingActive'
-  | 'assertMeetingModificationAccess'
-  | 'assertTimeRange'
-  | 'assertLocation'
-  | 'requireSelectableMeetingRoom'
->;
-
 type CalendarMeetingPresenter = Pick<
   CalendarMeetingPresenterService,
   'presentDetail'
@@ -66,8 +57,8 @@ export class CalendarSchedulingService {
 
   constructor(
     private readonly calendarRepository: CalendarRepository,
-    @Inject(CalendarService)
-    private readonly calendarService: CalendarSchedulingBaseService,
+    private readonly meetingLoader: CalendarMeetingLoader,
+    private readonly meetingPolicy: CalendarMeetingPolicy,
     @Inject(CalendarMeetingPresenterService)
     private readonly presenter: CalendarMeetingPresenter,
     private readonly recurrenceService: CalendarRecurrenceService,
@@ -92,7 +83,7 @@ export class CalendarSchedulingService {
       ...attendeeUserIds,
     ]);
     if (input.meetingRoomId) {
-      await this.calendarService.requireSelectableMeetingRoom(
+      await this.meetingLoader.requireSelectableMeetingRoom(
         organizationId,
         input.meetingRoomId,
       );
@@ -113,12 +104,12 @@ export class CalendarSchedulingService {
     input: CalendarRescheduleAvailabilityRequest,
   ): Promise<CalendarAvailabilityResponse> {
     await this.organizationsService.getDetail(context, organizationId);
-    const current = await this.calendarService.requireMeeting(
+    const current = await this.meetingLoader.requireMeeting(
       organizationId,
       meetingId,
     );
-    this.calendarService.assertMeetingActive(current);
-    await this.calendarService.assertMeetingModificationAccess(
+    this.meetingPolicy.assertActive(current);
+    await this.meetingPolicy.assertModificationAccess(
       context,
       organizationId,
       current,
@@ -127,7 +118,7 @@ export class CalendarSchedulingService {
       .filter((attendee) => attendee.status !== 'declined')
       .map((attendee) => attendee.userId);
     if (input.meetingRoomId) {
-      await this.calendarService.requireSelectableMeetingRoom(
+      await this.meetingLoader.requireSelectableMeetingRoom(
         organizationId,
         input.meetingRoomId,
       );
@@ -150,7 +141,7 @@ export class CalendarSchedulingService {
     await this.organizationsService.getDetail(context, organizationId);
     const startAt = new Date(input.startAt);
     const endAt = new Date(input.endAt);
-    this.calendarService.assertTimeRange(startAt, endAt);
+    this.meetingPolicy.assertTimeRange(startAt, endAt);
 
     const attendeeUserIds = this.normalizeAttendeeUserIds(
       input.attendeeUserIds,
@@ -162,9 +153,9 @@ export class CalendarSchedulingService {
     ]);
 
     const meetingRoomId = input.meetingRoomId ?? null;
-    this.calendarService.assertLocation(input.locationType, meetingRoomId);
+    this.meetingPolicy.assertLocation(input.locationType, meetingRoomId);
     if (meetingRoomId) {
-      await this.calendarService.requireSelectableMeetingRoom(
+      await this.meetingLoader.requireSelectableMeetingRoom(
         organizationId,
         meetingRoomId,
       );
@@ -246,12 +237,12 @@ export class CalendarSchedulingService {
     input: UpdateMeetingAttendeesInput,
   ): Promise<MeetingDetailResponse> {
     await this.organizationsService.getDetail(context, organizationId);
-    const current = await this.calendarService.requireMeeting(
+    const current = await this.meetingLoader.requireMeeting(
       organizationId,
       meetingId,
     );
-    this.calendarService.assertMeetingActive(current);
-    await this.calendarService.assertMeetingModificationAccess(
+    this.meetingPolicy.assertActive(current);
+    await this.meetingPolicy.assertModificationAccess(
       context,
       organizationId,
       current,
@@ -296,12 +287,12 @@ export class CalendarSchedulingService {
     input: RescheduleMeetingInput,
   ): Promise<MeetingDetailResponse> {
     await this.organizationsService.getDetail(context, organizationId);
-    const current = await this.calendarService.requireMeeting(
+    const current = await this.meetingLoader.requireMeeting(
       organizationId,
       meetingId,
     );
-    this.calendarService.assertMeetingActive(current);
-    await this.calendarService.assertMeetingModificationAccess(
+    this.meetingPolicy.assertActive(current);
+    await this.meetingPolicy.assertModificationAccess(
       context,
       organizationId,
       current,
@@ -309,11 +300,11 @@ export class CalendarSchedulingService {
 
     const startAt = new Date(input.startAt);
     const endAt = new Date(input.endAt);
-    this.calendarService.assertTimeRange(startAt, endAt);
+    this.meetingPolicy.assertTimeRange(startAt, endAt);
     const meetingRoomId = input.meetingRoomId;
-    this.calendarService.assertLocation(input.locationType, meetingRoomId);
+    this.meetingPolicy.assertLocation(input.locationType, meetingRoomId);
     if (meetingRoomId) {
-      await this.calendarService.requireSelectableMeetingRoom(
+      await this.meetingLoader.requireSelectableMeetingRoom(
         organizationId,
         meetingRoomId,
       );
@@ -351,14 +342,14 @@ export class CalendarSchedulingService {
     input: CancelMeetingInput,
   ): Promise<MeetingDetailResponse> {
     await this.organizationsService.getDetail(context, organizationId);
-    const current = await this.calendarService.requireMeeting(
+    const current = await this.meetingLoader.requireMeeting(
       organizationId,
       meetingId,
     );
     if (current.meeting.canceledAt) {
       throw new CalendarMeetingAlreadyCanceledError();
     }
-    await this.calendarService.assertMeetingModificationAccess(
+    await this.meetingPolicy.assertModificationAccess(
       context,
       organizationId,
       current,
@@ -388,11 +379,11 @@ export class CalendarSchedulingService {
     input: RsvpMeetingInput,
   ): Promise<MeetingDetailResponse> {
     await this.organizationsService.getDetail(context, organizationId);
-    const current = await this.calendarService.requireMeeting(
+    const current = await this.meetingLoader.requireMeeting(
       organizationId,
       meetingId,
     );
-    this.calendarService.assertMeetingActive(current);
+    this.meetingPolicy.assertActive(current);
     const result = await this.calendarRepository.updateAttendeeRsvp(
       organizationId,
       meetingId,
@@ -407,7 +398,7 @@ export class CalendarSchedulingService {
     if (result.status === 'conflict') this.throwConflict(result);
     return this.presenter.presentDetail(
       organizationId,
-      await this.calendarService.requireMeeting(organizationId, meetingId),
+      await this.meetingLoader.requireMeeting(organizationId, meetingId),
     );
   }
 
@@ -419,7 +410,7 @@ export class CalendarSchedulingService {
     endAt: Date;
     excludeMeetingIds?: readonly string[];
   }): Promise<CalendarAvailabilityResponse> {
-    this.calendarService.assertTimeRange(input.startAt, input.endAt);
+    this.meetingPolicy.assertTimeRange(input.startAt, input.endAt);
     const participantConflicts =
       await this.calendarRepository.findParticipantBusyIntervals({
         organizationId: input.organizationId,

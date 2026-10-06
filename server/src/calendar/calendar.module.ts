@@ -4,6 +4,8 @@ import { AuthModule } from '#server/auth/auth.module.js';
 import { CalendarController } from '#server/calendar/calendar.controller.js';
 import { CalendarService } from '#server/calendar/calendar.service.js';
 import { CalendarIcsService } from '#server/calendar/calendar-ics.service.js';
+import { CalendarMeetingLoader } from '#server/calendar/calendar-meeting.loader.js';
+import { CalendarMeetingPolicy } from '#server/calendar/calendar-meeting.policy.js';
 import { CalendarMeetingPresenterService } from '#server/calendar/calendar-meeting-presenter.service.js';
 import { CalendarRecurrenceService } from '#server/calendar/calendar-recurrence.service.js';
 import { CalendarSchedulingService } from '#server/calendar/calendar-scheduling.service.js';
@@ -23,6 +25,8 @@ import { OrganizationsModule } from '#server/organizations/organizations.module.
   ],
   controllers: [CalendarController],
   providers: [
+    CalendarMeetingLoader,
+    CalendarMeetingPolicy,
     CalendarMeetingPresenterService,
     CalendarRecurrenceService,
     CalendarService,

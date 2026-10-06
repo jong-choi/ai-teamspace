@@ -2,8 +2,8 @@ import type {
   AuthUserDirectoryService,
   AuthUserIdentity,
 } from '#server/auth/auth-user-directory.service.js';
-import type { CalendarService } from '#server/calendar/calendar.service.js';
 import { CalendarIcsService } from '#server/calendar/calendar-ics.service.js';
+import { CalendarMeetingLoader } from '#server/calendar/calendar-meeting.loader.js';
 import type { Meeting } from '#server/calendar/domain/meeting.js';
 import type { MeetingAttendee } from '#server/calendar/domain/meeting-attendee.js';
 import type { MeetingRecurrenceSeries } from '#server/calendar/domain/meeting-recurrence-series.js';
@@ -33,10 +33,6 @@ class FakeCalendarRepository extends CalendarRepository {
   findMeetingRoomById = jest.fn<CalendarRepository['findMeetingRoomById']>();
   createMeetingRoom = jest.fn<CalendarRepository['createMeetingRoom']>();
   updateMeetingRoom = jest.fn<CalendarRepository['updateMeetingRoom']>();
-}
-
-class FakeMeetingReader {
-  requireMeeting = jest.fn<CalendarService['requireMeeting']>();
 }
 
 class FakeUserDirectory {
@@ -143,19 +139,17 @@ const identities: AuthUserIdentity[] = [
 
 describe('캘린더 ICS 서비스', () => {
   let repository: FakeCalendarRepository;
-  let meetingReader: FakeMeetingReader;
   let userDirectory: FakeUserDirectory;
   let organizationsService: FakeOrganizationsService;
   let service: CalendarIcsService;
 
   beforeEach(() => {
     repository = new FakeCalendarRepository();
-    meetingReader = new FakeMeetingReader();
     userDirectory = new FakeUserDirectory();
     organizationsService = new FakeOrganizationsService();
     service = new CalendarIcsService(
       repository,
-      meetingReader,
+      new CalendarMeetingLoader(repository),
       userDirectory,
       organizationsService,
     );
@@ -174,7 +168,7 @@ describe('캘린더 ICS 서비스', () => {
 
   test('단일 Meeting은 UID, sequence, organizer, attendee RSVP를 직렬화한다', async () => {
     const selected = record(meeting({ iCalSequence: 4 }));
-    meetingReader.requireMeeting.mockResolvedValue(selected);
+    repository.findMeetingById.mockResolvedValue(selected);
 
     const document = await service.exportMeeting(
       {
@@ -237,7 +231,7 @@ describe('캘린더 ICS 서비스', () => {
         series,
       ),
     ];
-    meetingReader.requireMeeting.mockResolvedValue(records[0]!);
+    repository.findMeetingById.mockResolvedValue(records[0]!);
     repository.listMeetingsInSeries.mockResolvedValue(records);
 
     const document = await service.exportMeeting(
@@ -285,7 +279,7 @@ describe('캘린더 ICS 서비스', () => {
         series,
       ),
     );
-    meetingReader.requireMeeting.mockResolvedValue(records[0]!);
+    repository.findMeetingById.mockResolvedValue(records[0]!);
     repository.listMeetingsInSeries.mockResolvedValue(records);
 
     const document = await service.exportMeeting(
@@ -313,7 +307,7 @@ describe('캘린더 ICS 서비스', () => {
         locationText: 'Room, A; 3F',
       }),
     );
-    meetingReader.requireMeeting.mockResolvedValue(selected);
+    repository.findMeetingById.mockResolvedValue(selected);
 
     const document = await service.exportMeeting(
       {
@@ -339,7 +333,7 @@ describe('캘린더 ICS 서비스', () => {
         canceledByUserId: 'organizer-user',
       }),
     );
-    meetingReader.requireMeeting.mockResolvedValue(selected);
+    repository.findMeetingById.mockResolvedValue(selected);
 
     const document = await service.exportMeeting(
       {

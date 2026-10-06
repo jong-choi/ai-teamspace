@@ -1,4 +1,5 @@
-import type { CalendarService } from '#server/calendar/calendar.service.js';
+import { CalendarMeetingLoader } from '#server/calendar/calendar-meeting.loader.js';
+import { CalendarMeetingPolicy } from '#server/calendar/calendar-meeting.policy.js';
 import type { CalendarMeetingPresenterService } from '#server/calendar/calendar-meeting-presenter.service.js';
 import { CalendarRecurrenceService } from '#server/calendar/calendar-recurrence.service.js';
 import { CalendarSchedulingService } from '#server/calendar/calendar-scheduling.service.js';
@@ -56,17 +57,8 @@ class FakeOrganizationsService {
   getDetail = jest.fn<OrganizationsService['getDetail']>();
   listMembersByUserIds =
     jest.fn<OrganizationsService['listMembersByUserIds']>();
-}
-
-class FakeCalendarBaseService {
-  requireMeeting = jest.fn<CalendarService['requireMeeting']>();
-  assertMeetingActive = jest.fn<CalendarService['assertMeetingActive']>();
-  assertMeetingModificationAccess =
-    jest.fn<CalendarService['assertMeetingModificationAccess']>();
-  assertTimeRange = jest.fn<CalendarService['assertTimeRange']>();
-  assertLocation = jest.fn<CalendarService['assertLocation']>();
-  requireSelectableMeetingRoom =
-    jest.fn<CalendarService['requireSelectableMeetingRoom']>();
+  assertAdministrativeAccess =
+    jest.fn<OrganizationsService['assertAdministrativeAccess']>();
 }
 
 class FakePresenter {
@@ -188,7 +180,6 @@ function recurringRecord(index: number) {
 
 describe('캘린더 scheduling 서비스', () => {
   let repository: FakeCalendarRepository;
-  let calendarService: FakeCalendarBaseService;
   let presenter: FakePresenter;
   let projectProvider: FakeProjectReferenceProvider;
   let reminderScheduler: FakeReminderScheduler;
@@ -197,14 +188,14 @@ describe('캘린더 scheduling 서비스', () => {
 
   beforeEach(() => {
     repository = new FakeCalendarRepository();
-    calendarService = new FakeCalendarBaseService();
     presenter = new FakePresenter();
     projectProvider = new FakeProjectReferenceProvider();
     reminderScheduler = new FakeReminderScheduler();
     organizationsService = new FakeOrganizationsService();
     service = new CalendarSchedulingService(
       repository,
-      calendarService,
+      new CalendarMeetingLoader(repository),
+      new CalendarMeetingPolicy(organizationsService),
       presenter,
       new CalendarRecurrenceService(),
       projectProvider,
@@ -226,8 +217,7 @@ describe('캘린더 scheduling 서비스', () => {
       async (_context, _organizationId, userIds) =>
         userIds.map((userId) => member(userId)),
     );
-    calendarService.requireSelectableMeetingRoom.mockResolvedValue();
-    calendarService.assertMeetingModificationAccess.mockResolvedValue();
+    organizationsService.assertAdministrativeAccess.mockResolvedValue();
     presenter.presentDetail.mockResolvedValue({} as never);
   });
 
@@ -322,7 +312,7 @@ describe('캘린더 scheduling 서비스', () => {
       attendee('accepted-user', 'accepted'),
       attendee('declined-user', 'declined'),
     ]);
-    calendarService.requireMeeting.mockResolvedValue(current);
+    repository.findMeetingById.mockResolvedValue(current);
     repository.findParticipantBusyIntervals.mockResolvedValue([]);
     repository.findRoomBusyIntervals.mockResolvedValue([]);
 
@@ -348,7 +338,7 @@ describe('캘린더 scheduling 서비스', () => {
 
   test('동일한 attendee set 재저장은 repository mutation을 생략한다', async () => {
     const current = record({}, [attendee('existing-user', 'accepted')]);
-    calendarService.requireMeeting.mockResolvedValue(current);
+    repository.findMeetingById.mockResolvedValue(current);
     presenter.presentDetail.mockResolvedValue({} as never);
 
     await service.replaceAttendees(
@@ -363,7 +353,7 @@ describe('캘린더 scheduling 서비스', () => {
 
   test('attendee replace는 새로 추가된 사용자만 conflict 대상으로 넘긴다', async () => {
     const current = record({}, [attendee('existing-user', 'accepted')]);
-    calendarService.requireMeeting.mockResolvedValue(current);
+    repository.findMeetingById.mockResolvedValue(current);
     repository.replaceMeetingAttendees.mockResolvedValue({
       status: 'updated',
       record: current,
@@ -388,7 +378,7 @@ describe('캘린더 scheduling 서비스', () => {
 
   test('RSVP는 request userId 없이 현재 actor attendee row만 변경한다', async () => {
     const current = record({}, [attendee('organizer-user')]);
-    calendarService.requireMeeting.mockResolvedValue(current);
+    repository.findMeetingById.mockResolvedValue(current);
     repository.updateAttendeeRsvp.mockResolvedValue({
       status: 'updated',
       attendee: attendee('organizer-user', 'accepted'),
@@ -408,7 +398,7 @@ describe('캘린더 scheduling 서비스', () => {
 
   test('declined 이후 RSVP를 다시 수락할 때 기존 일정과 겹치면 hard block한다', async () => {
     const current = record({}, [attendee('organizer-user', 'declined')]);
-    calendarService.requireMeeting.mockResolvedValue(current);
+    repository.findMeetingById.mockResolvedValue(current);
     repository.updateAttendeeRsvp.mockResolvedValue({
       status: 'conflict',
       participantConflicts: [
@@ -438,7 +428,7 @@ describe('캘린더 scheduling 서비스', () => {
       endAt: new Date('2026-10-08T01:00:00.000Z'),
       reminderMinutes: 10,
     });
-    calendarService.requireMeeting.mockResolvedValue(current);
+    repository.findMeetingById.mockResolvedValue(current);
     repository.rescheduleMeetings.mockResolvedValue({
       status: 'updated',
       records: [updated],
@@ -470,7 +460,7 @@ describe('캘린더 scheduling 서비스', () => {
       canceledByUserId: 'organizer-user',
       reminderMinutes: 10,
     });
-    calendarService.requireMeeting.mockResolvedValue(current);
+    repository.findMeetingById.mockResolvedValue(current);
     repository.cancelMeetings.mockResolvedValue([canceled]);
 
     await service.cancelMeeting(context, 'organization-a', current.meeting.id, {
@@ -486,7 +476,7 @@ describe('캘린더 scheduling 서비스', () => {
       canceledAt: new Date('2026-10-06T01:00:00.000Z'),
       canceledByUserId: 'organizer-user',
     });
-    calendarService.requireMeeting.mockResolvedValue(current);
+    repository.findMeetingById.mockResolvedValue(current);
 
     await expect(
       service.cancelMeeting(context, 'organization-a', current.meeting.id, {
@@ -500,7 +490,7 @@ describe('캘린더 scheduling 서비스', () => {
   test('future reschedule은 과거 series를 닫고 미래 occurrence를 새 series로 분리한다', async () => {
     const series = [recurringRecord(0), recurringRecord(1), recurringRecord(2)];
     const selected = series[1]!;
-    calendarService.requireMeeting.mockResolvedValue(selected);
+    repository.findMeetingById.mockResolvedValue(selected);
     repository.listMeetingsInSeries.mockResolvedValue(series);
     repository.rescheduleMeetings.mockImplementation(async (input) => ({
       status: 'updated',
@@ -564,7 +554,7 @@ describe('캘린더 scheduling 서비스', () => {
   test('series reschedule은 기존 recurrence series의 규칙과 occurrence identity를 함께 갱신한다', async () => {
     const series = [recurringRecord(0), recurringRecord(1), recurringRecord(2)];
     const selected = series[0]!;
-    calendarService.requireMeeting.mockResolvedValue(selected);
+    repository.findMeetingById.mockResolvedValue(selected);
     repository.listMeetingsInSeries.mockResolvedValue(series);
     repository.rescheduleMeetings.mockImplementation(async (input) => ({
       status: 'updated',

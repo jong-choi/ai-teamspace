@@ -1,4 +1,6 @@
 import { CalendarService } from '#server/calendar/calendar.service.js';
+import { CalendarMeetingLoader } from '#server/calendar/calendar-meeting.loader.js';
+import { CalendarMeetingPolicy } from '#server/calendar/calendar-meeting.policy.js';
 import type { CalendarMeetingPresenterService } from '#server/calendar/calendar-meeting-presenter.service.js';
 import { CalendarMeetingCanceledError } from '#server/calendar/domain/calendar.error.js';
 import type { Meeting } from '#server/calendar/domain/meeting.js';
@@ -135,6 +137,8 @@ describe('캘린더 기본 서비스', () => {
     organizationsService = new FakeOrganizationsService();
     service = new CalendarService(
       repository,
+      new CalendarMeetingLoader(repository),
+      new CalendarMeetingPolicy(organizationsService),
       presenter,
       projectProvider,
       reminderScheduler,

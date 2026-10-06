@@ -1,7 +1,5 @@
 import type { INestApplication } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
 
-import { AppModule } from '#server-source/app.module';
 import type { Auth } from '#server-source/auth/auth';
 import {
   authOptions,
@@ -26,6 +24,8 @@ import { AuthService } from '@thallesp/nestjs-better-auth';
 import { and, eq } from 'drizzle-orm';
 import request from 'supertest';
 
+import { createAppTestingModule } from '#server-test/support/app-testing-module.js';
+
 type TestAgent = ReturnType<typeof request.agent>;
 
 interface TestUser {
@@ -39,9 +39,7 @@ describe('조직과 멤버 E2E', () => {
   let auth: Auth;
 
   beforeAll(async () => {
-    const moduleFixture = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
+    const moduleFixture = await createAppTestingModule().compile();
 
     app = moduleFixture.createNestApplication({
       bodyParser: false,

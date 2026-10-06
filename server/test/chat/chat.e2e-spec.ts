@@ -1,7 +1,5 @@
 import type { INestApplication } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
 
-import { AppModule } from '#server-source/app.module';
 import {
   account,
   invitation,
@@ -17,6 +15,8 @@ import { createOpenApiDocument, setupOpenApi } from '#server-source/openapi';
 
 import request from 'supertest';
 
+import { createAppTestingModule } from '#server-test/support/app-testing-module.js';
+
 type TestAgent = ReturnType<typeof request.agent>;
 
 type TestUser = {
@@ -31,9 +31,7 @@ describe('채팅 E2E', () => {
   let database: DatabaseService['db'];
 
   beforeAll(async () => {
-    const moduleFixture = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
+    const moduleFixture = await createAppTestingModule().compile();
 
     app = moduleFixture.createNestApplication({
       bodyParser: false,

@@ -1,7 +1,6 @@
 import { INestApplication } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
+import { TestingModule } from '@nestjs/testing';
 
-import { AppModule } from '#server/app.module.js';
 import {
   authOptions,
   organizationFacadeDisabledPaths,
@@ -10,13 +9,14 @@ import {
 import request from 'supertest';
 import { App } from 'supertest/types.js';
 
+import { createAppTestingModule } from '#server-test/support/app-testing-module.js';
+
 describe('앱 컨트롤러 E2E', () => {
   let app: INestApplication<App>;
 
   beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
+    const moduleFixture: TestingModule =
+      await createAppTestingModule().compile();
 
     app = moduleFixture.createNestApplication({
       bodyParser: false,

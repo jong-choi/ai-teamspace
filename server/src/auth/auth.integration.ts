@@ -1,7 +1,5 @@
 import type { INestApplication } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
 
-import { AppModule } from '#server-source/app.module';
 import type { Auth } from '#server-source/auth/auth';
 import {
   account,
@@ -18,15 +16,15 @@ import { AuthService } from '@thallesp/nestjs-better-auth';
 import { eq } from 'drizzle-orm';
 import request from 'supertest';
 
+import { createAppTestingModule } from '#server-test/support/app-testing-module.js';
+
 describe('Better Auth Drizzle 통합', () => {
   let app: INestApplication;
   let database: DatabaseService['db'];
   let auth: Auth;
 
   beforeAll(async () => {
-    const moduleFixture = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
+    const moduleFixture = await createAppTestingModule().compile();
 
     app = moduleFixture.createNestApplication({
       bodyParser: false,

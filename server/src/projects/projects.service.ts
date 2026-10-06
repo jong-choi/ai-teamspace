@@ -53,6 +53,7 @@ import {
   type TicketDetailChildren,
   TicketWorkflowRepository,
 } from '@/projects/infrastructure/persistence/ticket-workflow.repository';
+import { ProjectResourceLoader } from '@/projects/project-resource.loader';
 
 type ProjectUserDirectory = Pick<AuthUserDirectoryService, 'findByIds'>;
 type ProjectOrganizationMembership = Pick<
@@ -65,6 +66,7 @@ export class ProjectsService {
   constructor(
     private readonly projectRepository: ProjectRepository,
     private readonly ticketWorkflowRepository: TicketWorkflowRepository,
+    private readonly resourceLoader: ProjectResourceLoader,
     @Inject(OrganizationMembershipService)
     private readonly organizationMembership: ProjectOrganizationMembership,
     @Inject(AuthUserDirectoryService)
@@ -114,7 +116,7 @@ export class ProjectsService {
       });
 
     return this.toProjectDetail(
-      await this.requireProject(organizationId, project.id),
+      await this.resourceLoader.requireProject(organizationId, project.id),
     );
   }
 
@@ -125,7 +127,7 @@ export class ProjectsService {
   ): Promise<ProjectDetailResponse> {
     await this.organizationMembership.requireAccess(context, organizationId);
     return this.toProjectDetail(
-      await this.requireProject(organizationId, projectId),
+      await this.resourceLoader.requireProject(organizationId, projectId),
     );
   }
 
@@ -136,7 +138,10 @@ export class ProjectsService {
     input: UpdateProjectInput,
   ): Promise<ProjectDetailResponse> {
     await this.organizationMembership.requireAccess(context, organizationId);
-    const current = await this.requireProject(organizationId, projectId);
+    const current = await this.resourceLoader.requireProject(
+      organizationId,
+      projectId,
+    );
 
     if (current.project.archivedAt && !isProjectRestoreOnly(input)) {
       throw new ProjectArchivedError();
@@ -164,7 +169,7 @@ export class ProjectsService {
     );
 
     return this.toProjectDetail(
-      await this.requireProject(organizationId, projectId),
+      await this.resourceLoader.requireProject(organizationId, projectId),
     );
   }
 
@@ -174,7 +179,7 @@ export class ProjectsService {
     projectId: string,
   ): Promise<ProjectColumnListResponse> {
     await this.organizationMembership.requireAccess(context, organizationId);
-    await this.requireProject(organizationId, projectId);
+    await this.resourceLoader.requireProject(organizationId, projectId);
     const columns = await this.projectRepository.listColumns(
       organizationId,
       projectId,
@@ -189,8 +194,11 @@ export class ProjectsService {
     input: CreateProjectColumnInput,
   ): Promise<ProjectColumnResponse> {
     await this.organizationMembership.requireAccess(context, organizationId);
-    const project = await this.requireProject(organizationId, projectId);
-    this.assertProjectWritable(project);
+    const project = await this.resourceLoader.requireProject(
+      organizationId,
+      projectId,
+    );
+    this.resourceLoader.assertProjectWritable(project);
 
     const column = await this.projectRepository.createColumn(
       organizationId,
@@ -211,8 +219,11 @@ export class ProjectsService {
     input: UpdateProjectColumnInput,
   ): Promise<ProjectColumnResponse> {
     await this.organizationMembership.requireAccess(context, organizationId);
-    const project = await this.requireProject(organizationId, projectId);
-    this.assertProjectWritable(project);
+    const project = await this.resourceLoader.requireProject(
+      organizationId,
+      projectId,
+    );
+    this.resourceLoader.assertProjectWritable(project);
 
     const column = await this.projectRepository.renameColumn(
       organizationId,
@@ -233,10 +244,17 @@ export class ProjectsService {
     query: QueryTicketsInput,
   ): Promise<TicketListResponse> {
     await this.organizationMembership.requireAccess(context, organizationId);
-    const project = await this.requireProject(organizationId, projectId);
+    const project = await this.resourceLoader.requireProject(
+      organizationId,
+      projectId,
+    );
 
     if (query.columnId) {
-      await this.requireColumn(organizationId, projectId, query.columnId);
+      await this.resourceLoader.requireColumn(
+        organizationId,
+        projectId,
+        query.columnId,
+      );
     }
     if (query.assigneeUserId) {
       await this.assertMemberUser(organizationId, query.assigneeUserId);
@@ -285,8 +303,11 @@ export class ProjectsService {
     input: CreateTicketInput,
   ): Promise<TicketDetailResponse> {
     await this.organizationMembership.requireAccess(context, organizationId);
-    const project = await this.requireProject(organizationId, projectId);
-    this.assertProjectWritable(project);
+    const project = await this.resourceLoader.requireProject(
+      organizationId,
+      projectId,
+    );
+    this.resourceLoader.assertProjectWritable(project);
     await this.assertMemberUser(organizationId, input.assigneeUserId ?? null);
 
     const result = await this.projectRepository.createTicketWithNumber({
@@ -318,10 +339,17 @@ export class ProjectsService {
     ticketId: string,
   ): Promise<TicketDetailResponse> {
     await this.organizationMembership.requireAccess(context, organizationId);
-    const project = await this.requireProject(organizationId, projectId);
+    const project = await this.resourceLoader.requireProject(
+      organizationId,
+      projectId,
+    );
     return this.toTicketDetail(
       project,
-      await this.requireTicket(organizationId, projectId, ticketId),
+      await this.resourceLoader.requireTicket(
+        organizationId,
+        projectId,
+        ticketId,
+      ),
     );
   }
 
@@ -333,10 +361,13 @@ export class ProjectsService {
     input: UpdateTicketInput,
   ): Promise<TicketDetailResponse> {
     await this.organizationMembership.requireAccess(context, organizationId);
-    const project = await this.requireProject(organizationId, projectId);
-    this.assertProjectWritable(project);
+    const project = await this.resourceLoader.requireProject(
+      organizationId,
+      projectId,
+    );
+    this.resourceLoader.assertProjectWritable(project);
 
-    const current = await this.requireTicket(
+    const current = await this.resourceLoader.requireTicket(
       organizationId,
       projectId,
       ticketId,
@@ -376,7 +407,11 @@ export class ProjectsService {
 
     return this.toTicketDetail(
       project,
-      await this.requireTicket(organizationId, projectId, ticketId),
+      await this.resourceLoader.requireTicket(
+        organizationId,
+        projectId,
+        ticketId,
+      ),
     );
   }
 
@@ -440,57 +475,6 @@ export class ProjectsService {
       }
       return toTicketCommentResponse(comment, author);
     });
-  }
-
-  private async requireProject(
-    organizationId: string,
-    projectId: string,
-  ): Promise<ProjectSummaryReadModel> {
-    const project = await this.projectRepository.findProjectById(
-      organizationId,
-      projectId,
-    );
-    if (!project) {
-      throw new ProjectNotFoundError();
-    }
-    return project;
-  }
-
-  private async requireColumn(
-    organizationId: string,
-    projectId: string,
-    columnId: string,
-  ): Promise<void> {
-    const column = await this.projectRepository.findColumnById(
-      organizationId,
-      projectId,
-      columnId,
-    );
-    if (!column) {
-      throw new ProjectColumnNotFoundError();
-    }
-  }
-
-  private async requireTicket(
-    organizationId: string,
-    projectId: string,
-    ticketId: string,
-  ): Promise<Ticket> {
-    const ticket = await this.projectRepository.findTicketById(
-      organizationId,
-      projectId,
-      ticketId,
-    );
-    if (!ticket) {
-      throw new TicketNotFoundError();
-    }
-    return ticket;
-  }
-
-  private assertProjectWritable(project: ProjectSummaryReadModel): void {
-    if (project.project.archivedAt) {
-      throw new ProjectArchivedError();
-    }
   }
 
   private async assertMemberUser(

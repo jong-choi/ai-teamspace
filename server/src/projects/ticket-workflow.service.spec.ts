@@ -14,6 +14,7 @@ import {
   type ProjectSummaryReadModel,
 } from '@/projects/infrastructure/persistence/project.repository';
 import { TicketWorkflowRepository } from '@/projects/infrastructure/persistence/ticket-workflow.repository';
+import { ProjectResourceLoader } from '@/projects/project-resource.loader';
 import { TicketWorkflowService } from '@/projects/ticket-workflow.service';
 
 import { jest } from '@jest/globals';
@@ -152,8 +153,8 @@ describe('티켓 워크플로 서비스', () => {
     projects.findProjectById.mockResolvedValue(project());
     projects.findTicketById.mockResolvedValue(ticket());
     service = new TicketWorkflowService(
-      projects,
       workflow,
+      new ProjectResourceLoader(projects),
       membership,
       userDirectory,
     );

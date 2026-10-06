@@ -7,7 +7,6 @@ import {
 import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
 import { OrganizationMembershipService } from '@/organizations/organization-membership.service';
 import {
-  ProjectArchivedError,
   ProjectColumnNotFoundError,
   ProjectNotFoundError,
   TicketArchivedError,
@@ -54,11 +53,8 @@ import type { UpdateTicketChecklistInput } from '@/projects/dto/update-ticket-ch
 import type { UpdateTicketChecklistItemInput } from '@/projects/dto/update-ticket-checklist-item.dto';
 import type { UpdateTicketCommentInput } from '@/projects/dto/update-ticket-comment.dto';
 import type { UpdateTicketLabelInput } from '@/projects/dto/update-ticket-label.dto';
-import {
-  ProjectRepository,
-  type ProjectSummaryReadModel,
-} from '@/projects/infrastructure/persistence/project.repository';
 import { TicketWorkflowRepository } from '@/projects/infrastructure/persistence/ticket-workflow.repository';
+import { ProjectResourceLoader } from '@/projects/project-resource.loader';
 
 type WorkflowUserDirectory = Pick<AuthUserDirectoryService, 'findByIds'>;
 type WorkflowOrganizationMembership = Pick<
@@ -69,8 +65,8 @@ type WorkflowOrganizationMembership = Pick<
 @Injectable()
 export class TicketWorkflowService {
   constructor(
-    private readonly projectRepository: ProjectRepository,
     private readonly workflowRepository: TicketWorkflowRepository,
+    private readonly resourceLoader: ProjectResourceLoader,
     @Inject(OrganizationMembershipService)
     private readonly organizationMembership: WorkflowOrganizationMembership,
     @Inject(AuthUserDirectoryService)
@@ -125,7 +121,7 @@ export class TicketWorkflowService {
     projectId: string,
   ): Promise<TicketLabelListResponse> {
     await this.organizationMembership.requireAccess(context, organizationId);
-    await this.requireProject(organizationId, projectId);
+    await this.resourceLoader.requireProject(organizationId, projectId);
     const labels = await this.workflowRepository.listLabels(
       organizationId,
       projectId,
@@ -455,8 +451,12 @@ export class TicketWorkflowService {
     ticketId: string,
   ): Promise<TicketCommentListResponse> {
     await this.organizationMembership.requireAccess(context, organizationId);
-    await this.requireProject(organizationId, projectId);
-    await this.requireTicket(organizationId, projectId, ticketId);
+    await this.resourceLoader.requireProject(organizationId, projectId);
+    await this.resourceLoader.requireTicket(
+      organizationId,
+      projectId,
+      ticketId,
+    );
     const comments = await this.workflowRepository.listComments(
       organizationId,
       projectId,
@@ -563,12 +563,13 @@ export class TicketWorkflowService {
     context: OrganizationActorContext,
     organizationId: string,
     projectId: string,
-  ): Promise<ProjectSummaryReadModel> {
+  ) {
     await this.organizationMembership.requireAccess(context, organizationId);
-    const project = await this.requireProject(organizationId, projectId);
-    if (project.project.archivedAt) {
-      throw new ProjectArchivedError();
-    }
+    const project = await this.resourceLoader.requireProject(
+      organizationId,
+      projectId,
+    );
+    this.resourceLoader.assertProjectWritable(project);
     return project;
   }
 
@@ -583,43 +584,13 @@ export class TicketWorkflowService {
       organizationId,
       projectId,
     );
-    const ticket = await this.requireTicket(
+    const ticket = await this.resourceLoader.requireTicket(
       organizationId,
       projectId,
       ticketId,
     );
     if (ticket.archivedAt) {
       throw new TicketArchivedError();
-    }
-    return ticket;
-  }
-
-  private async requireProject(
-    organizationId: string,
-    projectId: string,
-  ): Promise<ProjectSummaryReadModel> {
-    const project = await this.projectRepository.findProjectById(
-      organizationId,
-      projectId,
-    );
-    if (!project) {
-      throw new ProjectNotFoundError();
-    }
-    return project;
-  }
-
-  private async requireTicket(
-    organizationId: string,
-    projectId: string,
-    ticketId: string,
-  ): Promise<Ticket> {
-    const ticket = await this.projectRepository.findTicketById(
-      organizationId,
-      projectId,
-      ticketId,
-    );
-    if (!ticket) {
-      throw new TicketNotFoundError();
     }
     return ticket;
   }

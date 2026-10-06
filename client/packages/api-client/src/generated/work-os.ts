@@ -27,11 +27,16 @@ import type {
 
 import {
   ActiveOrganization,
+  CalendarAvailabilityResponse,
   ChatConversation,
   ChatConversationList,
   ChatMessage,
   ChatMessagePage,
   ChatRealtimeEvent,
+  MeetingDetail,
+  MeetingList,
+  MeetingRoom,
+  MeetingRoomList,
   MoveTicketChecklistItemResult,
   MoveTicketResult,
   OrganizationAccess,
@@ -61,12 +66,18 @@ import {
   WikiTree
 } from './schemas';
 import type {
+  CalendarAvailabilityRequest,
+  CalendarControllerListMeetingsParams,
+  CalendarRescheduleAvailabilityRequest,
+  CancelMeeting,
   ChatControllerCreateChannelBody,
   ChatControllerCreateDirectBody,
   ChatControllerListMessagesParams,
   ChatControllerMarkReadBody,
   ChatControllerSendMessageBody,
   ChatControllerUpdateMessageBody,
+  CreateMeeting,
+  CreateMeetingRoom,
   CreateProject,
   CreateProjectColumn,
   CreateTicket,
@@ -85,6 +96,13 @@ import type {
   OrganizationsControllerSetActiveBody,
   ProblemDetails,
   ProjectsControllerListTicketsParams,
+  RescheduleMeeting,
+  RsvpMeeting,
+  UpdateMeeting,
+  UpdateMeetingAgenda,
+  UpdateMeetingAttendees,
+  UpdateMeetingNotes,
+  UpdateMeetingRoom,
   UpdateProject,
   UpdateProjectColumn,
   UpdateTicket,
@@ -200,365 +218,8 @@ export function useAppControllerGetHelloSuspense<TData = Awaited<ReturnType<type
 
 
 
-export const getChatControllerEventsUrl = () => {
-
-
-
-
-  return `/chat/events`
-}
-
-export const chatControllerEvents = async ( options?: Parameters<typeof workOsFetcher>[1]): Promise<ChatRealtimeEvent> => {
-
-  return workOsFetcher<ChatRealtimeEvent>(getChatControllerEventsUrl(),
-  {
-    ...options,
-    method: 'GET'
-
-    ,
-    schema: ChatRealtimeEvent
-  }
-);}
-
-
-
-
-export const getChatControllerListConversationsUrl = () => {
-
-
-
-
-  return `/chat/conversations`
-}
-
-export const chatControllerListConversations = async ( options?: Parameters<typeof workOsFetcher>[1]): Promise<ChatConversationList> => {
-
-  return workOsFetcher<ChatConversationList>(getChatControllerListConversationsUrl(),
-  {
-    ...options,
-    method: 'GET'
-
-    ,
-    schema: ChatConversationList
-  }
-);}
-
-
-
-
-
-export const getChatControllerListConversationsQueryKey = () => {
-    return [
-    `/chat/conversations`
-    ] as const;
-    }
-
-
-export const getChatControllerListConversationsSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof chatControllerListConversations>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerListConversations>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getChatControllerListConversationsQueryKey();
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof chatControllerListConversations>>> = ({ signal }) => chatControllerListConversations({ signal, ...requestOptions });
-
-
-
-
-
-   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerListConversations>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
-}
-
-export type ChatControllerListConversationsSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof chatControllerListConversations>>>
-export type ChatControllerListConversationsSuspenseQueryError = ErrorType<ProblemDetails>
-
-
-export function useChatControllerListConversationsSuspense<TData = Awaited<ReturnType<typeof chatControllerListConversations>>, TError = ErrorType<ProblemDetails>>(
-  options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerListConversations>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
- , queryClient?: QueryClient
-  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useChatControllerListConversationsSuspense<TData = Awaited<ReturnType<typeof chatControllerListConversations>>, TError = ErrorType<ProblemDetails>>(
-  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerListConversations>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
- , queryClient?: QueryClient
-  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useChatControllerListConversationsSuspense<TData = Awaited<ReturnType<typeof chatControllerListConversations>>, TError = ErrorType<ProblemDetails>>(
-  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerListConversations>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
- , queryClient?: QueryClient
-  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useChatControllerListConversationsSuspense<TData = Awaited<ReturnType<typeof chatControllerListConversations>>, TError = ErrorType<ProblemDetails>>(
-  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerListConversations>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
- , queryClient?: QueryClient
- ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getChatControllerListConversationsSuspenseQueryOptions(options)
-
-  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getChatControllerCreateChannelUrl = () => {
-
-
-
-
-  return `/chat/channels`
-}
-
-export const chatControllerCreateChannel = async (chatControllerCreateChannelBody: ChatControllerCreateChannelBody, options?: Parameters<typeof workOsFetcher>[1]): Promise<ChatConversation> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return workOsFetcher<ChatConversation>(getChatControllerCreateChannelUrl(),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(chatControllerCreateChannelBody),
-    schema: ChatConversation
-  }
-);}
-
-
-
-
-
-export const getChatControllerCreateChannelMutationKey = () => ['chatControllerCreateChannel'] as const;
-
-export const getChatControllerCreateChannelMutationOptions = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerCreateChannel>>, TError,ChatControllerCreateChannelMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
-): UseMutationOptions<Awaited<ReturnType<typeof chatControllerCreateChannel>>, TError,ChatControllerCreateChannelMutationVariables, TContext> => {
-
-const mutationKey = getChatControllerCreateChannelMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof chatControllerCreateChannel>>, ChatControllerCreateChannelMutationVariables> = (props) => {
-          const {data} = props ?? {};
-
-          return  chatControllerCreateChannel(data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type ChatControllerCreateChannelMutationResult = NonNullable<Awaited<ReturnType<typeof chatControllerCreateChannel>>>
-    export type ChatControllerCreateChannelMutationBody = ChatControllerCreateChannelBody
-    export type ChatControllerCreateChannelMutationError = ErrorType<ProblemDetails>
-    export type ChatControllerCreateChannelMutationVariables = {data: ChatControllerCreateChannelBody}
-
-    export const useChatControllerCreateChannel = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerCreateChannel>>, TError,ChatControllerCreateChannelMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof chatControllerCreateChannel>>,
-        TError,
-        ChatControllerCreateChannelMutationVariables,
-        TContext
-      > => {
-      return useMutation(getChatControllerCreateChannelMutationOptions(options), queryClient);
-    }
-
-export const getChatControllerCreateDirectUrl = () => {
-
-
-
-
-  return `/chat/direct`
-}
-
-export const chatControllerCreateDirect = async (chatControllerCreateDirectBody: ChatControllerCreateDirectBody, options?: Parameters<typeof workOsFetcher>[1]): Promise<ChatConversation> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return workOsFetcher<ChatConversation>(getChatControllerCreateDirectUrl(),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(chatControllerCreateDirectBody),
-    schema: ChatConversation
-  }
-);}
-
-
-
-
-
-export const getChatControllerCreateDirectMutationKey = () => ['chatControllerCreateDirect'] as const;
-
-export const getChatControllerCreateDirectMutationOptions = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerCreateDirect>>, TError,ChatControllerCreateDirectMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
-): UseMutationOptions<Awaited<ReturnType<typeof chatControllerCreateDirect>>, TError,ChatControllerCreateDirectMutationVariables, TContext> => {
-
-const mutationKey = getChatControllerCreateDirectMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof chatControllerCreateDirect>>, ChatControllerCreateDirectMutationVariables> = (props) => {
-          const {data} = props ?? {};
-
-          return  chatControllerCreateDirect(data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type ChatControllerCreateDirectMutationResult = NonNullable<Awaited<ReturnType<typeof chatControllerCreateDirect>>>
-    export type ChatControllerCreateDirectMutationBody = ChatControllerCreateDirectBody
-    export type ChatControllerCreateDirectMutationError = ErrorType<ProblemDetails>
-    export type ChatControllerCreateDirectMutationVariables = {data: ChatControllerCreateDirectBody}
-
-    export const useChatControllerCreateDirect = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerCreateDirect>>, TError,ChatControllerCreateDirectMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof chatControllerCreateDirect>>,
-        TError,
-        ChatControllerCreateDirectMutationVariables,
-        TContext
-      > => {
-      return useMutation(getChatControllerCreateDirectMutationOptions(options), queryClient);
-    }
-
-export const getChatControllerGetConversationUrl = (conversationId: string,) => {
-
-
-
-
-  return `/chat/conversations/${conversationId}`
-}
-
-export const chatControllerGetConversation = async (conversationId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<ChatConversation> => {
-
-  return workOsFetcher<ChatConversation>(getChatControllerGetConversationUrl(conversationId),
-  {
-    ...options,
-    method: 'GET'
-
-    ,
-    schema: ChatConversation
-  }
-);}
-
-
-
-
-
-export const getChatControllerGetConversationQueryKey = (conversationId: string,) => {
-    return [
-    `/chat/conversations/${conversationId}`
-    ] as const;
-    }
-
-
-export const getChatControllerGetConversationSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof chatControllerGetConversation>>, TError = ErrorType<ProblemDetails>>(conversationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerGetConversation>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getChatControllerGetConversationQueryKey(conversationId);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof chatControllerGetConversation>>> = ({ signal }) => chatControllerGetConversation(conversationId, { signal, ...requestOptions });
-
-
-
-
-
-   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerGetConversation>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
-}
-
-export type ChatControllerGetConversationSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof chatControllerGetConversation>>>
-export type ChatControllerGetConversationSuspenseQueryError = ErrorType<ProblemDetails>
-
-
-export function useChatControllerGetConversationSuspense<TData = Awaited<ReturnType<typeof chatControllerGetConversation>>, TError = ErrorType<ProblemDetails>>(
- conversationId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerGetConversation>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
- , queryClient?: QueryClient
-  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useChatControllerGetConversationSuspense<TData = Awaited<ReturnType<typeof chatControllerGetConversation>>, TError = ErrorType<ProblemDetails>>(
- conversationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerGetConversation>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
- , queryClient?: QueryClient
-  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useChatControllerGetConversationSuspense<TData = Awaited<ReturnType<typeof chatControllerGetConversation>>, TError = ErrorType<ProblemDetails>>(
- conversationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerGetConversation>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
- , queryClient?: QueryClient
-  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useChatControllerGetConversationSuspense<TData = Awaited<ReturnType<typeof chatControllerGetConversation>>, TError = ErrorType<ProblemDetails>>(
- conversationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerGetConversation>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
- , queryClient?: QueryClient
- ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getChatControllerGetConversationSuspenseQueryOptions(conversationId,options)
-
-  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getChatControllerListMessagesUrl = (conversationId: string,
-    params?: ChatControllerListMessagesParams,) => {
+export const getCalendarControllerListMeetingsUrl = (organizationId: string,
+    params: CalendarControllerListMeetingsParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -570,19 +231,19 @@ export const getChatControllerListMessagesUrl = (conversationId: string,
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/chat/conversations/${conversationId}/messages?${stringifiedParams}` : `/chat/conversations/${conversationId}/messages`
+  return stringifiedParams.length > 0 ? `/organizations/${organizationId}/calendar/meetings?${stringifiedParams}` : `/organizations/${organizationId}/calendar/meetings`
 }
 
-export const chatControllerListMessages = async (conversationId: string,
-    params?: ChatControllerListMessagesParams, options?: Parameters<typeof workOsFetcher>[1]): Promise<ChatMessagePage> => {
+export const calendarControllerListMeetings = async (organizationId: string,
+    params: CalendarControllerListMeetingsParams, options?: Parameters<typeof workOsFetcher>[1]): Promise<MeetingList> => {
 
-  return workOsFetcher<ChatMessagePage>(getChatControllerListMessagesUrl(conversationId,params),
+  return workOsFetcher<MeetingList>(getCalendarControllerListMeetingsUrl(organizationId,params),
   {
     ...options,
     method: 'GET'
 
     ,
-    schema: ChatMessagePage
+    schema: MeetingList
   }
 );}
 
@@ -590,236 +251,60 @@ export const chatControllerListMessages = async (conversationId: string,
 
 
 
-export const getChatControllerListMessagesInfiniteQueryKey = (conversationId: string,
-    params?: ChatControllerListMessagesParams,) => {
+export const getCalendarControllerListMeetingsQueryKey = (organizationId: string,
+    params?: CalendarControllerListMeetingsParams,) => {
     return [
-    'infinite', `/chat/conversations/${conversationId}/messages`, ...(params ? [params] : [])
+    `/organizations/${organizationId}/calendar/meetings`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getChatControllerListMessagesSuspenseInfiniteQueryOptions = <TData = InfiniteData<Awaited<ReturnType<typeof chatControllerListMessages>>, ChatControllerListMessagesParams['before']>, TError = ErrorType<ProblemDetails>>(conversationId: string,
-    params?: ChatControllerListMessagesParams, options?: { query?:Partial<UseSuspenseInfiniteQueryOptions<Awaited<ReturnType<typeof chatControllerListMessages>>, TError, TData, QueryKey, ChatControllerListMessagesParams['before']>>, request?: SecondParameter<typeof workOsFetcher>}
+export const getCalendarControllerListMeetingsSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof calendarControllerListMeetings>>, TError = ErrorType<ProblemDetails>>(organizationId: string,
+    params: CalendarControllerListMeetingsParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerListMeetings>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getChatControllerListMessagesInfiniteQueryKey(conversationId,params);
+  const queryKey =  queryOptions?.queryKey ?? getCalendarControllerListMeetingsQueryKey(organizationId,params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof chatControllerListMessages>>, QueryKey, ChatControllerListMessagesParams['before']> = ({ signal, pageParam }) => chatControllerListMessages(conversationId,{...params, 'before': pageParam ?? params?.['before']}, { signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof calendarControllerListMeetings>>> = ({ signal }) => calendarControllerListMeetings(organizationId,params, { signal, ...requestOptions });
 
 
 
 
 
-   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseInfiniteQueryOptions<Awaited<ReturnType<typeof chatControllerListMessages>>, TError, TData, QueryKey, ChatControllerListMessagesParams['before']> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerListMeetings>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
 }
 
-export type ChatControllerListMessagesSuspenseInfiniteQueryResult = NonNullable<Awaited<ReturnType<typeof chatControllerListMessages>>>
-export type ChatControllerListMessagesSuspenseInfiniteQueryError = ErrorType<ProblemDetails>
+export type CalendarControllerListMeetingsSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof calendarControllerListMeetings>>>
+export type CalendarControllerListMeetingsSuspenseQueryError = ErrorType<ProblemDetails>
 
 
-export function useChatControllerListMessagesSuspenseInfinite<TData = InfiniteData<Awaited<ReturnType<typeof chatControllerListMessages>>, ChatControllerListMessagesParams['before']>, TError = ErrorType<ProblemDetails>>(
- conversationId: string,
-    params: undefined |  ChatControllerListMessagesParams, options: { query:Partial<UseSuspenseInfiniteQueryOptions<Awaited<ReturnType<typeof chatControllerListMessages>>, TError, TData, QueryKey, ChatControllerListMessagesParams['before']>>, request?: SecondParameter<typeof workOsFetcher>}
- , queryClient?: QueryClient
-  ):  UseSuspenseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useChatControllerListMessagesSuspenseInfinite<TData = InfiniteData<Awaited<ReturnType<typeof chatControllerListMessages>>, ChatControllerListMessagesParams['before']>, TError = ErrorType<ProblemDetails>>(
- conversationId: string,
-    params?: ChatControllerListMessagesParams, options?: { query?:Partial<UseSuspenseInfiniteQueryOptions<Awaited<ReturnType<typeof chatControllerListMessages>>, TError, TData, QueryKey, ChatControllerListMessagesParams['before']>>, request?: SecondParameter<typeof workOsFetcher>}
- , queryClient?: QueryClient
-  ):  UseSuspenseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useChatControllerListMessagesSuspenseInfinite<TData = InfiniteData<Awaited<ReturnType<typeof chatControllerListMessages>>, ChatControllerListMessagesParams['before']>, TError = ErrorType<ProblemDetails>>(
- conversationId: string,
-    params?: ChatControllerListMessagesParams, options?: { query?:Partial<UseSuspenseInfiniteQueryOptions<Awaited<ReturnType<typeof chatControllerListMessages>>, TError, TData, QueryKey, ChatControllerListMessagesParams['before']>>, request?: SecondParameter<typeof workOsFetcher>}
- , queryClient?: QueryClient
-  ):  UseSuspenseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useChatControllerListMessagesSuspenseInfinite<TData = InfiniteData<Awaited<ReturnType<typeof chatControllerListMessages>>, ChatControllerListMessagesParams['before']>, TError = ErrorType<ProblemDetails>>(
- conversationId: string,
-    params?: ChatControllerListMessagesParams, options?: { query?:Partial<UseSuspenseInfiniteQueryOptions<Awaited<ReturnType<typeof chatControllerListMessages>>, TError, TData, QueryKey, ChatControllerListMessagesParams['before']>>, request?: SecondParameter<typeof workOsFetcher>}
- , queryClient?: QueryClient
- ):  UseSuspenseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getChatControllerListMessagesSuspenseInfiniteQueryOptions(conversationId,params,options)
-
-  const query = useSuspenseInfiniteQuery(queryOptions, queryClient) as  UseSuspenseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const getChatControllerSendMessageUrl = (conversationId: string,) => {
-
-
-
-
-  return `/chat/conversations/${conversationId}/messages`
-}
-
-export const chatControllerSendMessage = async (conversationId: string,
-    chatControllerSendMessageBody: ChatControllerSendMessageBody, options?: Parameters<typeof workOsFetcher>[1]): Promise<ChatMessage> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return workOsFetcher<ChatMessage>(getChatControllerSendMessageUrl(conversationId),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(chatControllerSendMessageBody),
-    schema: ChatMessage
-  }
-);}
-
-
-
-
-
-export const getChatControllerSendMessageMutationKey = () => ['chatControllerSendMessage'] as const;
-
-export const getChatControllerSendMessageMutationOptions = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerSendMessage>>, TError,ChatControllerSendMessageMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
-): UseMutationOptions<Awaited<ReturnType<typeof chatControllerSendMessage>>, TError,ChatControllerSendMessageMutationVariables, TContext> => {
-
-const mutationKey = getChatControllerSendMessageMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof chatControllerSendMessage>>, ChatControllerSendMessageMutationVariables> = (props) => {
-          const {conversationId,data} = props ?? {};
-
-          return  chatControllerSendMessage(conversationId,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type ChatControllerSendMessageMutationResult = NonNullable<Awaited<ReturnType<typeof chatControllerSendMessage>>>
-    export type ChatControllerSendMessageMutationBody = ChatControllerSendMessageBody
-    export type ChatControllerSendMessageMutationError = ErrorType<ProblemDetails>
-    export type ChatControllerSendMessageMutationVariables = {conversationId: string;data: ChatControllerSendMessageBody}
-
-    export const useChatControllerSendMessage = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerSendMessage>>, TError,ChatControllerSendMessageMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof chatControllerSendMessage>>,
-        TError,
-        ChatControllerSendMessageMutationVariables,
-        TContext
-      > => {
-      return useMutation(getChatControllerSendMessageMutationOptions(options), queryClient);
-    }
-
-export const getChatControllerGetMessageUrl = (conversationId: string,
-    messageId: string,) => {
-
-
-
-
-  return `/chat/conversations/${conversationId}/messages/${messageId}`
-}
-
-export const chatControllerGetMessage = async (conversationId: string,
-    messageId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<ChatMessage> => {
-
-  return workOsFetcher<ChatMessage>(getChatControllerGetMessageUrl(conversationId,messageId),
-  {
-    ...options,
-    method: 'GET'
-
-    ,
-    schema: ChatMessage
-  }
-);}
-
-
-
-
-
-export const getChatControllerGetMessageQueryKey = (conversationId: string,
-    messageId: string,) => {
-    return [
-    `/chat/conversations/${conversationId}/messages/${messageId}`
-    ] as const;
-    }
-
-
-export const getChatControllerGetMessageSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof chatControllerGetMessage>>, TError = ErrorType<ProblemDetails>>(conversationId: string,
-    messageId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerGetMessage>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getChatControllerGetMessageQueryKey(conversationId,messageId);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof chatControllerGetMessage>>> = ({ signal }) => chatControllerGetMessage(conversationId,messageId, { signal, ...requestOptions });
-
-
-
-
-
-   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerGetMessage>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
-}
-
-export type ChatControllerGetMessageSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof chatControllerGetMessage>>>
-export type ChatControllerGetMessageSuspenseQueryError = ErrorType<ProblemDetails>
-
-
-export function useChatControllerGetMessageSuspense<TData = Awaited<ReturnType<typeof chatControllerGetMessage>>, TError = ErrorType<ProblemDetails>>(
- conversationId: string,
-    messageId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerGetMessage>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+export function useCalendarControllerListMeetingsSuspense<TData = Awaited<ReturnType<typeof calendarControllerListMeetings>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    params: CalendarControllerListMeetingsParams, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerListMeetings>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useChatControllerGetMessageSuspense<TData = Awaited<ReturnType<typeof chatControllerGetMessage>>, TError = ErrorType<ProblemDetails>>(
- conversationId: string,
-    messageId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerGetMessage>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+export function useCalendarControllerListMeetingsSuspense<TData = Awaited<ReturnType<typeof calendarControllerListMeetings>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    params: CalendarControllerListMeetingsParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerListMeetings>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useChatControllerGetMessageSuspense<TData = Awaited<ReturnType<typeof chatControllerGetMessage>>, TError = ErrorType<ProblemDetails>>(
- conversationId: string,
-    messageId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerGetMessage>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+export function useCalendarControllerListMeetingsSuspense<TData = Awaited<ReturnType<typeof calendarControllerListMeetings>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    params: CalendarControllerListMeetingsParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerListMeetings>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
-export function useChatControllerGetMessageSuspense<TData = Awaited<ReturnType<typeof chatControllerGetMessage>>, TError = ErrorType<ProblemDetails>>(
- conversationId: string,
-    messageId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerGetMessage>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+export function useCalendarControllerListMeetingsSuspense<TData = Awaited<ReturnType<typeof calendarControllerListMeetings>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    params: CalendarControllerListMeetingsParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerListMeetings>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getChatControllerGetMessageSuspenseQueryOptions(conversationId,messageId,options)
+  const queryOptions = getCalendarControllerListMeetingsSuspenseQueryOptions(organizationId,params,options)
 
   const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -832,18 +317,16 @@ export function useChatControllerGetMessageSuspense<TData = Awaited<ReturnType<t
 
 
 
-export const getChatControllerUpdateMessageUrl = (conversationId: string,
-    messageId: string,) => {
+export const getCalendarControllerCreateMeetingUrl = (organizationId: string,) => {
 
 
 
 
-  return `/chat/conversations/${conversationId}/messages/${messageId}`
+  return `/organizations/${organizationId}/calendar/meetings`
 }
 
-export const chatControllerUpdateMessage = async (conversationId: string,
-    messageId: string,
-    chatControllerUpdateMessageBody: ChatControllerUpdateMessageBody, options?: Parameters<typeof workOsFetcher>[1]): Promise<ChatMessage> => {
+export const calendarControllerCreateMeeting = async (organizationId: string,
+    createMeeting: CreateMeeting, options?: Parameters<typeof workOsFetcher>[1]): Promise<MeetingDetail> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -859,96 +342,13 @@ export const chatControllerUpdateMessage = async (conversationId: string,
     }
     return headers;
   };
-return workOsFetcher<ChatMessage>(getChatControllerUpdateMessageUrl(conversationId,messageId),
-  {
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(chatControllerUpdateMessageBody),
-    schema: ChatMessage
-  }
-);}
-
-
-
-
-
-export const getChatControllerUpdateMessageMutationKey = () => ['chatControllerUpdateMessage'] as const;
-
-export const getChatControllerUpdateMessageMutationOptions = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerUpdateMessage>>, TError,ChatControllerUpdateMessageMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
-): UseMutationOptions<Awaited<ReturnType<typeof chatControllerUpdateMessage>>, TError,ChatControllerUpdateMessageMutationVariables, TContext> => {
-
-const mutationKey = getChatControllerUpdateMessageMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof chatControllerUpdateMessage>>, ChatControllerUpdateMessageMutationVariables> = (props) => {
-          const {conversationId,messageId,data} = props ?? {};
-
-          return  chatControllerUpdateMessage(conversationId,messageId,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type ChatControllerUpdateMessageMutationResult = NonNullable<Awaited<ReturnType<typeof chatControllerUpdateMessage>>>
-    export type ChatControllerUpdateMessageMutationBody = ChatControllerUpdateMessageBody
-    export type ChatControllerUpdateMessageMutationError = ErrorType<ProblemDetails>
-    export type ChatControllerUpdateMessageMutationVariables = {conversationId: string;messageId: string;data: ChatControllerUpdateMessageBody}
-
-    export const useChatControllerUpdateMessage = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerUpdateMessage>>, TError,ChatControllerUpdateMessageMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof chatControllerUpdateMessage>>,
-        TError,
-        ChatControllerUpdateMessageMutationVariables,
-        TContext
-      > => {
-      return useMutation(getChatControllerUpdateMessageMutationOptions(options), queryClient);
-    }
-
-export const getChatControllerMarkReadUrl = (conversationId: string,) => {
-
-
-
-
-  return `/chat/conversations/${conversationId}/read`
-}
-
-export const chatControllerMarkRead = async (conversationId: string,
-    chatControllerMarkReadBody: ChatControllerMarkReadBody, options?: Parameters<typeof workOsFetcher>[1]): Promise<void> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return workOsFetcher<void>(getChatControllerMarkReadUrl(conversationId),
+return workOsFetcher<MeetingDetail>(getCalendarControllerCreateMeetingUrl(organizationId),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(chatControllerMarkReadBody)
+    body: JSON.stringify(createMeeting),
+    schema: MeetingDetail
   }
 );}
 
@@ -956,13 +356,13 @@ return workOsFetcher<void>(getChatControllerMarkReadUrl(conversationId),
 
 
 
-export const getChatControllerMarkReadMutationKey = () => ['chatControllerMarkRead'] as const;
+export const getCalendarControllerCreateMeetingMutationKey = () => ['calendarControllerCreateMeeting'] as const;
 
-export const getChatControllerMarkReadMutationOptions = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerMarkRead>>, TError,ChatControllerMarkReadMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
-): UseMutationOptions<Awaited<ReturnType<typeof chatControllerMarkRead>>, TError,ChatControllerMarkReadMutationVariables, TContext> => {
+export const getCalendarControllerCreateMeetingMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerCreateMeeting>>, TError,CalendarControllerCreateMeetingMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof calendarControllerCreateMeeting>>, TError,CalendarControllerCreateMeetingMutationVariables, TContext> => {
 
-const mutationKey = getChatControllerMarkReadMutationKey();
+const mutationKey = getCalendarControllerCreateMeetingMutationKey();
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -972,10 +372,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof chatControllerMarkRead>>, ChatControllerMarkReadMutationVariables> = (props) => {
-          const {conversationId,data} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof calendarControllerCreateMeeting>>, CalendarControllerCreateMeetingMutationVariables> = (props) => {
+          const {organizationId,data} = props ?? {};
 
-          return  chatControllerMarkRead(conversationId,data,requestOptions)
+          return  calendarControllerCreateMeeting(organizationId,data,requestOptions)
         }
 
 
@@ -985,20 +385,1321 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type ChatControllerMarkReadMutationResult = NonNullable<Awaited<ReturnType<typeof chatControllerMarkRead>>>
-    export type ChatControllerMarkReadMutationBody = ChatControllerMarkReadBody
-    export type ChatControllerMarkReadMutationError = ErrorType<ProblemDetails>
-    export type ChatControllerMarkReadMutationVariables = {conversationId: string;data: ChatControllerMarkReadBody}
+    export type CalendarControllerCreateMeetingMutationResult = NonNullable<Awaited<ReturnType<typeof calendarControllerCreateMeeting>>>
+    export type CalendarControllerCreateMeetingMutationBody = CreateMeeting
+    export type CalendarControllerCreateMeetingMutationError = ErrorType<ProblemDetails>
+    export type CalendarControllerCreateMeetingMutationVariables = {organizationId: string;data: CreateMeeting}
 
-    export const useChatControllerMarkRead = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerMarkRead>>, TError,ChatControllerMarkReadMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+    export const useCalendarControllerCreateMeeting = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerCreateMeeting>>, TError,CalendarControllerCreateMeetingMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof chatControllerMarkRead>>,
+        Awaited<ReturnType<typeof calendarControllerCreateMeeting>>,
         TError,
-        ChatControllerMarkReadMutationVariables,
+        CalendarControllerCreateMeetingMutationVariables,
         TContext
       > => {
-      return useMutation(getChatControllerMarkReadMutationOptions(options), queryClient);
+      return useMutation(getCalendarControllerCreateMeetingMutationOptions(options), queryClient);
+    }
+
+export const getCalendarControllerPreviewAvailabilityUrl = (organizationId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/calendar/availability`
+}
+
+export const calendarControllerPreviewAvailability = async (organizationId: string,
+    calendarAvailabilityRequest: CalendarAvailabilityRequest, options?: Parameters<typeof workOsFetcher>[1]): Promise<CalendarAvailabilityResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<CalendarAvailabilityResponse>(getCalendarControllerPreviewAvailabilityUrl(organizationId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(calendarAvailabilityRequest),
+    schema: CalendarAvailabilityResponse
+  }
+);}
+
+
+
+
+
+export const getCalendarControllerPreviewAvailabilityMutationKey = () => ['calendarControllerPreviewAvailability'] as const;
+
+export const getCalendarControllerPreviewAvailabilityMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerPreviewAvailability>>, TError,CalendarControllerPreviewAvailabilityMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof calendarControllerPreviewAvailability>>, TError,CalendarControllerPreviewAvailabilityMutationVariables, TContext> => {
+
+const mutationKey = getCalendarControllerPreviewAvailabilityMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof calendarControllerPreviewAvailability>>, CalendarControllerPreviewAvailabilityMutationVariables> = (props) => {
+          const {organizationId,data} = props ?? {};
+
+          return  calendarControllerPreviewAvailability(organizationId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CalendarControllerPreviewAvailabilityMutationResult = NonNullable<Awaited<ReturnType<typeof calendarControllerPreviewAvailability>>>
+    export type CalendarControllerPreviewAvailabilityMutationBody = CalendarAvailabilityRequest
+    export type CalendarControllerPreviewAvailabilityMutationError = ErrorType<ProblemDetails>
+    export type CalendarControllerPreviewAvailabilityMutationVariables = {organizationId: string;data: CalendarAvailabilityRequest}
+
+    export const useCalendarControllerPreviewAvailability = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerPreviewAvailability>>, TError,CalendarControllerPreviewAvailabilityMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof calendarControllerPreviewAvailability>>,
+        TError,
+        CalendarControllerPreviewAvailabilityMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCalendarControllerPreviewAvailabilityMutationOptions(options), queryClient);
+    }
+
+export const getCalendarControllerGetMeetingUrl = (organizationId: string,
+    meetingId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/calendar/meetings/${meetingId}`
+}
+
+export const calendarControllerGetMeeting = async (organizationId: string,
+    meetingId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<MeetingDetail> => {
+
+  return workOsFetcher<MeetingDetail>(getCalendarControllerGetMeetingUrl(organizationId,meetingId),
+  {
+    ...options,
+    method: 'GET'
+
+    ,
+    schema: MeetingDetail
+  }
+);}
+
+
+
+
+
+export const getCalendarControllerGetMeetingQueryKey = (organizationId: string,
+    meetingId: string,) => {
+    return [
+    `/organizations/${organizationId}/calendar/meetings/${meetingId}`
+    ] as const;
+    }
+
+
+export const getCalendarControllerGetMeetingSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof calendarControllerGetMeeting>>, TError = ErrorType<ProblemDetails>>(organizationId: string,
+    meetingId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerGetMeeting>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getCalendarControllerGetMeetingQueryKey(organizationId,meetingId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof calendarControllerGetMeeting>>> = ({ signal }) => calendarControllerGetMeeting(organizationId,meetingId, { signal, ...requestOptions });
+
+
+
+
+
+   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerGetMeeting>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
+}
+
+export type CalendarControllerGetMeetingSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof calendarControllerGetMeeting>>>
+export type CalendarControllerGetMeetingSuspenseQueryError = ErrorType<ProblemDetails>
+
+
+export function useCalendarControllerGetMeetingSuspense<TData = Awaited<ReturnType<typeof calendarControllerGetMeeting>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    meetingId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerGetMeeting>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCalendarControllerGetMeetingSuspense<TData = Awaited<ReturnType<typeof calendarControllerGetMeeting>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    meetingId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerGetMeeting>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCalendarControllerGetMeetingSuspense<TData = Awaited<ReturnType<typeof calendarControllerGetMeeting>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    meetingId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerGetMeeting>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useCalendarControllerGetMeetingSuspense<TData = Awaited<ReturnType<typeof calendarControllerGetMeeting>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    meetingId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerGetMeeting>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getCalendarControllerGetMeetingSuspenseQueryOptions(organizationId,meetingId,options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCalendarControllerUpdateMeetingUrl = (organizationId: string,
+    meetingId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/calendar/meetings/${meetingId}`
+}
+
+export const calendarControllerUpdateMeeting = async (organizationId: string,
+    meetingId: string,
+    updateMeeting: UpdateMeeting, options?: Parameters<typeof workOsFetcher>[1]): Promise<MeetingDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<MeetingDetail>(getCalendarControllerUpdateMeetingUrl(organizationId,meetingId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateMeeting),
+    schema: MeetingDetail
+  }
+);}
+
+
+
+
+
+export const getCalendarControllerUpdateMeetingMutationKey = () => ['calendarControllerUpdateMeeting'] as const;
+
+export const getCalendarControllerUpdateMeetingMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerUpdateMeeting>>, TError,CalendarControllerUpdateMeetingMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof calendarControllerUpdateMeeting>>, TError,CalendarControllerUpdateMeetingMutationVariables, TContext> => {
+
+const mutationKey = getCalendarControllerUpdateMeetingMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof calendarControllerUpdateMeeting>>, CalendarControllerUpdateMeetingMutationVariables> = (props) => {
+          const {organizationId,meetingId,data} = props ?? {};
+
+          return  calendarControllerUpdateMeeting(organizationId,meetingId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CalendarControllerUpdateMeetingMutationResult = NonNullable<Awaited<ReturnType<typeof calendarControllerUpdateMeeting>>>
+    export type CalendarControllerUpdateMeetingMutationBody = UpdateMeeting
+    export type CalendarControllerUpdateMeetingMutationError = ErrorType<ProblemDetails>
+    export type CalendarControllerUpdateMeetingMutationVariables = {organizationId: string;meetingId: string;data: UpdateMeeting}
+
+    export const useCalendarControllerUpdateMeeting = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerUpdateMeeting>>, TError,CalendarControllerUpdateMeetingMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof calendarControllerUpdateMeeting>>,
+        TError,
+        CalendarControllerUpdateMeetingMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCalendarControllerUpdateMeetingMutationOptions(options), queryClient);
+    }
+
+export const getCalendarControllerPreviewRescheduleAvailabilityUrl = (organizationId: string,
+    meetingId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/calendar/meetings/${meetingId}/availability`
+}
+
+export const calendarControllerPreviewRescheduleAvailability = async (organizationId: string,
+    meetingId: string,
+    calendarRescheduleAvailabilityRequest: CalendarRescheduleAvailabilityRequest, options?: Parameters<typeof workOsFetcher>[1]): Promise<CalendarAvailabilityResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<CalendarAvailabilityResponse>(getCalendarControllerPreviewRescheduleAvailabilityUrl(organizationId,meetingId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(calendarRescheduleAvailabilityRequest),
+    schema: CalendarAvailabilityResponse
+  }
+);}
+
+
+
+
+
+export const getCalendarControllerPreviewRescheduleAvailabilityMutationKey = () => ['calendarControllerPreviewRescheduleAvailability'] as const;
+
+export const getCalendarControllerPreviewRescheduleAvailabilityMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerPreviewRescheduleAvailability>>, TError,CalendarControllerPreviewRescheduleAvailabilityMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof calendarControllerPreviewRescheduleAvailability>>, TError,CalendarControllerPreviewRescheduleAvailabilityMutationVariables, TContext> => {
+
+const mutationKey = getCalendarControllerPreviewRescheduleAvailabilityMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof calendarControllerPreviewRescheduleAvailability>>, CalendarControllerPreviewRescheduleAvailabilityMutationVariables> = (props) => {
+          const {organizationId,meetingId,data} = props ?? {};
+
+          return  calendarControllerPreviewRescheduleAvailability(organizationId,meetingId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CalendarControllerPreviewRescheduleAvailabilityMutationResult = NonNullable<Awaited<ReturnType<typeof calendarControllerPreviewRescheduleAvailability>>>
+    export type CalendarControllerPreviewRescheduleAvailabilityMutationBody = CalendarRescheduleAvailabilityRequest
+    export type CalendarControllerPreviewRescheduleAvailabilityMutationError = ErrorType<ProblemDetails>
+    export type CalendarControllerPreviewRescheduleAvailabilityMutationVariables = {organizationId: string;meetingId: string;data: CalendarRescheduleAvailabilityRequest}
+
+    export const useCalendarControllerPreviewRescheduleAvailability = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerPreviewRescheduleAvailability>>, TError,CalendarControllerPreviewRescheduleAvailabilityMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof calendarControllerPreviewRescheduleAvailability>>,
+        TError,
+        CalendarControllerPreviewRescheduleAvailabilityMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCalendarControllerPreviewRescheduleAvailabilityMutationOptions(options), queryClient);
+    }
+
+export const getCalendarControllerRescheduleMeetingUrl = (organizationId: string,
+    meetingId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/calendar/meetings/${meetingId}/reschedule`
+}
+
+export const calendarControllerRescheduleMeeting = async (organizationId: string,
+    meetingId: string,
+    rescheduleMeeting: RescheduleMeeting, options?: Parameters<typeof workOsFetcher>[1]): Promise<MeetingDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<MeetingDetail>(getCalendarControllerRescheduleMeetingUrl(organizationId,meetingId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(rescheduleMeeting),
+    schema: MeetingDetail
+  }
+);}
+
+
+
+
+
+export const getCalendarControllerRescheduleMeetingMutationKey = () => ['calendarControllerRescheduleMeeting'] as const;
+
+export const getCalendarControllerRescheduleMeetingMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerRescheduleMeeting>>, TError,CalendarControllerRescheduleMeetingMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof calendarControllerRescheduleMeeting>>, TError,CalendarControllerRescheduleMeetingMutationVariables, TContext> => {
+
+const mutationKey = getCalendarControllerRescheduleMeetingMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof calendarControllerRescheduleMeeting>>, CalendarControllerRescheduleMeetingMutationVariables> = (props) => {
+          const {organizationId,meetingId,data} = props ?? {};
+
+          return  calendarControllerRescheduleMeeting(organizationId,meetingId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CalendarControllerRescheduleMeetingMutationResult = NonNullable<Awaited<ReturnType<typeof calendarControllerRescheduleMeeting>>>
+    export type CalendarControllerRescheduleMeetingMutationBody = RescheduleMeeting
+    export type CalendarControllerRescheduleMeetingMutationError = ErrorType<ProblemDetails>
+    export type CalendarControllerRescheduleMeetingMutationVariables = {organizationId: string;meetingId: string;data: RescheduleMeeting}
+
+    export const useCalendarControllerRescheduleMeeting = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerRescheduleMeeting>>, TError,CalendarControllerRescheduleMeetingMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof calendarControllerRescheduleMeeting>>,
+        TError,
+        CalendarControllerRescheduleMeetingMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCalendarControllerRescheduleMeetingMutationOptions(options), queryClient);
+    }
+
+export const getCalendarControllerCancelMeetingUrl = (organizationId: string,
+    meetingId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/calendar/meetings/${meetingId}/cancel`
+}
+
+export const calendarControllerCancelMeeting = async (organizationId: string,
+    meetingId: string,
+    cancelMeeting: CancelMeeting, options?: Parameters<typeof workOsFetcher>[1]): Promise<MeetingDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<MeetingDetail>(getCalendarControllerCancelMeetingUrl(organizationId,meetingId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(cancelMeeting),
+    schema: MeetingDetail
+  }
+);}
+
+
+
+
+
+export const getCalendarControllerCancelMeetingMutationKey = () => ['calendarControllerCancelMeeting'] as const;
+
+export const getCalendarControllerCancelMeetingMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerCancelMeeting>>, TError,CalendarControllerCancelMeetingMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof calendarControllerCancelMeeting>>, TError,CalendarControllerCancelMeetingMutationVariables, TContext> => {
+
+const mutationKey = getCalendarControllerCancelMeetingMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof calendarControllerCancelMeeting>>, CalendarControllerCancelMeetingMutationVariables> = (props) => {
+          const {organizationId,meetingId,data} = props ?? {};
+
+          return  calendarControllerCancelMeeting(organizationId,meetingId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CalendarControllerCancelMeetingMutationResult = NonNullable<Awaited<ReturnType<typeof calendarControllerCancelMeeting>>>
+    export type CalendarControllerCancelMeetingMutationBody = CancelMeeting
+    export type CalendarControllerCancelMeetingMutationError = ErrorType<ProblemDetails>
+    export type CalendarControllerCancelMeetingMutationVariables = {organizationId: string;meetingId: string;data: CancelMeeting}
+
+    export const useCalendarControllerCancelMeeting = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerCancelMeeting>>, TError,CalendarControllerCancelMeetingMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof calendarControllerCancelMeeting>>,
+        TError,
+        CalendarControllerCancelMeetingMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCalendarControllerCancelMeetingMutationOptions(options), queryClient);
+    }
+
+export const getCalendarControllerUpdateRsvpUrl = (organizationId: string,
+    meetingId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/calendar/meetings/${meetingId}/rsvp`
+}
+
+export const calendarControllerUpdateRsvp = async (organizationId: string,
+    meetingId: string,
+    rsvpMeeting: RsvpMeeting, options?: Parameters<typeof workOsFetcher>[1]): Promise<MeetingDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<MeetingDetail>(getCalendarControllerUpdateRsvpUrl(organizationId,meetingId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(rsvpMeeting),
+    schema: MeetingDetail
+  }
+);}
+
+
+
+
+
+export const getCalendarControllerUpdateRsvpMutationKey = () => ['calendarControllerUpdateRsvp'] as const;
+
+export const getCalendarControllerUpdateRsvpMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerUpdateRsvp>>, TError,CalendarControllerUpdateRsvpMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof calendarControllerUpdateRsvp>>, TError,CalendarControllerUpdateRsvpMutationVariables, TContext> => {
+
+const mutationKey = getCalendarControllerUpdateRsvpMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof calendarControllerUpdateRsvp>>, CalendarControllerUpdateRsvpMutationVariables> = (props) => {
+          const {organizationId,meetingId,data} = props ?? {};
+
+          return  calendarControllerUpdateRsvp(organizationId,meetingId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CalendarControllerUpdateRsvpMutationResult = NonNullable<Awaited<ReturnType<typeof calendarControllerUpdateRsvp>>>
+    export type CalendarControllerUpdateRsvpMutationBody = RsvpMeeting
+    export type CalendarControllerUpdateRsvpMutationError = ErrorType<ProblemDetails>
+    export type CalendarControllerUpdateRsvpMutationVariables = {organizationId: string;meetingId: string;data: RsvpMeeting}
+
+    export const useCalendarControllerUpdateRsvp = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerUpdateRsvp>>, TError,CalendarControllerUpdateRsvpMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof calendarControllerUpdateRsvp>>,
+        TError,
+        CalendarControllerUpdateRsvpMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCalendarControllerUpdateRsvpMutationOptions(options), queryClient);
+    }
+
+export const getCalendarControllerReplaceAttendeesUrl = (organizationId: string,
+    meetingId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/calendar/meetings/${meetingId}/attendees`
+}
+
+export const calendarControllerReplaceAttendees = async (organizationId: string,
+    meetingId: string,
+    updateMeetingAttendees: UpdateMeetingAttendees, options?: Parameters<typeof workOsFetcher>[1]): Promise<MeetingDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<MeetingDetail>(getCalendarControllerReplaceAttendeesUrl(organizationId,meetingId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateMeetingAttendees),
+    schema: MeetingDetail
+  }
+);}
+
+
+
+
+
+export const getCalendarControllerReplaceAttendeesMutationKey = () => ['calendarControllerReplaceAttendees'] as const;
+
+export const getCalendarControllerReplaceAttendeesMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerReplaceAttendees>>, TError,CalendarControllerReplaceAttendeesMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof calendarControllerReplaceAttendees>>, TError,CalendarControllerReplaceAttendeesMutationVariables, TContext> => {
+
+const mutationKey = getCalendarControllerReplaceAttendeesMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof calendarControllerReplaceAttendees>>, CalendarControllerReplaceAttendeesMutationVariables> = (props) => {
+          const {organizationId,meetingId,data} = props ?? {};
+
+          return  calendarControllerReplaceAttendees(organizationId,meetingId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CalendarControllerReplaceAttendeesMutationResult = NonNullable<Awaited<ReturnType<typeof calendarControllerReplaceAttendees>>>
+    export type CalendarControllerReplaceAttendeesMutationBody = UpdateMeetingAttendees
+    export type CalendarControllerReplaceAttendeesMutationError = ErrorType<ProblemDetails>
+    export type CalendarControllerReplaceAttendeesMutationVariables = {organizationId: string;meetingId: string;data: UpdateMeetingAttendees}
+
+    export const useCalendarControllerReplaceAttendees = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerReplaceAttendees>>, TError,CalendarControllerReplaceAttendeesMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof calendarControllerReplaceAttendees>>,
+        TError,
+        CalendarControllerReplaceAttendeesMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCalendarControllerReplaceAttendeesMutationOptions(options), queryClient);
+    }
+
+export const getCalendarControllerUpdateAgendaUrl = (organizationId: string,
+    meetingId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/calendar/meetings/${meetingId}/agenda`
+}
+
+export const calendarControllerUpdateAgenda = async (organizationId: string,
+    meetingId: string,
+    updateMeetingAgenda: UpdateMeetingAgenda, options?: Parameters<typeof workOsFetcher>[1]): Promise<MeetingDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<MeetingDetail>(getCalendarControllerUpdateAgendaUrl(organizationId,meetingId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateMeetingAgenda),
+    schema: MeetingDetail
+  }
+);}
+
+
+
+
+
+export const getCalendarControllerUpdateAgendaMutationKey = () => ['calendarControllerUpdateAgenda'] as const;
+
+export const getCalendarControllerUpdateAgendaMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerUpdateAgenda>>, TError,CalendarControllerUpdateAgendaMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof calendarControllerUpdateAgenda>>, TError,CalendarControllerUpdateAgendaMutationVariables, TContext> => {
+
+const mutationKey = getCalendarControllerUpdateAgendaMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof calendarControllerUpdateAgenda>>, CalendarControllerUpdateAgendaMutationVariables> = (props) => {
+          const {organizationId,meetingId,data} = props ?? {};
+
+          return  calendarControllerUpdateAgenda(organizationId,meetingId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CalendarControllerUpdateAgendaMutationResult = NonNullable<Awaited<ReturnType<typeof calendarControllerUpdateAgenda>>>
+    export type CalendarControllerUpdateAgendaMutationBody = UpdateMeetingAgenda
+    export type CalendarControllerUpdateAgendaMutationError = ErrorType<ProblemDetails>
+    export type CalendarControllerUpdateAgendaMutationVariables = {organizationId: string;meetingId: string;data: UpdateMeetingAgenda}
+
+    export const useCalendarControllerUpdateAgenda = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerUpdateAgenda>>, TError,CalendarControllerUpdateAgendaMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof calendarControllerUpdateAgenda>>,
+        TError,
+        CalendarControllerUpdateAgendaMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCalendarControllerUpdateAgendaMutationOptions(options), queryClient);
+    }
+
+export const getCalendarControllerUpdateNotesUrl = (organizationId: string,
+    meetingId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/calendar/meetings/${meetingId}/notes`
+}
+
+export const calendarControllerUpdateNotes = async (organizationId: string,
+    meetingId: string,
+    updateMeetingNotes: UpdateMeetingNotes, options?: Parameters<typeof workOsFetcher>[1]): Promise<MeetingDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<MeetingDetail>(getCalendarControllerUpdateNotesUrl(organizationId,meetingId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateMeetingNotes),
+    schema: MeetingDetail
+  }
+);}
+
+
+
+
+
+export const getCalendarControllerUpdateNotesMutationKey = () => ['calendarControllerUpdateNotes'] as const;
+
+export const getCalendarControllerUpdateNotesMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerUpdateNotes>>, TError,CalendarControllerUpdateNotesMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof calendarControllerUpdateNotes>>, TError,CalendarControllerUpdateNotesMutationVariables, TContext> => {
+
+const mutationKey = getCalendarControllerUpdateNotesMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof calendarControllerUpdateNotes>>, CalendarControllerUpdateNotesMutationVariables> = (props) => {
+          const {organizationId,meetingId,data} = props ?? {};
+
+          return  calendarControllerUpdateNotes(organizationId,meetingId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CalendarControllerUpdateNotesMutationResult = NonNullable<Awaited<ReturnType<typeof calendarControllerUpdateNotes>>>
+    export type CalendarControllerUpdateNotesMutationBody = UpdateMeetingNotes
+    export type CalendarControllerUpdateNotesMutationError = ErrorType<ProblemDetails>
+    export type CalendarControllerUpdateNotesMutationVariables = {organizationId: string;meetingId: string;data: UpdateMeetingNotes}
+
+    export const useCalendarControllerUpdateNotes = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerUpdateNotes>>, TError,CalendarControllerUpdateNotesMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof calendarControllerUpdateNotes>>,
+        TError,
+        CalendarControllerUpdateNotesMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCalendarControllerUpdateNotesMutationOptions(options), queryClient);
+    }
+
+export const getCalendarControllerExportIcsUrl = (organizationId: string,
+    meetingId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/calendar/meetings/${meetingId}/ics`
+}
+
+export const calendarControllerExportIcs = async (organizationId: string,
+    meetingId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<string> => {
+
+  return workOsFetcher<string>(getCalendarControllerExportIcsUrl(organizationId,meetingId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getCalendarControllerExportIcsQueryKey = (organizationId: string,
+    meetingId: string,) => {
+    return [
+    `/organizations/${organizationId}/calendar/meetings/${meetingId}/ics`
+    ] as const;
+    }
+
+
+export const getCalendarControllerExportIcsSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError = ErrorType<ProblemDetails>>(organizationId: string,
+    meetingId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getCalendarControllerExportIcsQueryKey(organizationId,meetingId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof calendarControllerExportIcs>>> = ({ signal }) => calendarControllerExportIcs(organizationId,meetingId, { signal, ...requestOptions });
+
+
+
+
+
+   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
+}
+
+export type CalendarControllerExportIcsSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof calendarControllerExportIcs>>>
+export type CalendarControllerExportIcsSuspenseQueryError = ErrorType<ProblemDetails>
+
+
+export function useCalendarControllerExportIcsSuspense<TData = Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    meetingId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCalendarControllerExportIcsSuspense<TData = Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    meetingId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCalendarControllerExportIcsSuspense<TData = Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    meetingId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useCalendarControllerExportIcsSuspense<TData = Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    meetingId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getCalendarControllerExportIcsSuspenseQueryOptions(organizationId,meetingId,options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCalendarControllerListMeetingRoomsUrl = (organizationId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/calendar/rooms`
+}
+
+export const calendarControllerListMeetingRooms = async (organizationId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<MeetingRoomList> => {
+
+  return workOsFetcher<MeetingRoomList>(getCalendarControllerListMeetingRoomsUrl(organizationId),
+  {
+    ...options,
+    method: 'GET'
+
+    ,
+    schema: MeetingRoomList
+  }
+);}
+
+
+
+
+
+export const getCalendarControllerListMeetingRoomsQueryKey = (organizationId: string,) => {
+    return [
+    `/organizations/${organizationId}/calendar/rooms`
+    ] as const;
+    }
+
+
+export const getCalendarControllerListMeetingRoomsSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof calendarControllerListMeetingRooms>>, TError = ErrorType<ProblemDetails>>(organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerListMeetingRooms>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getCalendarControllerListMeetingRoomsQueryKey(organizationId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof calendarControllerListMeetingRooms>>> = ({ signal }) => calendarControllerListMeetingRooms(organizationId, { signal, ...requestOptions });
+
+
+
+
+
+   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerListMeetingRooms>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
+}
+
+export type CalendarControllerListMeetingRoomsSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof calendarControllerListMeetingRooms>>>
+export type CalendarControllerListMeetingRoomsSuspenseQueryError = ErrorType<ProblemDetails>
+
+
+export function useCalendarControllerListMeetingRoomsSuspense<TData = Awaited<ReturnType<typeof calendarControllerListMeetingRooms>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerListMeetingRooms>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCalendarControllerListMeetingRoomsSuspense<TData = Awaited<ReturnType<typeof calendarControllerListMeetingRooms>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerListMeetingRooms>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCalendarControllerListMeetingRoomsSuspense<TData = Awaited<ReturnType<typeof calendarControllerListMeetingRooms>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerListMeetingRooms>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useCalendarControllerListMeetingRoomsSuspense<TData = Awaited<ReturnType<typeof calendarControllerListMeetingRooms>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerListMeetingRooms>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getCalendarControllerListMeetingRoomsSuspenseQueryOptions(organizationId,options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCalendarControllerCreateMeetingRoomUrl = (organizationId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/calendar/rooms`
+}
+
+export const calendarControllerCreateMeetingRoom = async (organizationId: string,
+    createMeetingRoom: CreateMeetingRoom, options?: Parameters<typeof workOsFetcher>[1]): Promise<MeetingRoom> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<MeetingRoom>(getCalendarControllerCreateMeetingRoomUrl(organizationId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createMeetingRoom),
+    schema: MeetingRoom
+  }
+);}
+
+
+
+
+
+export const getCalendarControllerCreateMeetingRoomMutationKey = () => ['calendarControllerCreateMeetingRoom'] as const;
+
+export const getCalendarControllerCreateMeetingRoomMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerCreateMeetingRoom>>, TError,CalendarControllerCreateMeetingRoomMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof calendarControllerCreateMeetingRoom>>, TError,CalendarControllerCreateMeetingRoomMutationVariables, TContext> => {
+
+const mutationKey = getCalendarControllerCreateMeetingRoomMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof calendarControllerCreateMeetingRoom>>, CalendarControllerCreateMeetingRoomMutationVariables> = (props) => {
+          const {organizationId,data} = props ?? {};
+
+          return  calendarControllerCreateMeetingRoom(organizationId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CalendarControllerCreateMeetingRoomMutationResult = NonNullable<Awaited<ReturnType<typeof calendarControllerCreateMeetingRoom>>>
+    export type CalendarControllerCreateMeetingRoomMutationBody = CreateMeetingRoom
+    export type CalendarControllerCreateMeetingRoomMutationError = ErrorType<ProblemDetails>
+    export type CalendarControllerCreateMeetingRoomMutationVariables = {organizationId: string;data: CreateMeetingRoom}
+
+    export const useCalendarControllerCreateMeetingRoom = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerCreateMeetingRoom>>, TError,CalendarControllerCreateMeetingRoomMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof calendarControllerCreateMeetingRoom>>,
+        TError,
+        CalendarControllerCreateMeetingRoomMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCalendarControllerCreateMeetingRoomMutationOptions(options), queryClient);
+    }
+
+export const getCalendarControllerGetMeetingRoomUrl = (organizationId: string,
+    roomId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/calendar/rooms/${roomId}`
+}
+
+export const calendarControllerGetMeetingRoom = async (organizationId: string,
+    roomId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<MeetingRoom> => {
+
+  return workOsFetcher<MeetingRoom>(getCalendarControllerGetMeetingRoomUrl(organizationId,roomId),
+  {
+    ...options,
+    method: 'GET'
+
+    ,
+    schema: MeetingRoom
+  }
+);}
+
+
+
+
+
+export const getCalendarControllerGetMeetingRoomQueryKey = (organizationId: string,
+    roomId: string,) => {
+    return [
+    `/organizations/${organizationId}/calendar/rooms/${roomId}`
+    ] as const;
+    }
+
+
+export const getCalendarControllerGetMeetingRoomSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof calendarControllerGetMeetingRoom>>, TError = ErrorType<ProblemDetails>>(organizationId: string,
+    roomId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerGetMeetingRoom>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getCalendarControllerGetMeetingRoomQueryKey(organizationId,roomId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof calendarControllerGetMeetingRoom>>> = ({ signal }) => calendarControllerGetMeetingRoom(organizationId,roomId, { signal, ...requestOptions });
+
+
+
+
+
+   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerGetMeetingRoom>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
+}
+
+export type CalendarControllerGetMeetingRoomSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof calendarControllerGetMeetingRoom>>>
+export type CalendarControllerGetMeetingRoomSuspenseQueryError = ErrorType<ProblemDetails>
+
+
+export function useCalendarControllerGetMeetingRoomSuspense<TData = Awaited<ReturnType<typeof calendarControllerGetMeetingRoom>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    roomId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerGetMeetingRoom>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCalendarControllerGetMeetingRoomSuspense<TData = Awaited<ReturnType<typeof calendarControllerGetMeetingRoom>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    roomId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerGetMeetingRoom>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCalendarControllerGetMeetingRoomSuspense<TData = Awaited<ReturnType<typeof calendarControllerGetMeetingRoom>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    roomId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerGetMeetingRoom>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useCalendarControllerGetMeetingRoomSuspense<TData = Awaited<ReturnType<typeof calendarControllerGetMeetingRoom>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    roomId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerGetMeetingRoom>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getCalendarControllerGetMeetingRoomSuspenseQueryOptions(organizationId,roomId,options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCalendarControllerUpdateMeetingRoomUrl = (organizationId: string,
+    roomId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/calendar/rooms/${roomId}`
+}
+
+export const calendarControllerUpdateMeetingRoom = async (organizationId: string,
+    roomId: string,
+    updateMeetingRoom: UpdateMeetingRoom, options?: Parameters<typeof workOsFetcher>[1]): Promise<MeetingRoom> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<MeetingRoom>(getCalendarControllerUpdateMeetingRoomUrl(organizationId,roomId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateMeetingRoom),
+    schema: MeetingRoom
+  }
+);}
+
+
+
+
+
+export const getCalendarControllerUpdateMeetingRoomMutationKey = () => ['calendarControllerUpdateMeetingRoom'] as const;
+
+export const getCalendarControllerUpdateMeetingRoomMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerUpdateMeetingRoom>>, TError,CalendarControllerUpdateMeetingRoomMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof calendarControllerUpdateMeetingRoom>>, TError,CalendarControllerUpdateMeetingRoomMutationVariables, TContext> => {
+
+const mutationKey = getCalendarControllerUpdateMeetingRoomMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof calendarControllerUpdateMeetingRoom>>, CalendarControllerUpdateMeetingRoomMutationVariables> = (props) => {
+          const {organizationId,roomId,data} = props ?? {};
+
+          return  calendarControllerUpdateMeetingRoom(organizationId,roomId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CalendarControllerUpdateMeetingRoomMutationResult = NonNullable<Awaited<ReturnType<typeof calendarControllerUpdateMeetingRoom>>>
+    export type CalendarControllerUpdateMeetingRoomMutationBody = UpdateMeetingRoom
+    export type CalendarControllerUpdateMeetingRoomMutationError = ErrorType<ProblemDetails>
+    export type CalendarControllerUpdateMeetingRoomMutationVariables = {organizationId: string;roomId: string;data: UpdateMeetingRoom}
+
+    export const useCalendarControllerUpdateMeetingRoom = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerUpdateMeetingRoom>>, TError,CalendarControllerUpdateMeetingRoomMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof calendarControllerUpdateMeetingRoom>>,
+        TError,
+        CalendarControllerUpdateMeetingRoomMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCalendarControllerUpdateMeetingRoomMutationOptions(options), queryClient);
     }
 
 export const getOrganizationsControllerListUrl = () => {
@@ -2218,6 +2919,807 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getInvitationsControllerRejectMutationOptions(options), queryClient);
+    }
+
+export const getChatControllerEventsUrl = () => {
+
+
+
+
+  return `/chat/events`
+}
+
+export const chatControllerEvents = async ( options?: Parameters<typeof workOsFetcher>[1]): Promise<ChatRealtimeEvent> => {
+
+  return workOsFetcher<ChatRealtimeEvent>(getChatControllerEventsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+    ,
+    schema: ChatRealtimeEvent
+  }
+);}
+
+
+
+
+export const getChatControllerListConversationsUrl = () => {
+
+
+
+
+  return `/chat/conversations`
+}
+
+export const chatControllerListConversations = async ( options?: Parameters<typeof workOsFetcher>[1]): Promise<ChatConversationList> => {
+
+  return workOsFetcher<ChatConversationList>(getChatControllerListConversationsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+    ,
+    schema: ChatConversationList
+  }
+);}
+
+
+
+
+
+export const getChatControllerListConversationsQueryKey = () => {
+    return [
+    `/chat/conversations`
+    ] as const;
+    }
+
+
+export const getChatControllerListConversationsSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof chatControllerListConversations>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerListConversations>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getChatControllerListConversationsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof chatControllerListConversations>>> = ({ signal }) => chatControllerListConversations({ signal, ...requestOptions });
+
+
+
+
+
+   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerListConversations>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
+}
+
+export type ChatControllerListConversationsSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof chatControllerListConversations>>>
+export type ChatControllerListConversationsSuspenseQueryError = ErrorType<ProblemDetails>
+
+
+export function useChatControllerListConversationsSuspense<TData = Awaited<ReturnType<typeof chatControllerListConversations>>, TError = ErrorType<ProblemDetails>>(
+  options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerListConversations>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useChatControllerListConversationsSuspense<TData = Awaited<ReturnType<typeof chatControllerListConversations>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerListConversations>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useChatControllerListConversationsSuspense<TData = Awaited<ReturnType<typeof chatControllerListConversations>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerListConversations>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useChatControllerListConversationsSuspense<TData = Awaited<ReturnType<typeof chatControllerListConversations>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerListConversations>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getChatControllerListConversationsSuspenseQueryOptions(options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getChatControllerCreateChannelUrl = () => {
+
+
+
+
+  return `/chat/channels`
+}
+
+export const chatControllerCreateChannel = async (chatControllerCreateChannelBody: ChatControllerCreateChannelBody, options?: Parameters<typeof workOsFetcher>[1]): Promise<ChatConversation> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<ChatConversation>(getChatControllerCreateChannelUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(chatControllerCreateChannelBody),
+    schema: ChatConversation
+  }
+);}
+
+
+
+
+
+export const getChatControllerCreateChannelMutationKey = () => ['chatControllerCreateChannel'] as const;
+
+export const getChatControllerCreateChannelMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerCreateChannel>>, TError,ChatControllerCreateChannelMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof chatControllerCreateChannel>>, TError,ChatControllerCreateChannelMutationVariables, TContext> => {
+
+const mutationKey = getChatControllerCreateChannelMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof chatControllerCreateChannel>>, ChatControllerCreateChannelMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  chatControllerCreateChannel(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChatControllerCreateChannelMutationResult = NonNullable<Awaited<ReturnType<typeof chatControllerCreateChannel>>>
+    export type ChatControllerCreateChannelMutationBody = ChatControllerCreateChannelBody
+    export type ChatControllerCreateChannelMutationError = ErrorType<ProblemDetails>
+    export type ChatControllerCreateChannelMutationVariables = {data: ChatControllerCreateChannelBody}
+
+    export const useChatControllerCreateChannel = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerCreateChannel>>, TError,ChatControllerCreateChannelMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof chatControllerCreateChannel>>,
+        TError,
+        ChatControllerCreateChannelMutationVariables,
+        TContext
+      > => {
+      return useMutation(getChatControllerCreateChannelMutationOptions(options), queryClient);
+    }
+
+export const getChatControllerCreateDirectUrl = () => {
+
+
+
+
+  return `/chat/direct`
+}
+
+export const chatControllerCreateDirect = async (chatControllerCreateDirectBody: ChatControllerCreateDirectBody, options?: Parameters<typeof workOsFetcher>[1]): Promise<ChatConversation> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<ChatConversation>(getChatControllerCreateDirectUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(chatControllerCreateDirectBody),
+    schema: ChatConversation
+  }
+);}
+
+
+
+
+
+export const getChatControllerCreateDirectMutationKey = () => ['chatControllerCreateDirect'] as const;
+
+export const getChatControllerCreateDirectMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerCreateDirect>>, TError,ChatControllerCreateDirectMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof chatControllerCreateDirect>>, TError,ChatControllerCreateDirectMutationVariables, TContext> => {
+
+const mutationKey = getChatControllerCreateDirectMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof chatControllerCreateDirect>>, ChatControllerCreateDirectMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  chatControllerCreateDirect(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChatControllerCreateDirectMutationResult = NonNullable<Awaited<ReturnType<typeof chatControllerCreateDirect>>>
+    export type ChatControllerCreateDirectMutationBody = ChatControllerCreateDirectBody
+    export type ChatControllerCreateDirectMutationError = ErrorType<ProblemDetails>
+    export type ChatControllerCreateDirectMutationVariables = {data: ChatControllerCreateDirectBody}
+
+    export const useChatControllerCreateDirect = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerCreateDirect>>, TError,ChatControllerCreateDirectMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof chatControllerCreateDirect>>,
+        TError,
+        ChatControllerCreateDirectMutationVariables,
+        TContext
+      > => {
+      return useMutation(getChatControllerCreateDirectMutationOptions(options), queryClient);
+    }
+
+export const getChatControllerGetConversationUrl = (conversationId: string,) => {
+
+
+
+
+  return `/chat/conversations/${conversationId}`
+}
+
+export const chatControllerGetConversation = async (conversationId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<ChatConversation> => {
+
+  return workOsFetcher<ChatConversation>(getChatControllerGetConversationUrl(conversationId),
+  {
+    ...options,
+    method: 'GET'
+
+    ,
+    schema: ChatConversation
+  }
+);}
+
+
+
+
+
+export const getChatControllerGetConversationQueryKey = (conversationId: string,) => {
+    return [
+    `/chat/conversations/${conversationId}`
+    ] as const;
+    }
+
+
+export const getChatControllerGetConversationSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof chatControllerGetConversation>>, TError = ErrorType<ProblemDetails>>(conversationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerGetConversation>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getChatControllerGetConversationQueryKey(conversationId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof chatControllerGetConversation>>> = ({ signal }) => chatControllerGetConversation(conversationId, { signal, ...requestOptions });
+
+
+
+
+
+   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerGetConversation>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
+}
+
+export type ChatControllerGetConversationSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof chatControllerGetConversation>>>
+export type ChatControllerGetConversationSuspenseQueryError = ErrorType<ProblemDetails>
+
+
+export function useChatControllerGetConversationSuspense<TData = Awaited<ReturnType<typeof chatControllerGetConversation>>, TError = ErrorType<ProblemDetails>>(
+ conversationId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerGetConversation>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useChatControllerGetConversationSuspense<TData = Awaited<ReturnType<typeof chatControllerGetConversation>>, TError = ErrorType<ProblemDetails>>(
+ conversationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerGetConversation>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useChatControllerGetConversationSuspense<TData = Awaited<ReturnType<typeof chatControllerGetConversation>>, TError = ErrorType<ProblemDetails>>(
+ conversationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerGetConversation>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useChatControllerGetConversationSuspense<TData = Awaited<ReturnType<typeof chatControllerGetConversation>>, TError = ErrorType<ProblemDetails>>(
+ conversationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerGetConversation>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getChatControllerGetConversationSuspenseQueryOptions(conversationId,options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getChatControllerListMessagesUrl = (conversationId: string,
+    params?: ChatControllerListMessagesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/chat/conversations/${conversationId}/messages?${stringifiedParams}` : `/chat/conversations/${conversationId}/messages`
+}
+
+export const chatControllerListMessages = async (conversationId: string,
+    params?: ChatControllerListMessagesParams, options?: Parameters<typeof workOsFetcher>[1]): Promise<ChatMessagePage> => {
+
+  return workOsFetcher<ChatMessagePage>(getChatControllerListMessagesUrl(conversationId,params),
+  {
+    ...options,
+    method: 'GET'
+
+    ,
+    schema: ChatMessagePage
+  }
+);}
+
+
+
+
+
+export const getChatControllerListMessagesInfiniteQueryKey = (conversationId: string,
+    params?: ChatControllerListMessagesParams,) => {
+    return [
+    'infinite', `/chat/conversations/${conversationId}/messages`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getChatControllerListMessagesSuspenseInfiniteQueryOptions = <TData = InfiniteData<Awaited<ReturnType<typeof chatControllerListMessages>>, ChatControllerListMessagesParams['before']>, TError = ErrorType<ProblemDetails>>(conversationId: string,
+    params?: ChatControllerListMessagesParams, options?: { query?:Partial<UseSuspenseInfiniteQueryOptions<Awaited<ReturnType<typeof chatControllerListMessages>>, TError, TData, QueryKey, ChatControllerListMessagesParams['before']>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getChatControllerListMessagesInfiniteQueryKey(conversationId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof chatControllerListMessages>>, QueryKey, ChatControllerListMessagesParams['before']> = ({ signal, pageParam }) => chatControllerListMessages(conversationId,{...params, 'before': pageParam ?? params?.['before']}, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseInfiniteQueryOptions<Awaited<ReturnType<typeof chatControllerListMessages>>, TError, TData, QueryKey, ChatControllerListMessagesParams['before']> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ChatControllerListMessagesSuspenseInfiniteQueryResult = NonNullable<Awaited<ReturnType<typeof chatControllerListMessages>>>
+export type ChatControllerListMessagesSuspenseInfiniteQueryError = ErrorType<ProblemDetails>
+
+
+export function useChatControllerListMessagesSuspenseInfinite<TData = InfiniteData<Awaited<ReturnType<typeof chatControllerListMessages>>, ChatControllerListMessagesParams['before']>, TError = ErrorType<ProblemDetails>>(
+ conversationId: string,
+    params: undefined |  ChatControllerListMessagesParams, options: { query:Partial<UseSuspenseInfiniteQueryOptions<Awaited<ReturnType<typeof chatControllerListMessages>>, TError, TData, QueryKey, ChatControllerListMessagesParams['before']>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useChatControllerListMessagesSuspenseInfinite<TData = InfiniteData<Awaited<ReturnType<typeof chatControllerListMessages>>, ChatControllerListMessagesParams['before']>, TError = ErrorType<ProblemDetails>>(
+ conversationId: string,
+    params?: ChatControllerListMessagesParams, options?: { query?:Partial<UseSuspenseInfiniteQueryOptions<Awaited<ReturnType<typeof chatControllerListMessages>>, TError, TData, QueryKey, ChatControllerListMessagesParams['before']>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useChatControllerListMessagesSuspenseInfinite<TData = InfiniteData<Awaited<ReturnType<typeof chatControllerListMessages>>, ChatControllerListMessagesParams['before']>, TError = ErrorType<ProblemDetails>>(
+ conversationId: string,
+    params?: ChatControllerListMessagesParams, options?: { query?:Partial<UseSuspenseInfiniteQueryOptions<Awaited<ReturnType<typeof chatControllerListMessages>>, TError, TData, QueryKey, ChatControllerListMessagesParams['before']>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useChatControllerListMessagesSuspenseInfinite<TData = InfiniteData<Awaited<ReturnType<typeof chatControllerListMessages>>, ChatControllerListMessagesParams['before']>, TError = ErrorType<ProblemDetails>>(
+ conversationId: string,
+    params?: ChatControllerListMessagesParams, options?: { query?:Partial<UseSuspenseInfiniteQueryOptions<Awaited<ReturnType<typeof chatControllerListMessages>>, TError, TData, QueryKey, ChatControllerListMessagesParams['before']>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getChatControllerListMessagesSuspenseInfiniteQueryOptions(conversationId,params,options)
+
+  const query = useSuspenseInfiniteQuery(queryOptions, queryClient) as  UseSuspenseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getChatControllerSendMessageUrl = (conversationId: string,) => {
+
+
+
+
+  return `/chat/conversations/${conversationId}/messages`
+}
+
+export const chatControllerSendMessage = async (conversationId: string,
+    chatControllerSendMessageBody: ChatControllerSendMessageBody, options?: Parameters<typeof workOsFetcher>[1]): Promise<ChatMessage> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<ChatMessage>(getChatControllerSendMessageUrl(conversationId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(chatControllerSendMessageBody),
+    schema: ChatMessage
+  }
+);}
+
+
+
+
+
+export const getChatControllerSendMessageMutationKey = () => ['chatControllerSendMessage'] as const;
+
+export const getChatControllerSendMessageMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerSendMessage>>, TError,ChatControllerSendMessageMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof chatControllerSendMessage>>, TError,ChatControllerSendMessageMutationVariables, TContext> => {
+
+const mutationKey = getChatControllerSendMessageMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof chatControllerSendMessage>>, ChatControllerSendMessageMutationVariables> = (props) => {
+          const {conversationId,data} = props ?? {};
+
+          return  chatControllerSendMessage(conversationId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChatControllerSendMessageMutationResult = NonNullable<Awaited<ReturnType<typeof chatControllerSendMessage>>>
+    export type ChatControllerSendMessageMutationBody = ChatControllerSendMessageBody
+    export type ChatControllerSendMessageMutationError = ErrorType<ProblemDetails>
+    export type ChatControllerSendMessageMutationVariables = {conversationId: string;data: ChatControllerSendMessageBody}
+
+    export const useChatControllerSendMessage = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerSendMessage>>, TError,ChatControllerSendMessageMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof chatControllerSendMessage>>,
+        TError,
+        ChatControllerSendMessageMutationVariables,
+        TContext
+      > => {
+      return useMutation(getChatControllerSendMessageMutationOptions(options), queryClient);
+    }
+
+export const getChatControllerGetMessageUrl = (conversationId: string,
+    messageId: string,) => {
+
+
+
+
+  return `/chat/conversations/${conversationId}/messages/${messageId}`
+}
+
+export const chatControllerGetMessage = async (conversationId: string,
+    messageId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<ChatMessage> => {
+
+  return workOsFetcher<ChatMessage>(getChatControllerGetMessageUrl(conversationId,messageId),
+  {
+    ...options,
+    method: 'GET'
+
+    ,
+    schema: ChatMessage
+  }
+);}
+
+
+
+
+
+export const getChatControllerGetMessageQueryKey = (conversationId: string,
+    messageId: string,) => {
+    return [
+    `/chat/conversations/${conversationId}/messages/${messageId}`
+    ] as const;
+    }
+
+
+export const getChatControllerGetMessageSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof chatControllerGetMessage>>, TError = ErrorType<ProblemDetails>>(conversationId: string,
+    messageId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerGetMessage>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getChatControllerGetMessageQueryKey(conversationId,messageId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof chatControllerGetMessage>>> = ({ signal }) => chatControllerGetMessage(conversationId,messageId, { signal, ...requestOptions });
+
+
+
+
+
+   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerGetMessage>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
+}
+
+export type ChatControllerGetMessageSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof chatControllerGetMessage>>>
+export type ChatControllerGetMessageSuspenseQueryError = ErrorType<ProblemDetails>
+
+
+export function useChatControllerGetMessageSuspense<TData = Awaited<ReturnType<typeof chatControllerGetMessage>>, TError = ErrorType<ProblemDetails>>(
+ conversationId: string,
+    messageId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerGetMessage>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useChatControllerGetMessageSuspense<TData = Awaited<ReturnType<typeof chatControllerGetMessage>>, TError = ErrorType<ProblemDetails>>(
+ conversationId: string,
+    messageId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerGetMessage>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useChatControllerGetMessageSuspense<TData = Awaited<ReturnType<typeof chatControllerGetMessage>>, TError = ErrorType<ProblemDetails>>(
+ conversationId: string,
+    messageId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerGetMessage>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useChatControllerGetMessageSuspense<TData = Awaited<ReturnType<typeof chatControllerGetMessage>>, TError = ErrorType<ProblemDetails>>(
+ conversationId: string,
+    messageId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof chatControllerGetMessage>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getChatControllerGetMessageSuspenseQueryOptions(conversationId,messageId,options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getChatControllerUpdateMessageUrl = (conversationId: string,
+    messageId: string,) => {
+
+
+
+
+  return `/chat/conversations/${conversationId}/messages/${messageId}`
+}
+
+export const chatControllerUpdateMessage = async (conversationId: string,
+    messageId: string,
+    chatControllerUpdateMessageBody: ChatControllerUpdateMessageBody, options?: Parameters<typeof workOsFetcher>[1]): Promise<ChatMessage> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<ChatMessage>(getChatControllerUpdateMessageUrl(conversationId,messageId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(chatControllerUpdateMessageBody),
+    schema: ChatMessage
+  }
+);}
+
+
+
+
+
+export const getChatControllerUpdateMessageMutationKey = () => ['chatControllerUpdateMessage'] as const;
+
+export const getChatControllerUpdateMessageMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerUpdateMessage>>, TError,ChatControllerUpdateMessageMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof chatControllerUpdateMessage>>, TError,ChatControllerUpdateMessageMutationVariables, TContext> => {
+
+const mutationKey = getChatControllerUpdateMessageMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof chatControllerUpdateMessage>>, ChatControllerUpdateMessageMutationVariables> = (props) => {
+          const {conversationId,messageId,data} = props ?? {};
+
+          return  chatControllerUpdateMessage(conversationId,messageId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChatControllerUpdateMessageMutationResult = NonNullable<Awaited<ReturnType<typeof chatControllerUpdateMessage>>>
+    export type ChatControllerUpdateMessageMutationBody = ChatControllerUpdateMessageBody
+    export type ChatControllerUpdateMessageMutationError = ErrorType<ProblemDetails>
+    export type ChatControllerUpdateMessageMutationVariables = {conversationId: string;messageId: string;data: ChatControllerUpdateMessageBody}
+
+    export const useChatControllerUpdateMessage = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerUpdateMessage>>, TError,ChatControllerUpdateMessageMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof chatControllerUpdateMessage>>,
+        TError,
+        ChatControllerUpdateMessageMutationVariables,
+        TContext
+      > => {
+      return useMutation(getChatControllerUpdateMessageMutationOptions(options), queryClient);
+    }
+
+export const getChatControllerMarkReadUrl = (conversationId: string,) => {
+
+
+
+
+  return `/chat/conversations/${conversationId}/read`
+}
+
+export const chatControllerMarkRead = async (conversationId: string,
+    chatControllerMarkReadBody: ChatControllerMarkReadBody, options?: Parameters<typeof workOsFetcher>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<void>(getChatControllerMarkReadUrl(conversationId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(chatControllerMarkReadBody)
+  }
+);}
+
+
+
+
+
+export const getChatControllerMarkReadMutationKey = () => ['chatControllerMarkRead'] as const;
+
+export const getChatControllerMarkReadMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerMarkRead>>, TError,ChatControllerMarkReadMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof chatControllerMarkRead>>, TError,ChatControllerMarkReadMutationVariables, TContext> => {
+
+const mutationKey = getChatControllerMarkReadMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof chatControllerMarkRead>>, ChatControllerMarkReadMutationVariables> = (props) => {
+          const {conversationId,data} = props ?? {};
+
+          return  chatControllerMarkRead(conversationId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChatControllerMarkReadMutationResult = NonNullable<Awaited<ReturnType<typeof chatControllerMarkRead>>>
+    export type ChatControllerMarkReadMutationBody = ChatControllerMarkReadBody
+    export type ChatControllerMarkReadMutationError = ErrorType<ProblemDetails>
+    export type ChatControllerMarkReadMutationVariables = {conversationId: string;data: ChatControllerMarkReadBody}
+
+    export const useChatControllerMarkRead = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatControllerMarkRead>>, TError,ChatControllerMarkReadMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof chatControllerMarkRead>>,
+        TError,
+        ChatControllerMarkReadMutationVariables,
+        TContext
+      > => {
+      return useMutation(getChatControllerMarkReadMutationOptions(options), queryClient);
     }
 
 export const getProjectsControllerListProjectsUrl = (organizationId: string,) => {

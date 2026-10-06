@@ -19,10 +19,8 @@ import {
 } from '@repo/client/rnr/components/ui/select';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
-import {
-  useCalendarIcsExport,
-  useCancelCalendarMeeting,
-} from '@core/features/calendar/calendar-query';
+import { useCalendarIcsExport } from '@core/features/calendar/calendar-ics';
+import { useCancelCalendarMeeting } from '@core/features/calendar/calendar-scheduling-mutations';
 
 import { Download, Pencil, Trash2, X } from 'lucide-react-native';
 

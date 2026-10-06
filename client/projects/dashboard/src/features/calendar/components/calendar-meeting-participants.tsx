@@ -15,7 +15,7 @@ import {
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
-import { useCalendarRsvp } from '@core/features/calendar/calendar-query';
+import { useCalendarRsvp } from '@core/features/calendar/calendar-scheduling-mutations';
 
 const rsvpOptions = RsvpMeetingSchema.shape.status.options;
 type RsvpStatus = RsvpMeeting['status'];

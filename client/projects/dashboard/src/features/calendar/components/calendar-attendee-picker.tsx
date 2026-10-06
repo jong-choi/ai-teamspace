@@ -14,7 +14,7 @@ import {
   DashboardLoading,
   DashboardQueryBoundary,
 } from '@core/app/state/dashboard-query-state';
-import { useCalendarMembers } from '@core/features/calendar/calendar-query';
+import { useCalendarMembers } from '@core/features/calendar/calendar-queries';
 
 import { Search, UserPlus, Users, X } from 'lucide-react-native';
 

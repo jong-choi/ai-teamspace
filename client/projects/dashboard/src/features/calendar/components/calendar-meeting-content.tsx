@@ -19,7 +19,7 @@ import {
   useCalendarAgendaMutation,
   useCalendarMetadataMutation,
   useCalendarNotesMutation,
-} from '@core/features/calendar/calendar-query';
+} from '@core/features/calendar/calendar-content-mutations';
 import { CalendarMarkdownEditor } from '@core/features/calendar/components/calendar-markdown-editor';
 
 import { CalendarClock, Pencil, Save } from 'lucide-react-native';

@@ -30,10 +30,8 @@ import {
 } from '@repo/client/rnr/components/ui/select';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
-import {
-  useCalendarRescheduleAvailabilityPreview,
-  useRescheduleCalendarMeeting,
-} from '@core/features/calendar/calendar-query';
+import { useCalendarRescheduleAvailabilityPreview } from '@core/features/calendar/calendar-availability-mutations';
+import { useRescheduleCalendarMeeting } from '@core/features/calendar/calendar-scheduling-mutations';
 import { CalendarAvailabilityStatus } from '@core/features/calendar/components/calendar-availability-status';
 import {
   calendarLocalScheduleToInstants,

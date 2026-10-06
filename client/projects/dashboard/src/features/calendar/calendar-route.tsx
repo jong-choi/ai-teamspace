@@ -18,7 +18,7 @@ import {
   useCalendarActiveOrganization,
   useCalendarMeetings,
   useCalendarRooms,
-} from '@core/features/calendar/calendar-query';
+} from '@core/features/calendar/calendar-queries';
 import {
   CalendarCreateDialog,
   type CalendarCreateRequest,

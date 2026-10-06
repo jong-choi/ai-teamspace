@@ -32,10 +32,8 @@ import {
 } from '@repo/client/rnr/components/ui/select';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
-import {
-  useCalendarAvailabilityPreview,
-  useCreateCalendarMeeting,
-} from '@core/features/calendar/calendar-query';
+import { useCalendarAvailabilityPreview } from '@core/features/calendar/calendar-availability-mutations';
+import { useCreateCalendarMeeting } from '@core/features/calendar/calendar-scheduling-mutations';
 import { CalendarAttendeePicker } from '@core/features/calendar/components/calendar-attendee-picker';
 import { CalendarAvailabilityStatus } from '@core/features/calendar/components/calendar-availability-status';
 import { CalendarMarkdownEditor } from '@core/features/calendar/components/calendar-markdown-editor';

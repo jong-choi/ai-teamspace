@@ -13,7 +13,7 @@ import {
   DashboardLoading,
   DashboardQueryBoundary,
 } from '@core/app/state/dashboard-query-state';
-import { useCalendarMeetingDetail } from '@core/features/calendar/calendar-query';
+import { useCalendarMeetingDetail } from '@core/features/calendar/calendar-queries';
 import { CalendarMeetingActions } from '@core/features/calendar/components/calendar-meeting-actions';
 import {
   CalendarMeetingAgenda,

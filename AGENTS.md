@@ -446,6 +446,8 @@ server/src/<feature>/
 - port method는 `create`, `findById`, `findByIds`, `findBy...`, `update`, `remove`처럼 feature가 실제로 사용하는 capability를 명시한다.
 - 모든 조건을 받는 범용 `find(condition)` repository를 만들지 않는다.
 - `infrastructure/persistence/drizzle/repositories/<resource>.repository.ts`는 port를 구현하는 Drizzle adapter다.
+- repository와 adapter는 테이블 수나 파일 줄 수가 아니라 업무 capability와 aggregate/transaction 일관성 경계로 분리하며, 하나의 원자적 workflow는 한 repository method의 transaction 안에 유지한다.
+- 분리한 persistence port는 각각 전용 concrete adapter에 `useClass`로 바인딩하고, 하나의 god adapter를 여러 port에 `useExisting`으로 노출하거나 adapter끼리 주입해 transaction 경계를 우회하지 않는다.
 - Drizzle adapter만 DrizzleService, table, Drizzle query API를 사용한다.
 - `drizzle-persistence.module.ts`는 `{ provide: <Resource>Repository, useClass: <Resource>DrizzleRepository }` 형태로 port와 adapter를 바인딩하고 port를 export한다.
 - feature module은 repository 구현체가 아니라 `drizzle-persistence.module.ts`를 import한다.

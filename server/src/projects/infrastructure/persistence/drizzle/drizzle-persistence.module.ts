@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
 
+import { ProjectColumnDrizzleRepository } from '@/projects/infrastructure/persistence/drizzle/repositories/project-column.repository';
 import { ProjectDrizzleRepository } from '@/projects/infrastructure/persistence/drizzle/repositories/project.repository';
 import { ProjectReferenceDrizzleRepository } from '@/projects/infrastructure/persistence/drizzle/repositories/project-reference.repository';
+import { TicketDrizzleRepository } from '@/projects/infrastructure/persistence/drizzle/repositories/ticket.repository';
 import { TicketWorkflowDrizzleRepository } from '@/projects/infrastructure/persistence/drizzle/repositories/ticket-workflow.repository';
 import { ProjectColumnRepository } from '@/projects/infrastructure/persistence/project-column.repository';
 import { ProjectRepository } from '@/projects/infrastructure/persistence/project.repository';
@@ -11,18 +13,17 @@ import { TicketWorkflowRepository } from '@/projects/infrastructure/persistence/
 
 @Module({
   providers: [
-    ProjectDrizzleRepository,
     {
       provide: ProjectRepository,
-      useExisting: ProjectDrizzleRepository,
+      useClass: ProjectDrizzleRepository,
     },
     {
       provide: ProjectColumnRepository,
-      useExisting: ProjectDrizzleRepository,
+      useClass: ProjectColumnDrizzleRepository,
     },
     {
       provide: TicketRepository,
-      useExisting: ProjectDrizzleRepository,
+      useClass: TicketDrizzleRepository,
     },
     {
       provide: TicketWorkflowRepository,

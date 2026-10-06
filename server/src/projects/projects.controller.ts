@@ -55,7 +55,9 @@ import {
   UpdateTicketDto,
   type UpdateTicketInput,
 } from '@/projects/dto/update-ticket.dto';
+import { ProjectColumnsService } from '@/projects/project-columns.service';
 import { ProjectsService } from '@/projects/projects.service';
+import { TicketsService } from '@/projects/tickets.service';
 
 import { Session, type UserSession } from '@thallesp/nestjs-better-auth';
 import { ApiProblemResponse } from 'nest-problem-details-filter/swagger';
@@ -72,7 +74,11 @@ const problemDetailsSchema = { $ref: '#/components/schemas/ProblemDetails' };
 @Controller('organizations/:organizationId/projects')
 @UseGuards(TrustedOriginGuard)
 export class ProjectsController {
-  constructor(private readonly projectsService: ProjectsService) {}
+  constructor(
+    private readonly projectsService: ProjectsService,
+    private readonly projectColumnsService: ProjectColumnsService,
+    private readonly ticketsService: TicketsService,
+  ) {}
 
   @Get()
   @ApiOkResponse({ standardSchema: ProjectListDto.schema })
@@ -143,7 +149,7 @@ export class ProjectsController {
     @Param('organizationId') organizationId: string,
     @Param('projectId', ParseUUIDPipe) projectId: string,
   ): Promise<ProjectColumnListDto> {
-    return this.projectsService.listColumns(
+    return this.projectColumnsService.listColumns(
       toOrganizationActorContext(session, headers),
       organizationId,
       projectId,
@@ -161,7 +167,7 @@ export class ProjectsController {
     @Body({ schema: CreateProjectColumnDto.schema })
     input: CreateProjectColumnInput,
   ): Promise<ProjectColumnDto> {
-    return this.projectsService.createColumn(
+    return this.projectColumnsService.createColumn(
       toOrganizationActorContext(session, headers),
       organizationId,
       projectId,
@@ -180,7 +186,7 @@ export class ProjectsController {
     @Body({ schema: UpdateProjectColumnDto.schema })
     input: UpdateProjectColumnInput,
   ): Promise<ProjectColumnDto> {
-    return this.projectsService.updateColumn(
+    return this.projectColumnsService.updateColumn(
       toOrganizationActorContext(session, headers),
       organizationId,
       projectId,
@@ -199,7 +205,7 @@ export class ProjectsController {
     @Param('projectId', ParseUUIDPipe) projectId: string,
     @Query({ schema: QueryTicketsDto.schema }) query: QueryTicketsInput,
   ): Promise<TicketListDto> {
-    return this.projectsService.listTickets(
+    return this.ticketsService.listTickets(
       toOrganizationActorContext(session, headers),
       organizationId,
       projectId,
@@ -217,7 +223,7 @@ export class ProjectsController {
     @Param('projectId', ParseUUIDPipe) projectId: string,
     @Body({ schema: CreateTicketDto.schema }) input: CreateTicketInput,
   ): Promise<TicketDetailDto> {
-    return this.projectsService.createTicket(
+    return this.ticketsService.createTicket(
       toOrganizationActorContext(session, headers),
       organizationId,
       projectId,
@@ -234,7 +240,7 @@ export class ProjectsController {
     @Param('projectId', ParseUUIDPipe) projectId: string,
     @Param('ticketId', ParseUUIDPipe) ticketId: string,
   ): Promise<TicketDetailDto> {
-    return this.projectsService.getTicket(
+    return this.ticketsService.getTicket(
       toOrganizationActorContext(session, headers),
       organizationId,
       projectId,
@@ -252,7 +258,7 @@ export class ProjectsController {
     @Param('ticketId', ParseUUIDPipe) ticketId: string,
     @Body({ schema: UpdateTicketDto.schema }) input: UpdateTicketInput,
   ): Promise<TicketDetailDto> {
-    return this.projectsService.updateTicket(
+    return this.ticketsService.updateTicket(
       toOrganizationActorContext(session, headers),
       organizationId,
       projectId,

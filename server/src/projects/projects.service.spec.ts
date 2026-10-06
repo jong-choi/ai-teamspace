@@ -14,9 +14,11 @@ import {
   type ProjectSummaryReadModel,
 } from '@/projects/infrastructure/persistence/project.repository';
 import { TicketWorkflowRepository } from '@/projects/infrastructure/persistence/ticket-workflow.repository';
+import { ProjectColumnsService } from '@/projects/project-columns.service';
 import { ProjectsService } from '@/projects/projects.service';
 import { ProjectResourceLoader } from '@/projects/project-resource.loader';
 import { ProjectUserResolver } from '@/projects/project-user.resolver';
+import { TicketsService } from '@/projects/tickets.service';
 
 import { jest } from '@jest/globals';
 
@@ -141,7 +143,9 @@ describe('프로젝트 서비스', () => {
   let userDirectory: {
     findByIds: jest.MockedFunction<UserDirectory['findByIds']>;
   };
-  let service: ProjectsService;
+  let projectsService: ProjectsService;
+  let projectColumnsService: ProjectColumnsService;
+  let ticketsService: TicketsService;
 
   beforeEach(() => {
     repository = new FakeProjectRepository();
@@ -171,12 +175,25 @@ describe('프로젝트 서비스', () => {
       checklists: [],
       comments: [],
     });
-    service = new ProjectsService(
+    const resourceLoader = new ProjectResourceLoader(repository);
+    const userResolver = new ProjectUserResolver(userDirectory);
+    projectsService = new ProjectsService(
+      repository,
+      resourceLoader,
+      membership,
+      userResolver,
+    );
+    projectColumnsService = new ProjectColumnsService(
+      repository,
+      resourceLoader,
+      membership,
+    );
+    ticketsService = new TicketsService(
       repository,
       workflowRepository,
-      new ProjectResourceLoader(repository),
+      resourceLoader,
       membership,
-      new ProjectUserResolver(userDirectory),
+      userResolver,
     );
   });
 
@@ -196,7 +213,7 @@ describe('프로젝트 서비스', () => {
     ]);
     userDirectory.findByIds.mockResolvedValue([user(leadUserId)]);
 
-    const result = await service.listProjects(context, organizationId);
+    const result = await projectsService.listProjects(context, organizationId);
 
     expect(userDirectory.findByIds).toHaveBeenCalledWith([leadUserId]);
     expect(result.items).toHaveLength(2);
@@ -212,7 +229,7 @@ describe('프로젝트 서비스', () => {
     membership.hasMemberUser.mockResolvedValue(false);
 
     await expect(
-      service.createProject(context, organizationId, {
+      projectsService.createProject(context, organizationId, {
         key: 'OS',
         name: '운영 시스템',
         leadUserId: 'outsider-user',
@@ -227,7 +244,7 @@ describe('프로젝트 서비스', () => {
     membership.hasMemberUser.mockResolvedValue(false);
 
     await expect(
-      service.createTicket(context, organizationId, projectId, {
+      ticketsService.createTicket(context, organizationId, projectId, {
         columnId,
         title: '티켓',
         assigneeUserId: 'outsider-user',
@@ -242,7 +259,7 @@ describe('프로젝트 서비스', () => {
     membership.hasMemberUser.mockResolvedValue(false);
 
     await expect(
-      service.createTicket(context, organizationId, projectId, {
+      ticketsService.createTicket(context, organizationId, projectId, {
         columnId,
         title: '티켓',
         assigneeUserId: '',
@@ -257,7 +274,7 @@ describe('프로젝트 서비스', () => {
     membership.requireAccess.mockRejectedValue(new OrganizationNotFoundError());
 
     await expect(
-      service.listProjects(context, organizationId),
+      projectsService.listProjects(context, organizationId),
     ).rejects.toBeInstanceOf(OrganizationNotFoundError);
 
     expect(repository.listProjects).not.toHaveBeenCalled();
@@ -268,7 +285,9 @@ describe('프로젝트 서비스', () => {
     repository.findColumnById.mockResolvedValue(null);
 
     await expect(
-      service.listTickets(context, organizationId, projectId, { columnId }),
+      ticketsService.listTickets(context, organizationId, projectId, {
+        columnId,
+      }),
     ).rejects.toBeInstanceOf(ProjectColumnNotFoundError);
 
     expect(repository.listTickets).not.toHaveBeenCalled();
@@ -281,7 +300,7 @@ describe('프로젝트 서비스', () => {
     repository.createColumn.mockResolvedValue(column());
 
     await expect(
-      service.createColumn(context, organizationId, projectId, {
+      projectColumnsService.createColumn(context, organizationId, projectId, {
         name: '추가 컬럼',
       }),
     ).rejects.toBeInstanceOf(ProjectArchivedError);

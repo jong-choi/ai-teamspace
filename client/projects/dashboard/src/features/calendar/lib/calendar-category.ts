@@ -1,14 +1,11 @@
-import type { MeetingSummary } from '@repo/client/api-client/schemas';
+import {
+  type MeetingSummary,
+  MeetingSummary as MeetingSummarySchema,
+} from '@repo/client/api-client/schemas';
 
 export type CalendarCategory = MeetingSummary['category'];
 
-export const CALENDAR_CATEGORIES: readonly CalendarCategory[] = [
-  'team',
-  'sprint',
-  '1on1',
-  'allhands',
-  'client',
-];
+export const CALENDAR_CATEGORIES = MeetingSummarySchema.shape.category.options;
 
 export const CALENDAR_CATEGORY_META: Record<
   CalendarCategory,

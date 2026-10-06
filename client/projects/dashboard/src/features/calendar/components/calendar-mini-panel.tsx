@@ -9,9 +9,9 @@ import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
 import { MiniCalendar } from '@core/features/calendar/components/mini-calendar';
 import { CALENDAR_CATEGORY_META } from '@core/features/calendar/lib/calendar-category';
-import { dateKeyInTimeZone } from '@core/features/calendar/lib/calendar-datetime';
 import {
   getMeetingAttendeeCount,
+  getMeetingDateKeys,
   getMeetingLocationLabel,
   getMeetingTimeLabel,
 } from '@core/features/calendar/lib/calendar-meeting';
@@ -55,7 +55,9 @@ export function CalendarMiniPanel({
     ? CALENDAR_CATEGORY_META[upcoming.category]
     : null;
   const meetingDateKeys = new Set(
-    meetings.map((meeting) => dateKeyInTimeZone(meeting.startAt, timeZone)),
+    meetings
+      .filter((meeting) => meeting.canceledAt === null)
+      .flatMap((meeting) => getMeetingDateKeys(meeting, timeZone)),
   );
 
   return (
@@ -69,7 +71,7 @@ export function CalendarMiniPanel({
 
       <View className="gap-1.5">
         <Text className="px-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-          실시간 일정 알림
+          다가오는 일정
         </Text>
         {upcoming && upcomingMeta ? (
           <Pressable

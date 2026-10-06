@@ -1,4 +1,5 @@
 import type { MeetingSummary } from '@repo/client/api-client/schemas';
+import { groupMeetingsByDate } from '@core/features/calendar/lib/calendar-meeting';
 import {
   CALENDAR_TIMELINE_HOUR_HEIGHT,
   createCalendarTimelineLayouts,
@@ -48,7 +49,11 @@ describe('회의일정 timeline layout', () => {
       endAt: '2026-10-05T02:45:00.000Z',
     };
 
-    const [layout] = createCalendarTimelineLayouts([meeting], 'Asia/Seoul');
+    const [layout] = createCalendarTimelineLayouts(
+      [meeting],
+      'Asia/Seoul',
+      '2026-10-05',
+    );
 
     expect(layout?.top).toBe(2.5 * CALENDAR_TIMELINE_HOUR_HEIGHT);
     expect(layout?.height).toBe(1.25 * CALENDAR_TIMELINE_HOUR_HEIGHT);
@@ -73,6 +78,7 @@ describe('회의일정 timeline layout', () => {
     const layouts = createCalendarTimelineLayouts(
       [first, second],
       'Asia/Seoul',
+      '2026-10-05',
     );
 
     expect(layouts.map((layout) => layout.laneIndex)).toEqual([0, 1]);
@@ -86,9 +92,44 @@ describe('회의일정 timeline layout', () => {
       endAt: '2026-10-04T23:30:00.000Z',
     };
 
-    const [layout] = createCalendarTimelineLayouts([meeting], 'Asia/Seoul');
+    const [layout] = createCalendarTimelineLayouts(
+      [meeting],
+      'Asia/Seoul',
+      '2026-10-05',
+    );
 
     expect(layout?.top).toBe(0);
     expect(layout?.height).toBe(0.5 * CALENDAR_TIMELINE_HOUR_HEIGHT);
+  });
+
+  test('전날 시작해 선택 날짜까지 이어지는 회의도 선택 날짜 timeline에 clip한다', () => {
+    const meeting = {
+      ...baseMeeting,
+      startAt: '2026-10-04T14:30:00.000Z',
+      endAt: '2026-10-05T00:30:00.000Z',
+    };
+
+    const [layout] = createCalendarTimelineLayouts(
+      [meeting],
+      'Asia/Seoul',
+      '2026-10-05',
+    );
+
+    expect(layout?.top).toBe(0);
+    expect(layout?.height).toBe(1.5 * CALENDAR_TIMELINE_HOUR_HEIGHT);
+  });
+
+  test('multi-day 회의는 겹치는 모든 날짜에 배치하되 exact-midnight end는 다음 날을 포함하지 않는다', () => {
+    const meeting = {
+      ...baseMeeting,
+      startAt: '2026-10-04T14:30:00.000Z',
+      endAt: '2026-10-05T15:00:00.000Z',
+    };
+
+    const grouped = groupMeetingsByDate([meeting], 'Asia/Seoul', {
+      includeSpanningDates: true,
+    });
+
+    expect([...grouped.keys()]).toEqual(['2026-10-04', '2026-10-05']);
   });
 });

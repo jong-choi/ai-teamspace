@@ -1,7 +1,7 @@
 import type { MeetingSummary } from '@repo/client/api-client/schemas';
 import {
-  durationMinutes,
   minutesInDayForInstant,
+  zonedDateTimeToIso,
 } from '@core/features/calendar/lib/calendar-datetime';
 
 export const CALENDAR_TIMELINE_START_HOUR = 8;
@@ -28,25 +28,54 @@ type TimelineInterval = {
 export function createCalendarTimelineLayouts(
   meetings: readonly MeetingSummary[],
   timeZone: string,
+  dateKey: string,
 ): CalendarTimelineEventLayout[] {
   const timelineStart = CALENDAR_TIMELINE_START_HOUR * 60;
   const timelineEnd = CALENDAR_TIMELINE_END_HOUR * 60;
+  const timelineStartAt = new Date(
+    zonedDateTimeToIso(
+      dateKey,
+      `${String(CALENDAR_TIMELINE_START_HOUR).padStart(2, '0')}:00`,
+      timeZone,
+    ),
+  ).getTime();
+  const timelineEndAt = new Date(
+    zonedDateTimeToIso(
+      dateKey,
+      `${String(CALENDAR_TIMELINE_END_HOUR).padStart(2, '0')}:00`,
+      timeZone,
+    ),
+  ).getTime();
+
   const intervals = meetings
     .flatMap((meeting): TimelineInterval[] => {
-      const duration = durationMinutes(meeting.startAt, meeting.endAt);
-      if (!Number.isFinite(duration) || duration <= 0) return [];
+      const meetingStartAt = new Date(meeting.startAt).getTime();
+      const meetingEndAt = new Date(meeting.endAt).getTime();
+      if (
+        !Number.isFinite(meetingStartAt) ||
+        !Number.isFinite(meetingEndAt) ||
+        meetingEndAt <= meetingStartAt
+      ) {
+        return [];
+      }
 
-      const startMinute = minutesInDayForInstant(meeting.startAt, timeZone);
-      const endMinute = startMinute + duration;
-      const visibleStart = Math.max(startMinute, timelineStart);
-      const visibleEnd = Math.min(endMinute, timelineEnd);
-      if (visibleEnd <= visibleStart) return [];
+      const visibleStartAt = Math.max(meetingStartAt, timelineStartAt);
+      const visibleEndAt = Math.min(meetingEndAt, timelineEndAt);
+      if (visibleEndAt <= visibleStartAt) return [];
+
+      const visibleStartInstant = new Date(visibleStartAt).toISOString();
+      const visibleEndInstant = new Date(visibleEndAt).toISOString();
+      const visibleStart = minutesInDayForInstant(
+        visibleStartInstant,
+        timeZone,
+      );
+      const visibleEnd = minutesInDayForInstant(visibleEndInstant, timeZone);
 
       return [
         {
           meeting,
-          startMinute: visibleStart,
-          endMinute: visibleEnd,
+          startMinute: Math.max(visibleStart, timelineStart),
+          endMinute: Math.min(visibleEnd, timelineEnd),
           layoutEndMinute: Math.min(
             timelineEnd,
             Math.max(visibleEnd, visibleStart + MIN_EVENT_VISUAL_MINUTES),
@@ -54,6 +83,7 @@ export function createCalendarTimelineLayouts(
         },
       ];
     })
+    .filter((interval) => interval.endMinute > interval.startMinute)
     .sort(
       (left, right) =>
         left.startMinute - right.startMinute ||

@@ -32,7 +32,9 @@ export function CalendarMonthView({
   todayDateKey: string;
 }) {
   const dateKeys = getMonthGridDateKeys(currentDateKey);
-  const meetingsByDate = groupMeetingsByDate(meetings, timeZone);
+  const meetingsByDate = groupMeetingsByDate(meetings, timeZone, {
+    includeSpanningDates: true,
+  });
   const rows = Array.from(
     { length: Math.ceil(dateKeys.length / 7) },
     (_, row) => dateKeys.slice(row * 7, row * 7 + 7),

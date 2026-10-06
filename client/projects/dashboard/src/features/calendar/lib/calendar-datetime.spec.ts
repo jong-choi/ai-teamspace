@@ -1,5 +1,6 @@
 import {
   addCalendarMonths,
+  calendarLocalScheduleToInstants,
   dateKeyInTimeZone,
   getCalendarQueryRange,
   getMonthGridDateKeys,
@@ -34,6 +35,28 @@ describe('회의일정 datetime helper', () => {
     expect(dateKeyInTimeZone('2026-10-04T16:00:00.000Z', 'Asia/Seoul')).toBe(
       '2026-10-05',
     );
+  });
+
+  test('create/reschedule 공통 schedule helper가 시간 순서를 한 곳에서 검증한다', () => {
+    expect(
+      calendarLocalScheduleToInstants(
+        '2026-10-05',
+        '10:00',
+        '11:00',
+        'Asia/Seoul',
+      ),
+    ).toEqual({
+      startAt: '2026-10-05T01:00:00.000Z',
+      endAt: '2026-10-05T02:00:00.000Z',
+    });
+    expect(() =>
+      calendarLocalScheduleToInstants(
+        '2026-10-05',
+        '11:00',
+        '10:00',
+        'Asia/Seoul',
+      ),
+    ).toThrow('종료 시간은 시작 시간보다 늦어야');
   });
 
   test('DST spring-forward에 존재하지 않는 local time은 거부한다', () => {

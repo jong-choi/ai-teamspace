@@ -63,7 +63,9 @@ function TimelineView({
   todayDateKey,
   week,
 }: TimelineViewProps & { dates: string[]; week: boolean }) {
-  const grouped = groupMeetingsByDate(meetings, timeZone);
+  const grouped = groupMeetingsByDate(meetings, timeZone, {
+    includeSpanningDates: true,
+  });
   const currentDayMeetings = grouped.get(currentDateKey) ?? [];
   const minWidth = week ? 920 : 560;
 
@@ -175,6 +177,7 @@ function TimelineView({
             const layouts = createCalendarTimelineLayouts(
               dayMeetings,
               timeZone,
+              dateKey,
             );
             return (
               <View

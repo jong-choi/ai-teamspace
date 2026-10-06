@@ -1,24 +1,43 @@
+import { useCallback } from 'react';
+
 import {
+  getCalendarControllerExportIcsSuspenseQueryOptions,
   getCalendarControllerGetMeetingQueryKey,
   getCalendarControllerListMeetingsQueryKey,
+  useCalendarControllerCancelMeeting,
   useCalendarControllerCreateMeeting,
   useCalendarControllerGetMeetingSuspense,
   useCalendarControllerListMeetingRoomsSuspense,
   useCalendarControllerListMeetingsSuspense,
+  useCalendarControllerPreviewAvailability,
+  useCalendarControllerPreviewRescheduleAvailability,
+  useCalendarControllerRescheduleMeeting,
+  useCalendarControllerUpdateAgenda,
+  useCalendarControllerUpdateMeeting,
+  useCalendarControllerUpdateNotes,
+  useCalendarControllerUpdateRsvp,
   useOrganizationsControllerGetActiveSuspense,
   useOrganizationsControllerListMembersSuspense,
 } from '@repo/client/api-client';
 import type {
+  CalendarAvailabilityRequest,
+  CalendarRescheduleAvailabilityRequest,
+  CancelMeeting,
   CreateMeeting,
   MeetingDetail,
   MeetingList,
   MeetingRoomList,
   OrganizationAccess,
   OrganizationMemberList,
+  RescheduleMeeting,
+  RsvpMeeting,
+  UpdateMeeting,
+  UpdateMeetingAgenda,
+  UpdateMeetingNotes,
 } from '@repo/client/api-client/schemas';
 import type { CalendarCategory } from '@core/features/calendar/lib/calendar-category';
 
-import { useQueryClient } from '@tanstack/react-query';
+import { type QueryClient, useQueryClient } from '@tanstack/react-query';
 
 export function useCalendarActiveOrganization() {
   return useOrganizationsControllerGetActiveSuspense<OrganizationAccess | null>(
@@ -81,6 +100,29 @@ export function useCalendarMembers(organizationId: string, search: string) {
   );
 }
 
+export function useCalendarAvailabilityPreview(organizationId: string) {
+  const mutation = useCalendarControllerPreviewAvailability();
+  const previewAvailability = useCallback(
+    (input: CalendarAvailabilityRequest) =>
+      mutation.mutateAsync({ organizationId, data: input }),
+    [mutation.mutateAsync, organizationId],
+  );
+  return { ...mutation, previewAvailability };
+}
+
+export function useCalendarRescheduleAvailabilityPreview(
+  organizationId: string,
+  meetingId: string,
+) {
+  const mutation = useCalendarControllerPreviewRescheduleAvailability();
+  const previewAvailability = useCallback(
+    (input: CalendarRescheduleAvailabilityRequest) =>
+      mutation.mutateAsync({ organizationId, meetingId, data: input }),
+    [meetingId, mutation.mutateAsync, organizationId],
+  );
+  return { ...mutation, previewAvailability };
+}
+
 export function useCreateCalendarMeeting(
   organizationId: string,
   onCreated: (meeting: MeetingDetail) => void,
@@ -89,13 +131,8 @@ export function useCreateCalendarMeeting(
   const mutation = useCalendarControllerCreateMeeting({
     mutation: {
       onSuccess: async (meeting) => {
-        queryClient.setQueryData(
-          getCalendarControllerGetMeetingQueryKey(organizationId, meeting.id),
-          meeting,
-        );
-        await queryClient.invalidateQueries({
-          queryKey: getCalendarControllerListMeetingsQueryKey(organizationId),
-        });
+        setCalendarMeetingDetail(queryClient, organizationId, meeting);
+        await invalidateCalendarRanges(queryClient, organizationId);
         onCreated(meeting);
       },
     },
@@ -106,4 +143,160 @@ export function useCreateCalendarMeeting(
     createMeeting: (input: CreateMeeting) =>
       mutation.mutateAsync({ organizationId, data: input }),
   };
+}
+
+export function useRescheduleCalendarMeeting(
+  organizationId: string,
+  meetingId: string,
+  onSuccess?: (meeting: MeetingDetail) => void,
+) {
+  const queryClient = useQueryClient();
+  const mutation = useCalendarControllerRescheduleMeeting({
+    mutation: {
+      onSuccess: async (meeting) => {
+        setCalendarMeetingDetail(queryClient, organizationId, meeting);
+        await invalidateCalendarRanges(queryClient, organizationId);
+        onSuccess?.(meeting);
+      },
+    },
+  });
+  return {
+    ...mutation,
+    rescheduleMeeting: (input: RescheduleMeeting) =>
+      mutation.mutateAsync({ organizationId, meetingId, data: input }),
+  };
+}
+
+export function useCancelCalendarMeeting(
+  organizationId: string,
+  meetingId: string,
+  onSuccess?: (meeting: MeetingDetail) => void,
+) {
+  const queryClient = useQueryClient();
+  const mutation = useCalendarControllerCancelMeeting({
+    mutation: {
+      onSuccess: async (meeting) => {
+        setCalendarMeetingDetail(queryClient, organizationId, meeting);
+        await invalidateCalendarRanges(queryClient, organizationId);
+        onSuccess?.(meeting);
+      },
+    },
+  });
+  return {
+    ...mutation,
+    cancelMeeting: (input: CancelMeeting) =>
+      mutation.mutateAsync({ organizationId, meetingId, data: input }),
+  };
+}
+
+export function useCalendarRsvp(
+  organizationId: string,
+  meetingId: string,
+  onSuccess?: (meeting: MeetingDetail) => void,
+) {
+  const queryClient = useQueryClient();
+  const mutation = useCalendarControllerUpdateRsvp({
+    mutation: {
+      onSuccess: (meeting) => {
+        setCalendarMeetingDetail(queryClient, organizationId, meeting);
+        onSuccess?.(meeting);
+      },
+    },
+  });
+  return {
+    ...mutation,
+    updateRsvp: (input: RsvpMeeting) =>
+      mutation.mutateAsync({ organizationId, meetingId, data: input }),
+  };
+}
+
+export function useCalendarAgendaMutation(
+  organizationId: string,
+  meetingId: string,
+) {
+  const queryClient = useQueryClient();
+  const mutation = useCalendarControllerUpdateAgenda({
+    mutation: {
+      onSuccess: (meeting) =>
+        setCalendarMeetingDetail(queryClient, organizationId, meeting),
+    },
+  });
+  return {
+    ...mutation,
+    updateAgenda: (input: UpdateMeetingAgenda) =>
+      mutation.mutateAsync({ organizationId, meetingId, data: input }),
+  };
+}
+
+export function useCalendarNotesMutation(
+  organizationId: string,
+  meetingId: string,
+) {
+  const queryClient = useQueryClient();
+  const mutation = useCalendarControllerUpdateNotes({
+    mutation: {
+      onSuccess: (meeting) =>
+        setCalendarMeetingDetail(queryClient, organizationId, meeting),
+    },
+  });
+  return {
+    ...mutation,
+    updateNotes: (input: UpdateMeetingNotes) =>
+      mutation.mutateAsync({ organizationId, meetingId, data: input }),
+  };
+}
+
+export function useCalendarMetadataMutation(
+  organizationId: string,
+  meetingId: string,
+) {
+  const queryClient = useQueryClient();
+  const mutation = useCalendarControllerUpdateMeeting({
+    mutation: {
+      onSuccess: (meeting) =>
+        setCalendarMeetingDetail(queryClient, organizationId, meeting),
+    },
+  });
+  return {
+    ...mutation,
+    updateMeeting: (input: UpdateMeeting) =>
+      mutation.mutateAsync({ organizationId, meetingId, data: input }),
+  };
+}
+
+export function useCalendarIcsExport(
+  organizationId: string,
+  meetingId: string,
+) {
+  const queryClient = useQueryClient();
+  return () =>
+    queryClient.fetchQuery(
+      getCalendarControllerExportIcsSuspenseQueryOptions(
+        organizationId,
+        meetingId,
+        {
+          query: { staleTime: 0 },
+        },
+      ),
+    );
+}
+
+function setCalendarMeetingDetail(
+  queryClient: QueryClient,
+  organizationId: string,
+  meeting: MeetingDetail,
+): void {
+  queryClient.setQueryData(
+    getCalendarControllerGetMeetingQueryKey(organizationId, meeting.id),
+    meeting,
+  );
+}
+
+async function invalidateCalendarRanges(
+  queryClient: QueryClient,
+  organizationId: string,
+): Promise<void> {
+  await queryClient.invalidateQueries({
+    queryKey: getCalendarControllerListMeetingsQueryKey(organizationId),
+  });
 }

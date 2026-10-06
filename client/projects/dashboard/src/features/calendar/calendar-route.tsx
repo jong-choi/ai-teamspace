@@ -141,6 +141,11 @@ function CalendarWorkspace({
     currentDateKey,
     timeZone,
   );
+  const roomTimelineRange = getCalendarQueryRange(
+    'day',
+    currentDateKey,
+    timeZone,
+  );
   const meetings = useCalendarMeetings(organizationId, {
     from: range.from,
     to: range.to,
@@ -155,10 +160,19 @@ function CalendarWorkspace({
     roomId: roomId ?? undefined,
     search: deferredSearch,
   }).data.items;
+  const roomTimelineMeetings = useCalendarMeetings(organizationId, {
+    from: roomTimelineRange.from,
+    to: roomTimelineRange.to,
+    category: 'all',
+    search: '',
+  }).data.items;
   const rooms = useCalendarRooms(organizationId).data.items;
 
   const openCreate = (dateKey = currentDateKey, startTime?: string) => {
     setCreateRequest({ dateKey, startTime });
+  };
+  const openCreateRequest = (request: CalendarCreateRequest) => {
+    setCreateRequest(request);
   };
   const selectDay = (dateKey: string) => {
     setCurrentDateKey(dateKey);
@@ -287,15 +301,21 @@ function CalendarWorkspace({
       </Dialog>
 
       <CalendarRoomsDialog
+        currentDateKey={currentDateKey}
+        meetings={roomTimelineMeetings}
+        onCreateMeeting={openCreateRequest}
         onOpenChange={setRoomDialogOpen}
         open={roomDialogOpen}
         rooms={rooms}
+        timeZone={timeZone}
       />
       <CalendarMeetingDetailDialog
+        currentUserId={currentUserId}
         meetingId={selectedMeetingId}
         onOpenChange={(open) => !open && setSelectedMeetingId(null)}
         open={selectedMeetingId !== null}
         organizationId={organizationId}
+        rooms={rooms}
       />
       {createRequest ? (
         <CalendarCreateDialog

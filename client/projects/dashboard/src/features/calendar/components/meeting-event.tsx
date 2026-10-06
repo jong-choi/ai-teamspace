@@ -28,10 +28,11 @@ export function MeetingEvent({
 }: MeetingEventProps) {
   const meta = CALENDAR_CATEGORY_META[meeting.category];
   const canceled = meeting.canceledAt !== null;
+  const timeLabel = getMeetingTimeLabel(meeting, timeZone);
 
   return (
     <Pressable
-      accessibilityLabel={`${getMeetingTimeLabel(meeting, timeZone)} ${meeting.title}`}
+      accessibilityLabel={`${timeLabel} ${meeting.title}`}
       className={cn(
         'rounded-md border px-2 web:hover:opacity-90',
         compact ? 'py-0.5' : 'py-1',
@@ -47,7 +48,7 @@ export function MeetingEvent({
             meta.chipTextClassName,
           )}
         >
-          {getMeetingTimeLabel(meeting, timeZone).split(' – ')[0]}
+          {timeLabel.split(' – ')[0]}
         </Text>
         <Text
           className={cn(
@@ -81,9 +82,7 @@ export function MeetingEvent({
             </View>
             <View className="flex-row items-center gap-1">
               <Icon as={Clock} className="size-3 opacity-60" />
-              <Text className="text-[10px] opacity-70">
-                {getMeetingTimeLabel(meeting, timeZone)}
-              </Text>
+              <Text className="text-[10px] opacity-70">{timeLabel}</Text>
             </View>
           </View>
         </View>

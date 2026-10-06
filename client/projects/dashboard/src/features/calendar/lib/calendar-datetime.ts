@@ -20,6 +20,10 @@ type DateTimeParts = DateParts & {
 
 const dateKeyPattern = /^(\d{4})-(\d{2})-(\d{2})$/;
 const timePattern = /^(\d{2}):(\d{2})$/;
+const timeFormatterByZone = new Map<string, Intl.DateTimeFormat>();
+const dateTimeFormatterByZone = new Map<string, Intl.DateTimeFormat>();
+const partsFormatterByZone = new Map<string, Intl.DateTimeFormat>();
+const validatedTimeZones = new Set<string>();
 
 export const CALENDAR_WEEKDAYS_KO = [
   '일',
@@ -45,28 +49,38 @@ export function dateKeyInTimeZone(instant: string, timeZone: string): string {
 }
 
 export function formatInstantTime(instant: string, timeZone: string): string {
-  return new Intl.DateTimeFormat('ko-KR', {
-    timeZone,
-    hour: '2-digit',
-    minute: '2-digit',
-    hourCycle: 'h23',
-  }).format(new Date(instant));
+  let formatter = timeFormatterByZone.get(timeZone);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat('ko-KR', {
+      timeZone,
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+    });
+    timeFormatterByZone.set(timeZone, formatter);
+  }
+  return formatter.format(new Date(instant));
 }
 
 export function formatInstantDateTime(
   instant: string,
   timeZone: string,
 ): string {
-  return new Intl.DateTimeFormat('ko-KR', {
-    timeZone,
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    weekday: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-    hourCycle: 'h23',
-  }).format(new Date(instant));
+  let formatter = dateTimeFormatterByZone.get(timeZone);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat('ko-KR', {
+      timeZone,
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      weekday: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+    });
+    dateTimeFormatterByZone.set(timeZone, formatter);
+  }
+  return formatter.format(new Date(instant));
 }
 
 export function formatInstantDateTimeRange(
@@ -94,6 +108,20 @@ export function minutesInDayForInstant(
 
 export function durationMinutes(startAt: string, endAt: string): number {
   return (new Date(endAt).getTime() - new Date(startAt).getTime()) / 60_000;
+}
+
+export function calendarLocalScheduleToInstants(
+  dateKey: string,
+  startTime: string,
+  endTime: string,
+  timeZone: string,
+): { startAt: string; endAt: string } {
+  const startAt = zonedDateTimeToIso(dateKey, startTime, timeZone);
+  const endAt = zonedDateTimeToIso(dateKey, endTime, timeZone);
+  if (new Date(endAt).getTime() <= new Date(startAt).getTime()) {
+    throw new Error('종료 시간은 시작 시간보다 늦어야 합니다.');
+  }
+  return { startAt, endAt };
 }
 
 export function getCalendarQueryRange(
@@ -342,24 +370,30 @@ function daysInMonth(year: number, month: number): number {
 }
 
 function assertIanaTimeZone(timeZone: string): void {
+  if (validatedTimeZones.has(timeZone)) return;
   try {
     new Intl.DateTimeFormat('en-US', { timeZone }).format(new Date(0));
+    validatedTimeZones.add(timeZone);
   } catch {
     throw new Error('유효한 IANA timezone을 입력해 주세요.');
   }
 }
 
 function instantParts(date: Date, timeZone: string): DateTimeParts {
-  const formatter = new Intl.DateTimeFormat('en-US', {
-    timeZone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hourCycle: 'h23',
-  });
+  let formatter = partsFormatterByZone.get(timeZone);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hourCycle: 'h23',
+    });
+    partsFormatterByZone.set(timeZone, formatter);
+  }
   const values = new Map(
     formatter
       .formatToParts(date)

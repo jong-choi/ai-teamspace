@@ -43,38 +43,18 @@ function ExpoDashboardPlatformBridge({ children }: { children: ReactNode }) {
       },
       createAppUrl: (path: string) =>
         Linking.createURL(path.replace(/^\//, '')),
-      exportMarkdown: async ({ fileName, contentMarkdown }) => {
-        if (Platform.OS === 'web') {
-          const blob = new Blob([contentMarkdown], {
-            type: 'text/markdown;charset=utf-8',
-          });
-          const url = URL.createObjectURL(blob);
-          try {
-            const anchor = document.createElement('a');
-            anchor.href = url;
-            anchor.download = fileName;
-            anchor.click();
-          } finally {
-            URL.revokeObjectURL(url);
-          }
-          return;
-        }
-
-        const file = new File(Paths.cache, fileName);
-        file.write(contentMarkdown);
-        try {
-          await Sharing.shareAsync(file.uri, {
-            dialogTitle: fileName,
-            mimeType: 'text/markdown',
-          });
-        } finally {
-          try {
-            if (file.exists) file.delete();
-          } catch {
-            // Cache cleanup is best-effort; export success must not depend on it.
-          }
-        }
-      },
+      exportCalendarIcs: ({ fileName, contentIcs }) =>
+        exportTextFile({
+          fileName,
+          content: contentIcs,
+          mimeType: 'text/calendar;charset=utf-8',
+        }),
+      exportMarkdown: ({ fileName, contentMarkdown }) =>
+        exportTextFile({
+          fileName,
+          content: contentMarkdown,
+          mimeType: 'text/markdown;charset=utf-8',
+        }),
       notifyError,
       notifySuccess,
     }),
@@ -86,4 +66,43 @@ function ExpoDashboardPlatformBridge({ children }: { children: ReactNode }) {
       {children}
     </DashboardPlatformProvider>
   );
+}
+
+async function exportTextFile({
+  content,
+  fileName,
+  mimeType,
+}: {
+  content: string;
+  fileName: string;
+  mimeType: string;
+}): Promise<void> {
+  if (Platform.OS === 'web') {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    try {
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = fileName;
+      anchor.click();
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+    return;
+  }
+
+  const file = new File(Paths.cache, fileName);
+  file.write(content);
+  try {
+    await Sharing.shareAsync(file.uri, {
+      dialogTitle: fileName,
+      mimeType,
+    });
+  } finally {
+    try {
+      if (file.exists) file.delete();
+    } catch {
+      // 캐시 정리는 최선 노력이며 내보내기 성공 여부와 분리한다.
+    }
+  }
 }

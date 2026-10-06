@@ -84,6 +84,7 @@ import type {
   OrganizationsControllerListMembersParams,
   OrganizationsControllerSetActiveBody,
   ProblemDetails,
+  ProjectsControllerListTicketsParams,
   UpdateProject,
   UpdateProjectColumn,
   UpdateTicket,
@@ -2832,18 +2833,27 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     }
 
 export const getProjectsControllerListTicketsUrl = (organizationId: string,
-    projectId: string,) => {
+    projectId: string,
+    params?: ProjectsControllerListTicketsParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/organizations/${organizationId}/projects/${projectId}/tickets`
+  return stringifiedParams.length > 0 ? `/organizations/${organizationId}/projects/${projectId}/tickets?${stringifiedParams}` : `/organizations/${organizationId}/projects/${projectId}/tickets`
 }
 
 export const projectsControllerListTickets = async (organizationId: string,
-    projectId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<TicketList> => {
+    projectId: string,
+    params?: ProjectsControllerListTicketsParams, options?: Parameters<typeof workOsFetcher>[1]): Promise<TicketList> => {
 
-  return workOsFetcher<TicketList>(getProjectsControllerListTicketsUrl(organizationId,projectId),
+  return workOsFetcher<TicketList>(getProjectsControllerListTicketsUrl(organizationId,projectId,params),
   {
     ...options,
     method: 'GET'
@@ -2858,24 +2868,26 @@ export const projectsControllerListTickets = async (organizationId: string,
 
 
 export const getProjectsControllerListTicketsQueryKey = (organizationId: string,
-    projectId: string,) => {
+    projectId: string,
+    params?: ProjectsControllerListTicketsParams,) => {
     return [
-    `/organizations/${organizationId}/projects/${projectId}/tickets`
+    `/organizations/${organizationId}/projects/${projectId}/tickets`, ...(params ? [params] : [])
     ] as const;
     }
 
 
 export const getProjectsControllerListTicketsSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof projectsControllerListTickets>>, TError = ErrorType<ProblemDetails>>(organizationId: string,
-    projectId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerListTickets>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+    projectId: string,
+    params?: ProjectsControllerListTicketsParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerListTickets>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getProjectsControllerListTicketsQueryKey(organizationId,projectId);
+  const queryKey =  queryOptions?.queryKey ?? getProjectsControllerListTicketsQueryKey(organizationId,projectId,params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof projectsControllerListTickets>>> = ({ signal }) => projectsControllerListTickets(organizationId,projectId, { signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof projectsControllerListTickets>>> = ({ signal }) => projectsControllerListTickets(organizationId,projectId,params, { signal, ...requestOptions });
 
 
 
@@ -2890,27 +2902,31 @@ export type ProjectsControllerListTicketsSuspenseQueryError = ErrorType<ProblemD
 
 export function useProjectsControllerListTicketsSuspense<TData = Awaited<ReturnType<typeof projectsControllerListTickets>>, TError = ErrorType<ProblemDetails>>(
  organizationId: string,
-    projectId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerListTickets>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+    projectId: string,
+    params: undefined |  ProjectsControllerListTicketsParams, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerListTickets>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectsControllerListTicketsSuspense<TData = Awaited<ReturnType<typeof projectsControllerListTickets>>, TError = ErrorType<ProblemDetails>>(
  organizationId: string,
-    projectId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerListTickets>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+    projectId: string,
+    params?: ProjectsControllerListTicketsParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerListTickets>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectsControllerListTicketsSuspense<TData = Awaited<ReturnType<typeof projectsControllerListTickets>>, TError = ErrorType<ProblemDetails>>(
  organizationId: string,
-    projectId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerListTickets>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+    projectId: string,
+    params?: ProjectsControllerListTicketsParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerListTickets>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useProjectsControllerListTicketsSuspense<TData = Awaited<ReturnType<typeof projectsControllerListTickets>>, TError = ErrorType<ProblemDetails>>(
  organizationId: string,
-    projectId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerListTickets>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+    projectId: string,
+    params?: ProjectsControllerListTicketsParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof projectsControllerListTickets>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getProjectsControllerListTicketsSuspenseQueryOptions(organizationId,projectId,options)
+  const queryOptions = getProjectsControllerListTicketsSuspenseQueryOptions(organizationId,projectId,params,options)
 
   const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

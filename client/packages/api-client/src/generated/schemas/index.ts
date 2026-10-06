@@ -52,6 +52,7 @@ export * from './projectDetail.zod';
 export * from './projectList.zod';
 export * from './projectSummary.zod';
 export * from './projectUserSummary.zod';
+export * from './projectsControllerListTicketsParams.zod';
 export * from './queryTickets.zod';
 export * from './ticketChecklist.zod';
 export * from './ticketChecklistItem.zod';

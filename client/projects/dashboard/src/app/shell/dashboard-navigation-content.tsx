@@ -77,14 +77,20 @@ export function DashboardNavigationContent({
           {NAVIGATION_ITEMS.map((item) => {
             const active = item.id === activeItem;
             const aiItem = item.id === 'ai';
-            const navigable = item.id === 'wiki';
+            const href =
+              item.id === 'projects'
+                ? '/projects'
+                : item.id === 'wiki'
+                  ? '/wiki'
+                  : null;
+            const navigable = href !== null;
 
             return (
               <Pressable
                 accessibilityRole={navigable ? 'link' : undefined}
                 disabled={!navigable}
                 key={item.id}
-                onPress={navigable ? () => router.push('/wiki') : undefined}
+                onPress={href ? () => router.push(href) : undefined}
                 className={cn(
                   'flex-row items-center justify-between rounded-md px-3 py-2 lg:px-2.5 lg:py-1.5',
                   active && 'bg-accent',

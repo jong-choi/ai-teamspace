@@ -17,6 +17,7 @@ import {
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
 import type { Auth } from '#server/auth/auth.js';
+import { ApiZodQuery } from '#server/common/http/api-zod-query.decorator.js';
 import { TrustedOriginGuard } from '#server/common/http/trusted-origin.guard.js';
 import { toOrganizationActorContext } from '#server/organizations/organization-actor-context.js';
 import {
@@ -41,6 +42,7 @@ import {
 } from '#server/projects/dto/project-column.dto.js';
 import {
   QueryTicketsDto,
+  QueryTicketsSchema,
   type QueryTicketsInput,
 } from '#server/projects/dto/query-tickets.dto.js';
 import {
@@ -194,6 +196,7 @@ export class ProjectsController {
   }
 
   @Get(':projectId/tickets')
+  @ApiZodQuery(QueryTicketsSchema)
   @ApiOkResponse({ standardSchema: TicketListDto.schema })
   listTickets(
     @Session() session: UserSession<Auth>,

@@ -1,6 +1,7 @@
 import '@/globals.css';
 
 import { type ReactNode, useState } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
 
@@ -15,20 +16,22 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 export default function RootLayout() {
   return (
-    <SafeAreaProvider>
-      <ExpoDashboardPlatformProvider>
-        <ExpoWikiCollaborationPlatformProvider>
-          <SessionQueryClientProvider>
-            <DashboardErrorBoundary title="앱을 불러오지 못했습니다">
-              <ChatRealtimeBoundary>
-                <Stack screenOptions={{ headerShown: false }} />
-                <PortalHost />
-              </ChatRealtimeBoundary>
-            </DashboardErrorBoundary>
-          </SessionQueryClientProvider>
-        </ExpoWikiCollaborationPlatformProvider>
-      </ExpoDashboardPlatformProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <ExpoDashboardPlatformProvider>
+          <ExpoWikiCollaborationPlatformProvider>
+            <SessionQueryClientProvider>
+              <DashboardErrorBoundary title="앱을 불러오지 못했습니다">
+                <ChatRealtimeBoundary>
+                  <Stack screenOptions={{ headerShown: false }} />
+                  <PortalHost />
+                </ChatRealtimeBoundary>
+              </DashboardErrorBoundary>
+            </SessionQueryClientProvider>
+          </ExpoWikiCollaborationPlatformProvider>
+        </ExpoDashboardPlatformProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 

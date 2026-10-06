@@ -1,0 +1,117 @@
+// Serialize a `ProtocolResponse` (and thrown errors) onto a Node `ServerResponse` — the transport
+// shared by adapters whose response object is (or extends) Node's `ServerResponse`: the NestJS
+// middleware (Express platform) and the Next.js Pages Router. JSON and empty are trivial; SSE streams
+// the pre-serialized frames the engine produced (each ends `\n\n` — never re-encoded) and tears the
+// run's frame subscription down when the client disconnects. Express/Fastify keep their own
+// framework-native serializers; this is the one Node-`http` copy the two Node-based adapters share.
+
+import type { ServerResponse } from 'node:http';
+
+import {
+  type Logger,
+  type ProtocolResponse,
+  SSE_HEADERS,
+  writeWithBackpressure,
+} from '@repo/agent-runtime/agent-protocol';
+import { isSkeinHttpError, serializeWireJson } from '@repo/agent-runtime/core';
+
+/** A vanished client turns writes into `EPIPE`/`ERR_STREAM_DESTROYED`; swallow them — we're closing. */
+const ignoreStreamError = (): void => {};
+
+async function pipeServerSentEvents(
+  status: number,
+  events: AsyncIterable<string>,
+  res: ServerResponse,
+  headers: Record<string, string> = {},
+): Promise<void> {
+  res.writeHead(status, { ...SSE_HEADERS, ...headers });
+  res.flushHeaders();
+
+  const iterator = events[Symbol.asyncIterator]();
+  let clientDisconnected = false;
+  const releaseOnClientClose = (): void => {
+    clientDisconnected = true;
+    void Promise.resolve(iterator.return?.(undefined)).catch(ignoreStreamError);
+  };
+  res.once('close', releaseOnClientClose);
+  res.on('error', ignoreStreamError);
+
+  try {
+    for (;;) {
+      const next = await iterator.next();
+      if (next.done || clientDisconnected) break;
+      // Pace the loop to the client. Ignoring `write`'s return value would let a fast graph queue its
+      // entire output in this socket's buffer for a client that cannot keep up.
+      const drained = writeWithBackpressure(res, next.value);
+      if (drained) await drained;
+    }
+  } finally {
+    res.removeListener('close', releaseOnClientClose);
+    if (!res.writableEnded) res.end();
+  }
+}
+
+/** Write a `ProtocolResponse` back onto the Node `res`, streaming when it is an SSE response. */
+export async function sendNodeResponse(
+  response: ProtocolResponse,
+  res: ServerResponse,
+): Promise<void> {
+  switch (response.kind) {
+    case 'json':
+      // `serializeWireJson` (not `res.json`) so any LangChain messages in the body go out flattened
+      // to the wire shape clients expect.
+      res.writeHead(response.status, {
+        'content-type': 'application/json',
+        ...response.headers,
+      });
+      res.end(serializeWireJson(response.body));
+      return;
+    case 'empty':
+      res.writeHead(response.status, response.headers).end();
+      return;
+    case 'sse':
+      await pipeServerSentEvents(
+        response.status,
+        response.events,
+        res,
+        response.headers,
+      );
+      return;
+  }
+}
+
+/** Serialize a caught error onto the Node `res`, using the protocol status when the error carries one. */
+export function sendNodeError(
+  error: unknown,
+  res: ServerResponse,
+  logger?: Logger,
+  adapterName = 'skein',
+): void {
+  if (res.headersSent) {
+    if (!isSkeinHttpError(error))
+      logger?.error('Unhandled error after headers were sent.', error);
+    if (!res.writableEnded) res.end();
+    return;
+  }
+  // A 5xx is a *server* fault even when it is deliberate and typed, so it always reaches the log;
+  // 4xx are the caller's problem and stay quiet. Without this a graph that cannot load would answer
+  // with `graph_load_failed` and leave nothing behind — the CLI reports it at startup, but an
+  // embedded app has no such pass, and `exposeErrorStacks` is off in production.
+  if (isSkeinHttpError(error)) {
+    if (error.status >= 500)
+      logger?.error(`Request failed: ${error.message}`, error);
+    res.writeHead(error.status, { 'content-type': 'application/json' });
+    res.end(
+      JSON.stringify({
+        status: error.status,
+        message: error.message,
+        ...(error.code !== undefined ? { code: error.code } : {}),
+        ...(error.details !== undefined ? { details: error.details } : {}),
+      }),
+    );
+    return;
+  }
+  logger?.error(`Unhandled error in the ${adapterName} adapter.`, error);
+  res.writeHead(500, { 'content-type': 'application/json' });
+  res.end(JSON.stringify({ status: 500, message: 'Internal Server Error' }));
+}

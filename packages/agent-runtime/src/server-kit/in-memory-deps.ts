@@ -1,0 +1,194 @@
+// Assemble a `ProtocolDeps` around graphs you already hold in code — the config-free counterpart to
+// `loadInMemoryRuntime` (which reads a `langgraph.json`). This is the public seam for embedding skein
+// into an app that never adopted the LangGraph Platform's project shape: bring a compiled graph (or a
+// map of them) and get a full Agent Protocol runtime backed by in-process drivers, then hand it to any
+// adapter's `{ deps }` seam. Swap any driver via `overrides` (e.g. the Postgres store + Redis queue
+// from `@repo/agent-runtime/runtime`) for a durable, horizontally-scalable deployment. See docs/embedding.md.
+
+import type {
+  GraphResolver,
+  GraphSchemas,
+  ProtocolDeps,
+  ResolvedGraph,
+} from '@repo/agent-runtime/agent-protocol';
+import {
+  cloneLangGraphCheckpoint,
+  langGraphResolver,
+  SkeinBaseStore,
+} from '@repo/agent-runtime/langgraph';
+
+import type { CompiledGraph } from '@langchain/langgraph';
+import { MemorySaver } from '@langchain/langgraph';
+
+import {
+  MemoryRunEventBus,
+  MemoryRunQueue,
+  MemorySkeinStore,
+} from '#agent-runtime/internal/storage-memory/index.js';
+import { resolveMaxPageSize } from '#agent-runtime/server-kit/max-page-size.js';
+import { resolveMemoryBusLimits } from '#agent-runtime/server-kit/memory-bus-limits.js';
+import { resolveWebhooks } from '#agent-runtime/server-kit/webhooks-config.js';
+
+// The graph's node-name/state generics are left open so a concretely-typed `.compile()` result (e.g.
+// from `MessagesAnnotation`) is accepted without a cast at the call site — the engine only drives the
+// runnable surface every compiled graph shares, and `graphMapToResolver` widens to the engine's
+// `CompiledGraph<string>` internally. This is the one spot the openness is deliberate.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyCompiledGraph = CompiledGraph<any>;
+
+/**
+ * The surface the engine actually drives, stated structurally.
+ *
+ * `CompiledGraph` is not the right bound here even though every graph is one. LangChain's own
+ * `createAgent` returns a `ReactAgent`, which is graph-*like* — it streams and it has state — but is
+ * not structurally a `CompiledGraph`, so requiring that type rejected the blessed way to build an
+ * agent. The engine never needed it: `langGraphResolver` casts whatever it is to an `AgentGraph`, and
+ * `AgentGraph` requires exactly these two methods.
+ *
+ * Kept narrow enough to still catch a mistake — an object with neither method is not a graph — while
+ * accepting anything the runtime can genuinely drive.
+ */
+interface EmbeddableAgentSurface {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  stream(input: any, options?: any): any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getState(config: any): any;
+}
+
+/**
+ * A graph you can embed in code: any compiled LangGraph.js graph, anything `createAgent` returns, or a
+ * factory that builds one per run (called with the run's `configurable`). Keys of a graph map become
+ * graph ids.
+ */
+export type EmbeddableGraph =
+  | AnyCompiledGraph
+  | EmbeddableAgentSurface
+  | ((config: {
+      configurable?: Record<string, unknown>;
+    }) =>
+      | AnyCompiledGraph
+      | EmbeddableAgentSurface
+      | Promise<AnyCompiledGraph | EmbeddableAgentSurface>);
+
+/**
+ * A ready {@link GraphResolver} vs a plain graph map: only the resolver has an `ids` array and a `load`
+ * function. A graph map's values are compiled graphs or factories, never an array, so `ids` being an
+ * array reliably tells the two apart (even for a graph keyed `"ids"`).
+ */
+function isGraphResolver(
+  graphs: GraphResolver | Record<string, EmbeddableGraph>,
+): graphs is GraphResolver {
+  const candidate = graphs as GraphResolver;
+  return Array.isArray(candidate.ids) && typeof candidate.load === 'function';
+}
+
+/**
+ * Accept either a ready {@link GraphResolver} or a plain graph map and return a `GraphResolver` either
+ * way — the normalization every in-code embedding helper shares (`embedInMemoryGraphs` here,
+ * `embedPostgresGraphs` in `@repo/agent-runtime/runtime`), so the {@link isGraphResolver} discriminator lives in
+ * exactly one place.
+ */
+export function normalizeEmbeddableGraphs(
+  graphs: GraphResolver | Record<string, EmbeddableGraph>,
+): GraphResolver {
+  // Both branches are wrapped. A caller-supplied resolver used to be passed through untouched, on the
+  // theory that it might front a non-LangGraph agent — but that silently broke HITL resume for the
+  // documented `embedInMemoryGraphs(myResolver)` / `embedPostgresGraphs(myResolver)` on-ramps: the
+  // command envelope reached a real graph untranslated and the resume became a no-op with no error.
+  // `langGraphResolver` now decides per graph (`isLangGraphCompiled`), so wrapping is safe for both.
+  return langGraphResolver(
+    isGraphResolver(graphs) ? graphs : graphMapToResolver(graphs),
+  );
+}
+
+/**
+ * Turn a map of compiled graphs (or per-config factories) into a {@link GraphResolver}. Keys become the
+ * graph ids — one auto-registered assistant each. `schemas()` returns a minimal `{ graph_id }` stub:
+ * enough for the assistants introspection endpoints and everything `useStream` / Agent Chat UI render.
+ * Real input/output/state schema extraction stays a `langgraph.json`/config feature — it needs static
+ * TypeScript analysis of the graph source, which a compiled graph object no longer carries.
+ */
+export function graphMapToResolver(
+  graphs: Record<string, EmbeddableGraph>,
+): GraphResolver {
+  const ids = Object.keys(graphs);
+  return {
+    ids,
+    load: async (graphId) => {
+      const graph = graphs[graphId];
+      if (graph == null) {
+        const known = ids.join(', ') || 'none';
+        // Distinguish a genuinely-unknown id from a known key whose value is nullish (e.g. a lazy
+        // import that resolved to `undefined` because the export name was wrong) — the latter would
+        // otherwise be misreported as "unknown" even though the key is right there in `known`.
+        throw new Error(
+          ids.includes(graphId)
+            ? `Graph "${graphId}" resolved to ${String(graph)} — check its export/factory (known: ${known}).`
+            : `Unknown graph "${graphId}" (known: ${known}).`,
+        );
+      }
+      // Widen the open generics to the engine's `CompiledGraph<string>` / `CompiledGraphFactory`.
+      return graph as ResolvedGraph;
+    },
+    schemas: async (graphId) =>
+      ({ [graphId]: { graph_id: graphId } }) as unknown as GraphSchemas,
+  };
+}
+
+/**
+ * Build a `ProtocolDeps` backed by fresh in-process drivers (store, queue, bus, checkpointer) around
+ * graphs you already hold in code — no `langgraph.json`, no CLI. Pass a map of compiled graphs (or
+ * factories), or a ready {@link GraphResolver}. Hand the result to any adapter's `{ deps }` seam:
+ *
+ * ```ts
+ * import { embedInMemoryGraphs } from "@repo/agent-runtime/server-kit";
+ * import { createExpressServer } from "@repo/agent-runtime/express";
+ *
+ * createExpressServer({ deps: embedInMemoryGraphs({ myAgent: graph }) }).listen(2024);
+ * ```
+ *
+ * `overrides` replaces any driver or adds `auth`/`logger` — e.g. swap in a Postgres store + Redis
+ * queue for a durable, horizontally-scalable deployment. `graphs` is intentionally excluded from
+ * `overrides` (the first argument is the single source of graphs), so a stray `graphs` key can't
+ * silently void it.
+ */
+export function embedInMemoryGraphs(
+  graphs: GraphResolver | Record<string, EmbeddableGraph>,
+  overrides: Omit<Partial<ProtocolDeps>, 'graphs'> = {},
+): ProtocolDeps {
+  // `resolveWebhooks(undefined)` answers `undefined` unless the environment actually configures
+  // something, so a host that sets nothing keeps exactly the deps it had before this existed.
+  const webhooks = resolveWebhooks(undefined);
+  return {
+    // `maxPageSize` resolved for the same reason as the bus limits below: an embedded host's
+    // `SKEIN_MAX_PAGE_SIZE` has to reach the driver that applies it.
+    store: new MemorySkeinStore({ maxPageSize: resolveMaxPageSize() }),
+    graphs: normalizeEmbeddableGraphs(graphs),
+    queue: new MemoryRunQueue(),
+    // Resolved rather than defaulted, so `SKEIN_MEMORY_BUS_*` reaches an embedded host too — this is
+    // the driver set a long-lived single-process deployment actually runs on.
+    bus: new MemoryRunEventBus(resolveMemoryBusLimits()),
+    checkpointer: new MemorySaver(),
+    // Bridges long-term memory into a LangGraph `BaseStore` so nodes reach it via `getStore()`. A
+    // function on deps rather than an import inside the engine — see `ProtocolDeps.storeBridge`.
+    storeBridge: (store) => new SkeinBaseStore(store),
+    // Throwaway saver for `POST /invoke/:graph_id` — see `ProtocolDeps.ephemeralCheckpointer`.
+    ephemeralCheckpointer: () => new MemorySaver(),
+    // Clones a checkpoint before it is re-put under another thread id — see `ProtocolDeps.cloneCheckpoint`.
+    cloneCheckpoint: cloneLangGraphCheckpoint,
+    // Resolved for the same reason as `maxPageSize` and the bus limits: an embedded host's env has to
+    // reach the code that applies it. Without this, a host that sets `SKEIN_WEBHOOK_SECRET` and
+    // follows the docs gets callbacks that are silently **unsigned** — a fail-open indistinguishable
+    // from a working setup, since an unsigned callback is delivered exactly like a signed one and only
+    // the receiver ever finds out. There is no `langgraph.json` on this path, so the env var is the
+    // only input; `overrides` still spreads last and wins.
+    ...(webhooks ? { webhooks } : {}),
+    ...overrides,
+  };
+}
+
+/**
+ * @deprecated Renamed to {@link embedInMemoryGraphs} — the function takes graphs and returns a
+ * `ProtocolDeps`, not a graph. Kept for back-compat; slated for removal in a future major.
+ */
+export const createInMemoryDeps = embedInMemoryGraphs;

@@ -1,0 +1,95 @@
+{
+  "name": "@repo/agent-runtime",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./agent-protocol": {
+      "types": "./src/agent-protocol/index.ts",
+      "import": "./dist/agent-protocol/index.js",
+      "default": "./dist/agent-protocol/index.js"
+    },
+    "./core": {
+      "types": "./src/core/index.ts",
+      "import": "./dist/core/index.js",
+      "default": "./dist/core/index.js"
+    },
+    "./langgraph": {
+      "types": "./src/langgraph/index.ts",
+      "import": "./dist/langgraph/index.js",
+      "default": "./dist/langgraph/index.js"
+    },
+    "./redis": {
+      "types": "./src/redis/index.ts",
+      "import": "./dist/redis/index.js",
+      "default": "./dist/redis/index.js"
+    },
+    "./server-kit": {
+      "types": "./src/server-kit/index.ts",
+      "import": "./dist/server-kit/index.js",
+      "default": "./dist/server-kit/index.js"
+    },
+    "./storage-postgres": {
+      "types": "./src/storage-postgres/index.ts",
+      "import": "./dist/storage-postgres/index.js",
+      "default": "./dist/storage-postgres/index.js"
+    }
+  },
+  "imports": {
+    "#agent-runtime/*": {
+      "types": "./src/*",
+      "default": "./dist/*"
+    }
+  },
+  "scripts": {
+    "prebuild": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+    "build": "tsc -p ./tsconfig.build.json",
+    "dev": "tsc -p ./tsconfig.build.json --watch --preserveWatchOutput",
+    "lint": "eslint src/",
+    "typecheck": "tsc -p ./tsconfig.json --noEmit",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --config ./jest.config.mjs --runInBand",
+    "test:integration": "npm run build --silent && NODE_OPTIONS=--experimental-vm-modules jest --config ./jest.config.integration.mjs --runInBand"
+  },
+  "dependencies": {
+    "@langchain/core": "1.2.14",
+    "@langchain/langgraph": "1.4.19",
+    "@langchain/langgraph-api": "1.5.2",
+    "@langchain/langgraph-checkpoint-postgres": "1.0.5",
+    "@langchain/langgraph-sdk": "1.12.1",
+    "bullmq": "5.81.5",
+    "cors": "2.8.6",
+    "croner": "10.0.1",
+    "ioredis": "5.11.1",
+    "pg": "8.23.1",
+    "superjson": "2.2.6",
+    "zod": "3.25.76"
+  },
+  "peerDependencies": {
+    "@nestjs/common": ">=12.0.0 <13.0.0",
+    "@nestjs/core": ">=12.0.0 <13.0.0",
+    "@nestjs/platform-express": ">=12.0.0 <13.0.0"
+  },
+  "devDependencies": {
+    "@nestjs/common": "^12.0.1",
+    "@nestjs/core": "^12.0.1",
+    "@nestjs/platform-express": "^12.0.1",
+    "@types/cors": "^2.8.17",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.0.0",
+    "@types/pg": "^8.15.5",
+    "@types/react": "~19.2.2",
+    "@types/react-test-renderer": "^19.1.0",
+    "jest": "^30.5.2",
+    "react": "19.2.3",
+    "react-test-renderer": "19.2.3",
+    "ts-jest": "^29.4.14",
+    "typescript": "5.9.3"
+  }
+}

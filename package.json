@@ -4,6 +4,7 @@
   "packageManager": "npm@11.19.0",
   "workspaces": [
     "server",
+    "packages/*",
     "client/packages/*",
     "client/projects/*/apps/*"
   ],

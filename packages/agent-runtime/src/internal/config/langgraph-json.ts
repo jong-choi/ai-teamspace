@@ -1,0 +1,384 @@
+// The `langgraph.json` contract, exactly as the LangGraph CLI defines it — local agent runtime reads an
+// existing file unchanged (docs/langgraph-cli-compat.md). We validate only the fields we act
+// on and pass everything else through, so a config with newer/unknown keys still loads and a
+// round-trip preserves it. Zod gives us a typed value plus a precise error at the boundary.
+
+import { z } from 'zod';
+
+import { SkeinConfigError } from '#agent-runtime/internal/config/errors.js';
+
+/** `store.index` — drives pgvector semantic search on the Postgres driver. */
+const storeIndexSchema = z
+  .object({
+    embed: z.string().optional(),
+    // Bounded here as well as in the store: pgvector's own ceiling, and the store interpolates this
+    // into a type modifier, so a bad value should fail while parsing config rather than at boot.
+    dims: z.number().int().positive().max(16_000).optional(),
+    fields: z.array(z.string()).optional(),
+    /**
+     * Build an HNSW index on the embedding column (skein extension, not a LangGraph key).
+     *
+     * Off by default, and deliberately opt-in rather than inferred: HNSW is an **approximate**
+     * nearest-neighbour index, so enabling it changes which rows a semantic search returns. Without
+     * it every search is an exact scan computing cosine distance over every row — correct, and fine
+     * until the store is large.
+     */
+    hnsw: z.boolean().optional(),
+  })
+  .passthrough();
+
+/**
+ * `store.ttl` — expiry policy for long-term store items, matching LangGraph's store TTL config.
+ * `default_ttl` and `refresh_on_read` shape how items expire; `sweep_interval_minutes` sets how
+ * often the background sweeper deletes expired rows. All durations are in minutes.
+ */
+const storeTtlSchema = z
+  .object({
+    /** Default item lifetime in minutes when a `put` doesn't specify its own `ttl`. */
+    default_ttl: z.number().optional(),
+    /** Extend an item's expiry when it is read (default true). */
+    refresh_on_read: z.boolean().optional(),
+    /** How often the background sweeper runs, in minutes (default 60). */
+    sweep_interval_minutes: z.number().optional(),
+  })
+  .passthrough();
+
+/**
+ * `checkpointer.ttl` — expiry policy for **threads**, matching LangGraph Platform's `langgraph.json`
+ * shape so the same config file works under both. Durations are in minutes, like `store.ttl`.
+ *
+ * `strategy` is accepted for that compatibility and only `"delete"` is meaningful: an expired thread
+ * is removed along with its runs and checkpoints. There is nothing else a thread could expire *into*.
+ *
+ * Note the open-source `@langchain/langgraph-api` ignores thread TTL entirely — it is a Platform-only
+ * feature there — so this is skein going past LangGraph OSS rather than catching up to it.
+ */
+const checkpointerTtlSchema = z
+  .object({
+    /** Default thread lifetime in minutes when a create passes no `ttl`. */
+    default_ttl: z.number().optional(),
+    /** What expiry does. Only `"delete"` is implemented. */
+    strategy: z.literal('delete').optional(),
+    /** How often the background sweeper runs, in minutes (default 60). */
+    sweep_interval_minutes: z.number().optional(),
+  })
+  .passthrough();
+
+/**
+ * One telemetry provider: `true` for defaults, `false` to hard-disable (even when its env vars are
+ * set), or an options object passed through to the adapter. Passthrough, because each adapter owns
+ * its own option names — validating them here would mean this file had to know all three.
+ */
+const telemetryProviderSchema = z.union([
+  z.boolean(),
+  z.object({}).passthrough(),
+]);
+
+/** `telemetry` — which backends runs report to. See the field docs on {@link langgraphJsonSchema}. */
+const telemetrySchema = z
+  .object({
+    langsmith: telemetryProviderSchema.optional(),
+    posthog: telemetryProviderSchema.optional(),
+    otel: telemetryProviderSchema.optional(),
+    /** Your own sinks, as `"./telemetry.ts:sink"` specs — the same form as `auth.path`. */
+    paths: z.array(z.string()).optional(),
+  })
+  .passthrough();
+
+/** The validated `telemetry` block. */
+export type TelemetryConfig = z.infer<typeof telemetrySchema>;
+
+/**
+ * `skein.idempotency` — retention for `Idempotency-Key` records.
+ *
+ * A skein original, so it lives under the reserved `skein` namespace rather than at the top level:
+ * a top-level key would collide if LangGraph ever claimed the same name, and there would be no good
+ * way to resolve it.
+ *
+ * Tuning only. Omitting the block does **not** disable the header — a caller who sends one has been
+ * promised their retry will not start a second run, and honouring that is not a deployment opinion.
+ */
+const idempotencySchema = z
+  .object({
+    // All three are `.positive()`, not bare numbers. Zero would pass a bare `z.number()` and then
+    // survive the `?? default` fallback (`??` only falls through on nullish), so `retention_hours: 0`
+    // would write every record already expired and silently stop every replay — turning a block whose
+    // own documentation says it "is tuning, not an on/off switch" into exactly that off switch.
+    // `in_flight_minutes: 0` is worse: a concurrent retry takes over a live claim at once and starts
+    // the second run. `sweep_interval_minutes: 0` makes the sweeper a `setTimeout(…, 0)` busy loop.
+    /** How long a recorded response stays replayable, in hours (default 24). */
+    retention_hours: z.number().positive().optional(),
+    /** How long an unfinished claim blocks a retry, in minutes (default 15). */
+    in_flight_minutes: z.number().positive().optional(),
+    /** How often the background sweeper reclaims expired records, in minutes (default 60). */
+    sweep_interval_minutes: z.number().positive().optional(),
+  })
+  .passthrough();
+
+/** The validated `skein.idempotency` block. */
+export type IdempotencyJsonConfig = z.infer<typeof idempotencySchema>;
+
+/**
+ * `skein.channels` — inbound integrations, keyed by the name that becomes their route segment.
+ *
+ * A skein original under the reserved namespace, for the reason {@link idempotencySchema} gives.
+ * Entirely optional: with no block, the channel routes are not added to the table at all, so a
+ * deployment that never configures one cannot tell the feature exists.
+ */
+const channelsSchema = z
+  .record(
+    z
+      .object({
+        /** `"./src/twilio-channel.ts:channel"` or a package name — the same `path:export` spec graphs use. */
+        path: z.string(),
+        /**
+         * Which graph this channel's events run. Accepts a graph name or an assistant UUID.
+         *
+         * **Required**, and deliberately not something a channel can default. The binding is
+         * deployment knowledge: a community Twilio adapter has no business knowing you named your
+         * graph `support`.
+         */
+        assistant: z.string(),
+        /**
+         * Graphs this channel may route to itself. Omitted means it cannot route at all.
+         *
+         * Opt-in and bounded, because a channel is an npm package someone installed: without this,
+         * an unbounded assistant id on an inbound event would let any published channel direct
+         * untrusted input into any graph.
+         */
+        allowed_assistants: z.array(z.string()).optional(),
+        /**
+         * The externally reachable origin, e.g. `https://api.example.com`.
+         *
+         * Configuration rather than something derived from the request, and that is a security
+         * decision: providers like Twilio sign the full request URL, and the only inputs a server has
+         * for reconstructing it — `Host` and `X-Forwarded-Proto` — are attacker-controlled.
+         */
+        public_url: z.string().optional(),
+      })
+      .passthrough(),
+  )
+  .optional();
+
+/** The validated `skein.channels` block. */
+export type ChannelsJsonConfig = z.infer<typeof channelsSchema>;
+
+/**
+ * `skein.webhooks` — how run-completion callbacks are retried and bounded.
+ *
+ * A skein original under the reserved namespace, for the reason {@link idempotencySchema} gives.
+ * LangGraph's `webhook` field is a bare URL with no delivery policy at all, so there is nothing here
+ * to stay compatible with — only the payload shape, which this does not touch.
+ *
+ * Tuning only. Omitting the block does **not** make callbacks fire-once: a run that carries a
+ * `webhook` owes a callback, and how hard the server tries is a deployment decision rather than
+ * permission to try at all. `retries.max_attempts: 1` is how you ask for one shot.
+ */
+const webhooksSchema = z
+  .object({
+    retries: z
+      .object({
+        // `.positive()` throughout, for the reason `idempotencySchema` spells out: a `0` survives the
+        // `?? default` fallback and silently becomes an off switch. `max_attempts: 0` would give every
+        // delivery zero attempts — a `webhook` field accepted, recorded, and never sent, which is
+        // worse than the fire-once behaviour this block exists to improve on. `initial_delay_ms: 0`
+        // collapses the backoff into an unbounded retry storm against a receiver that is already down.
+        /**
+         * Attempts before a delivery is dead, counting the inline first one (default 12).
+         *
+         * A **time horizon, not a count**: the delays double, so 12 ≈ 34 minutes and 6 ≈ 31 seconds.
+         */
+        max_attempts: z.number().positive().optional(),
+        /**
+         * The first retry's delay, and the base the rest double from, in ms (default 1000).
+         *
+         * There is no ceiling knob: the doubling tops out inside an hour at any sane attempt count,
+         * and on Redis the schedule is BullMQ's own exponential backoff rather than ours.
+         */
+        initial_delay_ms: z.number().positive().optional(),
+      })
+      .passthrough()
+      .optional(),
+    /**
+     * Signing key(s) for outbound callbacks. A string, or a list during a rotation (the first signs).
+     *
+     * **`"${SKEIN_WEBHOOK_SECRET}"` will not work.** skein does not expand `${VAR}` anywhere in
+     * `langgraph.json` — see the note on `http.disable_*` — so writing it that way signs every
+     * callback with the literal 23-character string, which is the worst possible failure mode for a
+     * key. Prefer the `SKEIN_WEBHOOK_SECRET` environment variable; a literal here is a secret
+     * committed to the repository, and skein warns about it once at startup.
+     */
+    secret: z
+      .union([z.string().trim().min(1), z.array(z.string().trim().min(1))])
+      .optional(),
+    /** Cap on a stored delivery body, in bytes (default 262144). Over it, `values` is truncated. */
+    max_payload_bytes: z.number().positive().optional(),
+    /** How long a settled delivery is kept before the sweep reclaims it, in hours (default 24). */
+    retain_hours: z.number().positive().optional(),
+    /**
+     * Hostnames a callback may be sent to. Absent means no restriction, which is today's behaviour —
+     * turning it on by default would make every existing deployment start dropping its own callbacks.
+     *
+     * Set it if you accept run creates from untrusted callers: `webhook` is a caller-supplied URL, so
+     * it is a server-side request to a target they chose, and retrying it turns a one-shot SSRF probe
+     * into a repeated one.
+     */
+    allowed_hosts: z.array(z.string().trim().min(1)).optional(),
+    /**
+     * Refuse a callback whose URL is not `https:`. Absent permits plaintext, which is today's
+     * behaviour.
+     *
+     * Worth turning on whenever callbacks leave your network: the body carries the run's final state,
+     * and retries mean that state crosses the wire up to `max_attempts` times rather than once.
+     */
+    require_https: z.boolean().optional(),
+  })
+  .passthrough();
+
+/** The validated `skein.webhooks` block. */
+export type WebhooksJsonConfig = z.infer<typeof webhooksSchema>;
+
+const runtimeSchema = z
+  .object({
+    /** Native runtime used by the built production artifact. */
+    name: z.enum(['node', 'bun', 'deno']),
+    /** Official image tag/version. Omit to use Skein's tested default. */
+    version: z.string().trim().min(1).optional(),
+  })
+  .passthrough();
+
+export type SkeinRuntimeName = z.infer<typeof runtimeSchema>['name'];
+
+export const langgraphJsonSchema = z
+  .object({
+    /** REQUIRED: map of graph id → "path:export". */
+    graphs: z.record(z.string()),
+    /** JS/Node runtime pin (used by `skein build` / `dockerfile`). */
+    node_version: z.string().optional(),
+    /** Skein production settings. Unknown keys remain forward-compatible. */
+    skein: z
+      .object({
+        runtime: runtimeSchema.optional(),
+        idempotency: idempotencySchema.optional(),
+        channels: channelsSchema,
+        webhooks: webhooksSchema.optional(),
+      })
+      .passthrough()
+      .optional(),
+    /** `.env` path or an inline map, loaded into `process.env` at boot. */
+    env: z.union([z.string(), z.record(z.string())]).optional(),
+    /** Long-term memory store config. */
+    store: z
+      .object({
+        index: storeIndexSchema.optional(),
+        ttl: storeTtlSchema.optional(),
+        /**
+         * `"./path:export"` of a bring-your-own long-term-memory store — a skein `StoreRepo` or a
+         * LangGraph `BaseStore` (`PostgresStore`, `InMemoryStore`, your own). A skein extension, not a
+         * LangGraph key, but it belongs under `store` because that is what it replaces.
+         *
+         * Only the memory repo is substituted; assistants, threads, runs, crons and idempotency keep
+         * using the configured driver.
+         */
+        adapter: z.string().min(1).optional(),
+      })
+      .passthrough()
+      .optional(),
+    /** Checkpointer backend; `"default"` == Postgres, absent == in-memory. Plus `ttl` — thread expiry. */
+    checkpointer: z
+      .object({
+        type: z.string().optional(),
+        ttl: checkpointerTtlSchema.optional(),
+      })
+      .passthrough()
+      .optional(),
+    /**
+     * Server customization applied by the framework adapter: `cors`, plus LangGraph's `disable_*`
+     * route toggles. Still `.passthrough()`, so a key skein does not implement yet (`http.app`) is
+     * carried rather than rejected — a `langgraph.json` must keep loading under both CLIs.
+     */
+    http: z
+      .object({
+        cors: z.object({}).passthrough().optional(),
+        // Declared as `unknown`, not `boolean`. This block used to be opaque
+        // (`z.object({}).passthrough()`), so a config carrying a hand-written `"true"` string — or a
+        // `"${DISABLE_RUNS}"` written by someone expecting env substitution — loaded fine.
+        // Typing these as booleans would turn those into a *startup failure*, since `parseLanggraphJson`
+        // throws on any violation. Only a literal `true` disables a group; that decision lives in
+        // `disabledRoutesFromHttpConfig`, which is also where the string/number cases are handled.
+        //
+        // To be clear about the `${…}` case, since this comment previously claimed the opposite:
+        // **skein does not expand `${VAR}` anywhere in `langgraph.json`.** `resolve-env.ts` reads the
+        // `env` block into a map and the CLI applies it to `process.env`; nothing reads it back out
+        // into the parsed config. A `"${VAR}"` here is the literal string, which for a boolean flag is
+        // merely ignored — but would be catastrophic for a secret, so no `skein.*` block takes one.
+        disable_assistants: z.unknown().optional(),
+        disable_threads: z.unknown().optional(),
+        disable_runs: z.unknown().optional(),
+        /**
+         * Turns off the crons resource — both the HTTP routes and the scheduler, so a disabled
+         * deployment does not keep firing schedules it will not let anyone see or cancel.
+         */
+        disable_crons: z.unknown().optional(),
+        disable_store: z.unknown().optional(),
+        /** Turns off `GET /info`. skein's `/ok` health probe is unaffected — see meta/server-info.ts. */
+        disable_meta: z.unknown().optional(),
+        /**
+         * Serve the skein console (`@repo/agent-runtime/console`) — a skein extension, so a config carrying it
+         * still loads under `langgraph dev`.
+         *
+         * **Off unless this says otherwise.** `skein dev` serves the console by default because a dev
+         * server is where you want it; a deployed server does not, because the console is full API
+         * power over threads, store and crons. Set `true` to serve it at `/console`, or a string to
+         * choose the path (`"/admin/console"`). Same `unknown` typing as the `disable_*` flags, for
+         * the same reason: an env-substituted `"false"` must not read as enabled.
+         */
+        console: z.unknown().optional(),
+      })
+      .passthrough()
+      .optional(),
+    /**
+     * Custom authentication + authorization. `path` is a `"file:export"` spec pointing at a module
+     * that default-exports (or named-exports) an `@langchain/langgraph-sdk/auth` `Auth` instance;
+     * when absent, every request is allowed (unauthenticated — the current behavior). Matches the
+     * LangGraph CLI's `auth` block, including `disable_studio_auth`, plus Skein's dev-only UI key.
+     */
+    auth: z
+      .object({
+        path: z.string(),
+        disable_studio_auth: z.boolean().optional().default(true),
+        dev_ui_access: z.boolean().optional(),
+      })
+      .passthrough()
+      .optional(),
+    /**
+     * Where runs report themselves — traces and lifecycle events. A skein extension (the LangGraph
+     * CLI has no equivalent); additive, so a config carrying it still loads under `langgraph dev`.
+     *
+     * Each provider is `true` to enable with defaults, `false` to hard-disable even when its
+     * environment variables are present, or an options object. Omitting a provider leaves it to
+     * environment auto-detection. `paths` point at your own `TelemetrySink` exports, `"file:export"`
+     * like `auth.path`. See docs/observability.md.
+     */
+    telemetry: telemetrySchema.optional(),
+    /** Extra lines appended by `skein dockerfile` / `build`. */
+    dockerfile_lines: z.array(z.string()).optional(),
+    /** Dependency hints for image builds. */
+    dependencies: z.array(z.string()).optional(),
+  })
+  .passthrough();
+
+/** The validated `langgraph.json` shape (unknown keys preserved via passthrough). */
+export type LanggraphJson = z.infer<typeof langgraphJsonSchema>;
+
+/** Validate parsed JSON against the {@link langgraphJsonSchema}, throwing on any violation. */
+export function parseLanggraphJson(raw: unknown): LanggraphJson {
+  const result = langgraphJsonSchema.safeParse(raw);
+  if (!result.success) {
+    throw new SkeinConfigError('Invalid langgraph.json.', {
+      cause: result.error,
+      details: result.error.issues,
+    });
+  }
+  return result.data;
+}

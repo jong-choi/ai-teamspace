@@ -1,0 +1,177 @@
+// @repo/agent-runtime/server-kit — the framework-agnostic building blocks every local agent runtime HTTP adapter shares,
+// so no adapter has to depend on another (or on Express) to reuse them: the in-memory dev runtime
+// assembler, the LangGraph `.langgraph_api/` dev-state importer, the langgraph.json `http.cors` →
+// `CorsOptions` mapping, the runtime CORS helpers, and the Node-`http` transport (SSE/JSON/error
+// serialization) the two Node-based adapters (NestJS, Next.js Pages Router) share. The route table
+// itself lives with the engine in @repo/agent-runtime/agent-protocol (`skeinRoutes`); each framework adapter
+// still maps it onto its own router. See docs/building-an-adapter.md.
+
+// Runtime resolution: turn a `{ config } | { deps }` option bag into a live runtime (assistants
+// seeded, worker started) — the shared step every adapter runs before mounting the route table.
+// `resolveRuntimeDeps` stops at the deps (no assistants, no worker) — what the simplified invoke
+// surface needs, since it never touches threads/assistants/runs.
+export type {
+  ResolvedProtocolRuntime,
+  ResolvedRuntimeDeps,
+  SkeinRuntimeCommonOptions,
+  SkeinRuntimeOptions,
+} from '#agent-runtime/server-kit/resolve-runtime.js';
+export {
+  resolveProtocolRuntime,
+  resolveRuntimeDeps,
+} from '#agent-runtime/server-kit/resolve-runtime.js';
+
+// Logging. `createConsoleLogger` is the opt-in `Logger` for adapters whose framework owns none
+// (Express, Next.js) — NestJS and Fastify default to bridges over the host's own logger instead.
+// `formatLogMeta` + `describeError` are the shared rendering every line-oriented logger needs, so
+// the bridges and the CLI's dev logger can't drift on how a failed run reads.
+export type { Logger } from '@repo/agent-runtime/agent-protocol';
+export type {
+  ConsoleLoggerOptions,
+  ConsoleLogLevel,
+} from '#agent-runtime/server-kit/console-logger.js';
+export { createConsoleLogger } from '#agent-runtime/server-kit/console-logger.js';
+export { describeError } from '#agent-runtime/server-kit/describe-error.js';
+export {
+  formatLogMeta,
+  runFailureIdentity,
+} from '#agent-runtime/server-kit/log-meta.js';
+
+// How much the in-memory event bus may retain (SKEIN_MEMORY_BUS_*). Exported so a host assembling
+// its own drivers bounds them the same way skein's own paths do.
+export {
+  type ResolvedMemoryBusLimits,
+  resolveMemoryBusLimits,
+} from '#agent-runtime/server-kit/memory-bus-limits.js';
+
+// Run concurrency: the one precedence chain (explicit option → SKEIN_RUN_CONCURRENCY →
+// N_JOBS_PER_WORKER → DEFAULT_RUN_CONCURRENCY) behind `worker.maxConcurrency`. Exported so
+// `skein dev`/`start` resolve the exact number they print in the startup banner, rather than
+// re-implementing the chain.
+export type { RunWorkerOptions } from '@repo/agent-runtime/agent-protocol';
+export { DEFAULT_RUN_CONCURRENCY } from '@repo/agent-runtime/agent-protocol';
+export { resolveCronTickMs } from '#agent-runtime/server-kit/cron-tick.js';
+export {
+  checkHeapHeadroom,
+  describeHeapHeadroom,
+  type FileReader,
+  type HeapHeadroom,
+  readContainerMemoryLimit,
+} from '#agent-runtime/server-kit/heap-headroom.js';
+export {
+  DEFAULT_HEAP_SAMPLE_MS,
+  DEFAULT_HEAP_WARN_PERCENT,
+  HEAP_REARM_MARGIN_PERCENT,
+  HEAP_REARM_PERCENT,
+  type HeapPressureContext,
+  type HeapPressureMonitor,
+  type HeapPressureMonitorOptions,
+  type IntervalHandle,
+  resolveHeapPressureOptions,
+  startHeapPressureMonitor,
+} from '#agent-runtime/server-kit/heap-pressure.js';
+export { resolveMaxPageSize } from '#agent-runtime/server-kit/max-page-size.js';
+export {
+  describePoolPressure,
+  resolveRunConcurrency,
+} from '#agent-runtime/server-kit/run-concurrency.js';
+export { resolveRunTimeoutMs } from '#agent-runtime/server-kit/run-timeout.js';
+
+// Shutdown drain window: the same shape for `worker.shutdownGraceMs` (explicit option →
+// SKEIN_SHUTDOWN_GRACE_MS → DEFAULT_SHUTDOWN_GRACE_MS). Exported so a host that forces exit on a
+// timer (the CLI does) can size that timer against the number the worker will actually use.
+export { DEFAULT_SHUTDOWN_GRACE_MS } from '@repo/agent-runtime/agent-protocol';
+export { resolveShutdownGraceMs } from '#agent-runtime/server-kit/shutdown-grace.js';
+
+// In-memory runtime: assemble a `ProtocolDeps` backed by in-process drivers (the `skein dev` runtime,
+// and every adapter's `{ config }` convenience path).
+export type { RawIdempotency } from '#agent-runtime/server-kit/idempotency-config.js';
+export { resolveIdempotency } from '#agent-runtime/server-kit/idempotency-config.js';
+export type {
+  DevStateSnapshot,
+  InMemoryRuntimeConfig,
+  ReloadableInMemoryRuntime,
+} from '#agent-runtime/server-kit/in-memory-runtime.js';
+export {
+  loadInMemoryRuntime,
+  loadReloadableInMemoryRuntime,
+} from '#agent-runtime/server-kit/in-memory-runtime.js';
+export type {
+  RawStoreTtl,
+  RawThreadTtl,
+} from '#agent-runtime/server-kit/ttl-config.js';
+export {
+  resolveStoreTtl,
+  resolveThreadTtl,
+} from '#agent-runtime/server-kit/ttl-config.js';
+export type { RawWebhooks } from '#agent-runtime/server-kit/webhooks-config.js';
+export { resolveWebhooks } from '#agent-runtime/server-kit/webhooks-config.js';
+
+// In-code embedding: build a `ProtocolDeps` around a compiled graph (or map of them) you already hold —
+// no `langgraph.json`, no CLI — then pass `{ deps }` to any adapter. See docs/embedding.md. The graph
+// types are re-exported so callers can type their map from this one package.
+export type {
+  CompiledGraphFactory,
+  GraphResolver,
+  ProtocolDeps,
+  ResolvedGraph,
+} from '@repo/agent-runtime/agent-protocol';
+export type { EmbeddableGraph } from '#agent-runtime/server-kit/in-memory-deps.js';
+export {
+  createInMemoryDeps,
+  embedInMemoryGraphs,
+  graphMapToResolver,
+  normalizeEmbeddableGraphs,
+} from '#agent-runtime/server-kit/in-memory-deps.js';
+
+// Importing an existing LangGraph in-memory dev state (`.langgraph_api/`) lives at
+// `@repo/agent-runtime/server-kit/dev`, not here — it pulls in `superjson` and `node:fs/promises`, which every
+// adapter would then carry for a path only the CLI takes. The three *functions* are deliberately not
+// re-exported: that would be a static import again, defeating the split.
+//
+// The type is, though. A `export type` is erased at build time, so it costs nothing in the bundle — and
+// removing it would break anyone naming the shape without buying anything back.
+export type { DevStateCounts } from '#agent-runtime/server-kit/langgraph-import.js';
+
+// LangGraph-compatible CORS: map a langgraph.json `http.cors` block to `cors` options. `CorsOptions`
+// is re-exported so adapters can type their `cors` option without depending on the `cors` package
+// directly (Fastify/NestJS/Next.js use their own CORS mechanisms but accept this shared shape).
+export type { LanggraphCorsConfig } from '#agent-runtime/server-kit/cors-config.js';
+export {
+  consoleMountFromHttpConfig,
+  corsFromHttpConfig,
+  disabledRoutesFromHttpConfig,
+  routesFromHttpConfig,
+  toCorsOptions,
+} from '#agent-runtime/server-kit/cors-config.js';
+export { routeMatcherFor } from '#agent-runtime/server-kit/route-matcher-cache.js';
+export type { CorsOptions } from 'cors';
+
+// Runtime CORS helpers for adapters without a CORS middleware (NestJS middleware, Next.js handlers):
+// origin resolution + response/preflight headers, with an unset origin resolving to `*` (never a
+// credentialed reflected origin) and full-string-anchored regex matching.
+export type { CorsSetting } from '#agent-runtime/server-kit/cors-runtime.js';
+export {
+  allowedOrigin,
+  applyNodeCors,
+  corsPreflightHeaders,
+  corsResponseHeaders,
+  joinList,
+  sendNodePreflight,
+} from '#agent-runtime/server-kit/cors-runtime.js';
+
+// Node-`http` transport shared by the NestJS + Next.js Pages Router adapters.
+export {
+  sendNodeError,
+  sendNodeResponse,
+} from '#agent-runtime/server-kit/node-transport.js';
+
+// Mount-prefix stripping for adapters that mount a catch-all and match the route table by hand
+// (NestJS middleware, Next.js handlers) — `null` means "not under the mount, pass it through".
+export { stripBasePath } from '#agent-runtime/server-kit/base-path.js';
+export type {
+  RuntimeCapabilities,
+  RuntimeMemorySnapshot,
+  RuntimeSignalSubscription,
+} from '#agent-runtime/server-kit/runtime-capabilities.js';
+export { detectRuntimeCapabilities } from '#agent-runtime/server-kit/runtime-capabilities.js';

@@ -1,0 +1,378 @@
+// The recommended entry point: build the service, the HTTP handler table, the background worker and
+// the cron scheduler from ONE shared context. Sharing matters — the service's `cancel` and the
+// worker both touch the same cancellation registry, so cancelling a background run actually aborts
+// it, and the scheduler creates runs through the same store the worker drains.
+
+import type { DeliveryConsumer } from '@repo/agent-runtime/core';
+import { SkeinHttpError } from '@repo/agent-runtime/core';
+
+import { createAuthScopedStore } from '#agent-runtime/agent-protocol/auth/auth-scoped-store.js';
+import { resolveAuthContext } from '#agent-runtime/agent-protocol/auth/authenticate-request.js';
+import { createAuthorizingHandlers } from '#agent-runtime/agent-protocol/auth/authorizing-handlers.js';
+import {
+  authValue,
+  ROUTE_AUTHZ,
+} from '#agent-runtime/agent-protocol/auth/route-authz.js';
+import { createContext } from '#agent-runtime/agent-protocol/context.js';
+import {
+  createProtocolHandlers,
+  type ProtocolHandlerExtras,
+  type ProtocolHandlers,
+} from '#agent-runtime/agent-protocol/create-handlers.js';
+import {
+  createCronScheduler,
+  type CronScheduler,
+  type CronSchedulerOptions,
+} from '#agent-runtime/agent-protocol/crons/cron-scheduler.js';
+import { processDelivery } from '#agent-runtime/agent-protocol/deliveries/delivery-processor.js';
+import {
+  createDeliveryWorker,
+  type DeliveryWorker,
+  type DeliveryWorkerOptions,
+} from '#agent-runtime/agent-protocol/deliveries/delivery-worker.js';
+import type { ProtocolDeps } from '#agent-runtime/agent-protocol/deps.js';
+import {
+  createIdempotencySweeper,
+  type IdempotencySweeper,
+  type IdempotencySweeperOptions,
+} from '#agent-runtime/agent-protocol/idempotency/idempotency-sweeper.js';
+import { createIdempotentHandlers } from '#agent-runtime/agent-protocol/idempotency/idempotent-handlers.js';
+import {
+  createRunWorker,
+  type RunWorker,
+  type RunWorkerOptions,
+} from '#agent-runtime/agent-protocol/runs/run-worker.js';
+import {
+  createProtocolServiceFromContext,
+  type ProtocolService,
+} from '#agent-runtime/agent-protocol/service.js';
+import {
+  createThreadTtlSweeper,
+  type ThreadTtlSweeper,
+  type ThreadTtlSweeperOptions,
+} from '#agent-runtime/agent-protocol/threads/thread-ttl-sweeper.js';
+
+/** Options for {@link createProtocolRuntime}. */
+export interface ProtocolRuntimeOptions {
+  /** Tuning for the background run worker (max concurrency, shutdown grace period). */
+  worker?: RunWorkerOptions;
+  /** Tuning for the cron scheduler (tick interval, batch size, or `enabled: false` to switch it off). */
+  scheduler?: CronSchedulerOptions;
+  /**
+   * Cadence for the thread TTL sweep. The sweeper runs either way — a per-thread `ttl` needs
+   * collecting whether or not the server sets a default — so this only tunes how often, not whether.
+   */
+  threadTtl?: ThreadTtlSweeperOptions;
+  /**
+   * Cadence for the idempotency-record sweep. Like the thread sweep, this tunes how often, not
+   * whether — a caller can send `Idempotency-Key` whatever the server configured.
+   */
+  idempotencySweep?: IdempotencySweeperOptions;
+  /**
+   * Tuning for the outbound delivery worker (poll cadence, batch size). Like the sweeps above, this
+   * is how often and how much, not whether: a run that carries a `webhook` owes a callback whatever
+   * the server configured.
+   */
+  deliveryWorker?: DeliveryWorkerOptions;
+  /**
+   * Handlers the core table cannot build for itself — today, the optional channel HTTP surface.
+   *
+   * Injected rather than assembled here, because `#agent-runtime/internal/channels/index.js` is optional: a deployment that
+   * configures no channel must not have to install it, so the engine cannot import it.
+   */
+  handlers?: ProtocolHandlerExtras;
+}
+
+/** The wired engine: the service, the handler table, the background worker, and the cron scheduler. */
+export interface ProtocolRuntime {
+  /** High-level operations over assistants / threads / runs / crons / store. */
+  service: ProtocolService;
+  /** The transport-neutral HTTP handler table an adapter dispatches requests into. */
+  handlers: ProtocolHandlers;
+  /**
+   * The background worker that drains the run queue; `start()` it after seeding assistants.
+   *
+   * Stopping it also stops the cron scheduler and closes the abort-channel subscription — see the
+   * teardown note below.
+   */
+  worker: RunWorker;
+  /**
+   * The loop that fires due crons.
+   *
+   * Not optional, so a host never has to branch on whether it exists. It is started and stopped
+   * alongside the worker by {@link ProtocolRuntime.worker}, and exposed here for the rare host that
+   * wants to drive `tickOnce()` itself — on a platform that will not keep a timer alive, say.
+   */
+  scheduler: CronScheduler;
+  /**
+   * The loop that collects threads whose TTL has expired.
+   *
+   * Always present, like {@link ProtocolRuntime.scheduler} — a caller can set a per-thread `ttl` on
+   * `POST /threads` with no `checkpointer.ttl` configured at all, and something has to collect it.
+   * Started and stopped alongside the worker; exposed for a host that wants to drive `sweepOnce()`
+   * itself.
+   */
+  threadTtlSweeper: ThreadTtlSweeper;
+  /**
+   * The loop that reclaims idempotency records past their retention.
+   *
+   * Always present for the same reason as {@link ProtocolRuntime.threadTtlSweeper}. Unlike the
+   * others, nothing depends on it running: a claim takes over an expired record itself, so a server
+   * whose sweeper never ticked is carrying dead rows, not answering wrongly.
+   */
+  idempotencySweeper: IdempotencySweeper;
+  /**
+   * The loop that retries outbound run-completion callbacks, and takes over the ones whose process
+   * died mid-POST.
+   *
+   * Always present, like the sweepers — and a no-op on a store with no `deliveries` repo, where the
+   * engine falls back to a single best-effort POST. Started and stopped alongside the worker; exposed
+   * for a host that wants to drive `tickOnce()` itself.
+   */
+  deliveryWorker: DeliveryWorker;
+}
+
+/**
+ * Wire the whole engine together over a single shared context. Call
+ * `runtime.service.assistants.registerGraphAssistants()` once at startup to seed assistants, then
+ * `runtime.worker.start()` to process background runs and fire schedules.
+ */
+export function createProtocolRuntime(
+  deps: ProtocolDeps,
+  options: ProtocolRuntimeOptions = {},
+): ProtocolRuntime {
+  // Resolved before the context is built, so `GET /info` reports what this server actually serves
+  // rather than what the engine can do in principle.
+  const cronsEnabled = options.scheduler?.enabled ?? deps.cronsEnabled ?? true;
+  const context = createContext({ ...deps, cronsEnabled });
+  const service = createProtocolServiceFromContext(context);
+  // When an auth engine is injected, every request is authenticated + authorized through one
+  // transport-neutral seam; without it, the handler table is unchanged (unauthenticated, as before).
+  const handlerExtras = options.handlers ?? {};
+  const authorized = deps.auth
+    ? createAuthorizingHandlers(context, deps.auth, handlerExtras)
+    : createProtocolHandlers(service, handlerExtras);
+  // Idempotency wraps the authorizing table from **outside**, because a key's scope has to include
+  // the principal — without it, one tenant guessing another's key would be handed that tenant's
+  // recorded response. The cost is one extra `authenticate` on requests that actually carry a key
+  // (a request without the header pays a single header lookup and dispatches straight through), and
+  // it is correct by construction on the way in: a claim taken before a 401 is released when the
+  // inner table throws, so an unauthenticated caller cannot pin a key.
+  //
+  // It reads the *base* store deliberately, not the per-request auth-scoped one: the scope string
+  // already carries the principal, so a second ownership filter would only be able to disagree.
+  const authEngine = deps.auth;
+  const handlers = createIdempotentHandlers(authorized, {
+    store: context.deps.store,
+    clock: context.deps.clock,
+    logger: context.deps.logger,
+    ...(deps.idempotency ?? {}),
+    ...(authEngine
+      ? {
+          principalFor: async (req) =>
+            (await resolveAuthContext(authEngine, req))?.user.identity,
+          // A replay answers from the record and never reaches the authorizing table, so without this
+          // the authorization taken when the key was claimed would stand for the whole retention
+          // window — handing a principal whose access was revoked the run's output, which for
+          // `POST /runs/wait` is the entire conversation, for up to a day after revocation.
+          //
+          // Runs the same two checks the inner table would: the route's `authorize`, and — when that
+          // came back with ownership filters — that the recorded thread is still visible through the
+          // scoped store. The gate alone is not enough, because losing access to a thread usually
+          // means losing the thread, not losing the route.
+          authorizeReplay: async (req, handlerName, recordedThreadId) => {
+            const authContext = await resolveAuthContext(authEngine, req);
+            const route = ROUTE_AUTHZ[handlerName];
+            // Same normalization as the live path. No store route is recordable today, so this is
+            // consistency rather than a fix — but a payload that differs between first call and replay
+            // is exactly the divergence `authValue` exists to prevent.
+            const value = authValue(req, handlerName);
+            const primary = await authEngine.authorize({
+              resource: route.resource,
+              action: route.action,
+              value,
+              context: authContext,
+            });
+            const fallback =
+              !primary.filters && route.fallbackResource
+                ? await authEngine.authorize({
+                    resource: route.fallbackResource,
+                    action: route.fallbackAction ?? route.action,
+                    value,
+                    context: authContext,
+                  })
+                : undefined;
+            const filters = primary.filters ?? fallback?.filters;
+            if (!filters || recordedThreadId === undefined) return;
+            const scoped = createAuthScopedStore(
+              context.deps.store,
+              authEngine,
+              filters,
+              route.resource,
+            );
+            // Absent reads as "not yours" here exactly as it does everywhere else, so a revoked
+            // caller gets the same 404 a fresh request would rather than a distinguishing 403.
+            if (!(await scoped.threads.get(recordedThreadId))) {
+              throw SkeinHttpError.notFound(
+                `Thread "${recordedThreadId}" not found.`,
+              );
+            }
+          },
+        }
+      : {}),
+  });
+  const worker = createRunWorker(context, options.worker);
+  const scheduler = createCronScheduler(context, options.scheduler);
+  // Always built, NOT gated on `checkpointer.ttl` being configured. A per-thread `ttl` on
+  // `POST /threads` sets an expiry whether or not the server has a default, so gating the loop on the
+  // config block would validate that field, write `expires_at`, and then let the thread live forever
+  // — the same accepted-and-silently-ignored shape this whole surface exists to remove.
+  //
+  // Cheap when unused: `listExpired` is one indexed read that returns nothing, on an unref'd hourly
+  // timer. `checkpointer.ttl` supplies the *default lifetime* and the cadence, not permission to run.
+  //
+  // Options win over deps, matching how `scheduler.enabled` treats `deps.cronsEnabled`: an explicit
+  // option is a decision by whoever built the runtime, where the deps carry what the config said.
+  const threadTtlSweeper = createThreadTtlSweeper(
+    // `context.deps`, not the raw `deps`: the logger is defaulted there, like every other
+    // background loop's.
+    {
+      store: context.deps.store,
+      threads: service.threads,
+      logger: context.deps.logger,
+    },
+    options.threadTtl ??
+      (deps.threadTtl?.sweepIntervalMinutes !== undefined
+        ? { sweepIntervalMinutes: deps.threadTtl.sweepIntervalMinutes }
+        : {}),
+  );
+  // Always built, for the same reason the thread sweeper is: a caller can send `Idempotency-Key`
+  // whether or not the server configured a retention, and the records it writes have to be
+  // collected. Cheap when unused — one `DELETE` matching nothing, on an unref'd hourly timer.
+  const idempotencySweeper = createIdempotencySweeper(
+    { store: context.deps.store, logger: context.deps.logger },
+    options.idempotencySweep ??
+      (deps.idempotency?.sweepIntervalMinutes !== undefined
+        ? { sweepIntervalMinutes: deps.idempotency.sweepIntervalMinutes }
+        : {}),
+  );
+
+  // Always built, for the same reason the sweepers are: a run carrying a `webhook` owes a callback
+  // whether or not the server configured a retry policy, and the delivery the engine records has to
+  // be drained by something. Cheap when unused — one indexed read matching nothing per tick, on an
+  // unref'd timer — and a complete no-op on a driver with no `deliveries` repo.
+  const deliveryWorker = createDeliveryWorker(
+    {
+      store: context.deps.store,
+      webhookDispatcher: context.deps.webhookDispatcher,
+      logger: context.deps.logger,
+      clock: context.deps.clock,
+      ...(deps.webhooks ? { webhooks: deps.webhooks } : {}),
+      ...(deps.deliveryQueue ? { deliveryQueue: deps.deliveryQueue } : {}),
+    },
+    options.deliveryWorker ?? {},
+  );
+
+  // Said once at startup, not discovered later. A deployment whose *store* survives a restart but
+  // whose delivery *schedule* does not will lose every in-flight retry on each deploy — and the
+  // symptom is a callback that silently stops being retried, which is precisely what this feature
+  // exists to make impossible. Same posture, and the same reason, as the cron scheduler's warning
+  // about a non-durable store.
+  // The sharpest footgun in the whole feature. A caller who injected a `webhookDispatcher` before
+  // signing existed keeps a working dispatcher — it just ignores the third argument, so every
+  // callback goes out unsigned while the config says otherwise. Nothing fails; receivers simply
+  // reject everything, or worse, accept everything because verification was never wired up.
+  if (deps.webhooks?.secrets?.length && deps.webhookDispatcher) {
+    context.deps.logger.warn(
+      'a webhook signing key is configured alongside a custom `webhookDispatcher`: signatures are ' +
+        'only sent if that dispatcher forwards `attempt.headers` and sends `attempt.body` verbatim.',
+    );
+  }
+  if (deps.store.durable === true && deps.deliveryQueue?.durable !== true) {
+    context.deps.logger.warn(
+      'run-completion callbacks are scheduled in memory: a retry still waiting when this process ' +
+        'exits is lost. Configure Redis (REDIS_URI) so BullMQ owns the retry schedule.',
+    );
+  }
+
+  // The queue's consumer, when there is a queue. This is what actually retries a callback in
+  // production; `deliveryWorker` above is only the sweep that recovers jobs a crash lost.
+  //
+  // Opened in `start()`, NOT here. Consuming from construction would mean merely *building* a runtime
+  // starts pulling other instances' work — so a process that assembled one to inspect its handler
+  // table, or a test that never started it, would quietly take deliveries and, on teardown, abandon
+  // them. Everything else here hangs off `worker.start()`/`worker.stop()`; so does this.
+  let deliveryConsumer: DeliveryConsumer | undefined;
+  const consumeDeliveries = (): DeliveryConsumer | undefined =>
+    deps.deliveryQueue?.consume((attempt) =>
+      processDelivery(
+        {
+          store: context.deps.store,
+          webhookDispatcher: context.deps.webhookDispatcher,
+          logger: context.deps.logger,
+          clock: context.deps.clock,
+          ...(deps.webhooks ? { webhooks: deps.webhooks } : {}),
+        },
+        attempt,
+      ),
+    );
+
+  // Both the scheduler and the abort-channel subscription hang off the worker's lifecycle rather
+  // than off methods of their own. Five adapters plus the CLI already call `worker.start()` and
+  // `worker.stop()`, and none of them will learn a second pair — so a host that forgets cannot leave
+  // a scheduler firing into a torn-down store, or a Redis subscriber holding the process open.
+  //
+  // Order matters on the way down: the scheduler stops FIRST, so nothing new is queued while the
+  // worker drains. Stopping them the other way round would race new fires against the drain.
+  const subscription = deps.abortChannel?.subscribe(({ run_id, reason }) => {
+    context.control.applyRemoteAbort(run_id, reason);
+  });
+  // Cross-instance cancellation, wired in one place because both halves must agree: outbound (an
+  // abort for a run executing elsewhere is republished) and inbound (a peer's request is applied to
+  // the local registry). Subscribed above, at assembly, so a request cannot arrive before there is
+  // anywhere to put it. `applyRemoteAbort`, not `abort` — the latter would forward it straight back out.
+  if (deps.abortChannel)
+    context.control.useAbortChannel(deps.abortChannel, deps.logger);
+
+  return {
+    service,
+    handlers,
+    scheduler,
+    threadTtlSweeper,
+    idempotencySweeper,
+    deliveryWorker,
+    worker: {
+      get inFlightRunCount() {
+        return worker.inFlightRunCount;
+      },
+      start: () => {
+        worker.start();
+        scheduler.start();
+        threadTtlSweeper.start();
+        idempotencySweeper.start();
+        deliveryWorker.start();
+        deliveryConsumer ??= consumeDeliveries();
+      },
+      stop: async () => {
+        await scheduler.stop();
+        // Before the worker drains: a sweep deletes threads, and doing that while runs are still
+        // settling would race the very rows they are writing.
+        await threadTtlSweeper.stop();
+        // Nothing depends on ordering here — an idempotency record references no other row — but it
+        // stops with the other sweepers so a torn-down store never has a loop still writing into it.
+        await idempotencySweeper.stop();
+        await worker.stop();
+        // AFTER the worker, deliberately: draining runs are still recording deliveries, and stopping
+        // the delivery worker first would leave that last batch sitting until the next process boots.
+        // Its own `stop()` waits out an in-flight POST, so this cannot cut one off mid-flight.
+        await deliveryWorker.stop();
+        // After the sweep, and after the run worker: a draining run may still be recording a delivery
+        // and handing it over, and closing the consumer first would leave that last callback sitting
+        // until another instance picks it up.
+        await deliveryConsumer?.close();
+        deliveryConsumer = undefined;
+        await subscription?.close();
+      },
+    },
+  };
+}

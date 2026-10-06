@@ -1,0 +1,80 @@
+// The framework-agnostic service: the whole protocol as typed methods over validated inputs. This
+// is the layer to embed directly (no HTTP required). It is assembled from a `ProtocolContext` so a
+// runtime can share one context (and thus one cancellation registry) with the background worker.
+
+import {
+  type AssistantService,
+  createAssistantService,
+} from '#agent-runtime/agent-protocol/assistants/assistant-service.js';
+import type { ProtocolContext } from '#agent-runtime/agent-protocol/context.js';
+import { createContext } from '#agent-runtime/agent-protocol/context.js';
+import {
+  createCronService,
+  type CronService,
+} from '#agent-runtime/agent-protocol/crons/cron-service.js';
+import type { ProtocolDeps } from '#agent-runtime/agent-protocol/deps.js';
+import {
+  createMetaService,
+  type MetaService,
+} from '#agent-runtime/agent-protocol/meta/server-info.js';
+import {
+  createRunService,
+  type RunService,
+} from '#agent-runtime/agent-protocol/runs/run-service.js';
+import {
+  createStoreService,
+  type StoreService,
+} from '#agent-runtime/agent-protocol/store/store-service.js';
+import {
+  createThreadService,
+  type ThreadService,
+} from '#agent-runtime/agent-protocol/threads/thread-service.js';
+import {
+  createThreadStreamService,
+  type ThreadStreamService,
+} from '#agent-runtime/agent-protocol/threads/thread-stream-service.js';
+
+export interface ProtocolService {
+  assistants: AssistantService;
+  threads: ThreadService;
+  threadStream: ThreadStreamService;
+  runs: RunService;
+  /** Scheduled runs — a LangGraph Platform extension, not part of the open protocol spec. */
+  crons: CronService;
+  store: StoreService;
+  /** Server capability/version handshake — `GET /info`. */
+  meta: MetaService;
+}
+
+/** Assemble the service over an existing context (used by the runtime to share the context). */
+export function createProtocolServiceFromContext(
+  ctx: ProtocolContext,
+): ProtocolService {
+  const runs = createRunService(ctx);
+  const threads = createThreadService(ctx);
+  return {
+    // The assistant service reuses the thread service for its `delete_threads` cascade (abort +
+    // delete), and needs the full context (auth engine + caller) to scope that cascade to the
+    // threads the caller may delete.
+    assistants: createAssistantService(ctx, threads),
+    threads,
+    threadStream: createThreadStreamService(ctx, runs),
+    runs,
+    crons: createCronService(ctx),
+    store: createStoreService(ctx.deps),
+    meta: createMetaService(ctx.deps),
+  };
+}
+
+/** Build the service with its own context. Use {@link createProtocolRuntime} when you also run a
+ * background worker in the same process, so cancellation is shared. */
+export function createProtocolService(deps: ProtocolDeps): ProtocolService {
+  return createProtocolServiceFromContext(createContext(deps));
+}
+
+/**
+ * @deprecated Renamed to {@link createProtocolServiceFromContext} — it builds the service over an
+ * existing `ProtocolContext` (vs {@link createProtocolService}, which takes `deps` and makes its own).
+ * Kept for back-compat; slated for removal in a future major.
+ */
+export const buildProtocolService = createProtocolServiceFromContext;

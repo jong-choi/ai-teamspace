@@ -1,0 +1,154 @@
+// Thread-scoped streaming and the human-in-the-loop command surface. `POST /threads/{id}/stream`
+// starts a streaming run on an existing thread; `GET /threads/{id}/stream` joins its current run;
+// `POST /threads/{id}/commands` resumes an interrupted thread by starting a *fresh* run carrying a
+// LangGraph `Command` — which the concurrency guard allows because the interrupted run is terminal.
+
+import {
+  type Config,
+  isTerminalRunStatus,
+  type Metadata,
+  SkeinHttpError,
+  type StreamMode,
+  type Thread,
+} from '@repo/agent-runtime/core';
+
+import type { ProtocolContext } from '#agent-runtime/agent-protocol/context.js';
+import type {
+  CreateRunInput,
+  RunService,
+  StartedStream,
+} from '#agent-runtime/agent-protocol/runs/run-service.js';
+
+/** Body for `POST /threads/{id}/stream` — a run request without the thread id (it's in the path). */
+export interface ThreadStreamInput {
+  assistant_id: string;
+  input?: unknown;
+  config?: Config;
+  context?: unknown;
+  stream_mode?: StreamMode | StreamMode[];
+  metadata?: Metadata;
+}
+
+/** Body for `POST /threads/{id}/commands` — a resume/goto/update command for an interrupted thread. */
+export interface CommandInput {
+  assistant_id?: string;
+  command?: { resume?: unknown; update?: unknown; goto?: unknown };
+  /** Shorthand for `command.resume`. */
+  resume?: unknown;
+  stream_mode?: StreamMode | StreamMode[];
+  config?: Config;
+  context?: unknown;
+  metadata?: Metadata;
+}
+
+export interface ThreadStreamService {
+  stream(threadId: string, input: ThreadStreamInput): Promise<StartedStream>;
+  joinStream(threadId: string, afterSeq?: number): Promise<StartedStream>;
+  command(threadId: string, input: CommandInput): Promise<StartedStream>;
+}
+
+export function createThreadStreamService(
+  ctx: ProtocolContext,
+  runs: RunService,
+): ThreadStreamService {
+  const { deps } = ctx;
+
+  const requireThread = async (threadId: string) => {
+    const thread = await deps.store.threads.get(threadId);
+    if (!thread)
+      throw SkeinHttpError.notFound(`Thread "${threadId}" not found.`);
+    return thread;
+  };
+
+  /**
+   * The assistant a resume should run as: the thread's most recent run's.
+   *
+   * Read off the thread the caller already loaded where possible — `stampGraphOnThread` writes
+   * `assistant_id` into thread metadata on every run creation — so the common path needs no run read at
+   * all. The fallback is mandatory, not defensive: the stamp is best-effort (its failure is swallowed to
+   * avoid stranding a run) and threads created before it existed carry no `assistant_id`.
+   */
+  const latestRunAssistant = async (
+    thread: Thread,
+  ): Promise<string | undefined> => {
+    const stamped = thread.metadata?.['assistant_id'];
+    if (typeof stamped === 'string' && stamped.length > 0) return stamped;
+    return (
+      (await deps.store.runs.latestForThread(thread.thread_id))?.assistant_id ??
+      undefined
+    );
+  };
+
+  return {
+    async stream(threadId, input) {
+      await requireThread(threadId);
+      return runs.createStream({ ...input, thread_id: threadId });
+    },
+
+    async joinStream(threadId, afterSeq) {
+      await requireThread(threadId);
+      // **Deliberately `listByThread`, not `latestForThread`/`listActiveRuns`** — this selection has to
+      // see the same runs the join itself will accept, and `listByThread` is the only one of the three
+      // the auth-scoped store ownership-filters (`latestForThread` is graph identity, `listActiveRuns`
+      // is the concurrency guard; both are inherited unfiltered there).
+      //
+      // Nothing leaks either way: `runs.join` re-reads through the filtered `runs.get` and 404s on a run
+      // the caller does not own. The bug is the opposite one — selecting from an unfiltered read picks a
+      // run the join will then refuse, so a caller with a perfectly joinable *owned* run gets a 404
+      // because some other principal's run on the same thread happened to be newer. A perf pass did
+      // exactly this; the test below pins it. Bounded by the thread's own run count, not the table's.
+      const threadRuns = await deps.store.runs.listByThread(threadId);
+      const sorted = [...threadRuns].sort((a, b) =>
+        b.created_at.localeCompare(a.created_at),
+      );
+      const target =
+        sorted.find((run) => !isTerminalRunStatus(run.status)) ?? sorted[0];
+      if (!target)
+        throw SkeinHttpError.notFound(
+          `Thread "${threadId}" has no runs to stream.`,
+        );
+      return {
+        runId: target.run_id,
+        threadId,
+        frames: await runs.join(target.run_id, afterSeq),
+      };
+    },
+
+    async command(threadId, input) {
+      const thread = await requireThread(threadId);
+      if (thread.status !== 'interrupted') {
+        throw SkeinHttpError.conflict(
+          `Thread "${threadId}" is not interrupted.`,
+          {
+            code: 'thread_not_interrupted',
+          },
+        );
+      }
+      const command =
+        input.command ??
+        (input.resume !== undefined ? { resume: input.resume } : undefined);
+      if (!command) {
+        throw SkeinHttpError.badRequest(
+          'A command must provide `command` or `resume`.',
+        );
+      }
+      const assistantId =
+        input.assistant_id ?? (await latestRunAssistant(thread));
+      if (!assistantId) {
+        throw SkeinHttpError.badRequest(
+          'Cannot resume: no assistant_id and no prior run on the thread.',
+        );
+      }
+      const runInput: CreateRunInput = {
+        thread_id: threadId,
+        assistant_id: assistantId,
+        command,
+        stream_mode: input.stream_mode,
+        config: input.config,
+        context: input.context,
+        metadata: input.metadata,
+      };
+      return runs.createStream(runInput);
+    },
+  };
+}

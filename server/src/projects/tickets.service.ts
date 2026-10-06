@@ -25,10 +25,8 @@ import {
   toTicketCommentResponse,
 } from '@/projects/dto/ticket-comment.dto';
 import type { UpdateTicketInput } from '@/projects/dto/update-ticket.dto';
-import {
-  ProjectRepository,
-  type ProjectSummaryReadModel,
-} from '@/projects/infrastructure/persistence/project.repository';
+import { type ProjectSummaryReadModel } from '@/projects/infrastructure/persistence/project.repository';
+import { TicketRepository } from '@/projects/infrastructure/persistence/ticket.repository';
 import {
   type TicketCardMetadata,
   type TicketDetailChildren,
@@ -45,7 +43,7 @@ type TicketOrganizationMembership = Pick<
 @Injectable()
 export class TicketsService {
   constructor(
-    private readonly projectRepository: ProjectRepository,
+    private readonly ticketRepository: TicketRepository,
     private readonly ticketWorkflowRepository: TicketWorkflowRepository,
     private readonly resourceLoader: ProjectResourceLoader,
     @Inject(OrganizationMembershipService)
@@ -74,7 +72,7 @@ export class TicketsService {
     if (query.assigneeUserId) {
       await this.assertMemberUser(organizationId, query.assigneeUserId);
     }
-    const tickets = await this.projectRepository.listTickets({
+    const tickets = await this.ticketRepository.listTickets({
       organizationId,
       projectId,
       ...query,
@@ -122,7 +120,7 @@ export class TicketsService {
     );
     this.resourceLoader.assertProjectWritable(project);
     await this.assertMemberUser(organizationId, input.assigneeUserId ?? null);
-    const result = await this.projectRepository.createTicketWithNumber({
+    const result = await this.ticketRepository.createTicketWithNumber({
       organizationId,
       projectId,
       columnId: input.columnId,
@@ -185,7 +183,7 @@ export class TicketsService {
     if (input.assigneeUserId !== undefined) {
       await this.assertMemberUser(organizationId, input.assigneeUserId);
     }
-    const updated = await this.projectRepository.updateTicket({
+    const updated = await this.ticketRepository.updateTicket({
       organizationId,
       projectId,
       ticketId,

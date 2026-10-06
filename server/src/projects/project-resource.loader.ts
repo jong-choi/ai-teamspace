@@ -7,14 +7,20 @@ import {
   TicketNotFoundError,
 } from '@/projects/domain/project.error';
 import type { Ticket } from '@/projects/domain/ticket';
+import { ProjectColumnRepository } from '@/projects/infrastructure/persistence/project-column.repository';
 import {
   ProjectRepository,
   type ProjectSummaryReadModel,
 } from '@/projects/infrastructure/persistence/project.repository';
+import { TicketRepository } from '@/projects/infrastructure/persistence/ticket.repository';
 
 @Injectable()
 export class ProjectResourceLoader {
-  constructor(private readonly projectRepository: ProjectRepository) {}
+  constructor(
+    private readonly projectRepository: ProjectRepository,
+    private readonly projectColumnRepository: ProjectColumnRepository,
+    private readonly ticketRepository: TicketRepository,
+  ) {}
 
   async requireProject(
     organizationId: string,
@@ -35,7 +41,7 @@ export class ProjectResourceLoader {
     projectId: string,
     columnId: string,
   ): Promise<void> {
-    const column = await this.projectRepository.findColumnById(
+    const column = await this.projectColumnRepository.findColumnById(
       organizationId,
       projectId,
       columnId,
@@ -50,7 +56,7 @@ export class ProjectResourceLoader {
     projectId: string,
     ticketId: string,
   ): Promise<Ticket> {
-    const ticket = await this.projectRepository.findTicketById(
+    const ticket = await this.ticketRepository.findTicketById(
       organizationId,
       projectId,
       ticketId,

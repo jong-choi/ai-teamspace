@@ -5,10 +5,12 @@ import { DatabaseModule } from '@/database/database.module';
 import { DatabaseService } from '@/database/database.service';
 import { ProjectDrizzlePersistenceModule } from '@/projects/infrastructure/persistence/drizzle/drizzle-persistence.module';
 import { project } from '@/projects/infrastructure/persistence/drizzle/schema/project.schema';
+import { ProjectColumnRepository } from '@/projects/infrastructure/persistence/project-column.repository';
 import {
   type CreateProjectPersistenceInput,
   ProjectRepository,
 } from '@/projects/infrastructure/persistence/project.repository';
+import { TicketRepository } from '@/projects/infrastructure/persistence/ticket.repository';
 import { TicketWorkflowRepository } from '@/projects/infrastructure/persistence/ticket-workflow.repository';
 
 import { inArray } from 'drizzle-orm';
@@ -32,6 +34,8 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
   let moduleRef: TestingModule;
   let database: DatabaseService['db'];
   let projects: ProjectRepository;
+  let projectColumns: ProjectColumnRepository;
+  let ticketRepository: TicketRepository;
   let workflow: TicketWorkflowRepository;
 
   beforeAll(async () => {
@@ -41,6 +45,8 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
     await moduleRef.init();
     database = moduleRef.get(DatabaseService).db;
     projects = moduleRef.get(ProjectRepository);
+    projectColumns = moduleRef.get(ProjectColumnRepository);
+    ticketRepository = moduleRef.get(TicketRepository);
     workflow = moduleRef.get(TicketWorkflowRepository);
   });
 
@@ -233,7 +239,7 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
     );
 
     expect(results.every(({ kind }) => kind === 'moved')).toBe(true);
-    const todoTickets = await projects.listTickets({
+    const todoTickets = await ticketRepository.listTickets({
       organizationId,
       projectId: fixture.project.id,
       columnId: todo.id,
@@ -244,7 +250,7 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
     ]);
     expect(new Set(todoTickets.map(({ position }) => position)).size).toBe(8);
     await expect(
-      projects.listTickets({
+      ticketRepository.listTickets({
         organizationId,
         projectId: fixture.project.id,
         columnId: backlog.id,
@@ -615,7 +621,7 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
       ...baseProjectInput,
       ...overrides,
     });
-    const columns = await projects.listColumns(
+    const columns = await projectColumns.listColumns(
       created.organizationId,
       created.id,
     );
@@ -627,7 +633,7 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
     columnId: string,
     title: string,
   ) {
-    const result = await projects.createTicketWithNumber({
+    const result = await ticketRepository.createTicketWithNumber({
       organizationId,
       projectId,
       columnId,
@@ -645,7 +651,7 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
   }
 
   async function ticketOrder(projectId: string, columnId: string) {
-    const rows = await projects.listTickets({
+    const rows = await ticketRepository.listTickets({
       organizationId,
       projectId,
       columnId,

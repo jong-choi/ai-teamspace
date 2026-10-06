@@ -13,7 +13,7 @@ import {
   toProjectColumnResponse,
 } from '@/projects/dto/project-column.dto';
 import type { UpdateProjectColumnInput } from '@/projects/dto/update-project-column.dto';
-import { ProjectRepository } from '@/projects/infrastructure/persistence/project.repository';
+import { ProjectColumnRepository } from '@/projects/infrastructure/persistence/project-column.repository';
 import { ProjectResourceLoader } from '@/projects/project-resource.loader';
 
 type ProjectColumnMembership = Pick<
@@ -24,7 +24,7 @@ type ProjectColumnMembership = Pick<
 @Injectable()
 export class ProjectColumnsService {
   constructor(
-    private readonly projectRepository: ProjectRepository,
+    private readonly projectColumnRepository: ProjectColumnRepository,
     private readonly resourceLoader: ProjectResourceLoader,
     @Inject(OrganizationMembershipService)
     private readonly organizationMembership: ProjectColumnMembership,
@@ -37,7 +37,7 @@ export class ProjectColumnsService {
   ): Promise<ProjectColumnListResponse> {
     await this.organizationMembership.requireAccess(context, organizationId);
     await this.resourceLoader.requireProject(organizationId, projectId);
-    const columns = await this.projectRepository.listColumns(
+    const columns = await this.projectColumnRepository.listColumns(
       organizationId,
       projectId,
     );
@@ -56,7 +56,7 @@ export class ProjectColumnsService {
       projectId,
     );
     this.resourceLoader.assertProjectWritable(project);
-    const column = await this.projectRepository.createColumn(
+    const column = await this.projectColumnRepository.createColumn(
       organizationId,
       projectId,
       input.name,
@@ -78,7 +78,7 @@ export class ProjectColumnsService {
       projectId,
     );
     this.resourceLoader.assertProjectWritable(project);
-    const column = await this.projectRepository.renameColumn(
+    const column = await this.projectColumnRepository.renameColumn(
       organizationId,
       projectId,
       columnId,

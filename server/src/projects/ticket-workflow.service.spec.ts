@@ -9,10 +9,12 @@ import {
 } from '@/projects/domain/project.error';
 import type { Project } from '@/projects/domain/project';
 import type { Ticket } from '@/projects/domain/ticket';
+import { ProjectColumnRepository } from '@/projects/infrastructure/persistence/project-column.repository';
 import {
   ProjectRepository,
   type ProjectSummaryReadModel,
 } from '@/projects/infrastructure/persistence/project.repository';
+import { TicketRepository } from '@/projects/infrastructure/persistence/ticket.repository';
 import { TicketWorkflowRepository } from '@/projects/infrastructure/persistence/ticket-workflow.repository';
 import { ProjectResourceLoader } from '@/projects/project-resource.loader';
 import { ProjectUserResolver } from '@/projects/project-user.resolver';
@@ -30,15 +32,21 @@ class FakeProjectRepository extends ProjectRepository {
   createProjectWithDefaultColumns =
     jest.fn<ProjectRepository['createProjectWithDefaultColumns']>();
   updateProject = jest.fn<ProjectRepository['updateProject']>();
-  listColumns = jest.fn<ProjectRepository['listColumns']>();
-  findColumnById = jest.fn<ProjectRepository['findColumnById']>();
-  createColumn = jest.fn<ProjectRepository['createColumn']>();
-  renameColumn = jest.fn<ProjectRepository['renameColumn']>();
-  listTickets = jest.fn<ProjectRepository['listTickets']>();
-  findTicketById = jest.fn<ProjectRepository['findTicketById']>();
+}
+
+class FakeProjectColumnRepository extends ProjectColumnRepository {
+  listColumns = jest.fn<ProjectColumnRepository['listColumns']>();
+  findColumnById = jest.fn<ProjectColumnRepository['findColumnById']>();
+  createColumn = jest.fn<ProjectColumnRepository['createColumn']>();
+  renameColumn = jest.fn<ProjectColumnRepository['renameColumn']>();
+}
+
+class FakeTicketRepository extends TicketRepository {
+  listTickets = jest.fn<TicketRepository['listTickets']>();
+  findTicketById = jest.fn<TicketRepository['findTicketById']>();
   createTicketWithNumber =
-    jest.fn<ProjectRepository['createTicketWithNumber']>();
-  updateTicket = jest.fn<ProjectRepository['updateTicket']>();
+    jest.fn<TicketRepository['createTicketWithNumber']>();
+  updateTicket = jest.fn<TicketRepository['updateTicket']>();
 }
 
 class FakeTicketWorkflowRepository extends TicketWorkflowRepository {
@@ -126,6 +134,8 @@ function ticket(): Ticket {
 
 describe('티켓 워크플로 application 서비스', () => {
   let projects: FakeProjectRepository;
+  let columns: FakeProjectColumnRepository;
+  let tickets: FakeTicketRepository;
   let workflow: FakeTicketWorkflowRepository;
   let membership: {
     requireAccess: jest.MockedFunction<MembershipBoundary['requireAccess']>;
@@ -140,6 +150,8 @@ describe('티켓 워크플로 application 서비스', () => {
 
   beforeEach(() => {
     projects = new FakeProjectRepository();
+    columns = new FakeProjectColumnRepository();
+    tickets = new FakeTicketRepository();
     workflow = new FakeTicketWorkflowRepository();
     membership = {
       requireAccess: jest.fn<MembershipBoundary['requireAccess']>(),
@@ -159,9 +171,9 @@ describe('티켓 워크플로 application 서비스', () => {
     });
     userDirectory.findByIds.mockResolvedValue([]);
     projects.findProjectById.mockResolvedValue(project());
-    projects.findTicketById.mockResolvedValue(ticket());
+    tickets.findTicketById.mockResolvedValue(ticket());
     const accessPolicy = new TicketWorkflowAccessPolicy(
-      new ProjectResourceLoader(projects),
+      new ProjectResourceLoader(projects, columns, tickets),
       membership,
     );
     orderingService = new TicketOrderingService(workflow, accessPolicy);

@@ -26,14 +26,16 @@ import { projectColumn } from '@/projects/infrastructure/persistence/drizzle/sch
 import { ticket } from '@/projects/infrastructure/persistence/drizzle/schema/ticket.schema';
 import {
   type CreateProjectPersistenceInput,
-  type CreateTicketPersistenceInput,
-  type CreateTicketResult,
-  type ListTicketsPersistenceInput,
   type ProjectChanges,
   ProjectRepository,
   type ProjectSummaryReadModel,
-  type TicketChanges,
 } from '@/projects/infrastructure/persistence/project.repository';
+import {
+  type CreateTicketPersistenceInput,
+  type CreateTicketResult,
+  type ListTicketsPersistenceInput,
+  type TicketChanges,
+} from '@/projects/infrastructure/persistence/ticket.repository';
 
 import {
   and,

@@ -9,10 +9,12 @@ import {
 } from '@/projects/domain/project.error';
 import type { Project } from '@/projects/domain/project';
 import type { ProjectColumn } from '@/projects/domain/project-column';
+import { ProjectColumnRepository } from '@/projects/infrastructure/persistence/project-column.repository';
 import {
   ProjectRepository,
   type ProjectSummaryReadModel,
 } from '@/projects/infrastructure/persistence/project.repository';
+import { TicketRepository } from '@/projects/infrastructure/persistence/ticket.repository';
 import { TicketWorkflowRepository } from '@/projects/infrastructure/persistence/ticket-workflow.repository';
 import { ProjectColumnsService } from '@/projects/project-columns.service';
 import { ProjectsService } from '@/projects/projects.service';
@@ -28,15 +30,21 @@ class FakeProjectRepository extends ProjectRepository {
   createProjectWithDefaultColumns =
     jest.fn<ProjectRepository['createProjectWithDefaultColumns']>();
   updateProject = jest.fn<ProjectRepository['updateProject']>();
-  listColumns = jest.fn<ProjectRepository['listColumns']>();
-  findColumnById = jest.fn<ProjectRepository['findColumnById']>();
-  createColumn = jest.fn<ProjectRepository['createColumn']>();
-  renameColumn = jest.fn<ProjectRepository['renameColumn']>();
-  listTickets = jest.fn<ProjectRepository['listTickets']>();
-  findTicketById = jest.fn<ProjectRepository['findTicketById']>();
+}
+
+class FakeProjectColumnRepository extends ProjectColumnRepository {
+  listColumns = jest.fn<ProjectColumnRepository['listColumns']>();
+  findColumnById = jest.fn<ProjectColumnRepository['findColumnById']>();
+  createColumn = jest.fn<ProjectColumnRepository['createColumn']>();
+  renameColumn = jest.fn<ProjectColumnRepository['renameColumn']>();
+}
+
+class FakeTicketRepository extends TicketRepository {
+  listTickets = jest.fn<TicketRepository['listTickets']>();
+  findTicketById = jest.fn<TicketRepository['findTicketById']>();
   createTicketWithNumber =
-    jest.fn<ProjectRepository['createTicketWithNumber']>();
-  updateTicket = jest.fn<ProjectRepository['updateTicket']>();
+    jest.fn<TicketRepository['createTicketWithNumber']>();
+  updateTicket = jest.fn<TicketRepository['updateTicket']>();
 }
 
 class FakeTicketWorkflowRepository extends TicketWorkflowRepository {
@@ -134,7 +142,9 @@ function user(id: string): AuthUserIdentity {
 }
 
 describe('프로젝트 서비스', () => {
-  let repository: FakeProjectRepository;
+  let projectRepository: FakeProjectRepository;
+  let projectColumnRepository: FakeProjectColumnRepository;
+  let ticketRepository: FakeTicketRepository;
   let workflowRepository: FakeTicketWorkflowRepository;
   let membership: {
     requireAccess: jest.MockedFunction<MembershipBoundary['requireAccess']>;
@@ -148,7 +158,9 @@ describe('프로젝트 서비스', () => {
   let ticketsService: TicketsService;
 
   beforeEach(() => {
-    repository = new FakeProjectRepository();
+    projectRepository = new FakeProjectRepository();
+    projectColumnRepository = new FakeProjectColumnRepository();
+    ticketRepository = new FakeTicketRepository();
     workflowRepository = new FakeTicketWorkflowRepository();
     membership = {
       requireAccess: jest.fn<MembershipBoundary['requireAccess']>(),
@@ -175,21 +187,25 @@ describe('프로젝트 서비스', () => {
       checklists: [],
       comments: [],
     });
-    const resourceLoader = new ProjectResourceLoader(repository);
+    const resourceLoader = new ProjectResourceLoader(
+      projectRepository,
+      projectColumnRepository,
+      ticketRepository,
+    );
     const userResolver = new ProjectUserResolver(userDirectory);
     projectsService = new ProjectsService(
-      repository,
+      projectRepository,
       resourceLoader,
       membership,
       userResolver,
     );
     projectColumnsService = new ProjectColumnsService(
-      repository,
+      projectColumnRepository,
       resourceLoader,
       membership,
     );
     ticketsService = new TicketsService(
-      repository,
+      ticketRepository,
       workflowRepository,
       resourceLoader,
       membership,
@@ -199,7 +215,7 @@ describe('프로젝트 서비스', () => {
 
   it('프로젝트 목록은 lead 사용자를 한 번에 조회하고 실제 통계를 반환한다', async () => {
     const leadUserId = 'lead-user';
-    repository.listProjects.mockResolvedValue([
+    projectRepository.listProjects.mockResolvedValue([
       projectModel({ leadUserId }),
       {
         project: project({
@@ -236,11 +252,13 @@ describe('프로젝트 서비스', () => {
       }),
     ).rejects.toBeInstanceOf(ProjectUserNotMemberError);
 
-    expect(repository.createProjectWithDefaultColumns).not.toHaveBeenCalled();
+    expect(
+      projectRepository.createProjectWithDefaultColumns,
+    ).not.toHaveBeenCalled();
   });
 
   it('현재 조직 멤버가 아닌 assignee는 티켓 생성 전에 거부한다', async () => {
-    repository.findProjectById.mockResolvedValue(projectModel());
+    projectRepository.findProjectById.mockResolvedValue(projectModel());
     membership.hasMemberUser.mockResolvedValue(false);
 
     await expect(
@@ -251,11 +269,11 @@ describe('프로젝트 서비스', () => {
       }),
     ).rejects.toBeInstanceOf(ProjectUserNotMemberError);
 
-    expect(repository.createTicketWithNumber).not.toHaveBeenCalled();
+    expect(ticketRepository.createTicketWithNumber).not.toHaveBeenCalled();
   });
 
   it('빈 사용자 식별자도 미지정 값으로 우회시키지 않는다', async () => {
-    repository.findProjectById.mockResolvedValue(projectModel());
+    projectRepository.findProjectById.mockResolvedValue(projectModel());
     membership.hasMemberUser.mockResolvedValue(false);
 
     await expect(
@@ -267,7 +285,7 @@ describe('프로젝트 서비스', () => {
     ).rejects.toBeInstanceOf(ProjectUserNotMemberError);
 
     expect(membership.hasMemberUser).toHaveBeenCalledWith(organizationId, '');
-    expect(repository.createTicketWithNumber).not.toHaveBeenCalled();
+    expect(ticketRepository.createTicketWithNumber).not.toHaveBeenCalled();
   });
 
   it('조직 접근 검증이 실패하면 프로젝트 저장소를 호출하지 않는다', async () => {
@@ -277,12 +295,12 @@ describe('프로젝트 서비스', () => {
       projectsService.listProjects(context, organizationId),
     ).rejects.toBeInstanceOf(OrganizationNotFoundError);
 
-    expect(repository.listProjects).not.toHaveBeenCalled();
+    expect(projectRepository.listProjects).not.toHaveBeenCalled();
   });
 
   it('다른 프로젝트의 컬럼 필터는 티켓 조회에 사용하지 않는다', async () => {
-    repository.findProjectById.mockResolvedValue(projectModel());
-    repository.findColumnById.mockResolvedValue(null);
+    projectRepository.findProjectById.mockResolvedValue(projectModel());
+    projectColumnRepository.findColumnById.mockResolvedValue(null);
 
     await expect(
       ticketsService.listTickets(context, organizationId, projectId, {
@@ -290,14 +308,14 @@ describe('프로젝트 서비스', () => {
       }),
     ).rejects.toBeInstanceOf(ProjectColumnNotFoundError);
 
-    expect(repository.listTickets).not.toHaveBeenCalled();
+    expect(ticketRepository.listTickets).not.toHaveBeenCalled();
   });
 
   it('보관된 프로젝트에서는 컬럼 생성 같은 write를 거부한다', async () => {
-    repository.findProjectById.mockResolvedValue(
+    projectRepository.findProjectById.mockResolvedValue(
       projectModel({ archivedAt: new Date('2026-10-06T01:00:00.000Z') }),
     );
-    repository.createColumn.mockResolvedValue(column());
+    projectColumnRepository.createColumn.mockResolvedValue(column());
 
     await expect(
       projectColumnsService.createColumn(context, organizationId, projectId, {
@@ -305,6 +323,6 @@ describe('프로젝트 서비스', () => {
       }),
     ).rejects.toBeInstanceOf(ProjectArchivedError);
 
-    expect(repository.createColumn).not.toHaveBeenCalled();
+    expect(projectColumnRepository.createColumn).not.toHaveBeenCalled();
   });
 });

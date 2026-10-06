@@ -7,7 +7,9 @@ import { ProjectKeyConflictError } from '@/projects/domain/project.error';
 import { ProjectDrizzlePersistenceModule } from '@/projects/infrastructure/persistence/drizzle/drizzle-persistence.module';
 import { project } from '@/projects/infrastructure/persistence/drizzle/schema/project.schema';
 import { projectColumn } from '@/projects/infrastructure/persistence/drizzle/schema/project-column.schema';
+import { ProjectColumnRepository } from '@/projects/infrastructure/persistence/project-column.repository';
 import { ProjectRepository } from '@/projects/infrastructure/persistence/project.repository';
+import { TicketRepository } from '@/projects/infrastructure/persistence/ticket.repository';
 
 import { eq, inArray } from 'drizzle-orm';
 
@@ -29,7 +31,9 @@ const createProjectInput = {
 describe('프로젝트 Drizzle 저장소 통합', () => {
   let moduleRef: TestingModule;
   let database: DatabaseService['db'];
-  let repository: ProjectRepository;
+  let projects: ProjectRepository;
+  let columns: ProjectColumnRepository;
+  let tickets: TicketRepository;
 
   beforeAll(async () => {
     moduleRef = await Test.createTestingModule({
@@ -37,7 +41,9 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
     }).compile();
     await moduleRef.init();
     database = moduleRef.get(DatabaseService).db;
-    repository = moduleRef.get(ProjectRepository);
+    projects = moduleRef.get(ProjectRepository);
+    columns = moduleRef.get(ProjectColumnRepository);
+    tickets = moduleRef.get(TicketRepository);
   });
 
   beforeEach(async () => {
@@ -75,12 +81,15 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
 
   it('프로젝트 생성은 기본 컬럼을 같은 트랜잭션에서 순서대로 만든다', async () => {
     const created =
-      await repository.createProjectWithDefaultColumns(createProjectInput);
+      await projects.createProjectWithDefaultColumns(createProjectInput);
 
-    const columns = await repository.listColumns(organizationId, created.id);
+    const createdColumns = await columns.listColumns(
+      organizationId,
+      created.id,
+    );
 
     expect(
-      columns.map(({ name, position, isCompleted }) => ({
+      createdColumns.map(({ name, position, isCompleted }) => ({
         name,
         position,
         isCompleted,
@@ -95,17 +104,17 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
   });
 
   it('프로젝트 키는 조직 안에서만 유일하고 충돌을 도메인 오류로 변환한다', async () => {
-    await repository.createProjectWithDefaultColumns(createProjectInput);
+    await projects.createProjectWithDefaultColumns(createProjectInput);
 
     await expect(
-      repository.createProjectWithDefaultColumns({
+      projects.createProjectWithDefaultColumns({
         ...createProjectInput,
         name: '중복 키 프로젝트',
       }),
     ).rejects.toBeInstanceOf(ProjectKeyConflictError);
 
     await expect(
-      repository.createProjectWithDefaultColumns({
+      projects.createProjectWithDefaultColumns({
         ...createProjectInput,
         organizationId: otherOrganizationId,
         name: '다른 조직의 같은 키',
@@ -115,8 +124,8 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
 
   it('동시에 생성한 티켓도 프로젝트 번호를 중복 없이 원자적으로 배정한다', async () => {
     const createdProject =
-      await repository.createProjectWithDefaultColumns(createProjectInput);
-    const [column] = await repository.listColumns(
+      await projects.createProjectWithDefaultColumns(createProjectInput);
+    const [column] = await columns.listColumns(
       organizationId,
       createdProject.id,
     );
@@ -126,7 +135,7 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
 
     const results = await Promise.all(
       Array.from({ length: 8 }, (_, index) =>
-        repository.createTicketWithNumber({
+        tickets.createTicketWithNumber({
           organizationId,
           projectId: createdProject.id,
           columnId: column.id,
@@ -151,24 +160,24 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
 
     expect(numbers).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
     await expect(
-      repository.findProjectById(organizationId, createdProject.id),
+      projects.findProjectById(organizationId, createdProject.id),
     ).resolves.toMatchObject({ project: { nextTicketNumber: 9 } });
   });
 
   it('티켓 조회는 조직·프로젝트 범위를 지키며 검색과 필터를 함께 적용한다', async () => {
     const createdProject =
-      await repository.createProjectWithDefaultColumns(createProjectInput);
-    const columns = await repository.listColumns(
+      await projects.createProjectWithDefaultColumns(createProjectInput);
+    const projectColumns = await columns.listColumns(
       organizationId,
       createdProject.id,
     );
-    const todoColumn = columns.find(({ name }) => name === 'Todo');
-    const doneColumn = columns.find(({ name }) => name === 'Done');
+    const todoColumn = projectColumns.find(({ name }) => name === 'Todo');
+    const doneColumn = projectColumns.find(({ name }) => name === 'Done');
     if (!todoColumn || !doneColumn) {
       throw new Error('필요한 기본 컬럼을 조회하지 못했습니다.');
     }
 
-    const first = await repository.createTicketWithNumber({
+    const first = await tickets.createTicketWithNumber({
       organizationId,
       projectId: createdProject.id,
       columnId: todoColumn.id,
@@ -179,7 +188,7 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
       reporterUserId: actorUserId,
       dueAt: null,
     });
-    const second = await repository.createTicketWithNumber({
+    const second = await tickets.createTicketWithNumber({
       organizationId,
       projectId: createdProject.id,
       columnId: doneColumn.id,
@@ -195,7 +204,7 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
     }
 
     await expect(
-      repository.listTickets({
+      tickets.listTickets({
         organizationId,
         projectId: createdProject.id,
         search: '로그인',
@@ -206,13 +215,13 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
     ).resolves.toEqual([expect.objectContaining({ id: first.ticket.id })]);
 
     await expect(
-      repository.listTickets({
+      tickets.listTickets({
         organizationId: otherOrganizationId,
         projectId: createdProject.id,
       }),
     ).resolves.toEqual([]);
 
-    const summary = await repository.findProjectById(
+    const summary = await projects.findProjectById(
       organizationId,
       createdProject.id,
     );
@@ -230,15 +239,15 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
 
   it('티켓의 여러 변경을 단일 capability로 원자적으로 적용한다', async () => {
     const createdProject =
-      await repository.createProjectWithDefaultColumns(createProjectInput);
-    const [column] = await repository.listColumns(
+      await projects.createProjectWithDefaultColumns(createProjectInput);
+    const [column] = await columns.listColumns(
       organizationId,
       createdProject.id,
     );
     if (!column) {
       throw new Error('기본 프로젝트 컬럼을 조회하지 못했습니다.');
     }
-    const ticketResult = await repository.createTicketWithNumber({
+    const ticketResult = await tickets.createTicketWithNumber({
       organizationId,
       projectId: createdProject.id,
       columnId: column.id,
@@ -255,7 +264,7 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
     const dueAt = new Date('2026-10-10T03:00:00.000Z');
 
     await expect(
-      repository.updateTicket({
+      tickets.updateTicket({
         organizationId,
         projectId: createdProject.id,
         ticketId: ticketResult.ticket.id,
@@ -278,15 +287,15 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
 
   it('보관된 티켓은 일반 변경을 거부하고 복원 후 다시 변경할 수 있다', async () => {
     const createdProject =
-      await repository.createProjectWithDefaultColumns(createProjectInput);
-    const [column] = await repository.listColumns(
+      await projects.createProjectWithDefaultColumns(createProjectInput);
+    const [column] = await columns.listColumns(
       organizationId,
       createdProject.id,
     );
     if (!column) {
       throw new Error('기본 프로젝트 컬럼을 조회하지 못했습니다.');
     }
-    const ticketResult = await repository.createTicketWithNumber({
+    const ticketResult = await tickets.createTicketWithNumber({
       organizationId,
       projectId: createdProject.id,
       columnId: column.id,
@@ -301,7 +310,7 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
       throw new Error('보관 테스트 티켓 생성에 실패했습니다.');
     }
 
-    await repository.updateTicket({
+    await tickets.updateTicket({
       organizationId,
       projectId: createdProject.id,
       ticketId: ticketResult.ticket.id,
@@ -309,7 +318,7 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
     });
 
     await expect(
-      repository.updateTicket({
+      tickets.updateTicket({
         organizationId,
         projectId: createdProject.id,
         ticketId: ticketResult.ticket.id,
@@ -318,7 +327,7 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
     ).resolves.toBeNull();
 
     await expect(
-      repository.updateTicket({
+      tickets.updateTicket({
         organizationId,
         projectId: createdProject.id,
         ticketId: ticketResult.ticket.id,
@@ -327,7 +336,7 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
     ).resolves.toMatchObject({ archivedAt: null });
 
     await expect(
-      repository.updateTicket({
+      tickets.updateTicket({
         organizationId,
         projectId: createdProject.id,
         ticketId: ticketResult.ticket.id,
@@ -338,8 +347,8 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
 
   it('티켓 보관은 활성 순서를 압축하고 복원은 컬럼 끝에 배치한다', async () => {
     const createdProject =
-      await repository.createProjectWithDefaultColumns(createProjectInput);
-    const [column] = await repository.listColumns(
+      await projects.createProjectWithDefaultColumns(createProjectInput);
+    const [column] = await columns.listColumns(
       organizationId,
       createdProject.id,
     );
@@ -349,7 +358,7 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
 
     const createdTickets = [];
     for (const title of ['첫 번째', '두 번째', '세 번째']) {
-      const result = await repository.createTicketWithNumber({
+      const result = await tickets.createTicketWithNumber({
         organizationId,
         projectId: createdProject.id,
         columnId: column.id,
@@ -370,7 +379,7 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
       throw new Error('보관 순서 테스트 티켓을 준비하지 못했습니다.');
     }
 
-    await repository.updateTicket({
+    await tickets.updateTicket({
       organizationId,
       projectId: createdProject.id,
       ticketId: second.id,
@@ -378,7 +387,7 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
     });
 
     await expect(
-      repository.listTickets({
+      tickets.listTickets({
         organizationId,
         projectId: createdProject.id,
         columnId: column.id,
@@ -388,7 +397,7 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
       expect.objectContaining({ id: third.id, position: 1 }),
     ]);
 
-    await repository.updateTicket({
+    await tickets.updateTicket({
       organizationId,
       projectId: createdProject.id,
       ticketId: second.id,
@@ -396,7 +405,7 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
     });
 
     await expect(
-      repository.listTickets({
+      tickets.listTickets({
         organizationId,
         projectId: createdProject.id,
         columnId: column.id,
@@ -410,15 +419,15 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
 
   it('보관된 프로젝트에는 repository write도 적용하지 않는다', async () => {
     const createdProject =
-      await repository.createProjectWithDefaultColumns(createProjectInput);
-    const [column] = await repository.listColumns(
+      await projects.createProjectWithDefaultColumns(createProjectInput);
+    const [column] = await columns.listColumns(
       organizationId,
       createdProject.id,
     );
     if (!column) {
       throw new Error('기본 프로젝트 컬럼을 조회하지 못했습니다.');
     }
-    const ticketResult = await repository.createTicketWithNumber({
+    const ticketResult = await tickets.createTicketWithNumber({
       organizationId,
       projectId: createdProject.id,
       columnId: column.id,
@@ -433,21 +442,21 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
       throw new Error('보관 테스트 티켓 생성에 실패했습니다.');
     }
 
-    await repository.updateProject({
+    await projects.updateProject({
       organizationId,
       projectId: createdProject.id,
       changes: { archivedAt: new Date('2026-10-06T02:00:00.000Z') },
     });
 
     await expect(
-      repository.updateProject({
+      projects.updateProject({
         organizationId,
         projectId: createdProject.id,
         changes: { name: '변경 금지' },
       }),
     ).resolves.toBeNull();
     await expect(
-      repository.renameColumn(
+      columns.renameColumn(
         organizationId,
         createdProject.id,
         column.id,
@@ -455,7 +464,7 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
       ),
     ).resolves.toBeNull();
     await expect(
-      repository.updateTicket({
+      tickets.updateTicket({
         organizationId,
         projectId: createdProject.id,
         ticketId: ticketResult.ticket.id,

@@ -2,7 +2,10 @@ import 'dotenv/config';
 
 import { z } from 'zod';
 
-function urlWithProtocols(protocols: readonly string[], message: string) {
+export function urlWithProtocols(
+  protocols: readonly string[],
+  message: string,
+) {
   return z
     .string()
     .min(1)
@@ -15,7 +18,7 @@ function urlWithProtocols(protocols: readonly string[], message: string) {
     }, message);
 }
 
-const databaseUrlSchema = urlWithProtocols(
+export const databaseUrlSchema = urlWithProtocols(
   ['postgres:', 'postgresql:'],
   'DATABASE_URL은 postgres:// 또는 postgresql:// 형식이어야 합니다.',
 );
@@ -25,7 +28,7 @@ const httpUrlSchema = urlWithProtocols(
   'BETTER_AUTH_URL은 http:// 또는 https:// 형식이어야 합니다.',
 );
 
-const redisUrlSchema = urlWithProtocols(
+export const redisUrlSchema = urlWithProtocols(
   ['redis:', 'rediss:'],
   'Redis URL은 redis:// 또는 rediss:// 형식이어야 합니다.',
 );

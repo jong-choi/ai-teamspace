@@ -4,7 +4,6 @@
   "description": "",
   "author": "",
   "private": true,
-  "license": "UNLICENSED",
   "type": "module",
   "scripts": {
     "auth:schema": "auth generate --config ./better-auth.config.ts --adapter drizzle --dialect postgresql --output ./src/auth/infrastructure/persistence/drizzle/generated/auth.schema.ts --yes",
@@ -41,6 +40,13 @@
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "1.7.7",
+    "@langchain/core": "1.2.14",
+    "@langchain/langgraph": "1.4.19",
+    "@langchain/mcp-adapters": "2.0.0",
+    "@langchain/openai": "1.6.1",
+    "@repo/agent-runtime": "^0.0.0",
+    "deepagents": "1.14.1",
+    "langchain": "1.5.10",
     "@better-auth/expo": "^1.7.7",
     "@date-fns/tz": "^1.5.0",
     "@hocuspocus/extension-redis": "^4.7.0",
@@ -72,6 +78,10 @@
     "zod": "4.6.5"
   },
   "devDependencies": {
+    "@langchain/langgraph-sdk": "1.12.1",
+    "@modelcontextprotocol/express": "2.0.2",
+    "@modelcontextprotocol/node": "2.1.1",
+    "@modelcontextprotocol/server": "2.3.1",
     "@nestjs/cli": "^12.0.0",
     "@nestjs/mau": "^0.2.6",
     "@nestjs/schematics": "^12.0.0",
@@ -80,6 +90,8 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.0",
     "@types/pg": "^8.23.1",
+    "@types/react": "~19.2.2",
+    "@types/react-test-renderer": "^19.1.0",
     "@types/supertest": "^7.0.0",
     "@types/ws": "^8.18.2",
     "auth": "1.7.7",
@@ -88,6 +100,8 @@
     "oxlint": "^1.58.0",
     "oxlint-tsgolint": "^7.0.2001",
     "prettier": "^3.4.2",
+    "react": "19.2.3",
+    "react-test-renderer": "19.2.3",
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
     "ts-jest": "^29.4.14",
@@ -98,6 +112,7 @@
       "types": "./src/*",
       "default": "./dist/*"
     },
-    "#server-source/*": "./src/*.ts"
+    "#server-source/*": "./src/*.ts",
+    "#server-test/*": "./test/*"
   }
 }

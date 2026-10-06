@@ -17,6 +17,7 @@ import { ThemeToggle } from '@core/app/shell/theme-toggle';
 import {
   Bot,
   Building2,
+  CalendarDays,
   CheckSquare,
   ChevronsUpDown,
   FileText,
@@ -35,6 +36,7 @@ const NAVIGATION_ITEMS = [
   { id: 'members', label: '멤버', icon: Users },
   { id: 'teams', label: '팀', icon: Shapes },
   { id: 'projects', label: '프로젝트', icon: FolderKanban },
+  { id: 'calendar', label: '회의일정', icon: CalendarDays },
   { id: 'tasks', label: '업무', icon: CheckSquare },
   { id: 'wiki', label: '위키', icon: FileText },
   { id: 'ai', label: 'AI', icon: Sparkles, badge: 'AGENT' },
@@ -77,24 +79,25 @@ export function DashboardNavigationContent({
           {NAVIGATION_ITEMS.map((item) => {
             const active = item.id === activeItem;
             const aiItem = item.id === 'ai';
-            const href =
+            const route =
               item.id === 'projects'
                 ? '/projects'
                 : item.id === 'wiki'
                   ? '/wiki'
-                  : null;
-            const navigable = href !== null;
+                  : item.id === 'calendar'
+                    ? '/calendar'
+                    : null;
 
             return (
               <Pressable
-                accessibilityRole={navigable ? 'link' : undefined}
-                disabled={!navigable}
+                accessibilityRole={route ? 'link' : undefined}
+                disabled={!route}
                 key={item.id}
-                onPress={href ? () => router.push(href) : undefined}
+                onPress={route ? () => router.push(route) : undefined}
                 className={cn(
                   'flex-row items-center justify-between rounded-md px-3 py-2 lg:px-2.5 lg:py-1.5',
                   active && 'bg-accent',
-                  navigable && !active && 'web:hover:bg-accent/60',
+                  route && !active && 'web:hover:bg-accent/60',
                 )}
               >
                 <View className="flex-row items-center gap-2.5">

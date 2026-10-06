@@ -2,6 +2,7 @@ import type { ArgumentsHost } from '@nestjs/common';
 import { Logger } from '@nestjs/common';
 import type { HttpAdapterHost } from '@nestjs/core';
 
+import { CalendarIcsGenerationError } from '#server/calendar/domain/calendar.error.js';
 import { ProblemDetailsFilter } from '#server/common/http/problem-details.filter.js';
 import {
   OrganizationNotFoundError,
@@ -61,6 +62,30 @@ describe('공용 Problem Details 처리', () => {
       },
       404,
     );
+  });
+
+  it('로컬 처리 실패는 500 Problem Details로 변환한다', () => {
+    const log = jest
+      .spyOn(Logger.prototype, 'error')
+      .mockImplementation(() => {});
+    try {
+      const { filter, host, reply, response } = createFixture();
+
+      filter.catch(new CalendarIcsGenerationError(), host);
+
+      expect(reply).toHaveBeenCalledWith(
+        response,
+        {
+          type: 'about:blank',
+          title: 'Internal Server Error',
+          status: 500,
+          errorCode: 'CALENDAR_ICS_GENERATION_FAILED',
+        },
+        500,
+      );
+    } finally {
+      log.mockRestore();
+    }
   });
 
   it('5xx detail은 숨기고 원문 없이 진단 정보만 기록한다', () => {

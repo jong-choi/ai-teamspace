@@ -1,0 +1,565 @@
+import { randomUUID } from 'node:crypto';
+
+import { Test, type TestingModule } from '@nestjs/testing';
+
+import {
+  organization,
+  user,
+} from '#server-source/auth/infrastructure/persistence/drizzle/generated/auth.schema';
+import { CalendarRepository } from '#server-source/calendar/infrastructure/persistence/calendar.repository';
+import { CalendarDrizzlePersistenceModule } from '#server-source/calendar/infrastructure/persistence/drizzle/drizzle-persistence.module';
+import { meeting } from '#server-source/calendar/infrastructure/persistence/drizzle/schema/meeting.schema';
+import { meetingRecurrenceSeries } from '#server-source/calendar/infrastructure/persistence/drizzle/schema/meeting-recurrence-series.schema';
+import { meetingRoom } from '#server-source/calendar/infrastructure/persistence/drizzle/schema/meeting-room.schema';
+import { DatabaseModule } from '#server-source/database/database.module';
+import { DatabaseService } from '#server-source/database/database.service';
+
+import { eq, inArray } from 'drizzle-orm';
+
+const organizationId = 'calendar-repository-integration-org';
+const organizerA = 'calendar-repository-organizer-a';
+const organizerB = 'calendar-repository-organizer-b';
+const userIds = [organizerA, organizerB] as const;
+const startAt = new Date('2026-10-07T00:00:00.000Z');
+const endAt = new Date('2026-10-07T01:00:00.000Z');
+
+function scheduleInput(input: {
+  organizerUserId: string;
+  meetingRoomId?: string | null;
+  startAt?: Date;
+  endAt?: Date;
+}) {
+  const meetingRoomId = input.meetingRoomId ?? null;
+  return {
+    template: {
+      organizationId,
+      projectId: null,
+      organizerUserId: input.organizerUserId,
+      title: '통합 테스트 회의',
+      category: 'team' as const,
+      timeZone: 'Asia/Seoul',
+      locationType: meetingRoomId
+        ? ('meeting_room' as const)
+        : ('online' as const),
+      meetingRoomId,
+      locationText: null,
+      agendaMarkdown: '',
+      notesMarkdown: '',
+      reminderMinutes: null,
+      iCalUid: randomUUID(),
+    },
+    attendeeUserIds: [],
+    occurrences: [
+      {
+        startAt: input.startAt ?? startAt,
+        endAt: input.endAt ?? endAt,
+        recurrenceOriginalStartAt: null,
+      },
+    ],
+    recurrence: null,
+  };
+}
+
+describe('캘린더 Drizzle scheduling 저장소 통합', () => {
+  let moduleRef: TestingModule;
+  let database: DatabaseService['db'];
+  let repository: CalendarRepository;
+
+  beforeAll(async () => {
+    moduleRef = await Test.createTestingModule({
+      imports: [DatabaseModule, CalendarDrizzlePersistenceModule],
+    }).compile();
+    await moduleRef.init();
+    database = moduleRef.get(DatabaseService).db;
+    repository = moduleRef.get(CalendarRepository);
+  });
+
+  beforeEach(async () => {
+    await cleanup();
+    await database.insert(user).values([
+      {
+        id: organizerA,
+        name: '캘린더 주최자 A',
+        email: 'calendar-repository-a@example.com',
+        username: 'calendarrepositorya',
+      },
+      {
+        id: organizerB,
+        name: '캘린더 주최자 B',
+        email: 'calendar-repository-b@example.com',
+        username: 'calendarrepositoryb',
+      },
+    ]);
+    await database.insert(organization).values({
+      id: organizationId,
+      name: '캘린더 통합 조직',
+      slug: 'calendar-repository-integration-org',
+      createdAt: new Date(),
+    });
+  });
+
+  afterAll(async () => {
+    await cleanup();
+    await moduleRef.close();
+  });
+
+  it('같은 participant의 겹치는 Meeting 동시 생성은 하나만 성공한다', async () => {
+    const [first, second] = await Promise.all([
+      repository.scheduleMeeting(
+        scheduleInput({ organizerUserId: organizerA }),
+      ),
+      repository.scheduleMeeting(
+        scheduleInput({ organizerUserId: organizerA }),
+      ),
+    ]);
+
+    expect([first.status, second.status].sort()).toEqual([
+      'conflict',
+      'scheduled',
+    ]);
+  });
+
+  it('같은 회의실의 겹치는 Meeting 동시 생성은 하나만 성공한다', async () => {
+    const room = await repository.createMeetingRoom({
+      organizationId,
+      name: '통합 회의실',
+      capacity: 8,
+      floor: '3F',
+      description: null,
+    });
+
+    const [first, second] = await Promise.all([
+      repository.scheduleMeeting(
+        scheduleInput({ organizerUserId: organizerA, meetingRoomId: room.id }),
+      ),
+      repository.scheduleMeeting(
+        scheduleInput({ organizerUserId: organizerB, meetingRoomId: room.id }),
+      ),
+    ]);
+
+    expect([first.status, second.status].sort()).toEqual([
+      'conflict',
+      'scheduled',
+    ]);
+  });
+
+  it('비활성화된 회의실은 authoritative create transaction에서 다시 거부한다', async () => {
+    const room = await repository.createMeetingRoom({
+      organizationId,
+      name: '비활성 회의실',
+      capacity: 4,
+      floor: null,
+      description: null,
+    });
+    await repository.updateMeetingRoom({
+      organizationId,
+      meetingRoomId: room.id,
+      changes: { active: false },
+    });
+
+    const result = await repository.scheduleMeeting(
+      scheduleInput({ organizerUserId: organizerA, meetingRoomId: room.id }),
+    );
+
+    expect(result.status).toBe('room_unavailable');
+  });
+
+  it('끝 시각과 다음 시작 시각이 맞닿는 half-open interval은 충돌하지 않는다', async () => {
+    const first = await repository.scheduleMeeting(
+      scheduleInput({ organizerUserId: organizerA }),
+    );
+    const second = await repository.scheduleMeeting(
+      scheduleInput({
+        organizerUserId: organizerA,
+        startAt: endAt,
+        endAt: new Date('2026-10-07T02:00:00.000Z'),
+      }),
+    );
+
+    expect(first.status).toBe('scheduled');
+    expect(second.status).toBe('scheduled');
+  });
+
+  it('reschedule과 새 Meeting이 같은 participant 시간대를 동시에 차지하지 못한다', async () => {
+    const original = await repository.scheduleMeeting(
+      scheduleInput({ organizerUserId: organizerA }),
+    );
+    if (original.status !== 'scheduled') {
+      throw new Error('reschedule race 준비 Meeting을 생성하지 못했습니다.');
+    }
+    const originalMeeting = original.records[0]?.meeting;
+    if (!originalMeeting) {
+      throw new Error('reschedule race 준비 Meeting 결과가 없습니다.');
+    }
+
+    const [rescheduled, created] = await Promise.all([
+      repository.rescheduleMeetings({
+        organizationId,
+        updates: [
+          {
+            meetingId: originalMeeting.id,
+            startAt: new Date('2026-10-07T02:00:00.000Z'),
+            endAt: new Date('2026-10-07T03:00:00.000Z'),
+            timeZone: 'Asia/Seoul',
+            locationType: 'online',
+            meetingRoomId: null,
+            locationText: null,
+          },
+        ],
+      }),
+      repository.scheduleMeeting(
+        scheduleInput({
+          organizerUserId: organizerA,
+          startAt: new Date('2026-10-07T02:30:00.000Z'),
+          endAt: new Date('2026-10-07T03:30:00.000Z'),
+        }),
+      ),
+    ]);
+
+    expect([rescheduled.status, created.status].sort()).toEqual([
+      'conflict',
+      'scheduled',
+    ]);
+  });
+
+  it('transaction 안에서 이미 취소된 Meeting은 reschedule하지 않는다', async () => {
+    const original = await repository.scheduleMeeting(
+      scheduleInput({ organizerUserId: organizerA }),
+    );
+    if (original.status !== 'scheduled') {
+      throw new Error(
+        '취소 reschedule 검증 준비 Meeting을 생성하지 못했습니다.',
+      );
+    }
+    const originalMeeting = original.records[0]?.meeting;
+    if (!originalMeeting) {
+      throw new Error('취소 reschedule 검증 준비 Meeting 결과가 없습니다.');
+    }
+    await repository.cancelMeetings({
+      organizationId,
+      meetingIds: [originalMeeting.id],
+      canceledByUserId: organizerA,
+      cancelReason: null,
+    });
+
+    const result = await repository.rescheduleMeetings({
+      organizationId,
+      updates: [
+        {
+          meetingId: originalMeeting.id,
+          startAt: new Date('2026-10-07T02:00:00.000Z'),
+          endAt: new Date('2026-10-07T03:00:00.000Z'),
+          timeZone: 'Asia/Seoul',
+          locationType: 'online',
+          meetingRoomId: null,
+          locationText: null,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('canceled');
+    const stored = await repository.findMeetingById(
+      organizationId,
+      originalMeeting.id,
+    );
+    expect(stored?.meeting.startAt).toEqual(originalMeeting.startAt);
+    expect(stored?.meeting.endAt).toEqual(originalMeeting.endAt);
+  });
+
+  it('Meeting 취소가 완료되면 같은 participant가 기존 slot을 다시 사용할 수 있다', async () => {
+    const original = await repository.scheduleMeeting(
+      scheduleInput({ organizerUserId: organizerA }),
+    );
+    if (original.status !== 'scheduled') {
+      throw new Error('cancel slot 재사용 준비 Meeting을 생성하지 못했습니다.');
+    }
+    const originalMeeting = original.records[0]?.meeting;
+    if (!originalMeeting) {
+      throw new Error('cancel slot 재사용 준비 Meeting 결과가 없습니다.');
+    }
+
+    await repository.cancelMeetings({
+      organizationId,
+      meetingIds: [originalMeeting.id],
+      canceledByUserId: organizerA,
+      cancelReason: null,
+    });
+    const replacement = await repository.scheduleMeeting(
+      scheduleInput({ organizerUserId: organizerA }),
+    );
+
+    expect(replacement.status).toBe('scheduled');
+  });
+
+  it('attendee는 pending/accepted/tentative일 때 busy이고 declined일 때만 busy에서 빠진다', async () => {
+    const original = await repository.scheduleMeeting({
+      ...scheduleInput({ organizerUserId: organizerA }),
+      attendeeUserIds: [organizerB],
+    });
+    if (original.status !== 'scheduled') {
+      throw new Error('attendee busy 준비 Meeting을 생성하지 못했습니다.');
+    }
+    const originalMeeting = original.records[0]?.meeting;
+    if (!originalMeeting) {
+      throw new Error('attendee busy 준비 Meeting 결과가 없습니다.');
+    }
+
+    const pendingConflict = await repository.scheduleMeeting(
+      scheduleInput({ organizerUserId: organizerB }),
+    );
+    expect(pendingConflict.status).toBe('conflict');
+
+    const accepted = await repository.updateAttendeeRsvp(
+      organizationId,
+      originalMeeting.id,
+      organizerB,
+      'accepted',
+    );
+    expect(accepted.status).toBe('updated');
+    const acceptedConflict = await repository.scheduleMeeting(
+      scheduleInput({ organizerUserId: organizerB }),
+    );
+    expect(acceptedConflict.status).toBe('conflict');
+
+    const tentative = await repository.updateAttendeeRsvp(
+      organizationId,
+      originalMeeting.id,
+      organizerB,
+      'tentative',
+    );
+    expect(tentative.status).toBe('updated');
+    const tentativeConflict = await repository.scheduleMeeting(
+      scheduleInput({ organizerUserId: organizerB }),
+    );
+    expect(tentativeConflict.status).toBe('conflict');
+
+    const declined = await repository.updateAttendeeRsvp(
+      organizationId,
+      originalMeeting.id,
+      organizerB,
+      'declined',
+    );
+    expect(declined.status).toBe('updated');
+    const afterDecline = await repository.scheduleMeeting(
+      scheduleInput({ organizerUserId: organizerB }),
+    );
+    expect(afterDecline.status).toBe('scheduled');
+  });
+
+  it('반복 일정의 후속 occurrence가 충돌하면 series를 부분 생성하지 않는다', async () => {
+    const occupied = await repository.scheduleMeeting(
+      scheduleInput({
+        organizerUserId: organizerA,
+        startAt: new Date('2026-10-14T00:00:00.000Z'),
+        endAt: new Date('2026-10-14T01:00:00.000Z'),
+      }),
+    );
+    expect(occupied.status).toBe('scheduled');
+
+    const result = await repository.scheduleMeeting({
+      ...scheduleInput({ organizerUserId: organizerA }),
+      occurrences: [0, 7, 14].map((dayOffset) => {
+        const occurrenceStart = new Date(
+          startAt.getTime() + dayOffset * 86_400_000,
+        );
+        return {
+          startAt: occurrenceStart,
+          endAt: new Date(occurrenceStart.getTime() + 3_600_000),
+          recurrenceOriginalStartAt: occurrenceStart,
+        };
+      }),
+      recurrence: {
+        organizationId,
+        frequency: 'weekly',
+        interval: 1,
+        count: 3,
+        until: null,
+        byWeekday: ['WE'],
+        timeZone: 'Asia/Seoul',
+      },
+    });
+
+    expect(result.status).toBe('conflict');
+    const meetings = await repository.listMeetingsInRange({
+      organizationId,
+      from: new Date('2026-10-01T00:00:00.000Z'),
+      to: new Date('2026-11-01T00:00:00.000Z'),
+    });
+    expect(meetings).toHaveLength(1);
+  });
+
+  it('future split은 원 series를 닫고 새 series의 recurrence identity와 sequence를 갱신한다', async () => {
+    const recurrenceStarts = [0, 7, 14].map(
+      (dayOffset) => new Date(startAt.getTime() + dayOffset * 86_400_000),
+    );
+    const scheduled = await repository.scheduleMeeting({
+      ...scheduleInput({ organizerUserId: organizerA }),
+      occurrences: recurrenceStarts.map((occurrenceStart) => ({
+        startAt: occurrenceStart,
+        endAt: new Date(occurrenceStart.getTime() + 3_600_000),
+        recurrenceOriginalStartAt: occurrenceStart,
+      })),
+      recurrence: {
+        organizationId,
+        frequency: 'weekly',
+        interval: 1,
+        count: 3,
+        until: null,
+        byWeekday: ['WE'],
+        timeZone: 'Asia/Seoul',
+      },
+    });
+    if (scheduled.status !== 'scheduled') {
+      throw new Error('future split 준비 Meeting을 생성하지 못했습니다.');
+    }
+    const [past, ...future] = scheduled.records;
+    const sourceSeriesId = past?.meeting.recurrenceSeriesId;
+    if (!past || !sourceSeriesId || future.length !== 2) {
+      throw new Error('future split 준비 recurrence 정보를 찾지 못했습니다.');
+    }
+
+    const updates = future.map((record) => {
+      const shiftedStartAt = new Date(
+        record.meeting.startAt.getTime() + 86_400_000,
+      );
+      return {
+        meetingId: record.meeting.id,
+        startAt: shiftedStartAt,
+        endAt: new Date(shiftedStartAt.getTime() + 3_600_000),
+        timeZone: 'Asia/Seoul',
+        locationType: 'online' as const,
+        meetingRoomId: null,
+        locationText: null,
+        recurrenceOriginalStartAt: shiftedStartAt,
+      };
+    });
+    const result = await repository.rescheduleMeetings({
+      organizationId,
+      updates,
+      recurrenceMutation: {
+        kind: 'split',
+        sourceSeriesId,
+        sourceChanges: {
+          count: null,
+          until: past.meeting.recurrenceOriginalStartAt,
+        },
+        meetingIds: future.map((record) => record.meeting.id),
+        create: {
+          organizationId,
+          frequency: 'weekly',
+          interval: 1,
+          count: 2,
+          until: null,
+          byWeekday: ['TH'],
+          timeZone: 'Asia/Seoul',
+        },
+      },
+    });
+    expect(result.status).toBe('updated');
+
+    const storedPast = await repository.findMeetingById(
+      organizationId,
+      past.meeting.id,
+    );
+    expect(storedPast?.recurrence).toMatchObject({
+      id: sourceSeriesId,
+      count: null,
+      until: past.meeting.recurrenceOriginalStartAt,
+      byWeekday: ['WE'],
+    });
+    expect(storedPast?.meeting.iCalSequence).toBe(1);
+
+    if (result.status !== 'updated') return;
+    const splitSeriesIds = new Set(
+      result.records.map((record) => record.meeting.recurrenceSeriesId),
+    );
+    expect(splitSeriesIds.size).toBe(1);
+    expect(splitSeriesIds.has(sourceSeriesId)).toBe(false);
+    expect(result.records[0]?.recurrence).toMatchObject({
+      count: 2,
+      until: null,
+      byWeekday: ['TH'],
+      timeZone: 'Asia/Seoul',
+    });
+    expect(
+      result.records.every((record) => record.meeting.iCalSequence === 1),
+    ).toBe(true);
+  });
+
+  it('series 조회는 occurrence를 이동해도 원래 recurrence 순서를 유지한다', async () => {
+    const recurrenceStarts = [0, 7, 14].map(
+      (dayOffset) => new Date(startAt.getTime() + dayOffset * 86_400_000),
+    );
+    const scheduled = await repository.scheduleMeeting({
+      ...scheduleInput({ organizerUserId: organizerA }),
+      occurrences: recurrenceStarts.map((occurrenceStart) => ({
+        startAt: occurrenceStart,
+        endAt: new Date(occurrenceStart.getTime() + 3_600_000),
+        recurrenceOriginalStartAt: occurrenceStart,
+      })),
+      recurrence: {
+        organizationId,
+        frequency: 'weekly',
+        interval: 1,
+        count: 3,
+        until: null,
+        byWeekday: ['WE'],
+        timeZone: 'Asia/Seoul',
+      },
+    });
+    if (scheduled.status !== 'scheduled') {
+      throw new Error('series 정렬 준비 Meeting을 생성하지 못했습니다.');
+    }
+    const middle = scheduled.records.find(
+      (record) =>
+        record.meeting.recurrenceOriginalStartAt?.getTime() ===
+        recurrenceStarts[1]?.getTime(),
+    );
+    const recurrenceSeriesId = middle?.meeting.recurrenceSeriesId;
+    if (!middle || !recurrenceSeriesId) {
+      throw new Error('series 정렬 준비 recurrence 정보를 찾지 못했습니다.');
+    }
+
+    const moved = await repository.rescheduleMeetings({
+      organizationId,
+      updates: [
+        {
+          meetingId: middle.meeting.id,
+          startAt: new Date('2026-10-28T00:00:00.000Z'),
+          endAt: new Date('2026-10-28T01:00:00.000Z'),
+          timeZone: 'Asia/Seoul',
+          locationType: 'online',
+          meetingRoomId: null,
+          locationText: null,
+        },
+      ],
+    });
+    expect(moved.status).toBe('updated');
+
+    const series = await repository.listMeetingsInSeries(
+      organizationId,
+      recurrenceSeriesId,
+    );
+    expect(
+      series.map((record) =>
+        record.meeting.recurrenceOriginalStartAt?.toISOString(),
+      ),
+    ).toEqual(recurrenceStarts.map((value) => value.toISOString()));
+  });
+
+  async function cleanup(): Promise<void> {
+    await database
+      .delete(meeting)
+      .where(eq(meeting.organizationId, organizationId));
+    await database
+      .delete(meetingRecurrenceSeries)
+      .where(eq(meetingRecurrenceSeries.organizationId, organizationId));
+    await database
+      .delete(meetingRoom)
+      .where(eq(meetingRoom.organizationId, organizationId));
+    await database
+      .delete(organization)
+      .where(eq(organization.id, organizationId));
+    await database.delete(user).where(inArray(user.id, userIds));
+  }
+});

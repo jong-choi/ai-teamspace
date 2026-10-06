@@ -1,6 +1,7 @@
 import { CalendarProjectSummarySchema } from '#server/calendar/domain/calendar-project-summary.js';
 import { MeetingSchema as MeetingDomainSchema } from '#server/calendar/domain/meeting.js';
 import { MeetingRoomSchema } from '#server/calendar/dto/meeting-room.dto.js';
+import { MeetingRecurrenceSchema } from '#server/calendar/dto/recurrence.dto.js';
 import { meetingAttendeeSelectSchema } from '#server/calendar/infrastructure/persistence/drizzle/schema/meeting-attendee.zod.js';
 import { createZodDto } from '#server/common/dto/create-zod-dto.js';
 import { OrganizationUserSummarySchema } from '#server/organizations/domain/organization-member.js';
@@ -13,12 +14,14 @@ const MeetingWireSchema = MeetingDomainSchema.omit({
   createdAt: true,
   updatedAt: true,
   canceledAt: true,
+  recurrenceOriginalStartAt: true,
 }).extend({
   startAt: z.string().datetime(),
   endAt: z.string().datetime(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
   canceledAt: z.string().datetime().nullable(),
+  recurrenceOriginalStartAt: z.string().datetime().nullable(),
 });
 
 export const MeetingRoomReferenceSchema = MeetingRoomSchema.pick({
@@ -46,6 +49,7 @@ export const MeetingSummarySchema = MeetingWireSchema.omit({
     attendeeCount: z.number().int().min(0),
     meetingRoom: MeetingRoomReferenceSchema.nullable(),
     project: CalendarProjectSummarySchema.nullable(),
+    recurrence: MeetingRecurrenceSchema.nullable(),
   })
   .meta({ id: 'MeetingSummary' });
 
@@ -58,6 +62,7 @@ export const MeetingDetailSchema = MeetingWireSchema.extend({
   attendees: z.array(MeetingAttendeeResponseSchema),
   meetingRoom: MeetingRoomReferenceSchema.nullable(),
   project: CalendarProjectSummarySchema.nullable(),
+  recurrence: MeetingRecurrenceSchema.nullable(),
 }).meta({ id: 'MeetingDetail' });
 
 export type MeetingWireResponse = z.infer<typeof MeetingWireSchema>;

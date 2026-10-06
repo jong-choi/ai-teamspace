@@ -1,5 +1,6 @@
 import { authOrganizationIdColumn } from '#server/auth/infrastructure/persistence/drizzle/auth-organization-reference.js';
 import { authUserIdColumn } from '#server/auth/infrastructure/persistence/drizzle/auth-user-reference.js';
+import { meetingRecurrenceSeries } from '#server/calendar/infrastructure/persistence/drizzle/schema/meeting-recurrence-series.schema.js';
 import { meetingRoom } from '#server/calendar/infrastructure/persistence/drizzle/schema/meeting-room.schema.js';
 
 import { sql } from 'drizzle-orm';
@@ -55,6 +56,13 @@ export const meeting = pgTable(
     agendaMarkdown: text('agenda_markdown').default('').notNull(),
     notesMarkdown: text('notes_markdown').default('').notNull(),
     reminderMinutes: integer('reminder_minutes'),
+    iCalUid: uuid('ical_uid').defaultRandom().notNull(),
+    iCalSequence: integer('ical_sequence').default(0).notNull(),
+    recurrenceSeriesId: uuid('recurrence_series_id'),
+    recurrenceOriginalStartAt: timestamp('recurrence_original_start_at', {
+      withTimezone: true,
+      precision: 3,
+    }),
     createdAt: timestamp('created_at', { withTimezone: true, precision: 3 })
       .defaultNow()
       .notNull(),
@@ -62,6 +70,11 @@ export const meeting = pgTable(
       .defaultNow()
       .notNull(),
     canceledAt: timestamp('canceled_at', { withTimezone: true, precision: 3 }),
+    canceledByUserId: text('canceled_by_user_id').references(
+      () => authUserIdColumn,
+      { onDelete: 'restrict' },
+    ),
+    cancelReason: text('cancel_reason'),
   },
   (table) => [
     unique('meeting_id_organization_unique').on(table.id, table.organizationId),
@@ -69,6 +82,14 @@ export const meeting = pgTable(
       name: 'meeting_room_organization_fk',
       columns: [table.meetingRoomId, table.organizationId],
       foreignColumns: [meetingRoom.id, meetingRoom.organizationId],
+    }).onDelete('restrict'),
+    foreignKey({
+      name: 'meeting_recurrence_series_organization_fk',
+      columns: [table.recurrenceSeriesId, table.organizationId],
+      foreignColumns: [
+        meetingRecurrenceSeries.id,
+        meetingRecurrenceSeries.organizationId,
+      ],
     }).onDelete('restrict'),
     check('meeting_time_range_check', sql`${table.endAt} > ${table.startAt}`),
     check(
@@ -78,6 +99,15 @@ export const meeting = pgTable(
     check(
       'meeting_reminder_minutes_check',
       sql`${table.reminderMinutes} is null or ${table.reminderMinutes} >= 0`,
+    ),
+    check('meeting_ical_sequence_check', sql`${table.iCalSequence} >= 0`),
+    check(
+      'meeting_recurrence_pair_check',
+      sql`(${table.recurrenceSeriesId} is null and ${table.recurrenceOriginalStartAt} is null) or (${table.recurrenceSeriesId} is not null and ${table.recurrenceOriginalStartAt} is not null)`,
+    ),
+    check(
+      'meeting_cancel_metadata_check',
+      sql`(${table.canceledAt} is null and ${table.canceledByUserId} is null and ${table.cancelReason} is null) or (${table.canceledAt} is not null and ${table.canceledByUserId} is not null)`,
     ),
     index('meeting_organization_time_idx').on(
       table.organizationId,
@@ -99,6 +129,14 @@ export const meeting = pgTable(
     index('meeting_organizer_time_idx').on(
       table.organizerUserId,
       table.startAt,
+    ),
+    unique('meeting_recurrence_occurrence_unique').on(
+      table.recurrenceSeriesId,
+      table.recurrenceOriginalStartAt,
+    ),
+    index('meeting_recurrence_series_start_idx').on(
+      table.recurrenceSeriesId,
+      table.recurrenceOriginalStartAt,
     ),
   ],
 );

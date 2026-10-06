@@ -5,6 +5,7 @@
  * OpenAPI spec version: 1.0
  */
 import * as zod from 'zod';
+import { RecurrenceRule } from './recurrenceRule.zod';
 
 
 export const createMeetingStartAtRegExp = new RegExp('^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$');
@@ -15,8 +16,10 @@ export const createMeetingMeetingRoomIdRegExp = new RegExp('^([0-9a-fA-F]{8}-[0-
 
 
 export const createMeetingAttendeeUserIdsDefault = [];
+export const createMeetingAttendeeUserIdsMax = 500;
+
 export const createMeetingReminderMinutesMin = 0;
-export const createMeetingReminderMinutesMax = 9007199254740991;
+export const createMeetingReminderMinutesMax = 2147483647;
 
 
 
@@ -30,10 +33,11 @@ export const CreateMeeting = zod.object({
   "meetingRoomId": zod.uuid().regex(createMeetingMeetingRoomIdRegExp).nullish(),
   "locationText": zod.string().min(1).nullish(),
   "projectId": zod.string().min(1).nullish(),
-  "attendeeUserIds": zod.array(zod.string().min(1)).default(createMeetingAttendeeUserIdsDefault),
+  "attendeeUserIds": zod.array(zod.string().min(1)).max(createMeetingAttendeeUserIdsMax).default(createMeetingAttendeeUserIdsDefault),
   "agendaMarkdown": zod.string().optional(),
   "notesMarkdown": zod.string().optional(),
-  "reminderMinutes": zod.int().min(createMeetingReminderMinutesMin).max(createMeetingReminderMinutesMax).nullish()
+  "reminderMinutes": zod.int().min(createMeetingReminderMinutesMin).max(createMeetingReminderMinutesMax).nullish(),
+  "recurrence": RecurrenceRule.optional()
 });
 
 export type CreateMeeting = zod.input<typeof CreateMeeting>;

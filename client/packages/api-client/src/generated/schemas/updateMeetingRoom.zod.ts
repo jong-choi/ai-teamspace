@@ -8,7 +8,7 @@ import * as zod from 'zod';
 
 
 export const updateMeetingRoomCapacityExclusiveMin = 0;
-export const updateMeetingRoomCapacityMax = 9007199254740991;
+export const updateMeetingRoomCapacityMax = 2147483647;
 
 
 

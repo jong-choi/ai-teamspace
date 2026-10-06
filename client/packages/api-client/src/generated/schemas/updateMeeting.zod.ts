@@ -7,25 +7,16 @@
 import * as zod from 'zod';
 
 
-export const updateMeetingMeetingRoomIdRegExp = new RegExp('^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$');
-
-
 
 export const updateMeetingReminderMinutesMin = 0;
-export const updateMeetingReminderMinutesMax = 9007199254740991;
+export const updateMeetingReminderMinutesMax = 2147483647;
 
 
 
 export const UpdateMeeting = zod.object({
   "title": zod.string().min(1).optional(),
   "category": zod.enum(['team', 'sprint', '1on1', 'allhands', 'client']).optional(),
-  "locationType": zod.enum(['online', 'meeting_room', 'other']).optional(),
-  "meetingRoomId": zod.uuid().regex(updateMeetingMeetingRoomIdRegExp).nullish(),
-  "locationText": zod.string().min(1).nullish(),
   "projectId": zod.string().min(1).nullish(),
-  "attendeeUserIds": zod.array(zod.string().min(1)).optional(),
-  "agendaMarkdown": zod.string().optional(),
-  "notesMarkdown": zod.string().optional(),
   "reminderMinutes": zod.int().min(updateMeetingReminderMinutesMin).max(updateMeetingReminderMinutesMax).nullish()
 });
 

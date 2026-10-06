@@ -24,6 +24,7 @@ const statusByKind = {
   conflict: HttpStatus.CONFLICT,
   external_provider: HttpStatus.BAD_GATEWAY,
   forbidden: HttpStatus.FORBIDDEN,
+  internal: HttpStatus.INTERNAL_SERVER_ERROR,
   not_found: HttpStatus.NOT_FOUND,
 } as const satisfies Record<ApplicationErrorKind, number>;
 

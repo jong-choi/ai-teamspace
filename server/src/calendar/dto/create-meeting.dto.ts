@@ -1,3 +1,4 @@
+import { RecurrenceRuleSchema } from '#server/calendar/dto/recurrence.dto.js';
 import { meetingInsertSchema } from '#server/calendar/infrastructure/persistence/drizzle/schema/meeting.zod.js';
 import { createZodDto } from '#server/common/dto/create-zod-dto.js';
 
@@ -16,10 +17,11 @@ export const CreateMeetingSchema = z
     meetingRoomId: meetingInsertSchema.shape.meetingRoomId.optional(),
     locationText: meetingInsertSchema.shape.locationText.optional(),
     projectId: meetingInsertSchema.shape.projectId.optional(),
-    attendeeUserIds: z.array(z.string().min(1)).default([]),
+    attendeeUserIds: z.array(z.string().trim().min(1)).max(500).default([]),
     agendaMarkdown: meetingInsertSchema.shape.agendaMarkdown.optional(),
     notesMarkdown: meetingInsertSchema.shape.notesMarkdown.optional(),
     reminderMinutes: meetingInsertSchema.shape.reminderMinutes.optional(),
+    recurrence: RecurrenceRuleSchema.optional(),
   })
   .superRefine((input, context) => {
     if (new Date(input.endAt).getTime() <= new Date(input.startAt).getTime()) {
@@ -43,6 +45,14 @@ export const CreateMeetingSchema = z
         code: 'custom',
         message: '회의실이 아닌 장소에는 meetingRoomId를 지정할 수 없습니다.',
         path: ['meetingRoomId'],
+      });
+    }
+
+    if (input.recurrence && input.recurrence.timeZone !== input.timeZone) {
+      context.addIssue({
+        code: 'custom',
+        message: 'recurrence timezone은 회의 timezone과 같아야 합니다.',
+        path: ['recurrence', 'timeZone'],
       });
     }
   })

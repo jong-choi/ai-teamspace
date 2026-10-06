@@ -6,6 +6,7 @@
  */
 import * as zod from 'zod';
 import { CalendarProjectSummary } from './calendarProjectSummary.zod';
+import { MeetingRecurrence } from './meetingRecurrence.zod';
 import { MeetingRoomReference } from './meetingRoomReference.zod';
 import { OrganizationUserSummary } from './organizationUserSummary.zod';
 
@@ -15,11 +16,18 @@ export const meetingSummaryIdRegExp = new RegExp('^([0-9a-fA-F]{8}-[0-9a-fA-F]{4
 
 export const meetingSummaryMeetingRoomIdRegExp = new RegExp('^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$');
 
+export const meetingSummaryICalUidRegExp = new RegExp('^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$');
+export const meetingSummaryICalSequenceMin = 0;
+export const meetingSummaryICalSequenceMax = 2147483647;
+
+export const meetingSummaryRecurrenceSeriesIdRegExp = new RegExp('^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$');
+
 export const meetingSummaryStartAtRegExp = new RegExp('^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$');
 export const meetingSummaryEndAtRegExp = new RegExp('^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$');
 export const meetingSummaryCreatedAtRegExp = new RegExp('^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$');
 export const meetingSummaryUpdatedAtRegExp = new RegExp('^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$');
 export const meetingSummaryCanceledAtRegExp = new RegExp('^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$');
+export const meetingSummaryRecurrenceOriginalStartAtRegExp = new RegExp('^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$');
 export const meetingSummaryAttendeeCountMin = 0;
 export const meetingSummaryAttendeeCountMax = 9007199254740991;
 
@@ -36,15 +44,22 @@ export const MeetingSummary = zod.object({
   "locationType": zod.enum(['online', 'meeting_room', 'other']),
   "meetingRoomId": zod.uuid().regex(meetingSummaryMeetingRoomIdRegExp).nullable(),
   "locationText": zod.string().min(1).nullable(),
+  "iCalUid": zod.uuid().regex(meetingSummaryICalUidRegExp),
+  "iCalSequence": zod.int().min(meetingSummaryICalSequenceMin).max(meetingSummaryICalSequenceMax),
+  "recurrenceSeriesId": zod.uuid().regex(meetingSummaryRecurrenceSeriesIdRegExp).nullable(),
+  "canceledByUserId": zod.string().nullable(),
+  "cancelReason": zod.string().min(1).nullable(),
   "startAt": zod.iso.datetime({"offset":true}).regex(meetingSummaryStartAtRegExp),
   "endAt": zod.iso.datetime({"offset":true}).regex(meetingSummaryEndAtRegExp),
   "createdAt": zod.iso.datetime({"offset":true}).regex(meetingSummaryCreatedAtRegExp),
   "updatedAt": zod.iso.datetime({"offset":true}).regex(meetingSummaryUpdatedAtRegExp),
   "canceledAt": zod.iso.datetime({"offset":true}).regex(meetingSummaryCanceledAtRegExp).nullable(),
+  "recurrenceOriginalStartAt": zod.iso.datetime({"offset":true}).regex(meetingSummaryRecurrenceOriginalStartAtRegExp).nullable(),
   "organizer": OrganizationUserSummary,
   "attendeeCount": zod.int().min(meetingSummaryAttendeeCountMin).max(meetingSummaryAttendeeCountMax),
   "meetingRoom": zod.union([MeetingRoomReference,zod.null()]),
-  "project": zod.union([CalendarProjectSummary,zod.null()])
+  "project": zod.union([CalendarProjectSummary,zod.null()]),
+  "recurrence": zod.union([MeetingRecurrence,zod.null()])
 });
 
 export type MeetingSummary = zod.input<typeof MeetingSummary>;

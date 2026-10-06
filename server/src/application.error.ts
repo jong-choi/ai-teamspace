@@ -1,5 +1,10 @@
 export type ApplicationErrorKind =
-  'bad_request' | 'forbidden' | 'not_found' | 'conflict' | 'external_provider';
+  | 'bad_request'
+  | 'forbidden'
+  | 'not_found'
+  | 'conflict'
+  | 'external_provider'
+  | 'internal';
 
 export class ApplicationError extends Error {
   constructor(

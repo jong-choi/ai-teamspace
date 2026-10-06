@@ -7,13 +7,7 @@ export const UpdateMeetingSchema = z
   .object({
     title: meetingUpdateSchema.shape.title,
     category: meetingUpdateSchema.shape.category,
-    locationType: meetingUpdateSchema.shape.locationType,
-    meetingRoomId: meetingUpdateSchema.shape.meetingRoomId,
-    locationText: meetingUpdateSchema.shape.locationText,
     projectId: meetingUpdateSchema.shape.projectId,
-    attendeeUserIds: z.array(z.string().min(1)).optional(),
-    agendaMarkdown: meetingUpdateSchema.shape.agendaMarkdown,
-    notesMarkdown: meetingUpdateSchema.shape.notesMarkdown,
     reminderMinutes: meetingUpdateSchema.shape.reminderMinutes,
   })
   .refine(

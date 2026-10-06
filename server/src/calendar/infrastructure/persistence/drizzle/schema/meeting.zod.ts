@@ -7,6 +7,8 @@ import {
 } from 'drizzle-zod';
 import { z } from 'zod';
 
+const postgresIntegerMax = 2_147_483_647;
+
 export const meetingTimeZoneSchema = z
   .string()
   .trim()
@@ -27,7 +29,9 @@ const fieldRefinements = {
   locationText: z.string().trim().min(1).nullable(),
   agendaMarkdown: z.string(),
   notesMarkdown: z.string(),
-  reminderMinutes: z.number().int().min(0).nullable(),
+  reminderMinutes: z.number().int().min(0).max(postgresIntegerMax).nullable(),
+  iCalSequence: z.number().int().min(0).max(postgresIntegerMax),
+  cancelReason: z.string().trim().min(1).nullable(),
 };
 
 export const meetingSelectSchema = createSelectSchema(

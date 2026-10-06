@@ -79,7 +79,10 @@ import {
   UpdateTicketLabelDto,
   type UpdateTicketLabelInput,
 } from '@/projects/dto/update-ticket-label.dto';
-import { TicketWorkflowService } from '@/projects/ticket-workflow.service';
+import { TicketChecklistsService } from '@/projects/ticket-checklists.service';
+import { TicketCommentsService } from '@/projects/ticket-comments.service';
+import { TicketLabelsService } from '@/projects/ticket-labels.service';
+import { TicketOrderingService } from '@/projects/ticket-ordering.service';
 
 import { Session, type UserSession } from '@thallesp/nestjs-better-auth';
 import { ApiProblemResponse } from 'nest-problem-details-filter/swagger';
@@ -96,7 +99,12 @@ const problemDetailsSchema = { $ref: '#/components/schemas/ProblemDetails' };
 @Controller('organizations/:organizationId/projects')
 @UseGuards(TrustedOriginGuard)
 export class TicketWorkflowController {
-  constructor(private readonly workflowService: TicketWorkflowService) {}
+  constructor(
+    private readonly orderingService: TicketOrderingService,
+    private readonly labelsService: TicketLabelsService,
+    private readonly checklistsService: TicketChecklistsService,
+    private readonly commentsService: TicketCommentsService,
+  ) {}
 
   @Get(':projectId/labels')
   @ApiOkResponse({ standardSchema: TicketLabelListDto.schema })
@@ -106,7 +114,7 @@ export class TicketWorkflowController {
     @Param('organizationId') organizationId: string,
     @Param('projectId', ParseUUIDPipe) projectId: string,
   ): Promise<TicketLabelListDto> {
-    return this.workflowService.listLabels(
+    return this.labelsService.listLabels(
       toOrganizationActorContext(session, headers),
       organizationId,
       projectId,
@@ -124,7 +132,7 @@ export class TicketWorkflowController {
     @Body({ schema: CreateTicketLabelDto.schema })
     input: CreateTicketLabelInput,
   ): Promise<TicketLabelDto> {
-    return this.workflowService.createLabel(
+    return this.labelsService.createLabel(
       toOrganizationActorContext(session, headers),
       organizationId,
       projectId,
@@ -143,7 +151,7 @@ export class TicketWorkflowController {
     @Body({ schema: UpdateTicketLabelDto.schema })
     input: UpdateTicketLabelInput,
   ): Promise<TicketLabelDto> {
-    return this.workflowService.updateLabel(
+    return this.labelsService.updateLabel(
       toOrganizationActorContext(session, headers),
       organizationId,
       projectId,
@@ -163,7 +171,7 @@ export class TicketWorkflowController {
     @Param('ticketId', ParseUUIDPipe) ticketId: string,
     @Body({ schema: MoveTicketDto.schema }) input: MoveTicketInput,
   ): Promise<MoveTicketResultDto> {
-    return this.workflowService.moveTicket(
+    return this.orderingService.moveTicket(
       toOrganizationActorContext(session, headers),
       organizationId,
       projectId,
@@ -182,7 +190,7 @@ export class TicketWorkflowController {
     @Param('ticketId', ParseUUIDPipe) ticketId: string,
     @Param('labelId', ParseUUIDPipe) labelId: string,
   ): Promise<TicketLabelDto> {
-    return this.workflowService.attachLabel(
+    return this.labelsService.attachLabel(
       toOrganizationActorContext(session, headers),
       organizationId,
       projectId,
@@ -202,7 +210,7 @@ export class TicketWorkflowController {
     @Param('ticketId', ParseUUIDPipe) ticketId: string,
     @Param('labelId', ParseUUIDPipe) labelId: string,
   ): Promise<void> {
-    return this.workflowService.detachLabel(
+    return this.labelsService.detachLabel(
       toOrganizationActorContext(session, headers),
       organizationId,
       projectId,
@@ -223,7 +231,7 @@ export class TicketWorkflowController {
     @Body({ schema: CreateTicketChecklistDto.schema })
     input: CreateTicketChecklistInput,
   ): Promise<TicketChecklistDto> {
-    return this.workflowService.createChecklist(
+    return this.checklistsService.createChecklist(
       toOrganizationActorContext(session, headers),
       organizationId,
       projectId,
@@ -244,7 +252,7 @@ export class TicketWorkflowController {
     @Body({ schema: UpdateTicketChecklistDto.schema })
     input: UpdateTicketChecklistInput,
   ): Promise<TicketChecklistDto> {
-    return this.workflowService.updateChecklist(
+    return this.checklistsService.updateChecklist(
       toOrganizationActorContext(session, headers),
       organizationId,
       projectId,
@@ -265,7 +273,7 @@ export class TicketWorkflowController {
     @Param('ticketId', ParseUUIDPipe) ticketId: string,
     @Param('checklistId', ParseUUIDPipe) checklistId: string,
   ): Promise<void> {
-    return this.workflowService.removeChecklist(
+    return this.checklistsService.removeChecklist(
       toOrganizationActorContext(session, headers),
       organizationId,
       projectId,
@@ -287,7 +295,7 @@ export class TicketWorkflowController {
     @Body({ schema: CreateTicketChecklistItemDto.schema })
     input: CreateTicketChecklistItemInput,
   ): Promise<TicketChecklistItemDto> {
-    return this.workflowService.addChecklistItem(
+    return this.checklistsService.addChecklistItem(
       toOrganizationActorContext(session, headers),
       organizationId,
       projectId,
@@ -310,7 +318,7 @@ export class TicketWorkflowController {
     @Body({ schema: UpdateTicketChecklistItemDto.schema })
     input: UpdateTicketChecklistItemInput,
   ): Promise<TicketChecklistItemDto> {
-    return this.workflowService.updateChecklistItem(
+    return this.checklistsService.updateChecklistItem(
       toOrganizationActorContext(session, headers),
       organizationId,
       projectId,
@@ -337,7 +345,7 @@ export class TicketWorkflowController {
     @Body({ schema: MoveTicketChecklistItemDto.schema })
     input: MoveTicketChecklistItemInput,
   ): Promise<MoveTicketChecklistItemResultDto> {
-    return this.workflowService.moveChecklistItem(
+    return this.checklistsService.moveChecklistItem(
       toOrganizationActorContext(session, headers),
       organizationId,
       projectId,
@@ -360,7 +368,7 @@ export class TicketWorkflowController {
     @Param('checklistId', ParseUUIDPipe) checklistId: string,
     @Param('itemId', ParseUUIDPipe) itemId: string,
   ): Promise<void> {
-    return this.workflowService.removeChecklistItem(
+    return this.checklistsService.removeChecklistItem(
       toOrganizationActorContext(session, headers),
       organizationId,
       projectId,
@@ -379,7 +387,7 @@ export class TicketWorkflowController {
     @Param('projectId', ParseUUIDPipe) projectId: string,
     @Param('ticketId', ParseUUIDPipe) ticketId: string,
   ): Promise<TicketCommentListDto> {
-    return this.workflowService.listComments(
+    return this.commentsService.listComments(
       toOrganizationActorContext(session, headers),
       organizationId,
       projectId,
@@ -399,7 +407,7 @@ export class TicketWorkflowController {
     @Body({ schema: CreateTicketCommentDto.schema })
     input: CreateTicketCommentInput,
   ): Promise<TicketCommentDto> {
-    return this.workflowService.createComment(
+    return this.commentsService.createComment(
       toOrganizationActorContext(session, headers),
       organizationId,
       projectId,
@@ -420,7 +428,7 @@ export class TicketWorkflowController {
     @Body({ schema: UpdateTicketCommentDto.schema })
     input: UpdateTicketCommentInput,
   ): Promise<TicketCommentDto> {
-    return this.workflowService.updateComment(
+    return this.commentsService.updateComment(
       toOrganizationActorContext(session, headers),
       organizationId,
       projectId,
@@ -441,7 +449,7 @@ export class TicketWorkflowController {
     @Param('ticketId', ParseUUIDPipe) ticketId: string,
     @Param('commentId', ParseUUIDPipe) commentId: string,
   ): Promise<void> {
-    return this.workflowService.removeComment(
+    return this.commentsService.removeComment(
       toOrganizationActorContext(session, headers),
       organizationId,
       projectId,

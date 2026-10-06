@@ -10,8 +10,12 @@ import { ProjectResourceLoader } from '@/projects/project-resource.loader';
 import { ProjectUserResolver } from '@/projects/project-user.resolver';
 import { ProjectsController } from '@/projects/projects.controller';
 import { ProjectsService } from '@/projects/projects.service';
+import { TicketChecklistsService } from '@/projects/ticket-checklists.service';
+import { TicketCommentsService } from '@/projects/ticket-comments.service';
+import { TicketLabelsService } from '@/projects/ticket-labels.service';
+import { TicketOrderingService } from '@/projects/ticket-ordering.service';
+import { TicketWorkflowAccessPolicy } from '@/projects/ticket-workflow-access.policy';
 import { TicketWorkflowController } from '@/projects/ticket-workflow.controller';
-import { TicketWorkflowService } from '@/projects/ticket-workflow.service';
 import { TicketsService } from '@/projects/tickets.service';
 
 @Module({
@@ -24,7 +28,11 @@ import { TicketsService } from '@/projects/tickets.service';
     ProjectResourceLoader,
     ProjectUserResolver,
     ProjectReferenceQueryService,
-    TicketWorkflowService,
+    TicketWorkflowAccessPolicy,
+    TicketOrderingService,
+    TicketLabelsService,
+    TicketChecklistsService,
+    TicketCommentsService,
     TrustedOriginGuard,
   ],
   exports: [ProjectReferenceQueryService],

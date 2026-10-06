@@ -16,7 +16,11 @@ import {
 import { TicketWorkflowRepository } from '@/projects/infrastructure/persistence/ticket-workflow.repository';
 import { ProjectResourceLoader } from '@/projects/project-resource.loader';
 import { ProjectUserResolver } from '@/projects/project-user.resolver';
-import { TicketWorkflowService } from '@/projects/ticket-workflow.service';
+import { TicketChecklistsService } from '@/projects/ticket-checklists.service';
+import { TicketCommentsService } from '@/projects/ticket-comments.service';
+import { TicketLabelsService } from '@/projects/ticket-labels.service';
+import { TicketOrderingService } from '@/projects/ticket-ordering.service';
+import { TicketWorkflowAccessPolicy } from '@/projects/ticket-workflow-access.policy';
 
 import { jest } from '@jest/globals';
 
@@ -120,7 +124,7 @@ function ticket(): Ticket {
   };
 }
 
-describe('티켓 워크플로 서비스', () => {
+describe('티켓 워크플로 application 서비스', () => {
   let projects: FakeProjectRepository;
   let workflow: FakeTicketWorkflowRepository;
   let membership: {
@@ -129,7 +133,10 @@ describe('티켓 워크플로 서비스', () => {
   let userDirectory: {
     findByIds: jest.MockedFunction<UserDirectory['findByIds']>;
   };
-  let service: TicketWorkflowService;
+  let orderingService: TicketOrderingService;
+  let labelsService: TicketLabelsService;
+  let checklistsService: TicketChecklistsService;
+  let commentsService: TicketCommentsService;
 
   beforeEach(() => {
     projects = new FakeProjectRepository();
@@ -153,10 +160,16 @@ describe('티켓 워크플로 서비스', () => {
     userDirectory.findByIds.mockResolvedValue([]);
     projects.findProjectById.mockResolvedValue(project());
     projects.findTicketById.mockResolvedValue(ticket());
-    service = new TicketWorkflowService(
-      workflow,
+    const accessPolicy = new TicketWorkflowAccessPolicy(
       new ProjectResourceLoader(projects),
       membership,
+    );
+    orderingService = new TicketOrderingService(workflow, accessPolicy);
+    labelsService = new TicketLabelsService(workflow, accessPolicy);
+    checklistsService = new TicketChecklistsService(workflow, accessPolicy);
+    commentsService = new TicketCommentsService(
+      workflow,
+      accessPolicy,
       new ProjectUserResolver(userDirectory),
     );
   });
@@ -165,7 +178,7 @@ describe('티켓 워크플로 서비스', () => {
     workflow.moveTicket.mockResolvedValue({ kind: 'reference_not_found' });
 
     await expect(
-      service.moveTicket(context, organizationId, projectId, ticketId, {
+      orderingService.moveTicket(context, organizationId, projectId, ticketId, {
         targetColumnId: columnId,
         beforeTicketId: '88888888-8888-4888-8888-888888888888',
       }),
@@ -185,7 +198,7 @@ describe('티켓 워크플로 서비스', () => {
     workflow.attachLabel.mockResolvedValue(null);
 
     await expect(
-      service.attachLabel(
+      labelsService.attachLabel(
         context,
         organizationId,
         projectId,
@@ -199,7 +212,7 @@ describe('티켓 워크플로 서비스', () => {
     workflow.addChecklistItem.mockResolvedValue(null);
 
     await expect(
-      service.addChecklistItem(
+      checklistsService.addChecklistItem(
         context,
         organizationId,
         projectId,
@@ -221,7 +234,7 @@ describe('티켓 워크플로 서비스', () => {
     });
 
     await expect(
-      service.updateComment(
+      commentsService.updateComment(
         context,
         organizationId,
         projectId,

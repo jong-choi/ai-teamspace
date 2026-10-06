@@ -13,6 +13,7 @@ import {
   type ProjectView,
   ProjectViewSwitcher,
 } from '@core/features/projects/components/project-view-switcher';
+import { TicketDetailDrawer } from '@core/features/projects/components/ticket-detail-drawer';
 import { TicketList } from '@core/features/projects/components/ticket-list';
 import type { KanbanDropIntent } from '@core/features/projects/dnd/kanban-dnd-adapter.shared';
 import { useMoveTicketMutation } from '@core/features/projects/projects-mutations';
@@ -38,6 +39,7 @@ export function ProjectKanbanRoute({
     <ProjectsRouteFrame resetKeys={[projectId]}>
       {(organizationId) => (
         <ProjectWorkspace
+          key={projectId}
           organizationId={organizationId}
           projectId={projectId}
           view={view}
@@ -70,6 +72,7 @@ function ProjectWorkspace({
     useState<ProjectsControllerListTicketsParams['priority']>();
   const [createColumnId, setCreateColumnId] = useState<string | undefined>();
   const [createOpen, setCreateOpen] = useState(false);
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const params = useMemo<ProjectsControllerListTicketsParams>(
     () => ({
       ...(deferredSearch ? { search: deferredSearch } : {}),
@@ -98,7 +101,6 @@ function ProjectWorkspace({
     });
   };
   const changeProject = (nextProjectId: string) => {
-    setColumnId(undefined);
     router.replace({
       pathname: '/projects/[projectId]',
       params: { projectId: nextProjectId, view },
@@ -174,12 +176,14 @@ function ProjectWorkspace({
           disabled={moveMutation.isPending}
           onCreateTicket={openCreateTicket}
           onDropIntent={moveTicket}
+          onOpenTicket={setSelectedTicketId}
           projectKey={project.key}
           tickets={tickets}
         />
       ) : (
         <TicketList
           columns={columns}
+          onOpenTicket={setSelectedTicketId}
           projectName={project.name}
           tickets={tickets}
         />
@@ -194,6 +198,19 @@ function ProjectWorkspace({
         open={createOpen}
         organizationId={organizationId}
         projectId={projectId}
+      />
+
+      <TicketDetailDrawer
+        columns={columns}
+        members={members}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) setSelectedTicketId(null);
+        }}
+        open={selectedTicketId !== null}
+        organizationId={organizationId}
+        projectId={projectId}
+        projectName={project.name}
+        ticketId={selectedTicketId}
       />
     </View>
   );

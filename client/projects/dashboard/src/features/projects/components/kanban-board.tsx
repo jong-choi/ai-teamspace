@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 
 import type {
@@ -24,6 +24,7 @@ export function KanbanBoard({
   disabled = false,
   onCreateTicket,
   onDropIntent,
+  onOpenTicket,
   projectKey,
   tickets,
 }: {
@@ -31,16 +32,18 @@ export function KanbanBoard({
   disabled?: boolean;
   onCreateTicket: (columnId: string) => void;
   onDropIntent: (intent: KanbanDropIntent) => void;
+  onOpenTicket: (ticketId: string) => void;
   projectKey: string;
   tickets: readonly TicketSummary[];
 }) {
   const [draggingTicketId, setDraggingTicketId] = useState<string | null>(null);
+  const suppressOpenTicketId = useRef<string | null>(null);
 
   return (
     <KanbanDndProvider>
       <ScrollView
         className="min-h-0 flex-1 bg-muted/10"
-        contentContainerStyle={{ padding: 16, flexGrow: 1 }}
+        contentContainerStyle={{ padding: 24, flexGrow: 1 }}
         horizontal
         nestedScrollEnabled
         showsHorizontalScrollIndicator
@@ -140,10 +143,20 @@ export function KanbanBoard({
                                   sourceColumnId: ticket.columnId,
                                 }}
                                 disabled={disabled}
-                                onDragEnd={() => setDraggingTicketId(null)}
-                                onDragStart={({ ticketId }) =>
-                                  setDraggingTicketId(ticketId)
-                                }
+                                onDragEnd={({ ticketId }) => {
+                                  setDraggingTicketId(null);
+                                  setTimeout(() => {
+                                    if (
+                                      suppressOpenTicketId.current === ticketId
+                                    ) {
+                                      suppressOpenTicketId.current = null;
+                                    }
+                                  }, 180);
+                                }}
+                                onDragStart={({ ticketId }) => {
+                                  suppressOpenTicketId.current = ticketId;
+                                  setDraggingTicketId(ticketId);
+                                }}
                               >
                                 <View className="relative">
                                   <View className="absolute right-2 top-2 z-10 rounded p-0.5 opacity-40">
@@ -154,6 +167,14 @@ export function KanbanBoard({
                                   </View>
                                   <TicketCard
                                     dragging={draggingTicketId === ticket.id}
+                                    onPress={() => {
+                                      if (
+                                        suppressOpenTicketId.current ===
+                                        ticket.id
+                                      )
+                                        return;
+                                      onOpenTicket(ticket.id);
+                                    }}
                                     projectKey={projectKey}
                                     ticket={ticket}
                                   />

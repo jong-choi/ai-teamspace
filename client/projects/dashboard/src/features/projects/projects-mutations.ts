@@ -130,10 +130,7 @@ export function useMoveTicketMutation({
         );
       },
       onSettled: async () => {
-        await Promise.all([
-          queryClient.invalidateQueries({ queryKey }),
-          invalidateProjectQueries(queryClient, organizationId, projectId),
-        ]);
+        await invalidateProjectQueries(queryClient, organizationId, projectId);
       },
     },
   });

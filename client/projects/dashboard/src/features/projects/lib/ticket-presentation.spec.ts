@@ -10,9 +10,8 @@ import {
 import { describe, expect, it } from '@jest/globals';
 
 describe('이슈 표시 모델', () => {
-  it('마감일을 Gemini 카드의 YYYY.MM.DD 밀도로 표시한다', () => {
-    const localNoon = new Date(2026, 9, 6, 12).toISOString();
-    expect(formatTicketDueAt(localNoon)).toBe('2026.10.06');
+  it('마감일을 timezone 변환 없이 Gemini의 YYYY.MM.DD로 표시한다', () => {
+    expect(formatTicketDueAt('2026-10-06T00:00:00.000Z')).toBe('2026.10.06');
   });
 
   it('목록은 컬럼 순서와 컬럼 안 position 순서로 안정적으로 정렬한다', () => {

@@ -3,9 +3,11 @@ import {
   useOrganizationsControllerGetActiveSuspense,
   useOrganizationsControllerListMembersSuspense,
   useProjectsControllerGetProjectSuspense,
+  useProjectsControllerGetTicketSuspense,
   useProjectsControllerListProjectColumnsSuspense,
   useProjectsControllerListProjectsSuspense,
   useProjectsControllerListTicketsSuspense,
+  useTicketWorkflowControllerListProjectLabelsSuspense,
 } from '@repo/client/api-client';
 import type {
   OrganizationAccess,
@@ -55,6 +57,25 @@ export function useProjectTickets(
   );
 }
 
+export function useProjectTicketDetail(
+  organizationId: string,
+  projectId: string,
+  ticketId: string,
+) {
+  return useProjectsControllerGetTicketSuspense(
+    organizationId,
+    projectId,
+    ticketId,
+  );
+}
+
+export function useProjectLabels(organizationId: string, projectId: string) {
+  return useTicketWorkflowControllerListProjectLabelsSuspense(
+    organizationId,
+    projectId,
+  );
+}
+
 export function useProjectMembers(
   organizationId: string,
 ): OrganizationMember[] {
@@ -81,8 +102,11 @@ export function useProjectMembers(
     ),
   });
 
-  return [
+  const members = [
     ...firstPage.items,
     ...additionalPages.flatMap(({ data }) => data.items),
+  ];
+  return [
+    ...new Map(members.map((member) => [member.userId, member])).values(),
   ];
 }

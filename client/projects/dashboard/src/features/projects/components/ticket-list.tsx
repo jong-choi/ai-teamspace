@@ -1,4 +1,4 @@
-import { ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 
 import type {
   ProjectColumn,
@@ -13,49 +13,22 @@ import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
 import { getProjectColumnPresentation } from '@core/features/projects/lib/project-column-presentation';
+import { getTicketPriorityPresentation } from '@core/features/projects/lib/ticket-priority-presentation';
 import {
   formatTicketDueAt,
   sortTicketsForList,
 } from '@core/features/projects/lib/ticket-presentation';
 
-import {
-  AlertCircle,
-  ChevronDown,
-  ChevronUp,
-  Clock3,
-  FolderKanban,
-  Minus,
-} from 'lucide-react-native';
-
-const PRIORITY = {
-  urgent: {
-    label: '긴급',
-    icon: AlertCircle,
-    foregroundClass: 'text-red-500',
-  },
-  high: {
-    label: '높음',
-    icon: ChevronUp,
-    foregroundClass: 'text-amber-500',
-  },
-  medium: {
-    label: '보통',
-    icon: Minus,
-    foregroundClass: 'text-blue-500',
-  },
-  low: {
-    label: '낮음',
-    icon: ChevronDown,
-    foregroundClass: 'text-muted-foreground',
-  },
-} as const;
+import { Clock3, FolderKanban } from 'lucide-react-native';
 
 export function TicketList({
   columns,
+  onOpenTicket,
   projectName,
   tickets,
 }: {
   columns: readonly ProjectColumn[];
+  onOpenTicket: (ticketId: string) => void;
   projectName: string;
   tickets: readonly TicketSummary[];
 }) {
@@ -65,7 +38,7 @@ export function TicketList({
   return (
     <ScrollView
       className="min-h-0 flex-1 bg-muted/10"
-      contentContainerStyle={{ padding: 16 }}
+      contentContainerStyle={{ padding: 24 }}
       nestedScrollEnabled
     >
       <View className="w-full max-w-7xl self-center overflow-hidden rounded-xl border border-border bg-card shadow-sm">
@@ -82,19 +55,19 @@ export function TicketList({
         <ScrollView horizontal nestedScrollEnabled>
           <View className="min-w-[900px] flex-1">
             <View className="flex-row items-center border-b border-border bg-muted/40 px-4 py-2.5">
-              <Text className="w-48 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <Text className="w-40 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 ID / 상태
               </Text>
               <Text className="min-w-72 flex-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 이슈 제목
               </Text>
-              <Text className="w-44 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <Text className="hidden w-44 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground md:flex">
                 프로젝트
               </Text>
               <Text className="w-24 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 우선순위
               </Text>
-              <Text className="w-36 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <Text className="hidden w-36 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground lg:flex">
                 담당자
               </Text>
               <Text className="w-28 text-right text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -110,17 +83,20 @@ export function TicketList({
               </View>
             ) : (
               orderedTickets.map((ticket) => {
-                const priority = PRIORITY[ticket.priority];
+                const priority = getTicketPriorityPresentation(ticket.priority);
                 const column = columnById.get(ticket.columnId);
                 const columnPresentation = column
                   ? getProjectColumnPresentation(column.name)
                   : undefined;
                 return (
-                  <View
+                  <Pressable
+                    accessibilityLabel={`${ticket.key} 이슈 상세 열기`}
+                    accessibilityRole="button"
                     className="flex-row items-center border-b border-border/70 px-4 py-3 last:border-b-0 web:hover:bg-muted/35"
                     key={ticket.id}
+                    onPress={() => onOpenTicket(ticket.id)}
                   >
-                    <View className="w-48 flex-row items-center gap-2 pr-3">
+                    <View className="w-40 flex-row items-center gap-2 pr-3">
                       <Text className="font-mono text-[11px] font-semibold text-muted-foreground">
                         {ticket.key}
                       </Text>
@@ -154,7 +130,7 @@ export function TicketList({
                       ))}
                     </View>
 
-                    <View className="w-44 flex-row items-center gap-1.5 pr-3">
+                    <View className="hidden w-44 flex-row items-center gap-1.5 pr-3 md:flex">
                       <Icon
                         as={FolderKanban}
                         className="size-3.5 text-muted-foreground"
@@ -167,14 +143,14 @@ export function TicketList({
                     <View className="w-24 flex-row items-center gap-1.5 pr-3">
                       <Icon
                         as={priority.icon}
-                        className={cn('size-3', priority.foregroundClass)}
+                        className={cn('size-3', priority.listForegroundClass)}
                       />
                       <Text className="text-[11px] font-medium">
                         {priority.label}
                       </Text>
                     </View>
 
-                    <View className="w-36 flex-row items-center gap-2 pr-3">
+                    <View className="hidden w-36 flex-row items-center gap-2 pr-3 lg:flex">
                       {ticket.assignee ? (
                         <Avatar
                           alt={`${ticket.assignee.name} 아바타`}
@@ -208,7 +184,7 @@ export function TicketList({
                         {ticket.dueAt ? formatTicketDueAt(ticket.dueAt) : '-'}
                       </Text>
                     </View>
-                  </View>
+                  </Pressable>
                 );
               })
             )}

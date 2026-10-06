@@ -26,17 +26,13 @@ import {
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { TicketDescriptionInput } from '@core/features/projects/components/ticket-description-input';
 import { getProjectColumnPresentation } from '@core/features/projects/lib/project-column-presentation';
+import {
+  TICKET_PRIORITY_OPTIONS,
+  type TicketPriority,
+} from '@core/features/projects/lib/ticket-priority-presentation';
 import { useCreateTicketMutation } from '@core/features/projects/projects-mutations';
 
 const NO_ASSIGNEE = '__none__';
-const PRIORITIES = [
-  { value: 'urgent', label: '긴급' },
-  { value: 'high', label: '높음' },
-  { value: 'medium', label: '보통' },
-  { value: 'low', label: '낮음' },
-] as const;
-
-type Priority = (typeof PRIORITIES)[number]['value'];
 
 export function CreateTicketDialog({
   columns,
@@ -61,7 +57,7 @@ export function CreateTicketDialog({
   const [columnId, setColumnId] = useState(
     initialColumnId ?? columns[0]?.id ?? '',
   );
-  const [priority, setPriority] = useState<Priority>('medium');
+  const [priority, setPriority] = useState<TicketPriority>('medium');
   const [assigneeUserId, setAssigneeUserId] = useState<string | null>(null);
   const [validationMessage, setValidationMessage] = useState<string | null>(
     null,
@@ -71,7 +67,9 @@ export function CreateTicketDialog({
     ? getProjectColumnPresentation(selectedColumn.name)
     : undefined;
   const assignee = members.find(({ userId }) => userId === assigneeUserId);
-  const selectedPriority = PRIORITIES.find((item) => item.value === priority);
+  const selectedPriority = TICKET_PRIORITY_OPTIONS.find(
+    (item) => item.value === priority,
+  );
 
   const reset = () => {
     setTitle('');
@@ -90,7 +88,7 @@ export function CreateTicketDialog({
     const result = CreateTicket.safeParse({
       columnId,
       title: title.trim(),
-      descriptionMarkdown: descriptionMarkdown.trim(),
+      descriptionMarkdown,
       priority,
       assigneeUserId,
     });
@@ -192,7 +190,7 @@ export function CreateTicketDialog({
               <Select
                 disabled={mutation.isPending}
                 onValueChange={(option) => {
-                  const next = PRIORITIES.find(
+                  const next = TICKET_PRIORITY_OPTIONS.find(
                     ({ value }) => value === option?.value,
                   );
                   if (next) setPriority(next.value);
@@ -206,7 +204,7 @@ export function CreateTicketDialog({
                   <SelectValue placeholder="우선순위" />
                 </SelectTrigger>
                 <SelectContent align="start" side="bottom">
-                  {PRIORITIES.map((item) => (
+                  {TICKET_PRIORITY_OPTIONS.map((item) => (
                     <SelectItem
                       key={item.value}
                       label={item.label}

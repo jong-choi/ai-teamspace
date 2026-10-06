@@ -1,4 +1,4 @@
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import type { TicketSummary } from '@repo/client/api-client/schemas';
 import {
@@ -9,90 +9,24 @@ import {
 import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
+import { getTicketLabelClasses } from '@core/features/projects/lib/ticket-label-presentation';
+import { getTicketPriorityPresentation } from '@core/features/projects/lib/ticket-priority-presentation';
 import { formatTicketDueAt } from '@core/features/projects/lib/ticket-presentation';
 
-import {
-  AlertCircle,
-  CheckSquare2,
-  ChevronDown,
-  ChevronUp,
-  Clock3,
-  MessageSquare,
-  Minus,
-} from 'lucide-react-native';
-
-const PRIORITY = {
-  urgent: {
-    label: '긴급',
-    icon: AlertCircle,
-    containerClass: 'border-red-500/20 bg-red-500/10',
-    foregroundClass: 'text-red-600 dark:text-red-400',
-  },
-  high: {
-    label: '높음',
-    icon: ChevronUp,
-    containerClass: 'border-amber-500/20 bg-amber-500/10',
-    foregroundClass: 'text-amber-600 dark:text-amber-400',
-  },
-  medium: {
-    label: '보통',
-    icon: Minus,
-    containerClass: 'border-blue-500/20 bg-blue-500/10',
-    foregroundClass: 'text-blue-600 dark:text-blue-400',
-  },
-  low: {
-    label: '낮음',
-    icon: ChevronDown,
-    containerClass: 'border-border bg-muted',
-    foregroundClass: 'text-muted-foreground',
-  },
-} as const;
-
-const LABEL_CLASSES = {
-  neutral: {
-    container: 'bg-zinc-500/10',
-    foreground: 'text-zinc-600 dark:text-zinc-300',
-  },
-  red: {
-    container: 'bg-red-500/10',
-    foreground: 'text-red-600 dark:text-red-400',
-  },
-  orange: {
-    container: 'bg-orange-500/10',
-    foreground: 'text-orange-600 dark:text-orange-400',
-  },
-  amber: {
-    container: 'bg-amber-500/10',
-    foreground: 'text-amber-600 dark:text-amber-400',
-  },
-  green: {
-    container: 'bg-emerald-500/10',
-    foreground: 'text-emerald-600 dark:text-emerald-400',
-  },
-  blue: {
-    container: 'bg-blue-500/10',
-    foreground: 'text-blue-600 dark:text-blue-400',
-  },
-  violet: {
-    container: 'bg-violet-500/10',
-    foreground: 'text-violet-600 dark:text-violet-400',
-  },
-  pink: {
-    container: 'bg-pink-500/10',
-    foreground: 'text-pink-600 dark:text-pink-400',
-  },
-} as const;
+import { CheckSquare2, Clock3, MessageSquare } from 'lucide-react-native';
 
 export function TicketCard({
   dragging = false,
+  onPress,
   projectKey,
   ticket,
 }: {
   dragging?: boolean;
+  onPress?: () => void;
   projectKey: string;
   ticket: TicketSummary;
 }) {
-  const priority = PRIORITY[ticket.priority];
+  const priority = getTicketPriorityPresentation(ticket.priority);
   const checklistProgress =
     ticket.checklistItemTotal === 0
       ? 0
@@ -101,13 +35,17 @@ export function TicketCard({
         );
 
   return (
-    <View
+    <Pressable
+      accessibilityLabel={`${ticket.key} 이슈 상세 열기`}
+      accessibilityRole="button"
       className={cn(
         'rounded-xl border border-border bg-card p-3.5 shadow-sm',
         dragging
           ? 'opacity-55'
           : 'web:hover:border-muted-foreground/40 web:hover:shadow-md',
       )}
+      disabled={!onPress || dragging}
+      onPress={onPress}
     >
       <View className="mb-2 flex-row items-center gap-1.5">
         <Text className="font-mono text-[11px] font-bold text-muted-foreground">
@@ -116,17 +54,17 @@ export function TicketCard({
         <View
           className={cn(
             'flex-row items-center gap-1 rounded border px-1.5 py-0.5',
-            priority.containerClass,
+            priority.badgeContainerClass,
           )}
         >
           <Icon
             as={priority.icon}
-            className={cn('size-2.5', priority.foregroundClass)}
+            className={cn('size-2.5', priority.badgeForegroundClass)}
           />
           <Text
             className={cn(
               'text-[10px] font-semibold',
-              priority.foregroundClass,
+              priority.badgeForegroundClass,
             )}
           >
             {priority.label}
@@ -148,7 +86,7 @@ export function TicketCard({
           </Text>
         </View>
         {ticket.labels.map((label) => {
-          const classes = LABEL_CLASSES[label.color];
+          const classes = getTicketLabelClasses(label.color);
           return (
             <View
               className={cn('rounded px-1.5 py-0.5', classes.container)}
@@ -220,7 +158,7 @@ export function TicketCard({
           )}
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 

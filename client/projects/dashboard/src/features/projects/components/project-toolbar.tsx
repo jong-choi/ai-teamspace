@@ -9,6 +9,7 @@ import type {
 import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Input } from '@repo/client/rnr/components/ui/input';
 import { getProjectColumnPresentation } from '@core/features/projects/lib/project-column-presentation';
+import { TICKET_PRIORITY_OPTIONS } from '@core/features/projects/lib/ticket-priority-presentation';
 import {
   Select,
   SelectContent,
@@ -20,13 +21,6 @@ import {
 import { Search } from 'lucide-react-native';
 
 const ALL = '__all__';
-
-const PRIORITY_OPTIONS = [
-  { value: 'urgent', label: '긴급' },
-  { value: 'high', label: '높음' },
-  { value: 'medium', label: '보통' },
-  { value: 'low', label: '낮음' },
-] as const;
 
 type TicketPriorityFilter = ProjectsControllerListTicketsParams['priority'];
 
@@ -65,7 +59,7 @@ export function ProjectToolbar({
     ? getProjectColumnPresentation(column.name)
     : undefined;
   const assignee = members.find(({ userId }) => userId === assigneeUserId);
-  const selectedPriority = PRIORITY_OPTIONS.find(
+  const selectedPriority = TICKET_PRIORITY_OPTIONS.find(
     (option) => option.value === priority,
   );
 
@@ -144,7 +138,10 @@ export function ProjectToolbar({
         onValueChange={(value) =>
           onPriorityChange(value === ALL ? undefined : parsePriority(value))
         }
-        options={[{ label: '전체 우선순위', value: ALL }, ...PRIORITY_OPTIONS]}
+        options={[
+          { label: '전체 우선순위', value: ALL },
+          ...TICKET_PRIORITY_OPTIONS,
+        ]}
         placeholder="우선순위"
         value={
           selectedPriority
@@ -157,7 +154,8 @@ export function ProjectToolbar({
 }
 
 function parsePriority(value: string): TicketPriorityFilter {
-  return PRIORITY_OPTIONS.find((option) => option.value === value)?.value;
+  return TICKET_PRIORITY_OPTIONS.find((option) => option.value === value)
+    ?.value;
 }
 
 function CompactSelect({

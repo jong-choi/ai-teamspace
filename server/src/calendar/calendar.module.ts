@@ -8,7 +8,7 @@ import { CalendarMeetingPresenterService } from '#server/calendar/calendar-meeti
 import { CalendarRecurrenceService } from '#server/calendar/calendar-recurrence.service.js';
 import { CalendarSchedulingService } from '#server/calendar/calendar-scheduling.service.js';
 import { CalendarDrizzlePersistenceModule } from '#server/calendar/infrastructure/persistence/drizzle/drizzle-persistence.module.js';
-import { UnavailableCalendarProjectReferenceModule } from '#server/calendar/infrastructure/project/unavailable/unavailable-calendar-project-reference.module.js';
+import { ProjectsCalendarReferenceModule } from '#server/calendar/infrastructure/project/projects/projects-calendar-reference.module.js';
 import { BullMqCalendarReminderModule } from '#server/calendar/infrastructure/reminder/bullmq/bullmq-calendar-reminder.module.js';
 import { TrustedOriginGuard } from '#server/common/http/trusted-origin.guard.js';
 import { OrganizationsModule } from '#server/organizations/organizations.module.js';
@@ -18,7 +18,7 @@ import { OrganizationsModule } from '#server/organizations/organizations.module.
     AuthModule,
     OrganizationsModule,
     CalendarDrizzlePersistenceModule,
-    UnavailableCalendarProjectReferenceModule,
+    ProjectsCalendarReferenceModule,
     BullMqCalendarReminderModule,
   ],
   controllers: [CalendarController],

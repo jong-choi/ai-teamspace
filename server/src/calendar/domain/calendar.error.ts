@@ -66,12 +66,12 @@ export class CalendarAttendeeNotMemberError extends ApplicationError {
   }
 }
 
-export class CalendarProjectIntegrationUnavailableError extends ApplicationError {
+export class CalendarProjectNotFoundError extends ApplicationError {
   constructor(options?: ErrorOptions) {
     super(
-      'CALENDAR_PROJECT_INTEGRATION_UNAVAILABLE',
+      'CALENDAR_PROJECT_NOT_FOUND',
       'bad_request',
-      '현재 서버에는 Project 참조 기능이 연결되어 있지 않습니다.',
+      '현재 조직에서 참조할 수 있는 프로젝트를 찾을 수 없습니다.',
       options,
     );
   }

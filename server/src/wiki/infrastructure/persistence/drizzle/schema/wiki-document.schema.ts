@@ -1,7 +1,7 @@
-import { authUserIdColumn } from '#server/auth/infrastructure/persistence/drizzle/auth-user-reference.js';
-import { WIKI_COLLABORATION_SCHEMA_VERSION } from '#server/wiki/domain/wiki-collaboration-version.js';
-import { wikiBytea } from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-bytea.js';
-import { wikiCollection } from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-collection.schema.js';
+import { authUserIdColumn } from '@/auth/infrastructure/persistence/drizzle/auth-user-reference';
+import { WIKI_COLLABORATION_SCHEMA_VERSION } from '@/wiki/domain/wiki-collaboration-version';
+import { wikiBytea } from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-bytea';
+import { wikiCollection } from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-collection.schema';
 
 import { sql } from 'drizzle-orm';
 import {

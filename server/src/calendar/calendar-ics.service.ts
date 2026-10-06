@@ -3,15 +3,15 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   AuthUserDirectoryService,
   type AuthUserIdentity,
-} from '#server/auth/auth-user-directory.service.js';
-import { CalendarMeetingLoader } from '#server/calendar/calendar-meeting.loader.js';
-import { CalendarIcsGenerationError } from '#server/calendar/domain/calendar.error.js';
-import type { MeetingAttendee } from '#server/calendar/domain/meeting-attendee.js';
-import type { MeetingRecurrenceSeries } from '#server/calendar/domain/meeting-recurrence-series.js';
-import type { CalendarMeetingDetailRecord } from '#server/calendar/infrastructure/persistence/calendar.repository.js';
-import { CalendarRepository } from '#server/calendar/infrastructure/persistence/calendar.repository.js';
-import type { OrganizationActorContext } from '#server/organizations/organization-actor-context.js';
-import { OrganizationsService } from '#server/organizations/organizations.service.js';
+} from '@/auth/auth-user-directory.service';
+import { CalendarMeetingLoader } from '@/calendar/calendar-meeting.loader';
+import { CalendarIcsGenerationError } from '@/calendar/domain/calendar.error';
+import type { MeetingAttendee } from '@/calendar/domain/meeting-attendee';
+import type { MeetingRecurrenceSeries } from '@/calendar/domain/meeting-recurrence-series';
+import type { CalendarMeetingDetailRecord } from '@/calendar/infrastructure/persistence/calendar.repository';
+import { CalendarRepository } from '@/calendar/infrastructure/persistence/calendar.repository';
+import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
+import { OrganizationsService } from '@/organizations/organizations.service';
 
 import { TZDate } from '@date-fns/tz';
 import { getVtimezoneComponent } from '@touch4it/ical-timezones';

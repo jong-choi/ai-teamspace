@@ -1,16 +1,16 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import { WikiCollaborationInvalidTokenError } from '#server/wiki/domain/wiki.error.js';
+import { WikiCollaborationInvalidTokenError } from '@/wiki/domain/wiki.error';
 import {
   WIKI_COLLABORATION_ENVIRONMENT,
   type WikiCollaborationEnvironment,
-} from '#server/wiki/infrastructure/collaboration/wiki-collaboration-configuration.provider.js';
+} from '@/wiki/infrastructure/collaboration/wiki-collaboration-configuration.provider';
 import {
   WIKI_COLLABORATION_TOKEN_TYPE,
   type WikiCollaborationTokenClaims,
   WikiCollaborationTokenProvider,
   type WikiCollaborationVerifiedToken,
-} from '#server/wiki/infrastructure/collaboration/wiki-collaboration-token.provider.js';
+} from '@/wiki/infrastructure/collaboration/wiki-collaboration-token.provider';
 
 import { jwtVerify, SignJWT } from 'jose';
 import { z } from 'zod';

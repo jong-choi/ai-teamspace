@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 
-import { AgentConfiguration } from '#server/agent/config/agent-configuration.js';
-import type { AgentActor } from '#server/agent/domain/agent-actor.js';
-import { McpToolApprovalPolicy } from '#server/agent/infrastructure/mcp/langchain/mcp-tool-approval.policy.js';
+import { AgentConfiguration } from '@/agent/config/agent-configuration';
+import type { AgentActor } from '@/agent/domain/agent-actor';
+import { McpToolApprovalPolicy } from '@/agent/infrastructure/mcp/langchain/mcp-tool-approval.policy';
 import {
   type McpCredential,
   McpCredentialProvider,
-} from '#server/agent/infrastructure/mcp/mcp-credential.provider.js';
+} from '@/agent/infrastructure/mcp/mcp-credential.provider';
 import {
   type WorkOsToolSession,
   WorkOsToolSessionProvider,
-} from '#server/agent/infrastructure/mcp/workos-tool-session.provider.js';
+} from '@/agent/infrastructure/mcp/workos-tool-session.provider';
 
 import { MCPAdapter } from '@langchain/mcp-adapters';
 

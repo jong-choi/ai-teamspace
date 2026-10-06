@@ -6,12 +6,12 @@ import {
   CALENDAR_REMINDER_QUEUE,
   calendarReminderJobId,
   CalendarReminderJobSchema,
-} from '#server/calendar/domain/calendar-reminder.js';
-import type { Meeting } from '#server/calendar/domain/meeting.js';
-import { toMeetingDomain } from '#server/calendar/infrastructure/persistence/drizzle/mappers/meeting.mapper.js';
-import { meeting } from '#server/calendar/infrastructure/persistence/drizzle/schema/meeting.schema.js';
-import { CalendarReminderScheduler } from '#server/calendar/infrastructure/reminder/calendar-reminder-scheduler.provider.js';
-import { DatabaseService } from '#server/database/database.service.js';
+} from '@/calendar/domain/calendar-reminder';
+import type { Meeting } from '@/calendar/domain/meeting';
+import { toMeetingDomain } from '@/calendar/infrastructure/persistence/drizzle/mappers/meeting.mapper';
+import { meeting } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting.schema';
+import { CalendarReminderScheduler } from '@/calendar/infrastructure/reminder/calendar-reminder-scheduler.provider';
+import { DatabaseService } from '@/database/database.service';
 
 import type { Queue } from 'bullmq';
 import { and, asc, gt, isNotNull, isNull } from 'drizzle-orm';

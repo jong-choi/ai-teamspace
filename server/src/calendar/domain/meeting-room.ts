@@ -1,4 +1,4 @@
-import { meetingRoomSelectSchema } from '#server/calendar/infrastructure/persistence/drizzle/schema/meeting-room.zod.js';
+import { meetingRoomSelectSchema } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting-room.zod';
 
 import { z } from 'zod';
 

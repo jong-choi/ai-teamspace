@@ -1,6 +1,6 @@
-import { createZodDto } from '#server/common/dto/create-zod-dto.js';
-import type { TicketLabel } from '#server/projects/domain/ticket-label.js';
-import { ticketLabelSelectSchema } from '#server/projects/infrastructure/persistence/drizzle/schema/ticket-label.zod.js';
+import { createZodDto } from '@/common/dto/create-zod-dto';
+import type { TicketLabel } from '@/projects/domain/ticket-label';
+import { ticketLabelSelectSchema } from '@/projects/infrastructure/persistence/drizzle/schema/ticket-label.zod';
 
 import { z } from 'zod';
 

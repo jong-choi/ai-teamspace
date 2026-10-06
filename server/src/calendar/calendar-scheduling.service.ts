@@ -2,10 +2,10 @@ import { randomUUID } from 'node:crypto';
 
 import { Inject, Injectable, Logger } from '@nestjs/common';
 
-import { CalendarMeetingLoader } from '#server/calendar/calendar-meeting.loader.js';
-import { CalendarMeetingPolicy } from '#server/calendar/calendar-meeting.policy.js';
-import { CalendarMeetingPresenterService } from '#server/calendar/calendar-meeting-presenter.service.js';
-import { CalendarRecurrenceService } from '#server/calendar/calendar-recurrence.service.js';
+import { CalendarMeetingLoader } from '@/calendar/calendar-meeting.loader';
+import { CalendarMeetingPolicy } from '@/calendar/calendar-meeting.policy';
+import { CalendarMeetingPresenterService } from '@/calendar/calendar-meeting-presenter.service';
+import { CalendarRecurrenceService } from '@/calendar/calendar-recurrence.service';
 import {
   CalendarAttendeeNotMemberError,
   CalendarInvalidRecurrenceScopeError,
@@ -16,30 +16,30 @@ import {
   CalendarMeetingRoomInactiveError,
   CalendarParticipantConflictError,
   CalendarRoomConflictError,
-} from '#server/calendar/domain/calendar.error.js';
-import type { MeetingRecurrenceSeries } from '#server/calendar/domain/meeting-recurrence-series.js';
+} from '@/calendar/domain/calendar.error';
+import type { MeetingRecurrenceSeries } from '@/calendar/domain/meeting-recurrence-series';
 import type {
   CalendarAvailabilityRequest,
   CalendarAvailabilityResponse,
   CalendarRescheduleAvailabilityRequest,
-} from '#server/calendar/dto/calendar-availability.dto.js';
-import { CalendarAvailabilityResponseSchema } from '#server/calendar/dto/calendar-availability.dto.js';
-import type { CancelMeetingInput } from '#server/calendar/dto/cancel-meeting.dto.js';
-import type { CreateMeetingInput } from '#server/calendar/dto/create-meeting.dto.js';
-import type { MeetingDetailResponse } from '#server/calendar/dto/meeting.dto.js';
-import type { RescheduleMeetingInput } from '#server/calendar/dto/reschedule-meeting.dto.js';
-import type { RsvpMeetingInput } from '#server/calendar/dto/rsvp-meeting.dto.js';
-import type { UpdateMeetingAttendeesInput } from '#server/calendar/dto/update-meeting-attendees.dto.js';
+} from '@/calendar/dto/calendar-availability.dto';
+import { CalendarAvailabilityResponseSchema } from '@/calendar/dto/calendar-availability.dto';
+import type { CancelMeetingInput } from '@/calendar/dto/cancel-meeting.dto';
+import type { CreateMeetingInput } from '@/calendar/dto/create-meeting.dto';
+import type { MeetingDetailResponse } from '@/calendar/dto/meeting.dto';
+import type { RescheduleMeetingInput } from '@/calendar/dto/reschedule-meeting.dto';
+import type { RsvpMeetingInput } from '@/calendar/dto/rsvp-meeting.dto';
+import type { UpdateMeetingAttendeesInput } from '@/calendar/dto/update-meeting-attendees.dto';
 import {
   type CalendarMeetingDetailRecord,
   CalendarRepository,
   type CalendarSchedulingConflict,
   type RescheduleMeetingUpdate,
-} from '#server/calendar/infrastructure/persistence/calendar.repository.js';
-import { CalendarProjectReferenceProvider } from '#server/calendar/infrastructure/project/calendar-project-reference.provider.js';
-import { CalendarReminderScheduler } from '#server/calendar/infrastructure/reminder/calendar-reminder-scheduler.provider.js';
-import type { OrganizationActorContext } from '#server/organizations/organization-actor-context.js';
-import { OrganizationsService } from '#server/organizations/organizations.service.js';
+} from '@/calendar/infrastructure/persistence/calendar.repository';
+import { CalendarProjectReferenceProvider } from '@/calendar/infrastructure/project/calendar-project-reference.provider';
+import { CalendarReminderScheduler } from '@/calendar/infrastructure/reminder/calendar-reminder-scheduler.provider';
+import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
+import { OrganizationsService } from '@/organizations/organizations.service';
 
 type CalendarOrganizationsAccess = Pick<
   OrganizationsService,

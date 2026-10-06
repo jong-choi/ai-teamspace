@@ -1,5 +1,5 @@
-import { OrganizationSchema } from '#server/organizations/domain/organization.js';
-import { OrganizationRoleSchema } from '#server/organizations/domain/organization-role.js';
+import { OrganizationSchema } from '@/organizations/domain/organization';
+import { OrganizationRoleSchema } from '@/organizations/domain/organization-role';
 
 import { z } from 'zod';
 

@@ -1,9 +1,9 @@
 import type {
   OrganizationInvitation,
   OrganizationInvitationDetail,
-} from '#server/organizations/domain/organization-invitation.js';
-import type { OrganizationRole } from '#server/organizations/domain/organization-role.js';
-import type { OrganizationActorContext } from '#server/organizations/infrastructure/organization/organization.provider.js';
+} from '@/organizations/domain/organization-invitation';
+import type { OrganizationRole } from '@/organizations/domain/organization-role';
+import type { OrganizationActorContext } from '@/organizations/infrastructure/organization/organization.provider';
 
 export type CreateOrganizationInvitationProviderInput = {
   organizationId: string;

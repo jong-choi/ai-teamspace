@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 
-import type { OrganizationAccess } from '#server/organizations/domain/organization-access.js';
+import type { OrganizationAccess } from '@/organizations/domain/organization-access';
 import {
   type OrganizationActorContext,
   OrganizationProvider,
-} from '#server/organizations/infrastructure/organization/organization.provider.js';
+} from '@/organizations/infrastructure/organization/organization.provider';
 
 @Injectable()
 export class OrganizationMembershipService {

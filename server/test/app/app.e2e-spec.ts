@@ -4,12 +4,13 @@ import { TestingModule } from '@nestjs/testing';
 import {
   authOptions,
   organizationFacadeDisabledPaths,
-} from '#server/auth/auth-options.js';
+} from '@/auth/auth-options';
 
 import request from 'supertest';
-import { App } from 'supertest/types.js';
 
-import { createAppTestingModule } from '#server-test/support/app-testing-module.js';
+import { createAppTestingModule } from '@test/support/app-testing-module';
+
+type App = Parameters<typeof request>[0];
 
 describe('앱 컨트롤러 E2E', () => {
   let app: INestApplication<App>;

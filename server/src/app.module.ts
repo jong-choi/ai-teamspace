@@ -1,17 +1,17 @@
 import { Module, StandardSchemaValidationPipe } from '@nestjs/common';
 import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 
-import { AgentModule } from '#server/agent/agent.module.js';
-import { AppController } from '#server/app.controller.js';
-import { AppService } from '#server/app.service.js';
-import { AuthModule } from '#server/auth/auth.module.js';
-import { CalendarModule } from '#server/calendar/calendar.module.js';
-import { ChatModule } from '#server/chat/chat.module.js';
-import { ProblemDetailsFilter } from '#server/common/http/problem-details.filter.js';
-import { DatabaseModule } from '#server/database/database.module.js';
-import { OrganizationsModule } from '#server/organizations/organizations.module.js';
-import { ProjectsModule } from '#server/projects/projects.module.js';
-import { WikiModule } from '#server/wiki/wiki.module.js';
+import { AgentModule } from '@/agent/agent.module';
+import { AppController } from '@/app.controller';
+import { AppService } from '@/app.service';
+import { AuthModule } from '@/auth/auth.module';
+import { CalendarModule } from '@/calendar/calendar.module';
+import { ChatModule } from '@/chat/chat.module';
+import { ProblemDetailsFilter } from '@/common/http/problem-details.filter';
+import { DatabaseModule } from '@/database/database.module';
+import { OrganizationsModule } from '@/organizations/organizations.module';
+import { ProjectsModule } from '@/projects/projects.module';
+import { WikiModule } from '@/wiki/wiki.module';
 
 import { NestProblemDetailsModule } from 'nest-problem-details-filter';
 

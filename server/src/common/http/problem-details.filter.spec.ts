@@ -2,12 +2,12 @@ import type { ArgumentsHost } from '@nestjs/common';
 import { Logger } from '@nestjs/common';
 import type { HttpAdapterHost } from '@nestjs/core';
 
-import { CalendarIcsGenerationError } from '#server/calendar/domain/calendar.error.js';
-import { ProblemDetailsFilter } from '#server/common/http/problem-details.filter.js';
+import { CalendarIcsGenerationError } from '@/calendar/domain/calendar.error';
+import { ProblemDetailsFilter } from '@/common/http/problem-details.filter';
 import {
   OrganizationNotFoundError,
   OrganizationProviderFailureError,
-} from '#server/organizations/domain/organization.error.js';
+} from '@/organizations/domain/organization.error';
 
 import { jest } from '@jest/globals';
 import {

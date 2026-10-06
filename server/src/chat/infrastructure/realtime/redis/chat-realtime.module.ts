@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 
-import { ChatRealtimeProvider } from '#server/chat/infrastructure/realtime/chat-realtime.provider.js';
-import { RedisChatRealtimeAdapter } from '#server/chat/infrastructure/realtime/redis/chat-realtime.adapter.js';
+import { ChatRealtimeProvider } from '@/chat/infrastructure/realtime/chat-realtime.provider';
+import { RedisChatRealtimeAdapter } from '@/chat/infrastructure/realtime/redis/chat-realtime.adapter';
 
 @Module({
   providers: [

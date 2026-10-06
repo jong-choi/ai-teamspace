@@ -1,4 +1,4 @@
-import type { CalendarProjectSummary } from '#server/calendar/domain/calendar-project-summary.js';
+import type { CalendarProjectSummary } from '@/calendar/domain/calendar-project-summary';
 
 export abstract class CalendarProjectReferenceProvider {
   abstract assertReference(

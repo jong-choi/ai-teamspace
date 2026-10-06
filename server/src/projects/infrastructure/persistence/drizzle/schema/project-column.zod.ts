@@ -1,4 +1,4 @@
-import { projectColumn } from '#server/projects/infrastructure/persistence/drizzle/schema/project-column.schema.js';
+import { projectColumn } from '@/projects/infrastructure/persistence/drizzle/schema/project-column.schema';
 
 import {
   createInsertSchema,

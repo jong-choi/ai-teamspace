@@ -1,11 +1,11 @@
-import type { Ticket } from '#server/projects/domain/ticket.js';
-import type { TicketChecklist } from '#server/projects/domain/ticket-checklist.js';
-import type { TicketChecklistItem } from '#server/projects/domain/ticket-checklist-item.js';
-import type { TicketComment } from '#server/projects/domain/ticket-comment.js';
+import type { Ticket } from '@/projects/domain/ticket';
+import type { TicketChecklist } from '@/projects/domain/ticket-checklist';
+import type { TicketChecklistItem } from '@/projects/domain/ticket-checklist-item';
+import type { TicketComment } from '@/projects/domain/ticket-comment';
 import type {
   TicketLabel,
   TicketLabelColor,
-} from '#server/projects/domain/ticket-label.js';
+} from '@/projects/domain/ticket-label';
 
 export type TicketCardMetadata = {
   ticketId: string;

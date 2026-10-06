@@ -1,4 +1,4 @@
-import { authOptions } from '#server-source/auth/auth-options';
+import { authOptions } from '@/auth/auth-options';
 
 import { betterAuth } from 'better-auth';
 

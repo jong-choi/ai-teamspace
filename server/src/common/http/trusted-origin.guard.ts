@@ -5,7 +5,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 
-import type { Auth } from '#server/auth/auth.js';
+import type { Auth } from '@/auth/auth';
 
 import { AuthService } from '@thallesp/nestjs-better-auth';
 import type { Request } from 'express';

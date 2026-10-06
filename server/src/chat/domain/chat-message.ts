@@ -1,5 +1,5 @@
-import { chatMessageContentSchema } from '#server/chat/domain/chat-message-content.js';
-import { chatMessageSelectSchema } from '#server/chat/infrastructure/persistence/drizzle/schema/chat-message.zod.js';
+import { chatMessageContentSchema } from '@/chat/domain/chat-message-content';
+import { chatMessageSelectSchema } from '@/chat/infrastructure/persistence/drizzle/schema/chat-message.zod';
 
 import { z } from 'zod';
 

@@ -1,8 +1,8 @@
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 
-import { WikiCollaborationModule } from '#server/wiki/collaboration/wiki-collaboration.module.js';
-import { HocuspocusWikiCollaborationRuntime } from '#server/wiki/infrastructure/collaboration/hocuspocus/hocuspocus-wiki-collaboration.runtime.js';
+import { WikiCollaborationModule } from '@/wiki/collaboration/wiki-collaboration.module';
+import { HocuspocusWikiCollaborationRuntime } from '@/wiki/infrastructure/collaboration/hocuspocus/hocuspocus-wiki-collaboration.runtime';
 
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(

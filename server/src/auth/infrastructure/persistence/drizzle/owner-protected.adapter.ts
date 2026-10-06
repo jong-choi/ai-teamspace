@@ -1,8 +1,8 @@
 import {
   OrganizationMemberNotFoundError,
   OwnerTransferRequiredError,
-} from '#server/organizations/domain/organization.error.js';
-import { OrganizationRoleSchema } from '#server/organizations/domain/organization-role.js';
+} from '@/organizations/domain/organization.error';
+import { OrganizationRoleSchema } from '@/organizations/domain/organization-role';
 
 import type {
   DBAdapter,

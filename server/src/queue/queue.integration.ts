@@ -7,9 +7,9 @@ import {
 import { Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 
-import { parseQueueEnvironment } from '#server-source/config/runtime-environment';
-import { createWorkerRedisOptions } from '#server-source/queue/queue.config';
-import { QueueModule } from '#server-source/queue/queue.module';
+import { parseQueueEnvironment } from '@/config/runtime-environment';
+import { createWorkerRedisOptions } from '@/queue/queue.config';
+import { QueueModule } from '@/queue/queue.module';
 
 import { type Job, Queue, QueueEvents } from 'bullmq';
 

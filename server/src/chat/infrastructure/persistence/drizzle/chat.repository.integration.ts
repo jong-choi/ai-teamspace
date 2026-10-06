@@ -1,12 +1,12 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 
-import { user } from '#server-source/auth/infrastructure/persistence/drizzle/generated/auth.schema';
-import { ChatRepository } from '#server-source/chat/infrastructure/persistence/chat.repository';
-import { ChatDrizzlePersistenceModule } from '#server-source/chat/infrastructure/persistence/drizzle/drizzle-persistence.module';
-import { chatConversation } from '#server-source/chat/infrastructure/persistence/drizzle/schema/chat-conversation.schema';
-import { chatMessage } from '#server-source/chat/infrastructure/persistence/drizzle/schema/chat-message.schema';
-import { DatabaseModule } from '#server-source/database/database.module';
-import { DatabaseService } from '#server-source/database/database.service';
+import { user } from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
+import { ChatRepository } from '@/chat/infrastructure/persistence/chat.repository';
+import { ChatDrizzlePersistenceModule } from '@/chat/infrastructure/persistence/drizzle/drizzle-persistence.module';
+import { chatConversation } from '@/chat/infrastructure/persistence/drizzle/schema/chat-conversation.schema';
+import { chatMessage } from '@/chat/infrastructure/persistence/drizzle/schema/chat-message.schema';
+import { DatabaseModule } from '@/database/database.module';
+import { DatabaseService } from '@/database/database.service';
 
 import { inArray } from 'drizzle-orm';
 

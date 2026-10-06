@@ -1,8 +1,8 @@
-import { createZodDto } from '#server/common/dto/create-zod-dto.js';
-import type { TicketChecklist } from '#server/projects/domain/ticket-checklist.js';
-import type { TicketChecklistItem } from '#server/projects/domain/ticket-checklist-item.js';
-import { ticketChecklistSelectSchema } from '#server/projects/infrastructure/persistence/drizzle/schema/ticket-checklist.zod.js';
-import { ticketChecklistItemSelectSchema } from '#server/projects/infrastructure/persistence/drizzle/schema/ticket-checklist-item.zod.js';
+import { createZodDto } from '@/common/dto/create-zod-dto';
+import type { TicketChecklist } from '@/projects/domain/ticket-checklist';
+import type { TicketChecklistItem } from '@/projects/domain/ticket-checklist-item';
+import { ticketChecklistSelectSchema } from '@/projects/infrastructure/persistence/drizzle/schema/ticket-checklist.zod';
+import { ticketChecklistItemSelectSchema } from '@/projects/infrastructure/persistence/drizzle/schema/ticket-checklist-item.zod';
 
 import { z } from 'zod';
 

@@ -1,20 +1,20 @@
-import type { AuthUserIdentity } from '#server/auth/auth-user-directory.service.js';
-import type { OrganizationActorContext } from '#server/organizations/organization-actor-context.js';
-import type { OrganizationMembershipService } from '#server/organizations/organization-membership.service.js';
+import type { AuthUserIdentity } from '@/auth/auth-user-directory.service';
+import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
+import type { OrganizationMembershipService } from '@/organizations/organization-membership.service';
 import {
   TicketChecklistNotFoundError,
   TicketCommentAuthorRequiredError,
   TicketLabelNotFoundError,
   TicketMoveReferenceInvalidError,
-} from '#server/projects/domain/project.error.js';
-import type { Project } from '#server/projects/domain/project.js';
-import type { Ticket } from '#server/projects/domain/ticket.js';
+} from '@/projects/domain/project.error';
+import type { Project } from '@/projects/domain/project';
+import type { Ticket } from '@/projects/domain/ticket';
 import {
   ProjectRepository,
   type ProjectSummaryReadModel,
-} from '#server/projects/infrastructure/persistence/project.repository.js';
-import { TicketWorkflowRepository } from '#server/projects/infrastructure/persistence/ticket-workflow.repository.js';
-import { TicketWorkflowService } from '#server/projects/ticket-workflow.service.js';
+} from '@/projects/infrastructure/persistence/project.repository';
+import { TicketWorkflowRepository } from '@/projects/infrastructure/persistence/ticket-workflow.repository';
+import { TicketWorkflowService } from '@/projects/ticket-workflow.service';
 
 import { jest } from '@jest/globals';
 

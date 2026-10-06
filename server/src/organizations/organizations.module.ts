@@ -1,17 +1,17 @@
 import { Module } from '@nestjs/common';
 
-import { AuthModule } from '#server/auth/auth.module.js';
-import { ChatModule } from '#server/chat/chat.module.js';
-import { TrustedOriginGuard } from '#server/common/http/trusted-origin.guard.js';
-import { BullMqOrganizationPublicEventModule } from '#server/organizations/infrastructure/events/bullmq/bullmq-organization-public-event.module.js';
-import { BetterAuthOrganizationInvitationModule } from '#server/organizations/infrastructure/invitation/better-auth/better-auth-organization-invitation.module.js';
-import { BetterAuthOrganizationModule } from '#server/organizations/infrastructure/organization/better-auth/better-auth-organization.module.js';
-import { InvitationsController } from '#server/organizations/invitations.controller.js';
-import { OrganizationInvitationsController } from '#server/organizations/organization-invitations.controller.js';
-import { OrganizationInvitationsService } from '#server/organizations/organization-invitations.service.js';
-import { OrganizationMembershipService } from '#server/organizations/organization-membership.service.js';
-import { OrganizationsController } from '#server/organizations/organizations.controller.js';
-import { OrganizationsService } from '#server/organizations/organizations.service.js';
+import { AuthModule } from '@/auth/auth.module';
+import { ChatModule } from '@/chat/chat.module';
+import { TrustedOriginGuard } from '@/common/http/trusted-origin.guard';
+import { BullMqOrganizationPublicEventModule } from '@/organizations/infrastructure/events/bullmq/bullmq-organization-public-event.module';
+import { BetterAuthOrganizationInvitationModule } from '@/organizations/infrastructure/invitation/better-auth/better-auth-organization-invitation.module';
+import { BetterAuthOrganizationModule } from '@/organizations/infrastructure/organization/better-auth/better-auth-organization.module';
+import { InvitationsController } from '@/organizations/invitations.controller';
+import { OrganizationInvitationsController } from '@/organizations/organization-invitations.controller';
+import { OrganizationInvitationsService } from '@/organizations/organization-invitations.service';
+import { OrganizationMembershipService } from '@/organizations/organization-membership.service';
+import { OrganizationsController } from '@/organizations/organizations.controller';
+import { OrganizationsService } from '@/organizations/organizations.service';
 
 @Module({
   imports: [

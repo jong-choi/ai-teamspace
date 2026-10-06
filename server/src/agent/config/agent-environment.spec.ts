@@ -1,4 +1,4 @@
-import { parseAgentEnvironment } from '#server/agent/config/agent-environment.js';
+import { parseAgentEnvironment } from '@/agent/config/agent-environment';
 
 describe('Agent 환경 변수 검증', () => {
   it('durable runtime 전용 Postgres/Redis와 격리 namespace를 검증한다', () => {

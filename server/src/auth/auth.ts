@@ -1,12 +1,12 @@
 import {
   authOptions,
   organizationFacadeDisabledPaths,
-} from '#server/auth/auth-options.js';
-import * as authSchema from '#server/auth/infrastructure/persistence/drizzle/generated/auth.schema.js';
-import { protectOrganizationOwners } from '#server/auth/infrastructure/persistence/drizzle/owner-protected.adapter.js';
-import { problemDetailsPlugin } from '#server/auth/plugins/problem-details.plugin.js';
-import { parseAuthEnvironment } from '#server/config/runtime-environment.js';
-import type { DatabaseService } from '#server/database/database.service.js';
+} from '@/auth/auth-options';
+import * as authSchema from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
+import { protectOrganizationOwners } from '@/auth/infrastructure/persistence/drizzle/owner-protected.adapter';
+import { problemDetailsPlugin } from '@/auth/plugins/problem-details.plugin';
+import { parseAuthEnvironment } from '@/config/runtime-environment';
+import type { DatabaseService } from '@/database/database.service';
 
 import { drizzleAdapter } from '@better-auth/drizzle-adapter';
 import type { BetterAuthOptions } from 'better-auth';

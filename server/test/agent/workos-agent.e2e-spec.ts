@@ -1,17 +1,17 @@
-import type { AgentModelProvider } from '#server/agent/infrastructure/model/agent-model.provider.js';
+import type { AgentModelProvider } from '@/agent/infrastructure/model/agent-model.provider';
 
 import { jest } from '@jest/globals';
 import { AIMessage } from '@langchain/core/messages';
 import { fakeModel } from '@langchain/core/testing';
 
-import { startWorkOsMcpFixture } from '#server-test/agent/fixtures/workos-mcp.fixture.js';
+import { startWorkOsMcpFixture } from '@test/agent/fixtures/workos-mcp.fixture';
 import {
   FixtureModelProvider,
   startAgentApp,
   unusedModel,
   waitForCondition,
   waitForRunStatus,
-} from '#server-test/agent/support/workos-agent.e2e-support.js';
+} from '@test/agent/support/workos-agent.e2e-support';
 
 jest.setTimeout(30_000);
 

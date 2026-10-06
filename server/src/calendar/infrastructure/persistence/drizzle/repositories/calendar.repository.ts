@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { CalendarSchedulingContentionError } from '#server/calendar/domain/calendar.error.js';
+import { CalendarSchedulingContentionError } from '@/calendar/domain/calendar.error';
 import {
   type CalendarMeetingDetailRecord,
   type CalendarMeetingListRecord,
@@ -23,31 +23,31 @@ import {
   type ScheduleMeetingResult,
   type UpdateAttendeeRsvpResult,
   type UpdateMeetingRoomRecordInput,
-} from '#server/calendar/infrastructure/persistence/calendar.repository.js';
+} from '@/calendar/infrastructure/persistence/calendar.repository';
 import {
   toMeetingDomain,
   toMeetingInsert,
   toMeetingUpdate,
-} from '#server/calendar/infrastructure/persistence/drizzle/mappers/meeting.mapper.js';
+} from '@/calendar/infrastructure/persistence/drizzle/mappers/meeting.mapper';
 import {
   toMeetingAttendeeDomain,
   toMeetingAttendeeInsert,
-} from '#server/calendar/infrastructure/persistence/drizzle/mappers/meeting-attendee.mapper.js';
+} from '@/calendar/infrastructure/persistence/drizzle/mappers/meeting-attendee.mapper';
 import {
   toMeetingRecurrenceSeriesDomain,
   toMeetingRecurrenceSeriesInsert,
   toMeetingRecurrenceSeriesUpdate,
-} from '#server/calendar/infrastructure/persistence/drizzle/mappers/meeting-recurrence-series.mapper.js';
+} from '@/calendar/infrastructure/persistence/drizzle/mappers/meeting-recurrence-series.mapper';
 import {
   toMeetingRoomDomain,
   toMeetingRoomInsert,
   toMeetingRoomUpdate,
-} from '#server/calendar/infrastructure/persistence/drizzle/mappers/meeting-room.mapper.js';
-import { meeting } from '#server/calendar/infrastructure/persistence/drizzle/schema/meeting.schema.js';
-import { meetingAttendee } from '#server/calendar/infrastructure/persistence/drizzle/schema/meeting-attendee.schema.js';
-import { meetingRecurrenceSeries } from '#server/calendar/infrastructure/persistence/drizzle/schema/meeting-recurrence-series.schema.js';
-import { meetingRoom } from '#server/calendar/infrastructure/persistence/drizzle/schema/meeting-room.schema.js';
-import { DatabaseService } from '#server/database/database.service.js';
+} from '@/calendar/infrastructure/persistence/drizzle/mappers/meeting-room.mapper';
+import { meeting } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting.schema';
+import { meetingAttendee } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting-attendee.schema';
+import { meetingRecurrenceSeries } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting-recurrence-series.schema';
+import { meetingRoom } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting-room.schema';
+import { DatabaseService } from '@/database/database.service';
 
 import {
   and,

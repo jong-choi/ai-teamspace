@@ -20,20 +20,20 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import type { Auth } from '#server/auth/auth.js';
-import { TrustedOriginGuard } from '#server/common/http/trusted-origin.guard.js';
+import type { Auth } from '@/auth/auth';
+import { TrustedOriginGuard } from '@/common/http/trusted-origin.guard';
 import {
   CreateOrganizationInvitationDto,
   type CreateOrganizationInvitationInput,
-} from '#server/organizations/dto/create-organization-invitation.dto.js';
-import { OrganizationInvitationDto } from '#server/organizations/dto/organization-invitation.dto.js';
-import { OrganizationInvitationListDto } from '#server/organizations/dto/organization-invitation-list.dto.js';
+} from '@/organizations/dto/create-organization-invitation.dto';
+import { OrganizationInvitationDto } from '@/organizations/dto/organization-invitation.dto';
+import { OrganizationInvitationListDto } from '@/organizations/dto/organization-invitation-list.dto';
 import {
   QueryOrganizationInvitationsDto,
   type QueryOrganizationInvitationsInput,
-} from '#server/organizations/dto/query-organization-invitations.dto.js';
-import { toOrganizationActorContext } from '#server/organizations/organization-actor-context.js';
-import { OrganizationInvitationsService } from '#server/organizations/organization-invitations.service.js';
+} from '@/organizations/dto/query-organization-invitations.dto';
+import { toOrganizationActorContext } from '@/organizations/organization-actor-context';
+import { OrganizationInvitationsService } from '@/organizations/organization-invitations.service';
 
 import { Session, type UserSession } from '@thallesp/nestjs-better-auth';
 import { ApiProblemResponse } from 'nest-problem-details-filter/swagger';

@@ -1,4 +1,4 @@
-import { createZodDto } from '#server/common/dto/create-zod-dto.js';
+import { createZodDto } from '@/common/dto/create-zod-dto';
 
 import { z } from 'zod';
 

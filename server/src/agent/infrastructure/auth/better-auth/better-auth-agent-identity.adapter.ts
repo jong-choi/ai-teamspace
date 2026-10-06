@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
-import type { AgentActor } from '#server/agent/domain/agent-actor.js';
-import { AgentIdentityProvider } from '#server/agent/infrastructure/auth/agent-identity.provider.js';
-import type { Auth } from '#server/auth/auth.js';
+import type { AgentActor } from '@/agent/domain/agent-actor';
+import { AgentIdentityProvider } from '@/agent/infrastructure/auth/agent-identity.provider';
+import type { Auth } from '@/auth/auth';
 
 import { AuthService } from '@thallesp/nestjs-better-auth';
 

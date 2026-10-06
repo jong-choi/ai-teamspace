@@ -1,4 +1,4 @@
-import type { AgentEnvironment } from '#server/agent/config/agent-environment.js';
+import type { AgentEnvironment } from '@/agent/config/agent-environment';
 
 export interface AgentMcpConfiguration {
   url: string;

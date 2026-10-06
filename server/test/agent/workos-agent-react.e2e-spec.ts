@@ -1,7 +1,7 @@
 import { createElement } from 'react';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 
-import type { AgentModels } from '#server/agent/infrastructure/model/agent-model.provider.js';
+import type { AgentModels } from '@/agent/infrastructure/model/agent-model.provider';
 
 import { jest } from '@jest/globals';
 import { AIMessage } from '@langchain/core/messages';
@@ -12,13 +12,13 @@ import {
   useStream,
 } from '@langchain/langgraph-sdk/react';
 
-import { startWorkOsMcpFixture } from '#server-test/agent/fixtures/workos-mcp.fixture.js';
+import { startWorkOsMcpFixture } from '@test/agent/fixtures/workos-mcp.fixture';
 import {
   FixtureModelProvider,
   startAgentApp,
   unusedModel,
   waitForCondition as waitForSharedCondition,
-} from '#server-test/agent/support/workos-agent.e2e-support.js';
+} from '@test/agent/support/workos-agent.e2e-support';
 
 jest.setTimeout(30_000);
 

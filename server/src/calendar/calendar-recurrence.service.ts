@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
-import { CalendarInvalidRecurrenceError } from '#server/calendar/domain/calendar.error.js';
-import type { MeetingRecurrenceSeries } from '#server/calendar/domain/meeting-recurrence-series.js';
-import type { RecurrenceRuleInput } from '#server/calendar/dto/recurrence.dto.js';
+import { CalendarInvalidRecurrenceError } from '@/calendar/domain/calendar.error';
+import type { MeetingRecurrenceSeries } from '@/calendar/domain/meeting-recurrence-series';
+import type { RecurrenceRuleInput } from '@/calendar/dto/recurrence.dto';
 
 import type { Weekday } from 'rrule';
 import * as rruleNamespace from 'rrule';

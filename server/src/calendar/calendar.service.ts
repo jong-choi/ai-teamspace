@@ -1,36 +1,36 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 
-import { CalendarMeetingLoader } from '#server/calendar/calendar-meeting.loader.js';
-import { CalendarMeetingPolicy } from '#server/calendar/calendar-meeting.policy.js';
-import { CalendarMeetingPresenterService } from '#server/calendar/calendar-meeting-presenter.service.js';
+import { CalendarMeetingLoader } from '@/calendar/calendar-meeting.loader';
+import { CalendarMeetingPolicy } from '@/calendar/calendar-meeting.policy';
+import { CalendarMeetingPresenterService } from '@/calendar/calendar-meeting-presenter.service';
 import {
   CalendarMeetingNotFoundError,
   CalendarMeetingRoomNotFoundError,
-} from '#server/calendar/domain/calendar.error.js';
-import type { Meeting } from '#server/calendar/domain/meeting.js';
-import type { CreateMeetingRoomInput } from '#server/calendar/dto/create-meeting-room.dto.js';
+} from '@/calendar/domain/calendar.error';
+import type { Meeting } from '@/calendar/domain/meeting';
+import type { CreateMeetingRoomInput } from '@/calendar/dto/create-meeting-room.dto';
 import type {
   MeetingDetailResponse,
   MeetingListResponse,
-} from '#server/calendar/dto/meeting.dto.js';
+} from '@/calendar/dto/meeting.dto';
 import {
   type MeetingRoomListResponse,
   MeetingRoomListSchema,
   type MeetingRoomResponse,
   toMeetingRoomResponse,
-} from '#server/calendar/dto/meeting-room.dto.js';
-import type { QueryCalendarMeetingsInput } from '#server/calendar/dto/query-calendar-meetings.dto.js';
-import type { UpdateMeetingInput } from '#server/calendar/dto/update-meeting.dto.js';
+} from '@/calendar/dto/meeting-room.dto';
+import type { QueryCalendarMeetingsInput } from '@/calendar/dto/query-calendar-meetings.dto';
+import type { UpdateMeetingInput } from '@/calendar/dto/update-meeting.dto';
 import type {
   UpdateMeetingAgendaInput,
   UpdateMeetingNotesInput,
-} from '#server/calendar/dto/update-meeting-content.dto.js';
-import type { UpdateMeetingRoomInput } from '#server/calendar/dto/update-meeting-room.dto.js';
-import { CalendarRepository } from '#server/calendar/infrastructure/persistence/calendar.repository.js';
-import { CalendarProjectReferenceProvider } from '#server/calendar/infrastructure/project/calendar-project-reference.provider.js';
-import { CalendarReminderScheduler } from '#server/calendar/infrastructure/reminder/calendar-reminder-scheduler.provider.js';
-import type { OrganizationActorContext } from '#server/organizations/organization-actor-context.js';
-import { OrganizationsService } from '#server/organizations/organizations.service.js';
+} from '@/calendar/dto/update-meeting-content.dto';
+import type { UpdateMeetingRoomInput } from '@/calendar/dto/update-meeting-room.dto';
+import { CalendarRepository } from '@/calendar/infrastructure/persistence/calendar.repository';
+import { CalendarProjectReferenceProvider } from '@/calendar/infrastructure/project/calendar-project-reference.provider';
+import { CalendarReminderScheduler } from '@/calendar/infrastructure/reminder/calendar-reminder-scheduler.provider';
+import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
+import { OrganizationsService } from '@/organizations/organizations.service';
 
 type CalendarOrganizationsAccess = Pick<
   OrganizationsService,

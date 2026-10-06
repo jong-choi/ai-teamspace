@@ -1,35 +1,35 @@
 import { Injectable } from '@nestjs/common';
 
-import { DatabaseService } from '#server/database/database.service.js';
+import { DatabaseService } from '@/database/database.service';
 import {
   WikiCollaborationStateCorruptedError,
   WikiDocumentHistoryCorruptedError,
   WikiDocumentNotFoundError,
   WikiInvalidDocumentMoveError,
-} from '#server/wiki/domain/wiki.error.js';
+} from '@/wiki/domain/wiki.error';
 import type {
   WikiDocument,
   WikiDocumentSummary,
-} from '#server/wiki/domain/wiki-document.js';
-import { WikiDocumentCollaborationStateSchema } from '#server/wiki/domain/wiki-document-collaboration-state.js';
+} from '@/wiki/domain/wiki-document';
+import { WikiDocumentCollaborationStateSchema } from '@/wiki/domain/wiki-document-collaboration-state';
 import type {
   WikiDocumentRevision,
   WikiDocumentRevisionSummary,
-} from '#server/wiki/domain/wiki-document-revision.js';
-import { allocateWikiDocumentTitle } from '#server/wiki/domain/wiki-document-title.js';
-import { toWikiDocumentDomain } from '#server/wiki/infrastructure/persistence/drizzle/mappers/wiki-document.mapper.js';
+} from '@/wiki/domain/wiki-document-revision';
+import { allocateWikiDocumentTitle } from '@/wiki/domain/wiki-document-title';
+import { toWikiDocumentDomain } from '@/wiki/infrastructure/persistence/drizzle/mappers/wiki-document.mapper';
 import {
   toWikiDocumentRevisionDomain,
   toWikiDocumentRevisionInsert,
-} from '#server/wiki/infrastructure/persistence/drizzle/mappers/wiki-document-revision.mapper.js';
-import { wikiCollection } from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-collection.schema.js';
-import { wikiDocument } from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-document.schema.js';
+} from '@/wiki/infrastructure/persistence/drizzle/mappers/wiki-document-revision.mapper';
+import { wikiCollection } from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-collection.schema';
+import { wikiDocument } from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-document.schema';
 import {
   wikiDocumentInsertSchema,
   wikiDocumentUpdateSchema,
-} from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-document.zod.js';
-import { wikiDocumentRevision } from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-document-revision.schema.js';
-import { wikiDocumentRevisionCollaborator } from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-document-revision-collaborator.schema.js';
+} from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-document.zod';
+import { wikiDocumentRevision } from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-document-revision.schema';
+import { wikiDocumentRevisionCollaborator } from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-document-revision-collaborator.schema';
 import type {
   CreateWikiDocumentPersistenceInput,
   DeleteWikiDocumentResult,
@@ -38,8 +38,8 @@ import type {
   UpdateWikiDocumentMetadataPersistenceInput,
   WikiSearchMatch,
   WikiTree,
-} from '#server/wiki/infrastructure/persistence/wiki.repository.js';
-import { WikiRepository } from '#server/wiki/infrastructure/persistence/wiki.repository.js';
+} from '@/wiki/infrastructure/persistence/wiki.repository';
+import { WikiRepository } from '@/wiki/infrastructure/persistence/wiki.repository';
 
 import { and, asc, desc, eq, ne, or, sql } from 'drizzle-orm';
 import * as Y from 'yjs';

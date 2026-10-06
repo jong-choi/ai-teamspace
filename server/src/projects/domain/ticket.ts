@@ -1,4 +1,4 @@
-import { ticketSelectSchema } from '#server/projects/infrastructure/persistence/drizzle/schema/ticket.zod.js';
+import { ticketSelectSchema } from '@/projects/infrastructure/persistence/drizzle/schema/ticket.zod';
 
 import { z } from 'zod';
 

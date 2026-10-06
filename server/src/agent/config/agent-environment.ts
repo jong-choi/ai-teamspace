@@ -4,7 +4,7 @@ import {
   databaseUrlSchema,
   redisUrlSchema,
   urlWithProtocols,
-} from '#server/config/runtime-environment.js';
+} from '@/config/runtime-environment';
 
 import { z } from 'zod';
 

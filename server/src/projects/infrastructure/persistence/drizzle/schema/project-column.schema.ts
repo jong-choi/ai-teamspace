@@ -1,4 +1,4 @@
-import { project } from '#server/projects/infrastructure/persistence/drizzle/schema/project.schema.js';
+import { project } from '@/projects/infrastructure/persistence/drizzle/schema/project.schema';
 
 import { sql } from 'drizzle-orm';
 import {

@@ -1,12 +1,12 @@
 import type {
   WikiDocument,
   WikiDocumentSummary,
-} from '#server/wiki/domain/wiki-document.js';
-import type { WikiDocumentCollaborationState } from '#server/wiki/domain/wiki-document-collaboration-state.js';
+} from '@/wiki/domain/wiki-document';
+import type { WikiDocumentCollaborationState } from '@/wiki/domain/wiki-document-collaboration-state';
 import type {
   WikiDocumentRevision,
   WikiDocumentRevisionSummary,
-} from '#server/wiki/domain/wiki-document-revision.js';
+} from '@/wiki/domain/wiki-document-revision';
 
 export type WikiTree = WikiDocumentSummary[];
 

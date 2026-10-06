@@ -1,30 +1,30 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import { AuthUserDirectoryService } from '#server/auth/auth-user-directory.service.js';
-import { ChatService } from '#server/chat/chat.service.js';
+import { AuthUserDirectoryService } from '@/auth/auth-user-directory.service';
+import { ChatService } from '@/chat/chat.service';
 import {
   OrganizationInvitationCompensationFailureError,
   OrganizationInvitationDeliveryFailureError,
   OrganizationInvitationInvalidStateError,
   OrganizationInvitationNotFoundError,
   OrganizationInvitationUnavailableError,
-} from '#server/organizations/domain/organization.error.js';
-import type { OrganizationAccess } from '#server/organizations/domain/organization-access.js';
-import type { OrganizationInvitation } from '#server/organizations/domain/organization-invitation.js';
-import { assertInvitationAdminAllowed } from '#server/organizations/domain/organization-policy.js';
-import type { CreateOrganizationInvitationInput } from '#server/organizations/dto/create-organization-invitation.dto.js';
-import type { OrganizationInvitationResponse } from '#server/organizations/dto/organization-invitation.dto.js';
-import { toOrganizationInvitationResponse } from '#server/organizations/dto/organization-invitation.dto.js';
-import type { OrganizationInvitationDetailResponse } from '#server/organizations/dto/organization-invitation-detail.dto.js';
-import { toOrganizationInvitationDetailResponse } from '#server/organizations/dto/organization-invitation-detail.dto.js';
-import type { OrganizationInvitationList } from '#server/organizations/dto/organization-invitation-list.dto.js';
-import { toOrganizationInvitationListItem } from '#server/organizations/dto/organization-invitation-list.dto.js';
-import type { QueryOrganizationInvitationsInput } from '#server/organizations/dto/query-organization-invitations.dto.js';
-import { OrganizationInvitationProvider } from '#server/organizations/infrastructure/invitation/organization-invitation.provider.js';
+} from '@/organizations/domain/organization.error';
+import type { OrganizationAccess } from '@/organizations/domain/organization-access';
+import type { OrganizationInvitation } from '@/organizations/domain/organization-invitation';
+import { assertInvitationAdminAllowed } from '@/organizations/domain/organization-policy';
+import type { CreateOrganizationInvitationInput } from '@/organizations/dto/create-organization-invitation.dto';
+import type { OrganizationInvitationResponse } from '@/organizations/dto/organization-invitation.dto';
+import { toOrganizationInvitationResponse } from '@/organizations/dto/organization-invitation.dto';
+import type { OrganizationInvitationDetailResponse } from '@/organizations/dto/organization-invitation-detail.dto';
+import { toOrganizationInvitationDetailResponse } from '@/organizations/dto/organization-invitation-detail.dto';
+import type { OrganizationInvitationList } from '@/organizations/dto/organization-invitation-list.dto';
+import { toOrganizationInvitationListItem } from '@/organizations/dto/organization-invitation-list.dto';
+import type { QueryOrganizationInvitationsInput } from '@/organizations/dto/query-organization-invitations.dto';
+import { OrganizationInvitationProvider } from '@/organizations/infrastructure/invitation/organization-invitation.provider';
 import {
   type OrganizationActorContext,
   OrganizationProvider,
-} from '#server/organizations/infrastructure/organization/organization.provider.js';
+} from '@/organizations/infrastructure/organization/organization.provider';
 
 type OrganizationInvitationDelivery = Pick<
   ChatService,

@@ -4,8 +4,8 @@ import { Test } from '@nestjs/testing';
 import {
   ORGANIZATION_AUTHORIZATION_CHANGED_JOB,
   ORGANIZATION_PUBLIC_EVENT_QUEUE,
-} from '#server/organizations/domain/organization-public-event.js';
-import { BullMqOrganizationPublicEventPublisher } from '#server/organizations/infrastructure/events/bullmq/bullmq-organization-public-event.publisher.js';
+} from '@/organizations/domain/organization-public-event';
+import { BullMqOrganizationPublicEventPublisher } from '@/organizations/infrastructure/events/bullmq/bullmq-organization-public-event.publisher';
 
 import { jest } from '@jest/globals';
 

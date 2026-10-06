@@ -1,4 +1,4 @@
-import { wikiDocumentRevision } from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-document-revision.schema.js';
+import { wikiDocumentRevision } from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-document-revision.schema';
 
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 

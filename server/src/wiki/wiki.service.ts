@@ -1,37 +1,37 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import type { OrganizationActorContext } from '#server/organizations/organization-actor-context.js';
-import { OrganizationsService } from '#server/organizations/organizations.service.js';
+import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
+import { OrganizationsService } from '@/organizations/organizations.service';
 import {
   WikiDocumentNotEmptyError,
   WikiDocumentNotFoundError,
   WikiDocumentRevisionNotFoundError,
-} from '#server/wiki/domain/wiki.error.js';
-import { WIKI_COLLABORATION_SCHEMA_VERSION } from '#server/wiki/domain/wiki-collaboration-version.js';
-import type { CreateWikiDocumentInput } from '#server/wiki/dto/create-wiki-document.dto.js';
-import type { UpdateWikiDocumentInput } from '#server/wiki/dto/update-wiki-document.dto.js';
+} from '@/wiki/domain/wiki.error';
+import { WIKI_COLLABORATION_SCHEMA_VERSION } from '@/wiki/domain/wiki-collaboration-version';
+import type { CreateWikiDocumentInput } from '@/wiki/dto/create-wiki-document.dto';
+import type { UpdateWikiDocumentInput } from '@/wiki/dto/update-wiki-document.dto';
 import {
   toWikiDocumentResponse,
   type WikiDocumentResponse,
-} from '#server/wiki/dto/wiki-document.dto.js';
+} from '@/wiki/dto/wiki-document.dto';
 import {
   toWikiDocumentRevisionResponse,
   toWikiDocumentRevisionSummaryResponse,
   type WikiDocumentHistoryResponse,
   type WikiDocumentRevisionResponse,
-} from '#server/wiki/dto/wiki-document-history.dto.js';
+} from '@/wiki/dto/wiki-document-history.dto';
 import type {
   QueryWikiSearchInput,
   WikiSearchResultResponse,
-} from '#server/wiki/dto/wiki-search.dto.js';
-import { WikiSearchResultSchema } from '#server/wiki/dto/wiki-search.dto.js';
+} from '@/wiki/dto/wiki-search.dto';
+import { WikiSearchResultSchema } from '@/wiki/dto/wiki-search.dto';
 import {
   toWikiTreeResponse,
   type WikiTreeResponse,
-} from '#server/wiki/dto/wiki-tree.dto.js';
-import { WikiCollaborationInvalidationPublisher } from '#server/wiki/infrastructure/collaboration/wiki-collaboration-invalidation.provider.js';
-import { WikiCollaborationStateProvider } from '#server/wiki/infrastructure/collaboration/wiki-collaboration-state.provider.js';
-import { WikiRepository } from '#server/wiki/infrastructure/persistence/wiki.repository.js';
+} from '@/wiki/dto/wiki-tree.dto';
+import { WikiCollaborationInvalidationPublisher } from '@/wiki/infrastructure/collaboration/wiki-collaboration-invalidation.provider';
+import { WikiCollaborationStateProvider } from '@/wiki/infrastructure/collaboration/wiki-collaboration-state.provider';
+import { WikiRepository } from '@/wiki/infrastructure/persistence/wiki.repository';
 
 type WikiOrganizationAccess = Pick<OrganizationsService, 'getDetail'>;
 

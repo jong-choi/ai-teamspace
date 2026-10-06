@@ -5,10 +5,10 @@ import {
   type AgentRuntimeConfiguration as RuntimeModuleConfiguration,
   createDurableAgentRuntime,
 } from '@repo/agent-runtime';
-import { AgentAuthorizationPolicy } from '#server/agent/application/agent-authorization.policy.js';
-import { WORKOS_AGENT_NAME } from '#server/agent/application/workos-agent.definition.js';
-import { WorkOsAgentFactory } from '#server/agent/application/workos-agent.factory.js';
-import { AgentConfiguration } from '#server/agent/config/agent-configuration.js';
+import { AgentAuthorizationPolicy } from '@/agent/application/agent-authorization.policy';
+import { WORKOS_AGENT_NAME } from '@/agent/application/workos-agent.definition';
+import { WorkOsAgentFactory } from '@/agent/application/workos-agent.factory';
+import { AgentConfiguration } from '@/agent/config/agent-configuration';
 
 @Injectable()
 export class AgentRuntimeOptionsFactory {

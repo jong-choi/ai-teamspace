@@ -1,4 +1,4 @@
-import { wikiBytea } from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-bytea.js';
+import { wikiBytea } from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-bytea';
 
 import { pgTable } from 'drizzle-orm/pg-core';
 

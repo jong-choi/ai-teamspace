@@ -1,4 +1,4 @@
-import { ticketLabelSelectSchema } from '#server/projects/infrastructure/persistence/drizzle/schema/ticket-label.zod.js';
+import { ticketLabelSelectSchema } from '@/projects/infrastructure/persistence/drizzle/schema/ticket-label.zod';
 
 import { z } from 'zod';
 

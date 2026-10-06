@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 
-import { AgentConfiguration } from '#server/agent/config/agent-configuration.js';
+import { AgentConfiguration } from '@/agent/config/agent-configuration';
 import {
   AgentModelProvider,
   type AgentModels,
-} from '#server/agent/infrastructure/model/agent-model.provider.js';
+} from '@/agent/infrastructure/model/agent-model.provider';
 
 @Injectable()
 export class ConfiguredAgentModelAdapter extends AgentModelProvider {

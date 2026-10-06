@@ -1,27 +1,27 @@
-import type { AuthUserIdentity } from '#server/auth/auth-user-directory.service.js';
-import { createZodDto } from '#server/common/dto/create-zod-dto.js';
-import type { Ticket } from '#server/projects/domain/ticket.js';
+import type { AuthUserIdentity } from '@/auth/auth-user-directory.service';
+import { createZodDto } from '@/common/dto/create-zod-dto';
+import type { Ticket } from '@/projects/domain/ticket';
 import {
   ProjectUserSummarySchema,
   toProjectUserSummary,
-} from '#server/projects/dto/project.dto.js';
+} from '@/projects/dto/project.dto';
 import {
   TicketChecklistResponseSchema,
   toTicketChecklistResponse,
-} from '#server/projects/dto/ticket-checklist.dto.js';
+} from '@/projects/dto/ticket-checklist.dto';
 import {
   type TicketCommentResponse,
   TicketCommentResponseSchema,
-} from '#server/projects/dto/ticket-comment.dto.js';
+} from '@/projects/dto/ticket-comment.dto';
 import {
   TicketLabelResponseSchema,
   toTicketLabelResponse,
-} from '#server/projects/dto/ticket-label.dto.js';
-import { ticketSelectSchema } from '#server/projects/infrastructure/persistence/drizzle/schema/ticket.zod.js';
+} from '@/projects/dto/ticket-label.dto';
+import { ticketSelectSchema } from '@/projects/infrastructure/persistence/drizzle/schema/ticket.zod';
 import type {
   TicketCardMetadata,
   TicketChecklistReadModel,
-} from '#server/projects/infrastructure/persistence/ticket-workflow.repository.js';
+} from '@/projects/infrastructure/persistence/ticket-workflow.repository';
 
 import { z } from 'zod';
 

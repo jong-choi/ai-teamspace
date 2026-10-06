@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 
 import { AgentRuntimeModule } from '@repo/agent-runtime';
-import { AgentRuntimeInfrastructureModule } from '#server/agent/infrastructure/runtime/agent-runtime-infrastructure.module.js';
-import { AgentRuntimeOptionsFactory } from '#server/agent/infrastructure/runtime/agent-runtime-options.factory.js';
+import { AgentRuntimeInfrastructureModule } from '@/agent/infrastructure/runtime/agent-runtime-infrastructure.module';
+import { AgentRuntimeOptionsFactory } from '@/agent/infrastructure/runtime/agent-runtime-options.factory';
 
 @Module({
   imports: [

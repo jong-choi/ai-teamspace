@@ -1,14 +1,14 @@
 import { Module } from '@nestjs/common';
 
-import { AuthModule } from '#server/auth/auth.module.js';
-import { TrustedOriginGuard } from '#server/common/http/trusted-origin.guard.js';
-import { OrganizationsModule } from '#server/organizations/organizations.module.js';
-import { ProjectDrizzlePersistenceModule } from '#server/projects/infrastructure/persistence/drizzle/drizzle-persistence.module.js';
-import { ProjectReferenceQueryService } from '#server/projects/project-reference-query.service.js';
-import { ProjectsController } from '#server/projects/projects.controller.js';
-import { ProjectsService } from '#server/projects/projects.service.js';
-import { TicketWorkflowController } from '#server/projects/ticket-workflow.controller.js';
-import { TicketWorkflowService } from '#server/projects/ticket-workflow.service.js';
+import { AuthModule } from '@/auth/auth.module';
+import { TrustedOriginGuard } from '@/common/http/trusted-origin.guard';
+import { OrganizationsModule } from '@/organizations/organizations.module';
+import { ProjectDrizzlePersistenceModule } from '@/projects/infrastructure/persistence/drizzle/drizzle-persistence.module';
+import { ProjectReferenceQueryService } from '@/projects/project-reference-query.service';
+import { ProjectsController } from '@/projects/projects.controller';
+import { ProjectsService } from '@/projects/projects.service';
+import { TicketWorkflowController } from '@/projects/ticket-workflow.controller';
+import { TicketWorkflowService } from '@/projects/ticket-workflow.service';
 
 @Module({
   imports: [AuthModule, OrganizationsModule, ProjectDrizzlePersistenceModule],

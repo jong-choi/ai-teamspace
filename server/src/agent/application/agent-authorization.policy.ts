@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { AgentAuth, AgentHttpException } from '@repo/agent-runtime';
-import { AgentIdentityProvider } from '#server/agent/infrastructure/auth/agent-identity.provider.js';
+import { AgentIdentityProvider } from '@/agent/infrastructure/auth/agent-identity.provider';
 
 @Injectable()
 export class AgentAuthorizationPolicy {

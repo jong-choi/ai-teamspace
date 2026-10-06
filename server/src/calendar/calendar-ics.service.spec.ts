@@ -1,14 +1,14 @@
 import type {
   AuthUserDirectoryService,
   AuthUserIdentity,
-} from '#server/auth/auth-user-directory.service.js';
-import { CalendarIcsService } from '#server/calendar/calendar-ics.service.js';
-import { CalendarMeetingLoader } from '#server/calendar/calendar-meeting.loader.js';
-import type { Meeting } from '#server/calendar/domain/meeting.js';
-import type { MeetingAttendee } from '#server/calendar/domain/meeting-attendee.js';
-import type { MeetingRecurrenceSeries } from '#server/calendar/domain/meeting-recurrence-series.js';
-import { CalendarRepository } from '#server/calendar/infrastructure/persistence/calendar.repository.js';
-import type { OrganizationsService } from '#server/organizations/organizations.service.js';
+} from '@/auth/auth-user-directory.service';
+import { CalendarIcsService } from '@/calendar/calendar-ics.service';
+import { CalendarMeetingLoader } from '@/calendar/calendar-meeting.loader';
+import type { Meeting } from '@/calendar/domain/meeting';
+import type { MeetingAttendee } from '@/calendar/domain/meeting-attendee';
+import type { MeetingRecurrenceSeries } from '@/calendar/domain/meeting-recurrence-series';
+import { CalendarRepository } from '@/calendar/infrastructure/persistence/calendar.repository';
+import type { OrganizationsService } from '@/organizations/organizations.service';
 
 import { jest } from '@jest/globals';
 

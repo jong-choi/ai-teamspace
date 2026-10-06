@@ -1,7 +1,7 @@
-import { WikiCollaborationInvalidTokenError } from '#server/wiki/domain/wiki.error.js';
-import { JoseWikiCollaborationTokenAdapter } from '#server/wiki/infrastructure/collaboration/jose/jose-wiki-collaboration-token.adapter.js';
-import type { WikiCollaborationEnvironment } from '#server/wiki/infrastructure/collaboration/wiki-collaboration-configuration.provider.js';
-import { WIKI_COLLABORATION_TOKEN_TYPE } from '#server/wiki/infrastructure/collaboration/wiki-collaboration-token.provider.js';
+import { WikiCollaborationInvalidTokenError } from '@/wiki/domain/wiki.error';
+import { JoseWikiCollaborationTokenAdapter } from '@/wiki/infrastructure/collaboration/jose/jose-wiki-collaboration-token.adapter';
+import type { WikiCollaborationEnvironment } from '@/wiki/infrastructure/collaboration/wiki-collaboration-configuration.provider';
+import { WIKI_COLLABORATION_TOKEN_TYPE } from '@/wiki/infrastructure/collaboration/wiki-collaboration-token.provider';
 
 import { decodeJwt } from 'jose';
 

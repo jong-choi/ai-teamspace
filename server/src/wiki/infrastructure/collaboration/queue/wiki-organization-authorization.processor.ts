@@ -5,11 +5,11 @@ import {
   ORGANIZATION_AUTHORIZATION_CHANGED_JOB,
   ORGANIZATION_PUBLIC_EVENT_QUEUE,
   OrganizationAuthorizationChangedEventSchema,
-} from '#server/organizations/domain/organization-public-event.js';
+} from '@/organizations/domain/organization-public-event';
 import {
   type WikiCollaborationInvalidationEvent,
   WikiCollaborationInvalidationPublisher,
-} from '#server/wiki/infrastructure/collaboration/wiki-collaboration-invalidation.provider.js';
+} from '@/wiki/infrastructure/collaboration/wiki-collaboration-invalidation.provider';
 
 import type { Job } from 'bullmq';
 

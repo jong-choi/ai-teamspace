@@ -106,13 +106,5 @@
     "supertest": "^7.0.0",
     "ts-jest": "^29.4.14",
     "typescript": "^6.0.2"
-  },
-  "imports": {
-    "#server/*": {
-      "types": "./src/*",
-      "default": "./dist/*"
-    },
-    "#server-source/*": "./src/*.ts",
-    "#server-test/*": "./test/*"
   }
 }

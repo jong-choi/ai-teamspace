@@ -1,5 +1,5 @@
-import { CalendarRecurrenceService } from '#server/calendar/calendar-recurrence.service.js';
-import { CalendarInvalidRecurrenceError } from '#server/calendar/domain/calendar.error.js';
+import { CalendarRecurrenceService } from '@/calendar/calendar-recurrence.service';
+import { CalendarInvalidRecurrenceError } from '@/calendar/domain/calendar.error';
 
 describe('캘린더 반복 일정 서비스', () => {
   const service = new CalendarRecurrenceService();

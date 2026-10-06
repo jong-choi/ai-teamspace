@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 
-import { ProjectDrizzleRepository } from '#server/projects/infrastructure/persistence/drizzle/repositories/project.repository.js';
-import { ProjectReferenceDrizzleRepository } from '#server/projects/infrastructure/persistence/drizzle/repositories/project-reference.repository.js';
-import { TicketWorkflowDrizzleRepository } from '#server/projects/infrastructure/persistence/drizzle/repositories/ticket-workflow.repository.js';
-import { ProjectRepository } from '#server/projects/infrastructure/persistence/project.repository.js';
-import { ProjectReferenceRepository } from '#server/projects/infrastructure/persistence/project-reference.repository.js';
-import { TicketWorkflowRepository } from '#server/projects/infrastructure/persistence/ticket-workflow.repository.js';
+import { ProjectDrizzleRepository } from '@/projects/infrastructure/persistence/drizzle/repositories/project.repository';
+import { ProjectReferenceDrizzleRepository } from '@/projects/infrastructure/persistence/drizzle/repositories/project-reference.repository';
+import { TicketWorkflowDrizzleRepository } from '@/projects/infrastructure/persistence/drizzle/repositories/ticket-workflow.repository';
+import { ProjectRepository } from '@/projects/infrastructure/persistence/project.repository';
+import { ProjectReferenceRepository } from '@/projects/infrastructure/persistence/project-reference.repository';
+import { TicketWorkflowRepository } from '@/projects/infrastructure/persistence/ticket-workflow.repository';
 
 @Module({
   providers: [

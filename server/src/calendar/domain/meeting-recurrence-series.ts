@@ -1,4 +1,4 @@
-import { meetingRecurrenceSeriesSelectSchema } from '#server/calendar/infrastructure/persistence/drizzle/schema/meeting-recurrence-series.zod.js';
+import { meetingRecurrenceSeriesSelectSchema } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting-recurrence-series.zod';
 
 import { z } from 'zod';
 

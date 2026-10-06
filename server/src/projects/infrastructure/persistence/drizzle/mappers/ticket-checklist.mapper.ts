@@ -1,9 +1,9 @@
-import type { TicketChecklist } from '#server/projects/domain/ticket-checklist.js';
+import type { TicketChecklist } from '@/projects/domain/ticket-checklist';
 import {
   ticketChecklistInsertSchema,
   ticketChecklistSelectSchema,
   ticketChecklistUpdateSchema,
-} from '#server/projects/infrastructure/persistence/drizzle/schema/ticket-checklist.zod.js';
+} from '@/projects/infrastructure/persistence/drizzle/schema/ticket-checklist.zod';
 
 import type { z } from 'zod';
 

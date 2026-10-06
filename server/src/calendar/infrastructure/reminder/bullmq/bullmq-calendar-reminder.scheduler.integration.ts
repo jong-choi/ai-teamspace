@@ -2,12 +2,12 @@ import {
   CALENDAR_REMINDER_JOB,
   CALENDAR_REMINDER_QUEUE,
   calendarReminderJobId,
-} from '#server-source/calendar/domain/calendar-reminder';
-import type { Meeting } from '#server-source/calendar/domain/meeting';
-import { BullMqCalendarReminderScheduler } from '#server-source/calendar/infrastructure/reminder/bullmq/bullmq-calendar-reminder.scheduler';
-import { parseQueueEnvironment } from '#server-source/config/runtime-environment';
-import type { DatabaseService } from '#server-source/database/database.service';
-import { createProducerRedisOptions } from '#server-source/queue/queue.config';
+} from '@/calendar/domain/calendar-reminder';
+import type { Meeting } from '@/calendar/domain/meeting';
+import { BullMqCalendarReminderScheduler } from '@/calendar/infrastructure/reminder/bullmq/bullmq-calendar-reminder.scheduler';
+import { parseQueueEnvironment } from '@/config/runtime-environment';
+import type { DatabaseService } from '@/database/database.service';
+import { createProducerRedisOptions } from '@/queue/queue.config';
 
 import { Queue } from 'bullmq';
 

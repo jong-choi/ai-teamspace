@@ -1,5 +1,5 @@
-import { meetingUpdateSchema } from '#server/calendar/infrastructure/persistence/drizzle/schema/meeting.zod.js';
-import { createZodDto } from '#server/common/dto/create-zod-dto.js';
+import { meetingUpdateSchema } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting.zod';
+import { createZodDto } from '@/common/dto/create-zod-dto';
 
 import { z } from 'zod';
 

@@ -1,4 +1,4 @@
-import { projectColumnSelectSchema } from '#server/projects/infrastructure/persistence/drizzle/schema/project-column.zod.js';
+import { projectColumnSelectSchema } from '@/projects/infrastructure/persistence/drizzle/schema/project-column.zod';
 
 import { z } from 'zod';
 

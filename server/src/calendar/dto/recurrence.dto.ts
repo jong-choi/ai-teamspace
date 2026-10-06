@@ -2,8 +2,8 @@ import {
   meetingRecurrenceSeriesSelectSchema,
   recurrenceTimeZoneSchema,
   recurrenceWeekdaySchema,
-} from '#server/calendar/infrastructure/persistence/drizzle/schema/meeting-recurrence-series.zod.js';
-import { createZodDto } from '#server/common/dto/create-zod-dto.js';
+} from '@/calendar/infrastructure/persistence/drizzle/schema/meeting-recurrence-series.zod';
+import { createZodDto } from '@/common/dto/create-zod-dto';
 
 import { z } from 'zod';
 

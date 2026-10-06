@@ -1,26 +1,26 @@
-import type { OrganizationsService } from '#server/organizations/organizations.service.js';
+import type { OrganizationsService } from '@/organizations/organizations.service';
 import {
   WikiCollaborationAccessDeniedError,
   WikiCollaborationProtocolVersionError,
   WikiCollaborationStateCorruptedError,
   WikiCollaborationStateTooLargeError,
   WikiDocumentHistoryCorruptedError,
-} from '#server/wiki/domain/wiki.error.js';
+} from '@/wiki/domain/wiki.error';
 import {
   WIKI_COLLABORATION_PROTOCOL_VERSION,
   WIKI_COLLABORATION_SCHEMA_VERSION,
-} from '#server/wiki/domain/wiki-collaboration-version.js';
-import type { WikiDocument } from '#server/wiki/domain/wiki-document.js';
-import { WikiCollaborationAttributionProvider } from '#server/wiki/infrastructure/collaboration/wiki-collaboration-attribution.provider.js';
-import { WikiCollaborationAuthorizationProvider } from '#server/wiki/infrastructure/collaboration/wiki-collaboration-authorization.provider.js';
-import type { WikiCollaborationEnvironment } from '#server/wiki/infrastructure/collaboration/wiki-collaboration-configuration.provider.js';
-import { WikiCollaborationTokenProvider } from '#server/wiki/infrastructure/collaboration/wiki-collaboration-token.provider.js';
-import { YjsCollaborationStateAdapter } from '#server/wiki/infrastructure/collaboration/yjs/yjs-collaboration-state.adapter.js';
-import { WikiRepository } from '#server/wiki/infrastructure/persistence/wiki.repository.js';
+} from '@/wiki/domain/wiki-collaboration-version';
+import type { WikiDocument } from '@/wiki/domain/wiki-document';
+import { WikiCollaborationAttributionProvider } from '@/wiki/infrastructure/collaboration/wiki-collaboration-attribution.provider';
+import { WikiCollaborationAuthorizationProvider } from '@/wiki/infrastructure/collaboration/wiki-collaboration-authorization.provider';
+import type { WikiCollaborationEnvironment } from '@/wiki/infrastructure/collaboration/wiki-collaboration-configuration.provider';
+import { WikiCollaborationTokenProvider } from '@/wiki/infrastructure/collaboration/wiki-collaboration-token.provider';
+import { YjsCollaborationStateAdapter } from '@/wiki/infrastructure/collaboration/yjs/yjs-collaboration-state.adapter';
+import { WikiRepository } from '@/wiki/infrastructure/persistence/wiki.repository';
 import {
   WIKI_COLLABORATION_MAX_STATE_BYTES,
   WikiCollaborationService,
-} from '#server/wiki/wiki-collaboration.service.js';
+} from '@/wiki/wiki-collaboration.service';
 
 import { jest } from '@jest/globals';
 

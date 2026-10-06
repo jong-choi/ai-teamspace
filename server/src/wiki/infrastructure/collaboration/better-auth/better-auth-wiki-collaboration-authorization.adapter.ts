@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 
-import type { Auth } from '#server/auth/auth.js';
-import { OrganizationRoleSchema } from '#server/organizations/domain/organization-role.js';
+import type { Auth } from '@/auth/auth';
+import { OrganizationRoleSchema } from '@/organizations/domain/organization-role';
 import {
   type WikiCollaborationAuthorization,
   WikiCollaborationAuthorizationProvider,
-} from '#server/wiki/infrastructure/collaboration/wiki-collaboration-authorization.provider.js';
+} from '@/wiki/infrastructure/collaboration/wiki-collaboration-authorization.provider';
 
 import { AuthService } from '@thallesp/nestjs-better-auth';
 import { z } from 'zod';

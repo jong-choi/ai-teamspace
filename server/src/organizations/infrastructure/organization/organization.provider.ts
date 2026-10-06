@@ -1,13 +1,13 @@
-import type { Organization } from '#server/organizations/domain/organization.js';
-import type { OrganizationAccess } from '#server/organizations/domain/organization-access.js';
-import type { OrganizationMember } from '#server/organizations/domain/organization-member.js';
-import type { OrganizationRole } from '#server/organizations/domain/organization-role.js';
-import type { CreateOrganizationInput } from '#server/organizations/dto/create-organization.dto.js';
-import type { OrganizationMemberList } from '#server/organizations/dto/organization-member-list.dto.js';
-import type { QueryOrganizationMembersInput } from '#server/organizations/dto/query-organization-members.dto.js';
-import type { OrganizationActorContext } from '#server/organizations/organization-actor-context.js';
+import type { Organization } from '@/organizations/domain/organization';
+import type { OrganizationAccess } from '@/organizations/domain/organization-access';
+import type { OrganizationMember } from '@/organizations/domain/organization-member';
+import type { OrganizationRole } from '@/organizations/domain/organization-role';
+import type { CreateOrganizationInput } from '@/organizations/dto/create-organization.dto';
+import type { OrganizationMemberList } from '@/organizations/dto/organization-member-list.dto';
+import type { QueryOrganizationMembersInput } from '@/organizations/dto/query-organization-members.dto';
+import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
 
-export type { OrganizationActorContext } from '#server/organizations/organization-actor-context.js';
+export type { OrganizationActorContext } from '@/organizations/organization-actor-context';
 
 export abstract class OrganizationProvider {
   abstract listForActor(

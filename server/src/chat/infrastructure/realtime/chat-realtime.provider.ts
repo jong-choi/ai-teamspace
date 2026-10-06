@@ -1,5 +1,5 @@
-import type { ChatMessageResponse } from '#server/chat/dto/chat-message.dto.js';
-import type { ChatRealtimeEvent } from '#server/chat/infrastructure/realtime/chat-realtime.event.js';
+import type { ChatMessageResponse } from '@/chat/dto/chat-message.dto';
+import type { ChatRealtimeEvent } from '@/chat/infrastructure/realtime/chat-realtime.event';
 
 import type { Observable } from 'rxjs';
 

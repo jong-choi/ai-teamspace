@@ -1,7 +1,7 @@
-import { CalendarProjectNotFoundError } from '#server/calendar/domain/calendar.error.js';
-import { ProjectsCalendarReferenceAdapter } from '#server/calendar/infrastructure/project/projects/projects-calendar-reference.adapter.js';
-import { ProjectReferenceRepository } from '#server/projects/infrastructure/persistence/project-reference.repository.js';
-import { ProjectReferenceQueryService } from '#server/projects/project-reference-query.service.js';
+import { CalendarProjectNotFoundError } from '@/calendar/domain/calendar.error';
+import { ProjectsCalendarReferenceAdapter } from '@/calendar/infrastructure/project/projects/projects-calendar-reference.adapter';
+import { ProjectReferenceRepository } from '@/projects/infrastructure/persistence/project-reference.repository';
+import { ProjectReferenceQueryService } from '@/projects/project-reference-query.service';
 
 import { jest } from '@jest/globals';
 

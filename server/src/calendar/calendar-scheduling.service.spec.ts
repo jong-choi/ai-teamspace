@@ -1,21 +1,21 @@
-import { CalendarMeetingLoader } from '#server/calendar/calendar-meeting.loader.js';
-import { CalendarMeetingPolicy } from '#server/calendar/calendar-meeting.policy.js';
-import type { CalendarMeetingPresenterService } from '#server/calendar/calendar-meeting-presenter.service.js';
-import { CalendarRecurrenceService } from '#server/calendar/calendar-recurrence.service.js';
-import { CalendarSchedulingService } from '#server/calendar/calendar-scheduling.service.js';
+import { CalendarMeetingLoader } from '@/calendar/calendar-meeting.loader';
+import { CalendarMeetingPolicy } from '@/calendar/calendar-meeting.policy';
+import type { CalendarMeetingPresenterService } from '@/calendar/calendar-meeting-presenter.service';
+import { CalendarRecurrenceService } from '@/calendar/calendar-recurrence.service';
+import { CalendarSchedulingService } from '@/calendar/calendar-scheduling.service';
 import {
   CalendarMeetingAlreadyCanceledError,
   CalendarParticipantConflictError,
-} from '#server/calendar/domain/calendar.error.js';
-import type { Meeting } from '#server/calendar/domain/meeting.js';
-import type { MeetingAttendee } from '#server/calendar/domain/meeting-attendee.js';
-import type { MeetingRecurrenceSeries } from '#server/calendar/domain/meeting-recurrence-series.js';
-import { CalendarRepository } from '#server/calendar/infrastructure/persistence/calendar.repository.js';
-import { CalendarProjectReferenceProvider } from '#server/calendar/infrastructure/project/calendar-project-reference.provider.js';
-import { CalendarReminderScheduler } from '#server/calendar/infrastructure/reminder/calendar-reminder-scheduler.provider.js';
-import type { OrganizationMember } from '#server/organizations/domain/organization-member.js';
-import type { OrganizationActorContext } from '#server/organizations/organization-actor-context.js';
-import type { OrganizationsService } from '#server/organizations/organizations.service.js';
+} from '@/calendar/domain/calendar.error';
+import type { Meeting } from '@/calendar/domain/meeting';
+import type { MeetingAttendee } from '@/calendar/domain/meeting-attendee';
+import type { MeetingRecurrenceSeries } from '@/calendar/domain/meeting-recurrence-series';
+import { CalendarRepository } from '@/calendar/infrastructure/persistence/calendar.repository';
+import { CalendarProjectReferenceProvider } from '@/calendar/infrastructure/project/calendar-project-reference.provider';
+import { CalendarReminderScheduler } from '@/calendar/infrastructure/reminder/calendar-reminder-scheduler.provider';
+import type { OrganizationMember } from '@/organizations/domain/organization-member';
+import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
+import type { OrganizationsService } from '@/organizations/organizations.service';
 
 import { jest } from '@jest/globals';
 

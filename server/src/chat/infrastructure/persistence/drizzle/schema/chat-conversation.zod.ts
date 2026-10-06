@@ -1,4 +1,4 @@
-import { chatConversation } from '#server/chat/infrastructure/persistence/drizzle/schema/chat-conversation.schema.js';
+import { chatConversation } from '@/chat/infrastructure/persistence/drizzle/schema/chat-conversation.schema';
 
 import {
   createInsertSchema,

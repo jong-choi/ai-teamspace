@@ -2,8 +2,8 @@ import { randomUUID } from 'node:crypto';
 
 import { Inject, Injectable } from '@nestjs/common';
 
-import type { OrganizationActorContext } from '#server/organizations/organization-actor-context.js';
-import { OrganizationsService } from '#server/organizations/organizations.service.js';
+import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
+import { OrganizationsService } from '@/organizations/organizations.service';
 import {
   WikiCollaborationAccessDeniedError,
   WikiCollaborationPersistenceError,
@@ -12,32 +12,32 @@ import {
   WikiCollaborationStateTooLargeError,
   WikiDocumentHistoryCorruptedError,
   WikiDocumentNotFoundError,
-} from '#server/wiki/domain/wiki.error.js';
+} from '@/wiki/domain/wiki.error';
 import {
   buildWikiCollaborationDocumentName,
   parseWikiCollaborationDocumentName,
-} from '#server/wiki/domain/wiki-collaboration-document-name.js';
+} from '@/wiki/domain/wiki-collaboration-document-name';
 import {
   WIKI_COLLABORATION_PROTOCOL_VERSION,
   WIKI_COLLABORATION_SCHEMA_VERSION,
-} from '#server/wiki/domain/wiki-collaboration-version.js';
+} from '@/wiki/domain/wiki-collaboration-version';
 import {
   type WikiCollaborationSessionResponse,
   WikiCollaborationSessionSchema,
-} from '#server/wiki/dto/wiki-collaboration-session.dto.js';
-import { WikiCollaborationAttributionProvider } from '#server/wiki/infrastructure/collaboration/wiki-collaboration-attribution.provider.js';
-import { WikiCollaborationAuthorizationProvider } from '#server/wiki/infrastructure/collaboration/wiki-collaboration-authorization.provider.js';
+} from '@/wiki/dto/wiki-collaboration-session.dto';
+import { WikiCollaborationAttributionProvider } from '@/wiki/infrastructure/collaboration/wiki-collaboration-attribution.provider';
+import { WikiCollaborationAuthorizationProvider } from '@/wiki/infrastructure/collaboration/wiki-collaboration-authorization.provider';
 import {
   WIKI_COLLABORATION_ENVIRONMENT,
   type WikiCollaborationEnvironment,
-} from '#server/wiki/infrastructure/collaboration/wiki-collaboration-configuration.provider.js';
-import { WikiCollaborationStateProvider } from '#server/wiki/infrastructure/collaboration/wiki-collaboration-state.provider.js';
-import { WikiCollaborationTokenProvider } from '#server/wiki/infrastructure/collaboration/wiki-collaboration-token.provider.js';
+} from '@/wiki/infrastructure/collaboration/wiki-collaboration-configuration.provider';
+import { WikiCollaborationStateProvider } from '@/wiki/infrastructure/collaboration/wiki-collaboration-state.provider';
+import { WikiCollaborationTokenProvider } from '@/wiki/infrastructure/collaboration/wiki-collaboration-token.provider';
 import {
   type PersistWikiCollaborationSnapshotInput,
   type PersistWikiCollaborationSnapshotResult,
   WikiRepository,
-} from '#server/wiki/infrastructure/persistence/wiki.repository.js';
+} from '@/wiki/infrastructure/persistence/wiki.repository';
 
 export const WIKI_COLLABORATION_MAX_STATE_BYTES = 8 * 1024 * 1024;
 

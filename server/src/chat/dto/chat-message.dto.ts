@@ -1,10 +1,10 @@
-import type { ChatMessage } from '#server/chat/domain/chat-message.js';
+import type { ChatMessage } from '@/chat/domain/chat-message';
 import {
   chatOrganizationInvitationMessageContentSchema,
   chatTextMessageContentSchema,
-} from '#server/chat/domain/chat-message-content.js';
-import { chatMessageSelectSchema } from '#server/chat/infrastructure/persistence/drizzle/schema/chat-message.zod.js';
-import { createZodDto } from '#server/common/dto/create-zod-dto.js';
+} from '@/chat/domain/chat-message-content';
+import { chatMessageSelectSchema } from '@/chat/infrastructure/persistence/drizzle/schema/chat-message.zod';
+import { createZodDto } from '@/common/dto/create-zod-dto';
 
 import { z } from 'zod';
 

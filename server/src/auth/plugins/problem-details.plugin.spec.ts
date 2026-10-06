@@ -1,4 +1,4 @@
-import { toProblemDetailsResponse } from '#server/auth/plugins/problem-details.plugin.js';
+import { toProblemDetailsResponse } from '@/auth/plugins/problem-details.plugin';
 
 describe('Better Auth Problem Details 플러그인', () => {
   it('오류 상태와 헤더를 보존하며 RFC 9457 응답으로 변환한다', async () => {

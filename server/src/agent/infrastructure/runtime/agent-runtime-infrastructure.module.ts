@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 
-import { AgentAuthorizationPolicy } from '#server/agent/application/agent-authorization.policy.js';
-import { WorkOsAgentFactory } from '#server/agent/application/workos-agent.factory.js';
-import { AgentConfigurationModule } from '#server/agent/config/agent-configuration.module.js';
-import { BetterAuthAgentIdentityModule } from '#server/agent/infrastructure/auth/better-auth/better-auth-agent-identity.module.js';
-import { DeepAgentModule } from '#server/agent/infrastructure/deep-agent/deep-agent.module.js';
-import { AgentRuntimeOptionsFactory } from '#server/agent/infrastructure/runtime/agent-runtime-options.factory.js';
+import { AgentAuthorizationPolicy } from '@/agent/application/agent-authorization.policy';
+import { WorkOsAgentFactory } from '@/agent/application/workos-agent.factory';
+import { AgentConfigurationModule } from '@/agent/config/agent-configuration.module';
+import { BetterAuthAgentIdentityModule } from '@/agent/infrastructure/auth/better-auth/better-auth-agent-identity.module';
+import { DeepAgentModule } from '@/agent/infrastructure/deep-agent/deep-agent.module';
+import { AgentRuntimeOptionsFactory } from '@/agent/infrastructure/runtime/agent-runtime-options.factory';
 
 @Module({
   imports: [

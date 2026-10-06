@@ -7,9 +7,9 @@ import {
   WORKOS_RESEARCHER_DESCRIPTION,
   WORKOS_RESEARCHER_PROMPT,
   WORKOS_ROOT_PROMPT,
-} from '#server/agent/application/workos-agent.definition.js';
-import type { WorkOsToolSession } from '#server/agent/infrastructure/mcp/workos-tool-session.provider.js';
-import type { AgentModels } from '#server/agent/infrastructure/model/agent-model.provider.js';
+} from '@/agent/application/workos-agent.definition';
+import type { WorkOsToolSession } from '@/agent/infrastructure/mcp/workos-tool-session.provider';
+import type { AgentModels } from '@/agent/infrastructure/model/agent-model.provider';
 
 import type { StructuredTool } from '@langchain/core/tools';
 import { createDeepAgent } from 'deepagents';

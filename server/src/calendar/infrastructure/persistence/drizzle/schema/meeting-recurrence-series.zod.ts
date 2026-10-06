@@ -1,7 +1,7 @@
 import {
   meetingRecurrenceSeries,
   recurrenceWeekdayValues,
-} from '#server/calendar/infrastructure/persistence/drizzle/schema/meeting-recurrence-series.schema.js';
+} from '@/calendar/infrastructure/persistence/drizzle/schema/meeting-recurrence-series.schema';
 
 import {
   createInsertSchema,

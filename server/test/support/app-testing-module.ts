@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { Test, type TestingModuleBuilder } from '@nestjs/testing';
 
-import { AgentModule } from '#server-source/agent/agent.module';
-import { AppModule } from '#server-source/app.module';
+import { AgentModule } from '@/agent/agent.module';
+import { AppModule } from '@/app.module';
 
 @Module({})
 class DisabledAgentModule {}

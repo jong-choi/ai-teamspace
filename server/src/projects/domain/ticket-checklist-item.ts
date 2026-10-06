@@ -1,4 +1,4 @@
-import { ticketChecklistItemSelectSchema } from '#server/projects/infrastructure/persistence/drizzle/schema/ticket-checklist-item.zod.js';
+import { ticketChecklistItemSelectSchema } from '@/projects/infrastructure/persistence/drizzle/schema/ticket-checklist-item.zod';
 
 import { z } from 'zod';
 

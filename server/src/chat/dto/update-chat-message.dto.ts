@@ -1,5 +1,5 @@
-import { SendChatMessageSchema } from '#server/chat/dto/send-chat-message.dto.js';
-import { createZodDto } from '#server/common/dto/create-zod-dto.js';
+import { SendChatMessageSchema } from '@/chat/dto/send-chat-message.dto';
+import { createZodDto } from '@/common/dto/create-zod-dto';
 
 import { z } from 'zod';
 

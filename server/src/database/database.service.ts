@@ -1,7 +1,7 @@
 import { Injectable, type OnApplicationShutdown } from '@nestjs/common';
 
-import { parseDatabaseEnvironment } from '#server/config/runtime-environment.js';
-import { databaseSchema } from '#server/database/schema.js';
+import { parseDatabaseEnvironment } from '@/config/runtime-environment';
+import { databaseSchema } from '@/database/schema';
 
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';

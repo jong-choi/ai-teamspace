@@ -1,4 +1,4 @@
-import { OrganizationRoleSchema } from '#server/organizations/domain/organization-role.js';
+import { OrganizationRoleSchema } from '@/organizations/domain/organization-role';
 
 import { z } from 'zod';
 

@@ -1,9 +1,9 @@
-import type { MeetingRoom } from '#server/calendar/domain/meeting-room.js';
+import type { MeetingRoom } from '@/calendar/domain/meeting-room';
 import {
   meetingRoomInsertSchema,
   meetingRoomSelectSchema,
   meetingRoomUpdateSchema,
-} from '#server/calendar/infrastructure/persistence/drizzle/schema/meeting-room.zod.js';
+} from '@/calendar/infrastructure/persistence/drizzle/schema/meeting-room.zod';
 
 import type { z } from 'zod';
 

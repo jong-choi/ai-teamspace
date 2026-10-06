@@ -16,12 +16,12 @@ import {
   AgentRuntimeModule,
   createInMemoryAgentRuntimeDeps,
 } from '@repo/agent-runtime';
-import { ProblemDetailsFilter } from '#server/common/http/problem-details.filter.js';
+import { ProblemDetailsFilter } from '@/common/http/problem-details.filter';
 
 import { Client } from '@langchain/langgraph-sdk';
 import { NestProblemDetailsModule } from 'nest-problem-details-filter';
 
-import { deterministicAgentGraph } from '#server-test/agent/fixtures/deterministic-agent.fixture.js';
+import { deterministicAgentGraph } from '@test/agent/fixtures/deterministic-agent.fixture';
 
 const auth = adaptAgentAuth(
   new AgentAuth()

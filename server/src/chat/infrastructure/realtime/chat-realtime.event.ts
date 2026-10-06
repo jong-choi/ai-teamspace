@@ -1,4 +1,4 @@
-import { ChatMessageSchema } from '#server/chat/dto/chat-message.dto.js';
+import { ChatMessageSchema } from '@/chat/dto/chat-message.dto';
 
 import { z } from 'zod';
 

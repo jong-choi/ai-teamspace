@@ -1,6 +1,6 @@
-import { createZodDto } from '#server/common/dto/create-zod-dto.js';
-import { projectColumnSelectSchema } from '#server/projects/infrastructure/persistence/drizzle/schema/project-column.zod.js';
-import { ticketSelectSchema } from '#server/projects/infrastructure/persistence/drizzle/schema/ticket.zod.js';
+import { createZodDto } from '@/common/dto/create-zod-dto';
+import { projectColumnSelectSchema } from '@/projects/infrastructure/persistence/drizzle/schema/project-column.zod';
+import { ticketSelectSchema } from '@/projects/infrastructure/persistence/drizzle/schema/ticket.zod';
 
 import { z } from 'zod';
 

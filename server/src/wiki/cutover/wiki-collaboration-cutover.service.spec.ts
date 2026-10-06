@@ -3,10 +3,10 @@ import {
   type WikiCutoverDocumentInput,
   type WikiCutoverFinalSnapshot,
   type WikiCutoverSnapshot,
-} from '#server/wiki/cutover/wiki-collaboration-cutover.repository.js';
-import { WikiCollaborationCutoverService } from '#server/wiki/cutover/wiki-collaboration-cutover.service.js';
-import { WIKI_COLLABORATION_SCHEMA_VERSION } from '#server/wiki/domain/wiki-collaboration-version.js';
-import { YjsCollaborationStateAdapter } from '#server/wiki/infrastructure/collaboration/yjs/yjs-collaboration-state.adapter.js';
+} from '@/wiki/cutover/wiki-collaboration-cutover.repository';
+import { WikiCollaborationCutoverService } from '@/wiki/cutover/wiki-collaboration-cutover.service';
+import { WIKI_COLLABORATION_SCHEMA_VERSION } from '@/wiki/domain/wiki-collaboration-version';
+import { YjsCollaborationStateAdapter } from '@/wiki/infrastructure/collaboration/yjs/yjs-collaboration-state.adapter';
 
 import { jest } from '@jest/globals';
 

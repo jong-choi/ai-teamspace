@@ -3,10 +3,10 @@ import {
   OwnerTransferRequiredError,
   SelfMemberRemovalNotSupportedError,
   SelfRoleChangeNotSupportedError,
-} from '#server/organizations/domain/organization.error.js';
-import type { OrganizationMember } from '#server/organizations/domain/organization-member.js';
-import type { OrganizationRole } from '#server/organizations/domain/organization-role.js';
-import { OrganizationRoleSchema } from '#server/organizations/domain/organization-role.js';
+} from '@/organizations/domain/organization.error';
+import type { OrganizationMember } from '@/organizations/domain/organization-member';
+import type { OrganizationRole } from '@/organizations/domain/organization-role';
+import { OrganizationRoleSchema } from '@/organizations/domain/organization-role';
 
 export function assertInvitationAdminAllowed(role: OrganizationRole): void {
   assertOrganizationAdministrationAllowed(role);

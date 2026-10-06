@@ -3,9 +3,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   WikiCollaborationCutoverRepository,
   type WikiCutoverSnapshot,
-} from '#server/wiki/cutover/wiki-collaboration-cutover.repository.js';
-import { WIKI_COLLABORATION_SCHEMA_VERSION } from '#server/wiki/domain/wiki-collaboration-version.js';
-import { WikiCollaborationStateProvider } from '#server/wiki/infrastructure/collaboration/wiki-collaboration-state.provider.js';
+} from '@/wiki/cutover/wiki-collaboration-cutover.repository';
+import { WIKI_COLLABORATION_SCHEMA_VERSION } from '@/wiki/domain/wiki-collaboration-version';
+import { WikiCollaborationStateProvider } from '@/wiki/infrastructure/collaboration/wiki-collaboration-state.provider';
 
 @Injectable()
 export class WikiCollaborationCutoverService {

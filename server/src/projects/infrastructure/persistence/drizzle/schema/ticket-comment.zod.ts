@@ -1,4 +1,4 @@
-import { ticketComment } from '#server/projects/infrastructure/persistence/drizzle/schema/ticket-comment.schema.js';
+import { ticketComment } from '@/projects/infrastructure/persistence/drizzle/schema/ticket-comment.schema';
 
 import {
   createInsertSchema,

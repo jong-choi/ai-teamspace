@@ -1,4 +1,4 @@
-import { DeepAgentLifecycle } from '#server/agent/infrastructure/deep-agent/deep-agent-lifecycle.js';
+import { DeepAgentLifecycle } from '@/agent/infrastructure/deep-agent/deep-agent-lifecycle';
 
 describe('DeepAgent 생명주기', () => {
   test('값 처리가 끝나면 session을 정확히 한 번 종료한다', async () => {

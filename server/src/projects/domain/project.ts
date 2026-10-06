@@ -1,4 +1,4 @@
-import { projectSelectSchema } from '#server/projects/infrastructure/persistence/drizzle/schema/project.zod.js';
+import { projectSelectSchema } from '@/projects/infrastructure/persistence/drizzle/schema/project.zod';
 
 import { z } from 'zod';
 

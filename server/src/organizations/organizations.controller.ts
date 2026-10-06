@@ -22,31 +22,31 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import type { Auth } from '#server/auth/auth.js';
-import { TrustedOriginGuard } from '#server/common/http/trusted-origin.guard.js';
-import { ActiveOrganizationDto } from '#server/organizations/dto/active-organization.dto.js';
+import type { Auth } from '@/auth/auth';
+import { TrustedOriginGuard } from '@/common/http/trusted-origin.guard';
+import { ActiveOrganizationDto } from '@/organizations/dto/active-organization.dto';
 import {
   CreateOrganizationDto,
   type CreateOrganizationInput,
-} from '#server/organizations/dto/create-organization.dto.js';
-import { OrganizationAccessDto } from '#server/organizations/dto/organization-access.dto.js';
-import { OrganizationListDto } from '#server/organizations/dto/organization-list.dto.js';
-import { OrganizationMemberDto } from '#server/organizations/dto/organization-member.dto.js';
-import { OrganizationMemberListDto } from '#server/organizations/dto/organization-member-list.dto.js';
+} from '@/organizations/dto/create-organization.dto';
+import { OrganizationAccessDto } from '@/organizations/dto/organization-access.dto';
+import { OrganizationListDto } from '@/organizations/dto/organization-list.dto';
+import { OrganizationMemberDto } from '@/organizations/dto/organization-member.dto';
+import { OrganizationMemberListDto } from '@/organizations/dto/organization-member-list.dto';
 import {
   QueryOrganizationMembersDto,
   type QueryOrganizationMembersInput,
-} from '#server/organizations/dto/query-organization-members.dto.js';
+} from '@/organizations/dto/query-organization-members.dto';
 import {
   SetActiveOrganizationDto,
   type SetActiveOrganizationInput,
-} from '#server/organizations/dto/set-active-organization.dto.js';
+} from '@/organizations/dto/set-active-organization.dto';
 import {
   UpdateOrganizationMemberRoleDto,
   type UpdateOrganizationMemberRoleInput,
-} from '#server/organizations/dto/update-organization-member-role.dto.js';
-import { toOrganizationActorContext } from '#server/organizations/organization-actor-context.js';
-import { OrganizationsService } from '#server/organizations/organizations.service.js';
+} from '@/organizations/dto/update-organization-member-role.dto';
+import { toOrganizationActorContext } from '@/organizations/organization-actor-context';
+import { OrganizationsService } from '@/organizations/organizations.service';
 
 import { Session, type UserSession } from '@thallesp/nestjs-better-auth';
 import { ApiProblemResponse } from 'nest-problem-details-filter/swagger';

@@ -17,8 +17,8 @@ process.env.COLLABORATION_JWT_SECRET ??=
 const [{ NestFactory }, { AppModule }, { createOpenApiDocument }] =
   await Promise.all([
     import('@nestjs/core'),
-    import('#server/app.module.js'),
-    import('#server/openapi.js'),
+    import('@/app.module'),
+    import('@/openapi'),
   ]);
 
 const app = await NestFactory.create(AppModule, {

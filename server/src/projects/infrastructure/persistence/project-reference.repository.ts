@@ -1,4 +1,4 @@
-import type { ProjectReference } from '#server/projects/domain/project-reference.js';
+import type { ProjectReference } from '@/projects/domain/project-reference';
 
 export abstract class ProjectReferenceRepository {
   abstract findByIds(

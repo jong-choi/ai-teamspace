@@ -1,11 +1,11 @@
-import { AgentConfiguration } from '#server/agent/config/agent-configuration.js';
-import { parseAgentEnvironment } from '#server/agent/config/agent-environment.js';
-import { LangChainWorkOsMcpAdapter } from '#server/agent/infrastructure/mcp/langchain/langchain-workos-mcp.adapter.js';
-import { McpToolApprovalPolicy } from '#server/agent/infrastructure/mcp/langchain/mcp-tool-approval.policy.js';
-import type { McpCredentialProvider } from '#server/agent/infrastructure/mcp/mcp-credential.provider.js';
+import { AgentConfiguration } from '@/agent/config/agent-configuration';
+import { parseAgentEnvironment } from '@/agent/config/agent-environment';
+import { LangChainWorkOsMcpAdapter } from '@/agent/infrastructure/mcp/langchain/langchain-workos-mcp.adapter';
+import { McpToolApprovalPolicy } from '@/agent/infrastructure/mcp/langchain/mcp-tool-approval.policy';
+import type { McpCredentialProvider } from '@/agent/infrastructure/mcp/mcp-credential.provider';
 
-import { startWorkOsMcpFixture } from '#server-test/agent/fixtures/workos-mcp.fixture.js';
-import { waitForCondition } from '#server-test/agent/support/workos-agent.e2e-support.js';
+import { startWorkOsMcpFixture } from '@test/agent/fixtures/workos-mcp.fixture';
+import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
 
 const credentials: McpCredentialProvider = {
   getCredential: ({ userId }) => ({

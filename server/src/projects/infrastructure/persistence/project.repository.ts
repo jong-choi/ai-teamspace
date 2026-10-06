@@ -1,6 +1,6 @@
-import type { Project } from '#server/projects/domain/project.js';
-import type { ProjectColumn } from '#server/projects/domain/project-column.js';
-import type { Ticket, TicketPriority } from '#server/projects/domain/ticket.js';
+import type { Project } from '@/projects/domain/project';
+import type { ProjectColumn } from '@/projects/domain/project-column';
+import type { Ticket, TicketPriority } from '@/projects/domain/ticket';
 
 export type ProjectSummaryReadModel = {
   project: Project;

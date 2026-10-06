@@ -3,9 +3,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   AuthUserDirectoryService,
   type AuthUserIdentity,
-} from '#server/auth/auth-user-directory.service.js';
-import type { OrganizationActorContext } from '#server/organizations/organization-actor-context.js';
-import { OrganizationMembershipService } from '#server/organizations/organization-membership.service.js';
+} from '@/auth/auth-user-directory.service';
+import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
+import { OrganizationMembershipService } from '@/organizations/organization-membership.service';
 import {
   ProjectArchivedError,
   ProjectColumnNotFoundError,
@@ -19,46 +19,46 @@ import {
   TicketLabelNotFoundError,
   TicketMoveReferenceInvalidError,
   TicketNotFoundError,
-} from '#server/projects/domain/project.error.js';
-import type { Ticket } from '#server/projects/domain/ticket.js';
-import type { TicketComment } from '#server/projects/domain/ticket-comment.js';
-import type { CreateTicketChecklistInput } from '#server/projects/dto/create-ticket-checklist.dto.js';
-import type { CreateTicketChecklistItemInput } from '#server/projects/dto/create-ticket-checklist-item.dto.js';
-import type { CreateTicketCommentInput } from '#server/projects/dto/create-ticket-comment.dto.js';
-import type { CreateTicketLabelInput } from '#server/projects/dto/create-ticket-label.dto.js';
+} from '@/projects/domain/project.error';
+import type { Ticket } from '@/projects/domain/ticket';
+import type { TicketComment } from '@/projects/domain/ticket-comment';
+import type { CreateTicketChecklistInput } from '@/projects/dto/create-ticket-checklist.dto';
+import type { CreateTicketChecklistItemInput } from '@/projects/dto/create-ticket-checklist-item.dto';
+import type { CreateTicketCommentInput } from '@/projects/dto/create-ticket-comment.dto';
+import type { CreateTicketLabelInput } from '@/projects/dto/create-ticket-label.dto';
 import {
   type MoveTicketInput,
   type MoveTicketResponse,
-} from '#server/projects/dto/move-ticket.dto.js';
+} from '@/projects/dto/move-ticket.dto';
 import {
   type MoveTicketChecklistItemInput,
   type MoveTicketChecklistItemResponse,
-} from '#server/projects/dto/move-ticket-checklist-item.dto.js';
+} from '@/projects/dto/move-ticket-checklist-item.dto';
 import {
   type TicketChecklistItemResponse,
   type TicketChecklistResponse,
   toTicketChecklistItemResponse,
   toTicketChecklistResponse,
-} from '#server/projects/dto/ticket-checklist.dto.js';
+} from '@/projects/dto/ticket-checklist.dto';
 import {
   type TicketCommentListResponse,
   type TicketCommentResponse,
   toTicketCommentResponse,
-} from '#server/projects/dto/ticket-comment.dto.js';
+} from '@/projects/dto/ticket-comment.dto';
 import {
   type TicketLabelListResponse,
   type TicketLabelResponse,
   toTicketLabelResponse,
-} from '#server/projects/dto/ticket-label.dto.js';
-import type { UpdateTicketChecklistInput } from '#server/projects/dto/update-ticket-checklist.dto.js';
-import type { UpdateTicketChecklistItemInput } from '#server/projects/dto/update-ticket-checklist-item.dto.js';
-import type { UpdateTicketCommentInput } from '#server/projects/dto/update-ticket-comment.dto.js';
-import type { UpdateTicketLabelInput } from '#server/projects/dto/update-ticket-label.dto.js';
+} from '@/projects/dto/ticket-label.dto';
+import type { UpdateTicketChecklistInput } from '@/projects/dto/update-ticket-checklist.dto';
+import type { UpdateTicketChecklistItemInput } from '@/projects/dto/update-ticket-checklist-item.dto';
+import type { UpdateTicketCommentInput } from '@/projects/dto/update-ticket-comment.dto';
+import type { UpdateTicketLabelInput } from '@/projects/dto/update-ticket-label.dto';
 import {
   ProjectRepository,
   type ProjectSummaryReadModel,
-} from '#server/projects/infrastructure/persistence/project.repository.js';
-import { TicketWorkflowRepository } from '#server/projects/infrastructure/persistence/ticket-workflow.repository.js';
+} from '@/projects/infrastructure/persistence/project.repository';
+import { TicketWorkflowRepository } from '@/projects/infrastructure/persistence/ticket-workflow.repository';
 
 type WorkflowUserDirectory = Pick<AuthUserDirectoryService, 'findByIds'>;
 type WorkflowOrganizationMembership = Pick<

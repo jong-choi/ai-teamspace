@@ -1,5 +1,5 @@
-import { createZodDto } from '#server/common/dto/create-zod-dto.js';
-import { OrganizationMemberSchema } from '#server/organizations/domain/organization-member.js';
+import { createZodDto } from '@/common/dto/create-zod-dto';
+import { OrganizationMemberSchema } from '@/organizations/domain/organization-member';
 
 import { z } from 'zod';
 

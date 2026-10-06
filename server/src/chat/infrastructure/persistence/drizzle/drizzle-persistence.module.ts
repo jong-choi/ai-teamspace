@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 
-import { ChatRepository } from '#server/chat/infrastructure/persistence/chat.repository.js';
-import { ChatDrizzleRepository } from '#server/chat/infrastructure/persistence/drizzle/repositories/chat.repository.js';
+import { ChatRepository } from '@/chat/infrastructure/persistence/chat.repository';
+import { ChatDrizzleRepository } from '@/chat/infrastructure/persistence/drizzle/repositories/chat.repository';
 
 @Module({
   providers: [

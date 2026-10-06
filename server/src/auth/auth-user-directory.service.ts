@@ -3,9 +3,9 @@ import { Injectable } from '@nestjs/common';
 import {
   AuthUserDirectory,
   type AuthUserIdentity,
-} from '#server/auth/infrastructure/user-directory/auth-user-directory.provider.js';
+} from '@/auth/infrastructure/user-directory/auth-user-directory.provider';
 
-export type { AuthUserIdentity } from '#server/auth/infrastructure/user-directory/auth-user-directory.provider.js';
+export type { AuthUserIdentity } from '@/auth/infrastructure/user-directory/auth-user-directory.provider';
 
 @Injectable()
 export class AuthUserDirectoryService {

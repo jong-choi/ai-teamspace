@@ -1,7 +1,7 @@
 import { type ExecutionContext, ForbiddenException } from '@nestjs/common';
 
-import type { Auth } from '#server/auth/auth.js';
-import { TrustedOriginGuard } from '#server/common/http/trusted-origin.guard.js';
+import type { Auth } from '@/auth/auth';
+import { TrustedOriginGuard } from '@/common/http/trusted-origin.guard';
 
 import { jest } from '@jest/globals';
 import type { AuthService } from '@thallesp/nestjs-better-auth';

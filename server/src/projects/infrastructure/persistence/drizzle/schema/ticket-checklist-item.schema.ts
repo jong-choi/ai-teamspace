@@ -1,4 +1,4 @@
-import { ticketChecklist } from '#server/projects/infrastructure/persistence/drizzle/schema/ticket-checklist.schema.js';
+import { ticketChecklist } from '@/projects/infrastructure/persistence/drizzle/schema/ticket-checklist.schema';
 
 import { sql } from 'drizzle-orm';
 import {

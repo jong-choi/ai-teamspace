@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
-import { ApplicationError } from '#server/application.error.js';
-import type { Auth } from '#server/auth/auth.js';
-import { organizationPlugin } from '#server/auth/auth-options.js';
+import { ApplicationError } from '@/application.error';
+import type { Auth } from '@/auth/auth';
+import { organizationPlugin } from '@/auth/auth-options';
 import {
   InvalidOrganizationRoleError,
   OrganizationAccessDeniedError,
@@ -12,20 +12,20 @@ import {
   OrganizationProviderFailureError,
   OrganizationSlugConflictError,
   OwnerTransferRequiredError,
-} from '#server/organizations/domain/organization.error.js';
-import type { Organization } from '#server/organizations/domain/organization.js';
-import { OrganizationSchema } from '#server/organizations/domain/organization.js';
-import { OrganizationAccessSchema } from '#server/organizations/domain/organization-access.js';
-import type { OrganizationMember } from '#server/organizations/domain/organization-member.js';
-import { OrganizationMemberSchema } from '#server/organizations/domain/organization-member.js';
-import type { OrganizationRole } from '#server/organizations/domain/organization-role.js';
-import type { CreateOrganizationInput } from '#server/organizations/dto/create-organization.dto.js';
-import type { OrganizationMemberList } from '#server/organizations/dto/organization-member-list.dto.js';
-import type { QueryOrganizationMembersInput } from '#server/organizations/dto/query-organization-members.dto.js';
+} from '@/organizations/domain/organization.error';
+import type { Organization } from '@/organizations/domain/organization';
+import { OrganizationSchema } from '@/organizations/domain/organization';
+import { OrganizationAccessSchema } from '@/organizations/domain/organization-access';
+import type { OrganizationMember } from '@/organizations/domain/organization-member';
+import { OrganizationMemberSchema } from '@/organizations/domain/organization-member';
+import type { OrganizationRole } from '@/organizations/domain/organization-role';
+import type { CreateOrganizationInput } from '@/organizations/dto/create-organization.dto';
+import type { OrganizationMemberList } from '@/organizations/dto/organization-member-list.dto';
+import type { QueryOrganizationMembersInput } from '@/organizations/dto/query-organization-members.dto';
 import {
   type OrganizationActorContext,
   OrganizationProvider,
-} from '#server/organizations/infrastructure/organization/organization.provider.js';
+} from '@/organizations/infrastructure/organization/organization.provider';
 
 import { AuthService } from '@thallesp/nestjs-better-auth';
 import { APIError } from 'better-auth';

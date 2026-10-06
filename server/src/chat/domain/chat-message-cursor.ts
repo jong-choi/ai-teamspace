@@ -1,4 +1,4 @@
-import { ChatInvalidCursorError } from '#server/chat/domain/chat.error.js';
+import { ChatInvalidCursorError } from '@/chat/domain/chat.error';
 
 import { z } from 'zod';
 

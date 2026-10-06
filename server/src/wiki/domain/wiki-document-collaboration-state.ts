@@ -1,4 +1,4 @@
-import { wikiDocumentSelectSchema } from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-document.zod.js';
+import { wikiDocumentSelectSchema } from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-document.zod';
 
 import { z } from 'zod';
 

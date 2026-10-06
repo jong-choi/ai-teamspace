@@ -19,8 +19,8 @@
     "strict": true,
     "strictPropertyInitialization": false,
     "paths": {
-      "#server/*": ["./src/*"],
-      "#server-source/*": ["./src/*"]
+      "@test/*": ["./test/*.ts"],
+      "@/*": ["./src/*.ts"]
     },
     "types": ["jest", "node"]
   }

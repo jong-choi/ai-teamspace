@@ -1,4 +1,4 @@
-import type { OrganizationAuthorizationChangedEvent } from '#server/organizations/domain/organization-public-event.js';
+import type { OrganizationAuthorizationChangedEvent } from '@/organizations/domain/organization-public-event';
 
 export abstract class OrganizationPublicEventPublisher {
   abstract publishAuthorizationChanged(

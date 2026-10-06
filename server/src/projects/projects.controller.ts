@@ -16,52 +16,46 @@ import {
 } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
-import type { Auth } from '#server/auth/auth.js';
-import { ApiZodQuery } from '#server/common/http/api-zod-query.decorator.js';
-import { TrustedOriginGuard } from '#server/common/http/trusted-origin.guard.js';
-import { toOrganizationActorContext } from '#server/organizations/organization-actor-context.js';
+import type { Auth } from '@/auth/auth';
+import { ApiZodQuery } from '@/common/http/api-zod-query.decorator';
+import { TrustedOriginGuard } from '@/common/http/trusted-origin.guard';
+import { toOrganizationActorContext } from '@/organizations/organization-actor-context';
 import {
   CreateProjectDto,
   type CreateProjectInput,
-} from '#server/projects/dto/create-project.dto.js';
+} from '@/projects/dto/create-project.dto';
 import {
   CreateProjectColumnDto,
   type CreateProjectColumnInput,
-} from '#server/projects/dto/create-project-column.dto.js';
+} from '@/projects/dto/create-project-column.dto';
 import {
   CreateTicketDto,
   type CreateTicketInput,
-} from '#server/projects/dto/create-ticket.dto.js';
-import {
-  ProjectDetailDto,
-  ProjectListDto,
-} from '#server/projects/dto/project.dto.js';
+} from '@/projects/dto/create-ticket.dto';
+import { ProjectDetailDto, ProjectListDto } from '@/projects/dto/project.dto';
 import {
   ProjectColumnDto,
   ProjectColumnListDto,
-} from '#server/projects/dto/project-column.dto.js';
+} from '@/projects/dto/project-column.dto';
 import {
   QueryTicketsDto,
   type QueryTicketsInput,
   QueryTicketsSchema,
-} from '#server/projects/dto/query-tickets.dto.js';
-import {
-  TicketDetailDto,
-  TicketListDto,
-} from '#server/projects/dto/ticket.dto.js';
+} from '@/projects/dto/query-tickets.dto';
+import { TicketDetailDto, TicketListDto } from '@/projects/dto/ticket.dto';
 import {
   UpdateProjectDto,
   type UpdateProjectInput,
-} from '#server/projects/dto/update-project.dto.js';
+} from '@/projects/dto/update-project.dto';
 import {
   UpdateProjectColumnDto,
   type UpdateProjectColumnInput,
-} from '#server/projects/dto/update-project-column.dto.js';
+} from '@/projects/dto/update-project-column.dto';
 import {
   UpdateTicketDto,
   type UpdateTicketInput,
-} from '#server/projects/dto/update-ticket.dto.js';
-import { ProjectsService } from '#server/projects/projects.service.js';
+} from '@/projects/dto/update-ticket.dto';
+import { ProjectsService } from '@/projects/projects.service';
 
 import { Session, type UserSession } from '@thallesp/nestjs-better-auth';
 import { ApiProblemResponse } from 'nest-problem-details-filter/swagger';

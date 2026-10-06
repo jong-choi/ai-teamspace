@@ -1,9 +1,9 @@
-import { createZodDto } from '#server/common/dto/create-zod-dto.js';
+import { createZodDto } from '@/common/dto/create-zod-dto';
 import type {
   WikiDocumentRevision,
   WikiDocumentRevisionSummary,
-} from '#server/wiki/domain/wiki-document-revision.js';
-import { WikiDocumentRevisionSchema as WikiDocumentRevisionDomainSchema } from '#server/wiki/domain/wiki-document-revision.js';
+} from '@/wiki/domain/wiki-document-revision';
+import { WikiDocumentRevisionSchema as WikiDocumentRevisionDomainSchema } from '@/wiki/domain/wiki-document-revision';
 
 import { z } from 'zod';
 

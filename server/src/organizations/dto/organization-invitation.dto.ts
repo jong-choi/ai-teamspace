@@ -1,6 +1,6 @@
-import { createZodDto } from '#server/common/dto/create-zod-dto.js';
-import type { OrganizationInvitation } from '#server/organizations/domain/organization-invitation.js';
-import { OrganizationInvitationSchema } from '#server/organizations/domain/organization-invitation.js';
+import { createZodDto } from '@/common/dto/create-zod-dto';
+import type { OrganizationInvitation } from '@/organizations/domain/organization-invitation';
+import { OrganizationInvitationSchema } from '@/organizations/domain/organization-invitation';
 
 import { z } from 'zod';
 

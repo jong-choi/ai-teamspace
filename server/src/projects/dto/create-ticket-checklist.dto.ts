@@ -1,5 +1,5 @@
-import { createZodDto } from '#server/common/dto/create-zod-dto.js';
-import { ticketChecklistInsertSchema } from '#server/projects/infrastructure/persistence/drizzle/schema/ticket-checklist.zod.js';
+import { createZodDto } from '@/common/dto/create-zod-dto';
+import { ticketChecklistInsertSchema } from '@/projects/infrastructure/persistence/drizzle/schema/ticket-checklist.zod';
 
 import { z } from 'zod';
 

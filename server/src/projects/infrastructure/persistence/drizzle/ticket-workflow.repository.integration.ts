@@ -1,15 +1,15 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 
-import { user } from '#server-source/auth/infrastructure/persistence/drizzle/generated/auth.schema';
-import { DatabaseModule } from '#server-source/database/database.module';
-import { DatabaseService } from '#server-source/database/database.service';
-import { ProjectDrizzlePersistenceModule } from '#server-source/projects/infrastructure/persistence/drizzle/drizzle-persistence.module';
-import { project } from '#server-source/projects/infrastructure/persistence/drizzle/schema/project.schema';
+import { user } from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
+import { DatabaseModule } from '@/database/database.module';
+import { DatabaseService } from '@/database/database.service';
+import { ProjectDrizzlePersistenceModule } from '@/projects/infrastructure/persistence/drizzle/drizzle-persistence.module';
+import { project } from '@/projects/infrastructure/persistence/drizzle/schema/project.schema';
 import {
   type CreateProjectPersistenceInput,
   ProjectRepository,
-} from '#server-source/projects/infrastructure/persistence/project.repository';
-import { TicketWorkflowRepository } from '#server-source/projects/infrastructure/persistence/ticket-workflow.repository';
+} from '@/projects/infrastructure/persistence/project.repository';
+import { TicketWorkflowRepository } from '@/projects/infrastructure/persistence/ticket-workflow.repository';
 
 import { inArray } from 'drizzle-orm';
 

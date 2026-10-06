@@ -6,8 +6,8 @@ import {
   ORGANIZATION_PUBLIC_EVENT_QUEUE,
   type OrganizationAuthorizationChangedEvent,
   OrganizationAuthorizationChangedEventSchema,
-} from '#server/organizations/domain/organization-public-event.js';
-import { OrganizationPublicEventPublisher } from '#server/organizations/infrastructure/events/organization-public-event.provider.js';
+} from '@/organizations/domain/organization-public-event';
+import { OrganizationPublicEventPublisher } from '@/organizations/infrastructure/events/organization-public-event.provider';
 
 import type { JobsOptions, Queue } from 'bullmq';
 

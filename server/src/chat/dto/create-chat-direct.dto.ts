@@ -1,5 +1,5 @@
-import { ChatParticipantUsernameSchema } from '#server/chat/dto/create-chat-channel.dto.js';
-import { createZodDto } from '#server/common/dto/create-zod-dto.js';
+import { ChatParticipantUsernameSchema } from '@/chat/dto/create-chat-channel.dto';
+import { createZodDto } from '@/common/dto/create-zod-dto';
 
 import { z } from 'zod';
 

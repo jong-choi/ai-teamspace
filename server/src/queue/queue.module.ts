@@ -1,12 +1,12 @@
 import { BullModule } from '@nestjs/bullmq';
 import { DynamicModule, Module } from '@nestjs/common';
 
-import { parseQueueEnvironment } from '#server/config/runtime-environment.js';
+import { parseQueueEnvironment } from '@/config/runtime-environment';
 import {
   createProducerRedisOptions,
   createWorkerRedisOptions,
   DEFAULT_JOB_OPTIONS,
-} from '#server/queue/queue.config.js';
+} from '@/queue/queue.config';
 
 @Module({})
 export class QueueModule {

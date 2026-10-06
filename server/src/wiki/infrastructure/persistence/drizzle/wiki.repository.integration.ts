@@ -3,14 +3,14 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import {
   organization,
   user,
-} from '#server-source/auth/infrastructure/persistence/drizzle/generated/auth.schema';
-import { DatabaseModule } from '#server-source/database/database.module';
-import { DatabaseService } from '#server-source/database/database.service';
-import { WikiInvalidDocumentMoveError } from '#server-source/wiki/domain/wiki.error';
-import { WikiDrizzlePersistenceModule } from '#server-source/wiki/infrastructure/persistence/drizzle/drizzle-persistence.module';
-import { wikiCollection } from '#server-source/wiki/infrastructure/persistence/drizzle/schema/wiki-collection.schema';
-import { wikiDocumentRevisionCollaborator } from '#server-source/wiki/infrastructure/persistence/drizzle/schema/wiki-document-revision-collaborator.schema';
-import { WikiRepository } from '#server-source/wiki/infrastructure/persistence/wiki.repository';
+} from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
+import { DatabaseModule } from '@/database/database.module';
+import { DatabaseService } from '@/database/database.service';
+import { WikiInvalidDocumentMoveError } from '@/wiki/domain/wiki.error';
+import { WikiDrizzlePersistenceModule } from '@/wiki/infrastructure/persistence/drizzle/drizzle-persistence.module';
+import { wikiCollection } from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-collection.schema';
+import { wikiDocumentRevisionCollaborator } from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-document-revision-collaborator.schema';
+import { WikiRepository } from '@/wiki/infrastructure/persistence/wiki.repository';
 
 import { and, eq, inArray } from 'drizzle-orm';
 import * as Y from 'yjs';

@@ -1,4 +1,4 @@
-import type { Meeting } from '#server/calendar/domain/meeting.js';
+import type { Meeting } from '@/calendar/domain/meeting';
 
 export abstract class CalendarReminderScheduler {
   abstract sync(meetings: readonly Meeting[]): Promise<void>;

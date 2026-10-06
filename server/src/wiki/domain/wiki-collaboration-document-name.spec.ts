@@ -1,8 +1,8 @@
-import { WikiCollaborationInvalidDocumentNameError } from '#server/wiki/domain/wiki.error.js';
+import { WikiCollaborationInvalidDocumentNameError } from '@/wiki/domain/wiki.error';
 import {
   buildWikiCollaborationDocumentName,
   parseWikiCollaborationDocumentName,
-} from '#server/wiki/domain/wiki-collaboration-document-name.js';
+} from '@/wiki/domain/wiki-collaboration-document-name';
 
 const documentId = '11111111-1111-4111-8111-111111111111';
 

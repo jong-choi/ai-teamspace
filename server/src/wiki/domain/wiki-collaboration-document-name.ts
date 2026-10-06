@@ -1,4 +1,4 @@
-import { WikiCollaborationInvalidDocumentNameError } from '#server/wiki/domain/wiki.error.js';
+import { WikiCollaborationInvalidDocumentNameError } from '@/wiki/domain/wiki.error';
 
 import { z } from 'zod';
 

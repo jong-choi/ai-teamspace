@@ -1,6 +1,6 @@
 import type { INestApplication } from '@nestjs/common';
 
-import type { Auth } from '#server-source/auth/auth';
+import type { Auth } from '@/auth/auth';
 import {
   account,
   invitation,
@@ -9,14 +9,14 @@ import {
   session,
   user,
   verification,
-} from '#server-source/auth/infrastructure/persistence/drizzle/generated/auth.schema';
-import { DatabaseService } from '#server-source/database/database.service';
+} from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
+import { DatabaseService } from '@/database/database.service';
 
 import { AuthService } from '@thallesp/nestjs-better-auth';
 import { eq } from 'drizzle-orm';
 import request from 'supertest';
 
-import { createAppTestingModule } from '#server-test/support/app-testing-module.js';
+import { createAppTestingModule } from '@test/support/app-testing-module';
 
 describe('Better Auth Drizzle 통합', () => {
   let app: INestApplication;

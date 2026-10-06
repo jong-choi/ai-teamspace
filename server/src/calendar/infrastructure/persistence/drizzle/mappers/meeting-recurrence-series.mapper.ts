@@ -1,9 +1,9 @@
-import type { MeetingRecurrenceSeries } from '#server/calendar/domain/meeting-recurrence-series.js';
+import type { MeetingRecurrenceSeries } from '@/calendar/domain/meeting-recurrence-series';
 import {
   meetingRecurrenceSeriesInsertSchema,
   meetingRecurrenceSeriesSelectSchema,
   meetingRecurrenceSeriesUpdateSchema,
-} from '#server/calendar/infrastructure/persistence/drizzle/schema/meeting-recurrence-series.zod.js';
+} from '@/calendar/infrastructure/persistence/drizzle/schema/meeting-recurrence-series.zod';
 
 import type { z } from 'zod';
 

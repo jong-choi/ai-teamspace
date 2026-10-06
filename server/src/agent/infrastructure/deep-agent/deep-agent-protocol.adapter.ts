@@ -2,8 +2,8 @@ import type {
   AgentGraph,
   AgentGraphRuntimeResources,
 } from '@repo/agent-runtime';
-import type { WorkOsDeepAgent } from '#server/agent/infrastructure/deep-agent/deep-agent.builder.js';
-import { DeepAgentLifecycle } from '#server/agent/infrastructure/deep-agent/deep-agent-lifecycle.js';
+import type { WorkOsDeepAgent } from '@/agent/infrastructure/deep-agent/deep-agent.builder';
+import { DeepAgentLifecycle } from '@/agent/infrastructure/deep-agent/deep-agent-lifecycle';
 
 import { Command } from '@langchain/langgraph';
 

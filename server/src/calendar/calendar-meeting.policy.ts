@@ -4,11 +4,11 @@ import {
   CalendarInvalidLocationError,
   CalendarInvalidTimeRangeError,
   CalendarMeetingCanceledError,
-} from '#server/calendar/domain/calendar.error.js';
-import type { Meeting } from '#server/calendar/domain/meeting.js';
-import type { CalendarMeetingDetailRecord } from '#server/calendar/infrastructure/persistence/calendar.repository.js';
-import type { OrganizationActorContext } from '#server/organizations/organization-actor-context.js';
-import { OrganizationsService } from '#server/organizations/organizations.service.js';
+} from '@/calendar/domain/calendar.error';
+import type { Meeting } from '@/calendar/domain/meeting';
+import type { CalendarMeetingDetailRecord } from '@/calendar/infrastructure/persistence/calendar.repository';
+import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
+import { OrganizationsService } from '@/organizations/organizations.service';
 
 type CalendarAdministrativeAccess = Pick<
   OrganizationsService,

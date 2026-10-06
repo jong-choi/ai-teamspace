@@ -1,7 +1,7 @@
-import { parseCollaborationEnvironment } from '#server/config/runtime-environment.js';
-import { RedisWikiCollaborationInvalidationPublisher } from '#server/wiki/infrastructure/collaboration/redis/redis-wiki-collaboration-invalidation.publisher.js';
-import { RedisWikiCollaborationInvalidationSubscriber } from '#server/wiki/infrastructure/collaboration/redis/redis-wiki-collaboration-invalidation.subscriber.js';
-import type { WikiCollaborationInvalidationEvent } from '#server/wiki/infrastructure/collaboration/wiki-collaboration-invalidation.provider.js';
+import { parseCollaborationEnvironment } from '@/config/runtime-environment';
+import { RedisWikiCollaborationInvalidationPublisher } from '@/wiki/infrastructure/collaboration/redis/redis-wiki-collaboration-invalidation.publisher';
+import { RedisWikiCollaborationInvalidationSubscriber } from '@/wiki/infrastructure/collaboration/redis/redis-wiki-collaboration-invalidation.subscriber';
+import type { WikiCollaborationInvalidationEvent } from '@/wiki/infrastructure/collaboration/wiki-collaboration-invalidation.provider';
 
 describe('위키 공동편집 Redis invalidation 통합', () => {
   it('publisher 이벤트를 subscriber까지 전달한다', async () => {

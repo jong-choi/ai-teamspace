@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 
-import { AuthModule } from '#server/auth/auth.module.js';
-import { ChatController } from '#server/chat/chat.controller.js';
-import { ChatService } from '#server/chat/chat.service.js';
-import { ChatDrizzlePersistenceModule } from '#server/chat/infrastructure/persistence/drizzle/drizzle-persistence.module.js';
-import { ChatRealtimeModule } from '#server/chat/infrastructure/realtime/redis/chat-realtime.module.js';
-import { TrustedOriginGuard } from '#server/common/http/trusted-origin.guard.js';
+import { AuthModule } from '@/auth/auth.module';
+import { ChatController } from '@/chat/chat.controller';
+import { ChatService } from '@/chat/chat.service';
+import { ChatDrizzlePersistenceModule } from '@/chat/infrastructure/persistence/drizzle/drizzle-persistence.module';
+import { ChatRealtimeModule } from '@/chat/infrastructure/realtime/redis/chat-realtime.module';
+import { TrustedOriginGuard } from '@/common/http/trusted-origin.guard';
 
 @Module({
   imports: [AuthModule, ChatDrizzlePersistenceModule, ChatRealtimeModule],

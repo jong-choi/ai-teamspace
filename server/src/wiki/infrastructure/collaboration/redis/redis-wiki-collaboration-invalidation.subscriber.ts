@@ -5,15 +5,15 @@ import {
   OnApplicationShutdown,
 } from '@nestjs/common';
 
-import { WIKI_COLLABORATION_INVALIDATION_CHANNEL } from '#server/wiki/infrastructure/collaboration/redis/redis-wiki-collaboration-invalidation.publisher.js';
+import { WIKI_COLLABORATION_INVALIDATION_CHANNEL } from '@/wiki/infrastructure/collaboration/redis/redis-wiki-collaboration-invalidation.publisher';
 import {
   WIKI_COLLABORATION_ENVIRONMENT,
   type WikiCollaborationEnvironment,
-} from '#server/wiki/infrastructure/collaboration/wiki-collaboration-configuration.provider.js';
+} from '@/wiki/infrastructure/collaboration/wiki-collaboration-configuration.provider';
 import {
   WikiCollaborationInvalidationEventSchema,
   WikiCollaborationInvalidationSubscriber,
-} from '#server/wiki/infrastructure/collaboration/wiki-collaboration-invalidation.provider.js';
+} from '@/wiki/infrastructure/collaboration/wiki-collaboration-invalidation.provider';
 
 import { Redis } from 'ioredis';
 

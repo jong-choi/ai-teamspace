@@ -1,4 +1,4 @@
-import type { AgentActor } from '#server/agent/domain/agent-actor.js';
+import type { AgentActor } from '@/agent/domain/agent-actor';
 
 import type { StructuredTool } from '@langchain/core/tools';
 

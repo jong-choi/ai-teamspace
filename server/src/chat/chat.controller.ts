@@ -20,38 +20,38 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import type { Auth } from '#server/auth/auth.js';
-import { ChatService } from '#server/chat/chat.service.js';
-import { ChatConversationDto } from '#server/chat/dto/chat-conversation.dto.js';
-import { ChatConversationListDto } from '#server/chat/dto/chat-conversation-list.dto.js';
-import { ChatMessageDto } from '#server/chat/dto/chat-message.dto.js';
-import { ChatMessagePageDto } from '#server/chat/dto/chat-message-page.dto.js';
+import type { Auth } from '@/auth/auth';
+import { ChatService } from '@/chat/chat.service';
+import { ChatConversationDto } from '@/chat/dto/chat-conversation.dto';
+import { ChatConversationListDto } from '@/chat/dto/chat-conversation-list.dto';
+import { ChatMessageDto } from '@/chat/dto/chat-message.dto';
+import { ChatMessagePageDto } from '@/chat/dto/chat-message-page.dto';
 import {
   CreateChatChannelDto,
   type CreateChatChannelInput,
-} from '#server/chat/dto/create-chat-channel.dto.js';
+} from '@/chat/dto/create-chat-channel.dto';
 import {
   CreateChatDirectDto,
   type CreateChatDirectInput,
-} from '#server/chat/dto/create-chat-direct.dto.js';
+} from '@/chat/dto/create-chat-direct.dto';
 import {
   MarkChatReadDto,
   type MarkChatReadInput,
-} from '#server/chat/dto/mark-chat-read.dto.js';
+} from '@/chat/dto/mark-chat-read.dto';
 import {
   QueryChatMessagesDto,
   type QueryChatMessagesInput,
-} from '#server/chat/dto/query-chat-messages.dto.js';
+} from '@/chat/dto/query-chat-messages.dto';
 import {
   SendChatMessageDto,
   type SendChatMessageInput,
-} from '#server/chat/dto/send-chat-message.dto.js';
+} from '@/chat/dto/send-chat-message.dto';
 import {
   UpdateChatMessageDto,
   type UpdateChatMessageInput,
-} from '#server/chat/dto/update-chat-message.dto.js';
-import { ChatRealtimeEventSchema } from '#server/chat/infrastructure/realtime/chat-realtime.event.js';
-import { TrustedOriginGuard } from '#server/common/http/trusted-origin.guard.js';
+} from '@/chat/dto/update-chat-message.dto';
+import { ChatRealtimeEventSchema } from '@/chat/infrastructure/realtime/chat-realtime.event';
+import { TrustedOriginGuard } from '@/common/http/trusted-origin.guard';
 
 import { Session, type UserSession } from '@thallesp/nestjs-better-auth';
 import { ApiProblemResponse } from 'nest-problem-details-filter/swagger';

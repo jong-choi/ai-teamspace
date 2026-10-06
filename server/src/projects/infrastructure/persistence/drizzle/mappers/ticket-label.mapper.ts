@@ -1,9 +1,9 @@
-import type { TicketLabel } from '#server/projects/domain/ticket-label.js';
+import type { TicketLabel } from '@/projects/domain/ticket-label';
 import {
   ticketLabelInsertSchema,
   ticketLabelSelectSchema,
   ticketLabelUpdateSchema,
-} from '#server/projects/infrastructure/persistence/drizzle/schema/ticket-label.zod.js';
+} from '@/projects/infrastructure/persistence/drizzle/schema/ticket-label.zod';
 
 import type { z } from 'zod';
 

@@ -1,8 +1,8 @@
-import type { AuthUserIdentity } from '#server/auth/auth-user-directory.service.js';
-import { createZodDto } from '#server/common/dto/create-zod-dto.js';
-import type { OrganizationInvitationDetail } from '#server/organizations/domain/organization-invitation.js';
-import { OrganizationInvitationStatusSchema } from '#server/organizations/domain/organization-invitation.js';
-import { OrganizationRoleSchema } from '#server/organizations/domain/organization-role.js';
+import type { AuthUserIdentity } from '@/auth/auth-user-directory.service';
+import { createZodDto } from '@/common/dto/create-zod-dto';
+import type { OrganizationInvitationDetail } from '@/organizations/domain/organization-invitation';
+import { OrganizationInvitationStatusSchema } from '@/organizations/domain/organization-invitation';
+import { OrganizationRoleSchema } from '@/organizations/domain/organization-role';
 
 import { z } from 'zod';
 

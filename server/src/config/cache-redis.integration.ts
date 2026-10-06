@@ -1,4 +1,4 @@
-import { parseCacheEnvironment } from '#server-source/config/runtime-environment';
+import { parseCacheEnvironment } from '@/config/runtime-environment';
 
 import { Redis } from 'ioredis';
 

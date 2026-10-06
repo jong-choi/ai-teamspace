@@ -5,7 +5,7 @@ import {
   parseCollaborationEnvironment,
   parseDatabaseEnvironment,
   parseQueueEnvironment,
-} from '#server/config/runtime-environment.js';
+} from '@/config/runtime-environment';
 
 describe('런타임 환경 변수 검증', () => {
   it('API 포트의 기본값과 명시값을 파싱한다', () => {

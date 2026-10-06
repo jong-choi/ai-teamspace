@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
-import type { ProjectReference } from '#server/projects/domain/project-reference.js';
-import { ProjectReferenceRepository } from '#server/projects/infrastructure/persistence/project-reference.repository.js';
+import type { ProjectReference } from '@/projects/domain/project-reference';
+import { ProjectReferenceRepository } from '@/projects/infrastructure/persistence/project-reference.repository';
 
 @Injectable()
 export class ProjectReferenceQueryService {

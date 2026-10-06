@@ -1,19 +1,19 @@
 import { Module } from '@nestjs/common';
 
-import { AuthModule } from '#server/auth/auth.module.js';
-import { CalendarController } from '#server/calendar/calendar.controller.js';
-import { CalendarService } from '#server/calendar/calendar.service.js';
-import { CalendarIcsService } from '#server/calendar/calendar-ics.service.js';
-import { CalendarMeetingLoader } from '#server/calendar/calendar-meeting.loader.js';
-import { CalendarMeetingPolicy } from '#server/calendar/calendar-meeting.policy.js';
-import { CalendarMeetingPresenterService } from '#server/calendar/calendar-meeting-presenter.service.js';
-import { CalendarRecurrenceService } from '#server/calendar/calendar-recurrence.service.js';
-import { CalendarSchedulingService } from '#server/calendar/calendar-scheduling.service.js';
-import { CalendarDrizzlePersistenceModule } from '#server/calendar/infrastructure/persistence/drizzle/drizzle-persistence.module.js';
-import { ProjectsCalendarReferenceModule } from '#server/calendar/infrastructure/project/projects/projects-calendar-reference.module.js';
-import { BullMqCalendarReminderModule } from '#server/calendar/infrastructure/reminder/bullmq/bullmq-calendar-reminder.module.js';
-import { TrustedOriginGuard } from '#server/common/http/trusted-origin.guard.js';
-import { OrganizationsModule } from '#server/organizations/organizations.module.js';
+import { AuthModule } from '@/auth/auth.module';
+import { CalendarController } from '@/calendar/calendar.controller';
+import { CalendarService } from '@/calendar/calendar.service';
+import { CalendarIcsService } from '@/calendar/calendar-ics.service';
+import { CalendarMeetingLoader } from '@/calendar/calendar-meeting.loader';
+import { CalendarMeetingPolicy } from '@/calendar/calendar-meeting.policy';
+import { CalendarMeetingPresenterService } from '@/calendar/calendar-meeting-presenter.service';
+import { CalendarRecurrenceService } from '@/calendar/calendar-recurrence.service';
+import { CalendarSchedulingService } from '@/calendar/calendar-scheduling.service';
+import { CalendarDrizzlePersistenceModule } from '@/calendar/infrastructure/persistence/drizzle/drizzle-persistence.module';
+import { ProjectsCalendarReferenceModule } from '@/calendar/infrastructure/project/projects/projects-calendar-reference.module';
+import { BullMqCalendarReminderModule } from '@/calendar/infrastructure/reminder/bullmq/bullmq-calendar-reminder.module';
+import { TrustedOriginGuard } from '@/common/http/trusted-origin.guard';
+import { OrganizationsModule } from '@/organizations/organizations.module';
 
 @Module({
   imports: [

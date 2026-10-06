@@ -1,29 +1,29 @@
 import { Injectable } from '@nestjs/common';
 
-import { DatabaseService } from '#server/database/database.service.js';
-import { ProjectKeyConflictError } from '#server/projects/domain/project.error.js';
-import type { Project } from '#server/projects/domain/project.js';
-import type { ProjectColumn } from '#server/projects/domain/project-column.js';
-import { defaultProjectColumns } from '#server/projects/domain/project-default-columns.js';
-import type { Ticket } from '#server/projects/domain/ticket.js';
+import { DatabaseService } from '@/database/database.service';
+import { ProjectKeyConflictError } from '@/projects/domain/project.error';
+import type { Project } from '@/projects/domain/project';
+import type { ProjectColumn } from '@/projects/domain/project-column';
+import { defaultProjectColumns } from '@/projects/domain/project-default-columns';
+import type { Ticket } from '@/projects/domain/ticket';
 import {
   toProjectDomain,
   toProjectInsert,
   toProjectUpdate,
-} from '#server/projects/infrastructure/persistence/drizzle/mappers/project.mapper.js';
+} from '@/projects/infrastructure/persistence/drizzle/mappers/project.mapper';
 import {
   toProjectColumnDomain,
   toProjectColumnInsert,
   toProjectColumnUpdate,
-} from '#server/projects/infrastructure/persistence/drizzle/mappers/project-column.mapper.js';
+} from '@/projects/infrastructure/persistence/drizzle/mappers/project-column.mapper';
 import {
   toTicketDomain,
   toTicketInsert,
   toTicketUpdate,
-} from '#server/projects/infrastructure/persistence/drizzle/mappers/ticket.mapper.js';
-import { project } from '#server/projects/infrastructure/persistence/drizzle/schema/project.schema.js';
-import { projectColumn } from '#server/projects/infrastructure/persistence/drizzle/schema/project-column.schema.js';
-import { ticket } from '#server/projects/infrastructure/persistence/drizzle/schema/ticket.schema.js';
+} from '@/projects/infrastructure/persistence/drizzle/mappers/ticket.mapper';
+import { project } from '@/projects/infrastructure/persistence/drizzle/schema/project.schema';
+import { projectColumn } from '@/projects/infrastructure/persistence/drizzle/schema/project-column.schema';
+import { ticket } from '@/projects/infrastructure/persistence/drizzle/schema/ticket.schema';
 import {
   type CreateProjectPersistenceInput,
   type CreateTicketPersistenceInput,
@@ -33,7 +33,7 @@ import {
   ProjectRepository,
   type ProjectSummaryReadModel,
   type TicketChanges,
-} from '#server/projects/infrastructure/persistence/project.repository.js';
+} from '@/projects/infrastructure/persistence/project.repository';
 
 import {
   and,

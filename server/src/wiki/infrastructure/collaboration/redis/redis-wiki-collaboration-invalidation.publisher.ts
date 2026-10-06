@@ -3,12 +3,12 @@ import { Inject, Injectable, OnApplicationShutdown } from '@nestjs/common';
 import {
   WIKI_COLLABORATION_ENVIRONMENT,
   type WikiCollaborationEnvironment,
-} from '#server/wiki/infrastructure/collaboration/wiki-collaboration-configuration.provider.js';
+} from '@/wiki/infrastructure/collaboration/wiki-collaboration-configuration.provider';
 import {
   type WikiCollaborationInvalidationEvent,
   WikiCollaborationInvalidationEventSchema,
   WikiCollaborationInvalidationPublisher,
-} from '#server/wiki/infrastructure/collaboration/wiki-collaboration-invalidation.provider.js';
+} from '@/wiki/infrastructure/collaboration/wiki-collaboration-invalidation.provider';
 
 import { Redis } from 'ioredis';
 

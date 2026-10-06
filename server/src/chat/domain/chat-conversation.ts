@@ -1,4 +1,4 @@
-import { chatConversationSelectSchema } from '#server/chat/infrastructure/persistence/drizzle/schema/chat-conversation.zod.js';
+import { chatConversationSelectSchema } from '@/chat/infrastructure/persistence/drizzle/schema/chat-conversation.zod';
 
 import { z } from 'zod';
 

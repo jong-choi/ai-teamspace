@@ -1,9 +1,9 @@
-import type { WikiDocument } from '#server/wiki/domain/wiki-document.js';
-import { WikiDocumentSchema } from '#server/wiki/domain/wiki-document.js';
+import type { WikiDocument } from '@/wiki/domain/wiki-document';
+import { WikiDocumentSchema } from '@/wiki/domain/wiki-document';
 import {
   wikiDocumentInsertSchema,
   wikiDocumentUpdateSchema,
-} from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-document.zod.js';
+} from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-document.zod';
 
 export function toWikiDocumentDomain(row: unknown): WikiDocument {
   return WikiDocumentSchema.parse(row);

@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
-import { ApplicationError } from '#server/application.error.js';
-import type { Auth } from '#server/auth/auth.js';
-import { organizationPlugin } from '#server/auth/auth-options.js';
+import { ApplicationError } from '@/application.error';
+import type { Auth } from '@/auth/auth';
+import { organizationPlugin } from '@/auth/auth-options';
 import {
   OrganizationAccessDeniedError,
   OrganizationInvitationAccessDeniedError,
@@ -11,21 +11,21 @@ import {
   OrganizationInvitationUnavailableError,
   OrganizationNotFoundError,
   OrganizationProviderFailureError,
-} from '#server/organizations/domain/organization.error.js';
+} from '@/organizations/domain/organization.error';
 import type {
   OrganizationInvitation,
   OrganizationInvitationDetail,
-} from '#server/organizations/domain/organization-invitation.js';
+} from '@/organizations/domain/organization-invitation';
 import {
   OrganizationInvitationDetailSchema,
   OrganizationInvitationSchema,
-} from '#server/organizations/domain/organization-invitation.js';
+} from '@/organizations/domain/organization-invitation';
 import {
   type CreateOrganizationInvitationProviderInput,
   OrganizationInvitationProvider,
   type ResendOrganizationInvitationProviderInput,
-} from '#server/organizations/infrastructure/invitation/organization-invitation.provider.js';
-import type { OrganizationActorContext } from '#server/organizations/infrastructure/organization/organization.provider.js';
+} from '@/organizations/infrastructure/invitation/organization-invitation.provider';
+import type { OrganizationActorContext } from '@/organizations/infrastructure/organization/organization.provider';
 
 import { AuthService } from '@thallesp/nestjs-better-auth';
 import { APIError } from 'better-auth';

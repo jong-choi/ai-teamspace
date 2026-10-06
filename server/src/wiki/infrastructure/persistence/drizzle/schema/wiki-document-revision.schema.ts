@@ -1,5 +1,5 @@
-import { authUserIdColumn } from '#server/auth/infrastructure/persistence/drizzle/auth-user-reference.js';
-import { wikiDocument } from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-document.schema.js';
+import { authUserIdColumn } from '@/auth/infrastructure/persistence/drizzle/auth-user-reference';
+import { wikiDocument } from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-document.schema';
 
 import {
   foreignKey,

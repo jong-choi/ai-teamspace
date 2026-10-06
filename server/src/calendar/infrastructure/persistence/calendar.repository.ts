@@ -1,7 +1,7 @@
-import type { Meeting } from '#server/calendar/domain/meeting.js';
-import type { MeetingAttendee } from '#server/calendar/domain/meeting-attendee.js';
-import type { MeetingRecurrenceSeries } from '#server/calendar/domain/meeting-recurrence-series.js';
-import type { MeetingRoom } from '#server/calendar/domain/meeting-room.js';
+import type { Meeting } from '@/calendar/domain/meeting';
+import type { MeetingAttendee } from '@/calendar/domain/meeting-attendee';
+import type { MeetingRecurrenceSeries } from '@/calendar/domain/meeting-recurrence-series';
+import type { MeetingRoom } from '@/calendar/domain/meeting-room';
 
 export type CalendarMeetingListRecord = {
   meeting: Meeting;

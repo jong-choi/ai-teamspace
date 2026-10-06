@@ -1,4 +1,4 @@
-import type { AgentActor } from '#server/agent/domain/agent-actor.js';
+import type { AgentActor } from '@/agent/domain/agent-actor';
 
 import type { BaseLanguageModel } from '@langchain/core/language_models/base';
 

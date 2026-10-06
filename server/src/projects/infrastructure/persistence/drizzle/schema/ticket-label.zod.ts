@@ -1,4 +1,4 @@
-import { ticketLabel } from '#server/projects/infrastructure/persistence/drizzle/schema/ticket-label.schema.js';
+import { ticketLabel } from '@/projects/infrastructure/persistence/drizzle/schema/ticket-label.schema';
 
 import {
   createInsertSchema,

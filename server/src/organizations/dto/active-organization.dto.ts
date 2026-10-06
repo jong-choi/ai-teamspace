@@ -1,5 +1,5 @@
-import { createZodDto } from '#server/common/dto/create-zod-dto.js';
-import { OrganizationAccessSchema } from '#server/organizations/domain/organization-access.js';
+import { createZodDto } from '@/common/dto/create-zod-dto';
+import { OrganizationAccessSchema } from '@/organizations/domain/organization-access';
 
 import { z } from 'zod';
 

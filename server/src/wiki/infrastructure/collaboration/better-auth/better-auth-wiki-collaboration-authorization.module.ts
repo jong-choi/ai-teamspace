@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 
-import { AuthModule } from '#server/auth/auth.module.js';
-import { BetterAuthWikiCollaborationAuthorizationAdapter } from '#server/wiki/infrastructure/collaboration/better-auth/better-auth-wiki-collaboration-authorization.adapter.js';
-import { WikiCollaborationAuthorizationProvider } from '#server/wiki/infrastructure/collaboration/wiki-collaboration-authorization.provider.js';
+import { AuthModule } from '@/auth/auth.module';
+import { BetterAuthWikiCollaborationAuthorizationAdapter } from '@/wiki/infrastructure/collaboration/better-auth/better-auth-wiki-collaboration-authorization.adapter';
+import { WikiCollaborationAuthorizationProvider } from '@/wiki/infrastructure/collaboration/wiki-collaboration-authorization.provider';
 
 @Module({
   imports: [AuthModule],

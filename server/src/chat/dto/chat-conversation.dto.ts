@@ -1,12 +1,12 @@
-import type { AuthUserIdentity } from '#server/auth/auth-user-directory.service.js';
-import type { ChatConversationState } from '#server/chat/domain/chat-conversation-state.js';
+import type { AuthUserIdentity } from '@/auth/auth-user-directory.service';
+import type { ChatConversationState } from '@/chat/domain/chat-conversation-state';
 import {
   ChatMessageSchema,
   toChatMessageResponse,
-} from '#server/chat/dto/chat-message.dto.js';
-import { chatConversationSelectSchema } from '#server/chat/infrastructure/persistence/drizzle/schema/chat-conversation.zod.js';
-import { chatParticipantSelectSchema } from '#server/chat/infrastructure/persistence/drizzle/schema/chat-participant.zod.js';
-import { createZodDto } from '#server/common/dto/create-zod-dto.js';
+} from '@/chat/dto/chat-message.dto';
+import { chatConversationSelectSchema } from '@/chat/infrastructure/persistence/drizzle/schema/chat-conversation.zod';
+import { chatParticipantSelectSchema } from '@/chat/infrastructure/persistence/drizzle/schema/chat-participant.zod';
+import { createZodDto } from '@/common/dto/create-zod-dto';
 
 import { z } from 'zod';
 

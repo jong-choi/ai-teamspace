@@ -1,8 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 
-import { AppModule } from '#server/app.module.js';
-import { parseApiEnvironment } from '#server/config/runtime-environment.js';
-import { setupOpenApi } from '#server/openapi.js';
+import { AppModule } from '@/app.module';
+import { parseApiEnvironment } from '@/config/runtime-environment';
+import { setupOpenApi } from '@/openapi';
 
 async function bootstrap() {
   const { PORT } = parseApiEnvironment();

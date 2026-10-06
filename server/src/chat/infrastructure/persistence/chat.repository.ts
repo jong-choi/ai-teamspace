@@ -1,8 +1,8 @@
-import type { ChatConversation } from '#server/chat/domain/chat-conversation.js';
-import type { ChatConversationState } from '#server/chat/domain/chat-conversation-state.js';
-import type { ChatMessage } from '#server/chat/domain/chat-message.js';
-import type { ChatMessageContentInput } from '#server/chat/domain/chat-message-content.js';
-import type { ChatMessageCursor } from '#server/chat/domain/chat-message-cursor.js';
+import type { ChatConversation } from '@/chat/domain/chat-conversation';
+import type { ChatConversationState } from '@/chat/domain/chat-conversation-state';
+import type { ChatMessage } from '@/chat/domain/chat-message';
+import type { ChatMessageContentInput } from '@/chat/domain/chat-message-content';
+import type { ChatMessageCursor } from '@/chat/domain/chat-message-cursor';
 
 export type CreateChatChannelConversationInput = {
   name: string;

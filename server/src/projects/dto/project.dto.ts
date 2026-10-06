@@ -1,7 +1,7 @@
-import type { AuthUserIdentity } from '#server/auth/auth-user-directory.service.js';
-import { createZodDto } from '#server/common/dto/create-zod-dto.js';
-import { projectSelectSchema } from '#server/projects/infrastructure/persistence/drizzle/schema/project.zod.js';
-import type { ProjectSummaryReadModel } from '#server/projects/infrastructure/persistence/project.repository.js';
+import type { AuthUserIdentity } from '@/auth/auth-user-directory.service';
+import { createZodDto } from '@/common/dto/create-zod-dto';
+import { projectSelectSchema } from '@/projects/infrastructure/persistence/drizzle/schema/project.zod';
+import type { ProjectSummaryReadModel } from '@/projects/infrastructure/persistence/project.repository';
 
 import { z } from 'zod';
 

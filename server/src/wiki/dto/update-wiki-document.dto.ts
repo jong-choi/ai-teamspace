@@ -1,5 +1,5 @@
-import { createZodDto } from '#server/common/dto/create-zod-dto.js';
-import { wikiDocumentUpdateSchema } from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-document.zod.js';
+import { createZodDto } from '@/common/dto/create-zod-dto';
+import { wikiDocumentUpdateSchema } from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-document.zod';
 
 import { z } from 'zod';
 

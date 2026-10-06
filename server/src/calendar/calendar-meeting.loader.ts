@@ -4,11 +4,11 @@ import {
   CalendarMeetingNotFoundError,
   CalendarMeetingRoomInactiveError,
   CalendarMeetingRoomNotFoundError,
-} from '#server/calendar/domain/calendar.error.js';
+} from '@/calendar/domain/calendar.error';
 import {
   type CalendarMeetingDetailRecord,
   CalendarRepository,
-} from '#server/calendar/infrastructure/persistence/calendar.repository.js';
+} from '@/calendar/infrastructure/persistence/calendar.repository';
 
 @Injectable()
 export class CalendarMeetingLoader {

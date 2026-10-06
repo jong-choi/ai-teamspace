@@ -12,7 +12,7 @@ import {
 import {
   ApplicationError,
   type ApplicationErrorKind,
-} from '#server/application.error.js';
+} from '@/application.error';
 
 import {
   HTTP_EXCEPTION_FILTER_KEY,

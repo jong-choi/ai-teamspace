@@ -8,14 +8,14 @@ import {
   session,
   user,
   verification,
-} from '#server-source/auth/infrastructure/persistence/drizzle/generated/auth.schema';
-import { chatConversation } from '#server-source/chat/infrastructure/persistence/drizzle/schema/chat-conversation.schema';
-import { DatabaseService } from '#server-source/database/database.service';
-import { createOpenApiDocument, setupOpenApi } from '#server-source/openapi';
+} from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
+import { chatConversation } from '@/chat/infrastructure/persistence/drizzle/schema/chat-conversation.schema';
+import { DatabaseService } from '@/database/database.service';
+import { createOpenApiDocument, setupOpenApi } from '@/openapi';
 
 import request from 'supertest';
 
-import { createAppTestingModule } from '#server-test/support/app-testing-module.js';
+import { createAppTestingModule } from '@test/support/app-testing-module';
 
 type TestAgent = ReturnType<typeof request.agent>;
 

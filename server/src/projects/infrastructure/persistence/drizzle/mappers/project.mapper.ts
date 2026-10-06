@@ -1,9 +1,9 @@
-import type { Project } from '#server/projects/domain/project.js';
+import type { Project } from '@/projects/domain/project';
 import {
   projectInsertSchema,
   projectSelectSchema,
   projectUpdateSchema,
-} from '#server/projects/infrastructure/persistence/drizzle/schema/project.zod.js';
+} from '@/projects/infrastructure/persistence/drizzle/schema/project.zod';
 
 import type { z } from 'zod';
 

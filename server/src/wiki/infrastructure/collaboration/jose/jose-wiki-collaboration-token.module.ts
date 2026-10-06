@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 
-import { JoseWikiCollaborationTokenAdapter } from '#server/wiki/infrastructure/collaboration/jose/jose-wiki-collaboration-token.adapter.js';
-import { WikiCollaborationConfigurationModule } from '#server/wiki/infrastructure/collaboration/wiki-collaboration-configuration.module.js';
-import { WikiCollaborationTokenProvider } from '#server/wiki/infrastructure/collaboration/wiki-collaboration-token.provider.js';
+import { JoseWikiCollaborationTokenAdapter } from '@/wiki/infrastructure/collaboration/jose/jose-wiki-collaboration-token.adapter';
+import { WikiCollaborationConfigurationModule } from '@/wiki/infrastructure/collaboration/wiki-collaboration-configuration.module';
+import { WikiCollaborationTokenProvider } from '@/wiki/infrastructure/collaboration/wiki-collaboration-token.provider';
 
 @Module({
   imports: [WikiCollaborationConfigurationModule],

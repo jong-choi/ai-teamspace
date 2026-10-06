@@ -1,20 +1,20 @@
-import type { AuthUserDirectoryService } from '#server/auth/auth-user-directory.service.js';
-import type { ChatService } from '#server/chat/chat.service.js';
+import type { AuthUserDirectoryService } from '@/auth/auth-user-directory.service';
+import type { ChatService } from '@/chat/chat.service';
 import {
   OrganizationInvitationCompensationFailureError,
   OrganizationInvitationDeliveryFailureError,
   OrganizationInvitationInvalidStateError,
   OrganizationInvitationNotFoundError,
   OrganizationInvitationUnavailableError,
-} from '#server/organizations/domain/organization.error.js';
-import type { OrganizationInvitation } from '#server/organizations/domain/organization-invitation.js';
-import { OrganizationRoleSchema } from '#server/organizations/domain/organization-role.js';
-import { OrganizationInvitationProvider } from '#server/organizations/infrastructure/invitation/organization-invitation.provider.js';
+} from '@/organizations/domain/organization.error';
+import type { OrganizationInvitation } from '@/organizations/domain/organization-invitation';
+import { OrganizationRoleSchema } from '@/organizations/domain/organization-role';
+import { OrganizationInvitationProvider } from '@/organizations/infrastructure/invitation/organization-invitation.provider';
 import {
   type OrganizationActorContext,
   OrganizationProvider,
-} from '#server/organizations/infrastructure/organization/organization.provider.js';
-import { OrganizationInvitationsService } from '#server/organizations/organization-invitations.service.js';
+} from '@/organizations/infrastructure/organization/organization.provider';
+import { OrganizationInvitationsService } from '@/organizations/organization-invitations.service';
 
 import { jest } from '@jest/globals';
 

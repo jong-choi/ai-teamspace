@@ -1,5 +1,5 @@
-import { ticket } from '#server/projects/infrastructure/persistence/drizzle/schema/ticket.schema.js';
-import { ticketLabel } from '#server/projects/infrastructure/persistence/drizzle/schema/ticket-label.schema.js';
+import { ticket } from '@/projects/infrastructure/persistence/drizzle/schema/ticket.schema';
+import { ticketLabel } from '@/projects/infrastructure/persistence/drizzle/schema/ticket-label.schema';
 
 import { pgTable, primaryKey, uuid } from 'drizzle-orm/pg-core';
 

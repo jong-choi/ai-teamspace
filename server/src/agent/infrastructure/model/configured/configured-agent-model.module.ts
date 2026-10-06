@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 
-import { AgentConfigurationModule } from '#server/agent/config/agent-configuration.module.js';
-import { AgentModelProvider } from '#server/agent/infrastructure/model/agent-model.provider.js';
-import { ConfiguredAgentModelAdapter } from '#server/agent/infrastructure/model/configured/configured-agent-model.adapter.js';
+import { AgentConfigurationModule } from '@/agent/config/agent-configuration.module';
+import { AgentModelProvider } from '@/agent/infrastructure/model/agent-model.provider';
+import { ConfiguredAgentModelAdapter } from '@/agent/infrastructure/model/configured/configured-agent-model.adapter';
 
 @Module({
   imports: [AgentConfigurationModule],

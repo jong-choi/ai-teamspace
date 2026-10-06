@@ -1,4 +1,4 @@
-import { authUserIdColumn } from '#server/auth/infrastructure/persistence/drizzle/auth-user-reference.js';
+import { authUserIdColumn } from '@/auth/infrastructure/persistence/drizzle/auth-user-reference';
 
 import { sql } from 'drizzle-orm';
 import {

@@ -1,4 +1,4 @@
-import { ticket } from '#server/projects/infrastructure/persistence/drizzle/schema/ticket.schema.js';
+import { ticket } from '@/projects/infrastructure/persistence/drizzle/schema/ticket.schema';
 
 import { sql } from 'drizzle-orm';
 import {

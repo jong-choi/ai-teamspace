@@ -1,10 +1,10 @@
 import {
   CALENDAR_REMINDER_JOB,
   calendarReminderJobId,
-} from '#server/calendar/domain/calendar-reminder.js';
-import type { Meeting } from '#server/calendar/domain/meeting.js';
-import { BullMqCalendarReminderScheduler } from '#server/calendar/infrastructure/reminder/bullmq/bullmq-calendar-reminder.scheduler.js';
-import type { DatabaseService } from '#server/database/database.service.js';
+} from '@/calendar/domain/calendar-reminder';
+import type { Meeting } from '@/calendar/domain/meeting';
+import { BullMqCalendarReminderScheduler } from '@/calendar/infrastructure/reminder/bullmq/bullmq-calendar-reminder.scheduler';
+import type { DatabaseService } from '@/database/database.service';
 
 import { jest } from '@jest/globals';
 import type { Queue } from 'bullmq';

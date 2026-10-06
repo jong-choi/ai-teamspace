@@ -1,6 +1,6 @@
 import { adaptAgentAuth } from '@repo/agent-runtime';
-import { AgentAuthorizationPolicy } from '#server/agent/application/agent-authorization.policy.js';
-import { AgentIdentityProvider } from '#server/agent/infrastructure/auth/agent-identity.provider.js';
+import { AgentAuthorizationPolicy } from '@/agent/application/agent-authorization.policy';
+import { AgentIdentityProvider } from '@/agent/infrastructure/auth/agent-identity.provider';
 
 class StubAgentIdentityProvider extends AgentIdentityProvider {
   actor: Awaited<ReturnType<AgentIdentityProvider['resolve']>> = {

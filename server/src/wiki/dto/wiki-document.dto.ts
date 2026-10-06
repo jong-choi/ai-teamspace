@@ -1,6 +1,6 @@
-import { createZodDto } from '#server/common/dto/create-zod-dto.js';
-import type { WikiDocument } from '#server/wiki/domain/wiki-document.js';
-import { WikiDocumentSchema as WikiDocumentDomainSchema } from '#server/wiki/domain/wiki-document.js';
+import { createZodDto } from '@/common/dto/create-zod-dto';
+import type { WikiDocument } from '@/wiki/domain/wiki-document';
+import { WikiDocumentSchema as WikiDocumentDomainSchema } from '@/wiki/domain/wiki-document';
 
 import { z } from 'zod';
 

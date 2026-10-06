@@ -22,64 +22,64 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import type { Auth } from '#server/auth/auth.js';
-import { TrustedOriginGuard } from '#server/common/http/trusted-origin.guard.js';
-import { toOrganizationActorContext } from '#server/organizations/organization-actor-context.js';
+import type { Auth } from '@/auth/auth';
+import { TrustedOriginGuard } from '@/common/http/trusted-origin.guard';
+import { toOrganizationActorContext } from '@/organizations/organization-actor-context';
 import {
   CreateTicketChecklistDto,
   type CreateTicketChecklistInput,
-} from '#server/projects/dto/create-ticket-checklist.dto.js';
+} from '@/projects/dto/create-ticket-checklist.dto';
 import {
   CreateTicketChecklistItemDto,
   type CreateTicketChecklistItemInput,
-} from '#server/projects/dto/create-ticket-checklist-item.dto.js';
+} from '@/projects/dto/create-ticket-checklist-item.dto';
 import {
   CreateTicketCommentDto,
   type CreateTicketCommentInput,
-} from '#server/projects/dto/create-ticket-comment.dto.js';
+} from '@/projects/dto/create-ticket-comment.dto';
 import {
   CreateTicketLabelDto,
   type CreateTicketLabelInput,
-} from '#server/projects/dto/create-ticket-label.dto.js';
+} from '@/projects/dto/create-ticket-label.dto';
 import {
   MoveTicketDto,
   type MoveTicketInput,
   MoveTicketResultDto,
-} from '#server/projects/dto/move-ticket.dto.js';
+} from '@/projects/dto/move-ticket.dto';
 import {
   MoveTicketChecklistItemDto,
   type MoveTicketChecklistItemInput,
   MoveTicketChecklistItemResultDto,
-} from '#server/projects/dto/move-ticket-checklist-item.dto.js';
+} from '@/projects/dto/move-ticket-checklist-item.dto';
 import {
   TicketChecklistDto,
   TicketChecklistItemDto,
-} from '#server/projects/dto/ticket-checklist.dto.js';
+} from '@/projects/dto/ticket-checklist.dto';
 import {
   TicketCommentDto,
   TicketCommentListDto,
-} from '#server/projects/dto/ticket-comment.dto.js';
+} from '@/projects/dto/ticket-comment.dto';
 import {
   TicketLabelDto,
   TicketLabelListDto,
-} from '#server/projects/dto/ticket-label.dto.js';
+} from '@/projects/dto/ticket-label.dto';
 import {
   UpdateTicketChecklistDto,
   type UpdateTicketChecklistInput,
-} from '#server/projects/dto/update-ticket-checklist.dto.js';
+} from '@/projects/dto/update-ticket-checklist.dto';
 import {
   UpdateTicketChecklistItemDto,
   type UpdateTicketChecklistItemInput,
-} from '#server/projects/dto/update-ticket-checklist-item.dto.js';
+} from '@/projects/dto/update-ticket-checklist-item.dto';
 import {
   UpdateTicketCommentDto,
   type UpdateTicketCommentInput,
-} from '#server/projects/dto/update-ticket-comment.dto.js';
+} from '@/projects/dto/update-ticket-comment.dto';
 import {
   UpdateTicketLabelDto,
   type UpdateTicketLabelInput,
-} from '#server/projects/dto/update-ticket-label.dto.js';
-import { TicketWorkflowService } from '#server/projects/ticket-workflow.service.js';
+} from '@/projects/dto/update-ticket-label.dto';
+import { TicketWorkflowService } from '@/projects/ticket-workflow.service';
 
 import { Session, type UserSession } from '@thallesp/nestjs-better-auth';
 import { ApiProblemResponse } from 'nest-problem-details-filter/swagger';

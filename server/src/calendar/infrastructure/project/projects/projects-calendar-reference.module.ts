@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 
-import { CalendarProjectReferenceProvider } from '#server/calendar/infrastructure/project/calendar-project-reference.provider.js';
-import { ProjectsCalendarReferenceAdapter } from '#server/calendar/infrastructure/project/projects/projects-calendar-reference.adapter.js';
-import { ProjectsModule } from '#server/projects/projects.module.js';
+import { CalendarProjectReferenceProvider } from '@/calendar/infrastructure/project/calendar-project-reference.provider';
+import { ProjectsCalendarReferenceAdapter } from '@/calendar/infrastructure/project/projects/projects-calendar-reference.adapter';
+import { ProjectsModule } from '@/projects/projects.module';
 
 @Module({
   imports: [ProjectsModule],

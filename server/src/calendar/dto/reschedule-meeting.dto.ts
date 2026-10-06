@@ -1,6 +1,6 @@
-import { RecurrenceScopeSchema } from '#server/calendar/dto/recurrence.dto.js';
-import { meetingSelectSchema } from '#server/calendar/infrastructure/persistence/drizzle/schema/meeting.zod.js';
-import { createZodDto } from '#server/common/dto/create-zod-dto.js';
+import { RecurrenceScopeSchema } from '@/calendar/dto/recurrence.dto';
+import { meetingSelectSchema } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting.zod';
+import { createZodDto } from '@/common/dto/create-zod-dto';
 
 import { z } from 'zod';
 

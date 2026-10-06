@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 
-import type { Auth } from '#server/auth/auth.js';
+import type { Auth } from '@/auth/auth';
 import {
   AuthUserDirectory,
   type AuthUserIdentity,
-} from '#server/auth/infrastructure/user-directory/auth-user-directory.provider.js';
+} from '@/auth/infrastructure/user-directory/auth-user-directory.provider';
 
 import { AuthService } from '@thallesp/nestjs-better-auth';
 

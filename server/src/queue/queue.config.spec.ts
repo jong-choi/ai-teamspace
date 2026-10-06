@@ -3,7 +3,7 @@ import {
   createRedisOptions,
   createWorkerRedisOptions,
   DEFAULT_JOB_OPTIONS,
-} from '#server/queue/queue.config.js';
+} from '@/queue/queue.config';
 
 describe('BullMQ Redis 연결 설정', () => {
   it('Redis URL을 ioredis 옵션으로 변환한다', () => {

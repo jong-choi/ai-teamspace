@@ -1,9 +1,9 @@
-import type { ChatParticipant } from '#server/chat/domain/chat-participant.js';
+import type { ChatParticipant } from '@/chat/domain/chat-participant';
 import {
   chatParticipantInsertSchema,
   chatParticipantSelectSchema,
   chatParticipantUpdateSchema,
-} from '#server/chat/infrastructure/persistence/drizzle/schema/chat-participant.zod.js';
+} from '@/chat/infrastructure/persistence/drizzle/schema/chat-participant.zod';
 
 import type { z } from 'zod';
 

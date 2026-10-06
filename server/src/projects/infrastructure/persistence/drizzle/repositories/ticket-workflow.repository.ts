@@ -1,43 +1,43 @@
 import { Injectable } from '@nestjs/common';
 
-import { DatabaseService } from '#server/database/database.service.js';
-import type { Ticket } from '#server/projects/domain/ticket.js';
-import type { TicketChecklistItem } from '#server/projects/domain/ticket-checklist-item.js';
-import type { TicketComment } from '#server/projects/domain/ticket-comment.js';
-import type { TicketLabel } from '#server/projects/domain/ticket-label.js';
-import { toProjectUpdate } from '#server/projects/infrastructure/persistence/drizzle/mappers/project.mapper.js';
+import { DatabaseService } from '@/database/database.service';
+import type { Ticket } from '@/projects/domain/ticket';
+import type { TicketChecklistItem } from '@/projects/domain/ticket-checklist-item';
+import type { TicketComment } from '@/projects/domain/ticket-comment';
+import type { TicketLabel } from '@/projects/domain/ticket-label';
+import { toProjectUpdate } from '@/projects/infrastructure/persistence/drizzle/mappers/project.mapper';
 import {
   toTicketDomain,
   toTicketUpdate,
-} from '#server/projects/infrastructure/persistence/drizzle/mappers/ticket.mapper.js';
+} from '@/projects/infrastructure/persistence/drizzle/mappers/ticket.mapper';
 import {
   toTicketChecklistDomain,
   toTicketChecklistInsert,
   toTicketChecklistUpdate,
-} from '#server/projects/infrastructure/persistence/drizzle/mappers/ticket-checklist.mapper.js';
+} from '@/projects/infrastructure/persistence/drizzle/mappers/ticket-checklist.mapper';
 import {
   toTicketChecklistItemDomain,
   toTicketChecklistItemInsert,
   toTicketChecklistItemUpdate,
-} from '#server/projects/infrastructure/persistence/drizzle/mappers/ticket-checklist-item.mapper.js';
+} from '@/projects/infrastructure/persistence/drizzle/mappers/ticket-checklist-item.mapper';
 import {
   toTicketCommentDomain,
   toTicketCommentInsert,
   toTicketCommentUpdate,
-} from '#server/projects/infrastructure/persistence/drizzle/mappers/ticket-comment.mapper.js';
+} from '@/projects/infrastructure/persistence/drizzle/mappers/ticket-comment.mapper';
 import {
   toTicketLabelDomain,
   toTicketLabelInsert,
   toTicketLabelUpdate,
-} from '#server/projects/infrastructure/persistence/drizzle/mappers/ticket-label.mapper.js';
-import { project } from '#server/projects/infrastructure/persistence/drizzle/schema/project.schema.js';
-import { projectColumn } from '#server/projects/infrastructure/persistence/drizzle/schema/project-column.schema.js';
-import { ticket } from '#server/projects/infrastructure/persistence/drizzle/schema/ticket.schema.js';
-import { ticketChecklist } from '#server/projects/infrastructure/persistence/drizzle/schema/ticket-checklist.schema.js';
-import { ticketChecklistItem } from '#server/projects/infrastructure/persistence/drizzle/schema/ticket-checklist-item.schema.js';
-import { ticketComment } from '#server/projects/infrastructure/persistence/drizzle/schema/ticket-comment.schema.js';
-import { ticketLabel } from '#server/projects/infrastructure/persistence/drizzle/schema/ticket-label.schema.js';
-import { ticketLabelAssignment } from '#server/projects/infrastructure/persistence/drizzle/schema/ticket-label-assignment.schema.js';
+} from '@/projects/infrastructure/persistence/drizzle/mappers/ticket-label.mapper';
+import { project } from '@/projects/infrastructure/persistence/drizzle/schema/project.schema';
+import { projectColumn } from '@/projects/infrastructure/persistence/drizzle/schema/project-column.schema';
+import { ticket } from '@/projects/infrastructure/persistence/drizzle/schema/ticket.schema';
+import { ticketChecklist } from '@/projects/infrastructure/persistence/drizzle/schema/ticket-checklist.schema';
+import { ticketChecklistItem } from '@/projects/infrastructure/persistence/drizzle/schema/ticket-checklist-item.schema';
+import { ticketComment } from '@/projects/infrastructure/persistence/drizzle/schema/ticket-comment.schema';
+import { ticketLabel } from '@/projects/infrastructure/persistence/drizzle/schema/ticket-label.schema';
+import { ticketLabelAssignment } from '@/projects/infrastructure/persistence/drizzle/schema/ticket-label-assignment.schema';
 import {
   type MoveChecklistItemPersistenceInput,
   type MoveChecklistItemResult,
@@ -47,7 +47,7 @@ import {
   type TicketChecklistReadModel,
   type TicketDetailChildren,
   TicketWorkflowRepository,
-} from '#server/projects/infrastructure/persistence/ticket-workflow.repository.js';
+} from '@/projects/infrastructure/persistence/ticket-workflow.repository';
 
 import { and, asc, count, eq, inArray, isNull, max } from 'drizzle-orm';
 

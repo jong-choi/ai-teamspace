@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 
-import { DatabaseService } from '#server/database/database.service.js';
-import type { ProjectReference } from '#server/projects/domain/project-reference.js';
-import { project } from '#server/projects/infrastructure/persistence/drizzle/schema/project.schema.js';
-import { ProjectReferenceRepository } from '#server/projects/infrastructure/persistence/project-reference.repository.js';
+import { DatabaseService } from '@/database/database.service';
+import type { ProjectReference } from '@/projects/domain/project-reference';
+import { project } from '@/projects/infrastructure/persistence/drizzle/schema/project.schema';
+import { ProjectReferenceRepository } from '@/projects/infrastructure/persistence/project-reference.repository';
 
 import { and, eq, inArray, isNull } from 'drizzle-orm';
 

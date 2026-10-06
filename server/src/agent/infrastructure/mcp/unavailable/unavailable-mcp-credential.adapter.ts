@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
-import type { AgentActor } from '#server/agent/domain/agent-actor.js';
-import { McpCredentialProvider } from '#server/agent/infrastructure/mcp/mcp-credential.provider.js';
+import type { AgentActor } from '@/agent/domain/agent-actor';
+import { McpCredentialProvider } from '@/agent/infrastructure/mcp/mcp-credential.provider';
 
 /** 실제 사용자 delegation provider가 연결되기 전에는 Agent 실행을 fail-closed로 막는다. */
 @Injectable()

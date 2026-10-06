@@ -1,10 +1,10 @@
-import { CalendarProjectSummarySchema } from '#server/calendar/domain/calendar-project-summary.js';
-import { MeetingSchema as MeetingDomainSchema } from '#server/calendar/domain/meeting.js';
-import { MeetingRoomSchema } from '#server/calendar/dto/meeting-room.dto.js';
-import { MeetingRecurrenceSchema } from '#server/calendar/dto/recurrence.dto.js';
-import { meetingAttendeeSelectSchema } from '#server/calendar/infrastructure/persistence/drizzle/schema/meeting-attendee.zod.js';
-import { createZodDto } from '#server/common/dto/create-zod-dto.js';
-import { OrganizationUserSummarySchema } from '#server/organizations/domain/organization-member.js';
+import { CalendarProjectSummarySchema } from '@/calendar/domain/calendar-project-summary';
+import { MeetingSchema as MeetingDomainSchema } from '@/calendar/domain/meeting';
+import { MeetingRoomSchema } from '@/calendar/dto/meeting-room.dto';
+import { MeetingRecurrenceSchema } from '@/calendar/dto/recurrence.dto';
+import { meetingAttendeeSelectSchema } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting-attendee.zod';
+import { createZodDto } from '@/common/dto/create-zod-dto';
+import { OrganizationUserSummarySchema } from '@/organizations/domain/organization-member';
 
 import { z } from 'zod';
 

@@ -1,4 +1,4 @@
-import type { CollaborationEnvironment } from '#server/config/runtime-environment.js';
+import type { CollaborationEnvironment } from '@/config/runtime-environment';
 
 export const WIKI_COLLABORATION_ENVIRONMENT = Symbol(
   'WIKI_COLLABORATION_ENVIRONMENT',

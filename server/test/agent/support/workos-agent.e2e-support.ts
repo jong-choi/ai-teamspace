@@ -10,17 +10,17 @@ import {
   AgentRuntimeModule,
   createInMemoryAgentRuntimeDeps,
 } from '@repo/agent-runtime';
-import type { McpCredentialProvider } from '#server/agent/infrastructure/mcp/mcp-credential.provider.js';
+import type { McpCredentialProvider } from '@/agent/infrastructure/mcp/mcp-credential.provider';
 import {
   AgentModelProvider,
   type AgentModels,
-} from '#server/agent/infrastructure/model/agent-model.provider.js';
+} from '@/agent/infrastructure/model/agent-model.provider';
 
 import { AIMessage } from '@langchain/core/messages';
 import { type FakeBuiltModel, fakeModel } from '@langchain/core/testing';
 import { Client } from '@langchain/langgraph-sdk';
 
-import { createTestWorkOsAgentGraphFactory } from '#server-test/agent/support/workos-agent-test-graph.js';
+import { createTestWorkOsAgentGraphFactory } from '@test/agent/support/workos-agent-test-graph';
 
 export const testAgentCredentials: McpCredentialProvider = {
   getCredential: ({ userId }) => ({ token: async () => `fixture:${userId}` }),

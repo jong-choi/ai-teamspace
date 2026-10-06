@@ -1,6 +1,6 @@
-import { authUserIdColumn } from '#server/auth/infrastructure/persistence/drizzle/auth-user-reference.js';
-import { project } from '#server/projects/infrastructure/persistence/drizzle/schema/project.schema.js';
-import { projectColumn } from '#server/projects/infrastructure/persistence/drizzle/schema/project-column.schema.js';
+import { authUserIdColumn } from '@/auth/infrastructure/persistence/drizzle/auth-user-reference';
+import { project } from '@/projects/infrastructure/persistence/drizzle/schema/project.schema';
+import { projectColumn } from '@/projects/infrastructure/persistence/drizzle/schema/project-column.schema';
 
 import { sql } from 'drizzle-orm';
 import {

@@ -1,5 +1,5 @@
-import { ORGANIZATION_AUTHORIZATION_CHANGED_JOB } from '#server/organizations/domain/organization-public-event.js';
-import { toWikiCollaborationInvalidationEvent } from '#server/wiki/infrastructure/collaboration/queue/wiki-organization-authorization.processor.js';
+import { ORGANIZATION_AUTHORIZATION_CHANGED_JOB } from '@/organizations/domain/organization-public-event';
+import { toWikiCollaborationInvalidationEvent } from '@/wiki/infrastructure/collaboration/queue/wiki-organization-authorization.processor';
 
 import { ZodError } from 'zod';
 

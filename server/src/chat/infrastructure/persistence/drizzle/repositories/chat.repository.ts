@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 
-import type { ChatConversation } from '#server/chat/domain/chat-conversation.js';
-import type { ChatConversationState } from '#server/chat/domain/chat-conversation-state.js';
-import type { ChatMessage } from '#server/chat/domain/chat-message.js';
-import type { ChatParticipant } from '#server/chat/domain/chat-participant.js';
+import type { ChatConversation } from '@/chat/domain/chat-conversation';
+import type { ChatConversationState } from '@/chat/domain/chat-conversation-state';
+import type { ChatMessage } from '@/chat/domain/chat-message';
+import type { ChatParticipant } from '@/chat/domain/chat-participant';
 import {
   type ChatMessagePage,
   ChatRepository,
@@ -13,26 +13,26 @@ import {
   type DeliverReferencedSystemMessageResult,
   type ListChatMessagesInput,
   type MarkChatReadResult,
-} from '#server/chat/infrastructure/persistence/chat.repository.js';
+} from '@/chat/infrastructure/persistence/chat.repository';
 import {
   toChatConversationDomain,
   toChatConversationInsert,
   toChatConversationUpdate,
-} from '#server/chat/infrastructure/persistence/drizzle/mappers/chat-conversation.mapper.js';
+} from '@/chat/infrastructure/persistence/drizzle/mappers/chat-conversation.mapper';
 import {
   toChatMessageDomain,
   toChatMessageInsert,
   toChatMessageUpdate,
-} from '#server/chat/infrastructure/persistence/drizzle/mappers/chat-message.mapper.js';
+} from '@/chat/infrastructure/persistence/drizzle/mappers/chat-message.mapper';
 import {
   toChatParticipantDomain,
   toChatParticipantInsert,
   toChatParticipantUpdate,
-} from '#server/chat/infrastructure/persistence/drizzle/mappers/chat-participant.mapper.js';
-import { chatConversation } from '#server/chat/infrastructure/persistence/drizzle/schema/chat-conversation.schema.js';
-import { chatMessage } from '#server/chat/infrastructure/persistence/drizzle/schema/chat-message.schema.js';
-import { chatParticipant } from '#server/chat/infrastructure/persistence/drizzle/schema/chat-participant.schema.js';
-import { DatabaseService } from '#server/database/database.service.js';
+} from '@/chat/infrastructure/persistence/drizzle/mappers/chat-participant.mapper';
+import { chatConversation } from '@/chat/infrastructure/persistence/drizzle/schema/chat-conversation.schema';
+import { chatMessage } from '@/chat/infrastructure/persistence/drizzle/schema/chat-message.schema';
+import { chatParticipant } from '@/chat/infrastructure/persistence/drizzle/schema/chat-participant.schema';
+import { DatabaseService } from '@/database/database.service';
 
 import {
   and,

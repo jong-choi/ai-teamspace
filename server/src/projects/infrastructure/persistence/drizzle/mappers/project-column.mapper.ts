@@ -1,9 +1,9 @@
-import type { ProjectColumn } from '#server/projects/domain/project-column.js';
+import type { ProjectColumn } from '@/projects/domain/project-column';
 import {
   projectColumnInsertSchema,
   projectColumnSelectSchema,
   projectColumnUpdateSchema,
-} from '#server/projects/infrastructure/persistence/drizzle/schema/project-column.zod.js';
+} from '@/projects/infrastructure/persistence/drizzle/schema/project-column.zod';
 
 import type { z } from 'zod';
 

@@ -1,5 +1,5 @@
-import { authUserIdColumn } from '#server/auth/infrastructure/persistence/drizzle/auth-user-reference.js';
-import { chatConversation } from '#server/chat/infrastructure/persistence/drizzle/schema/chat-conversation.schema.js';
+import { authUserIdColumn } from '@/auth/infrastructure/persistence/drizzle/auth-user-reference';
+import { chatConversation } from '@/chat/infrastructure/persistence/drizzle/schema/chat-conversation.schema';
 
 import {
   index,

@@ -2,13 +2,13 @@ import { randomUUID } from 'node:crypto';
 
 import { Injectable, Logger, type OnApplicationShutdown } from '@nestjs/common';
 
-import type { ChatMessageResponse } from '#server/chat/dto/chat-message.dto.js';
+import type { ChatMessageResponse } from '@/chat/dto/chat-message.dto';
 import {
   type ChatRealtimeEvent,
   ChatRealtimeEventSchema,
-} from '#server/chat/infrastructure/realtime/chat-realtime.event.js';
-import { ChatRealtimeProvider } from '#server/chat/infrastructure/realtime/chat-realtime.provider.js';
-import { parseCacheEnvironment } from '#server/config/runtime-environment.js';
+} from '@/chat/infrastructure/realtime/chat-realtime.event';
+import { ChatRealtimeProvider } from '@/chat/infrastructure/realtime/chat-realtime.provider';
+import { parseCacheEnvironment } from '@/config/runtime-environment';
 
 import { Redis, type RedisOptions } from 'ioredis';
 import { Observable, Subject } from 'rxjs';

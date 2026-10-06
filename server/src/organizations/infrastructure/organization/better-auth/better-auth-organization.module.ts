@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 
-import { AuthModule } from '#server/auth/auth.module.js';
-import { BetterAuthOrganizationAdapter } from '#server/organizations/infrastructure/organization/better-auth/better-auth-organization.adapter.js';
-import { OrganizationProvider } from '#server/organizations/infrastructure/organization/organization.provider.js';
+import { AuthModule } from '@/auth/auth.module';
+import { BetterAuthOrganizationAdapter } from '@/organizations/infrastructure/organization/better-auth/better-auth-organization.adapter';
+import { OrganizationProvider } from '@/organizations/infrastructure/organization/organization.provider';
 
 @Module({
   imports: [AuthModule],

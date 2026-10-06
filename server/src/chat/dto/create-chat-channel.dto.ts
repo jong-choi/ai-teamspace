@@ -2,8 +2,8 @@ import {
   chatChannelNameSchema,
   chatChannelTopicSchema,
   chatConversationInsertSchema,
-} from '#server/chat/infrastructure/persistence/drizzle/schema/chat-conversation.zod.js';
-import { createZodDto } from '#server/common/dto/create-zod-dto.js';
+} from '@/chat/infrastructure/persistence/drizzle/schema/chat-conversation.zod';
+import { createZodDto } from '@/common/dto/create-zod-dto';
 
 import { z } from 'zod';
 

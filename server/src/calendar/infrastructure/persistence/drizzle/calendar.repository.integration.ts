@@ -5,14 +5,14 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import {
   organization,
   user,
-} from '#server-source/auth/infrastructure/persistence/drizzle/generated/auth.schema';
-import { CalendarRepository } from '#server-source/calendar/infrastructure/persistence/calendar.repository';
-import { CalendarDrizzlePersistenceModule } from '#server-source/calendar/infrastructure/persistence/drizzle/drizzle-persistence.module';
-import { meeting } from '#server-source/calendar/infrastructure/persistence/drizzle/schema/meeting.schema';
-import { meetingRecurrenceSeries } from '#server-source/calendar/infrastructure/persistence/drizzle/schema/meeting-recurrence-series.schema';
-import { meetingRoom } from '#server-source/calendar/infrastructure/persistence/drizzle/schema/meeting-room.schema';
-import { DatabaseModule } from '#server-source/database/database.module';
-import { DatabaseService } from '#server-source/database/database.service';
+} from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
+import { CalendarRepository } from '@/calendar/infrastructure/persistence/calendar.repository';
+import { CalendarDrizzlePersistenceModule } from '@/calendar/infrastructure/persistence/drizzle/drizzle-persistence.module';
+import { meeting } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting.schema';
+import { meetingRecurrenceSeries } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting-recurrence-series.schema';
+import { meetingRoom } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting-room.schema';
+import { DatabaseModule } from '@/database/database.module';
+import { DatabaseService } from '@/database/database.service';
 
 import { eq, inArray } from 'drizzle-orm';
 

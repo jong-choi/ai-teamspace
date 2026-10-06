@@ -1,6 +1,6 @@
-import type { MeetingRoom } from '#server/calendar/domain/meeting-room.js';
-import { MeetingRoomSchema as MeetingRoomDomainSchema } from '#server/calendar/domain/meeting-room.js';
-import { createZodDto } from '#server/common/dto/create-zod-dto.js';
+import type { MeetingRoom } from '@/calendar/domain/meeting-room';
+import { MeetingRoomSchema as MeetingRoomDomainSchema } from '@/calendar/domain/meeting-room';
+import { createZodDto } from '@/common/dto/create-zod-dto';
 
 import { z } from 'zod';
 

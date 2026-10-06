@@ -3,9 +3,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   AuthUserDirectoryService,
   type AuthUserIdentity,
-} from '#server/auth/auth-user-directory.service.js';
-import type { OrganizationActorContext } from '#server/organizations/organization-actor-context.js';
-import { OrganizationMembershipService } from '#server/organizations/organization-membership.service.js';
+} from '@/auth/auth-user-directory.service';
+import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
+import { OrganizationMembershipService } from '@/organizations/organization-membership.service';
 import {
   ProjectArchivedError,
   ProjectColumnNotFoundError,
@@ -13,46 +13,46 @@ import {
   ProjectUserNotMemberError,
   TicketArchivedError,
   TicketNotFoundError,
-} from '#server/projects/domain/project.error.js';
-import type { Ticket } from '#server/projects/domain/ticket.js';
-import type { TicketComment } from '#server/projects/domain/ticket-comment.js';
-import type { CreateProjectInput } from '#server/projects/dto/create-project.dto.js';
-import type { CreateProjectColumnInput } from '#server/projects/dto/create-project-column.dto.js';
-import type { CreateTicketInput } from '#server/projects/dto/create-ticket.dto.js';
+} from '@/projects/domain/project.error';
+import type { Ticket } from '@/projects/domain/ticket';
+import type { TicketComment } from '@/projects/domain/ticket-comment';
+import type { CreateProjectInput } from '@/projects/dto/create-project.dto';
+import type { CreateProjectColumnInput } from '@/projects/dto/create-project-column.dto';
+import type { CreateTicketInput } from '@/projects/dto/create-ticket.dto';
 import {
   type ProjectDetailResponse,
   type ProjectListResponse,
   toProjectDetailResponse,
   toProjectSummaryResponse,
-} from '#server/projects/dto/project.dto.js';
+} from '@/projects/dto/project.dto';
 import {
   type ProjectColumnListResponse,
   type ProjectColumnResponse,
   toProjectColumnResponse,
-} from '#server/projects/dto/project-column.dto.js';
-import type { QueryTicketsInput } from '#server/projects/dto/query-tickets.dto.js';
+} from '@/projects/dto/project-column.dto';
+import type { QueryTicketsInput } from '@/projects/dto/query-tickets.dto';
 import {
   type TicketDetailResponse,
   type TicketListResponse,
   toTicketDetailResponse,
   toTicketSummaryResponse,
-} from '#server/projects/dto/ticket.dto.js';
+} from '@/projects/dto/ticket.dto';
 import {
   type TicketCommentResponse,
   toTicketCommentResponse,
-} from '#server/projects/dto/ticket-comment.dto.js';
-import type { UpdateProjectInput } from '#server/projects/dto/update-project.dto.js';
-import type { UpdateProjectColumnInput } from '#server/projects/dto/update-project-column.dto.js';
-import type { UpdateTicketInput } from '#server/projects/dto/update-ticket.dto.js';
+} from '@/projects/dto/ticket-comment.dto';
+import type { UpdateProjectInput } from '@/projects/dto/update-project.dto';
+import type { UpdateProjectColumnInput } from '@/projects/dto/update-project-column.dto';
+import type { UpdateTicketInput } from '@/projects/dto/update-ticket.dto';
 import {
   ProjectRepository,
   type ProjectSummaryReadModel,
-} from '#server/projects/infrastructure/persistence/project.repository.js';
+} from '@/projects/infrastructure/persistence/project.repository';
 import {
   type TicketCardMetadata,
   type TicketDetailChildren,
   TicketWorkflowRepository,
-} from '#server/projects/infrastructure/persistence/ticket-workflow.repository.js';
+} from '@/projects/infrastructure/persistence/ticket-workflow.repository';
 
 type ProjectUserDirectory = Pick<AuthUserDirectoryService, 'findByIds'>;
 type ProjectOrganizationMembership = Pick<

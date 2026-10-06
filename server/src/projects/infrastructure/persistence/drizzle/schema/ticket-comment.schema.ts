@@ -1,5 +1,5 @@
-import { authUserIdColumn } from '#server/auth/infrastructure/persistence/drizzle/auth-user-reference.js';
-import { ticket } from '#server/projects/infrastructure/persistence/drizzle/schema/ticket.schema.js';
+import { authUserIdColumn } from '@/auth/infrastructure/persistence/drizzle/auth-user-reference';
+import { ticket } from '@/projects/infrastructure/persistence/drizzle/schema/ticket.schema';
 
 import { index, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 

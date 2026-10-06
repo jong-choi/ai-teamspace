@@ -3,10 +3,10 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   AuthUserDirectoryService,
   type AuthUserIdentity,
-} from '#server/auth/auth-user-directory.service.js';
-import type { CalendarProjectSummary } from '#server/calendar/domain/calendar-project-summary.js';
-import type { Meeting } from '#server/calendar/domain/meeting.js';
-import type { MeetingRecurrenceSeries } from '#server/calendar/domain/meeting-recurrence-series.js';
+} from '@/auth/auth-user-directory.service';
+import type { CalendarProjectSummary } from '@/calendar/domain/calendar-project-summary';
+import type { Meeting } from '@/calendar/domain/meeting';
+import type { MeetingRecurrenceSeries } from '@/calendar/domain/meeting-recurrence-series';
 import {
   type MeetingDetailResponse,
   MeetingDetailSchema,
@@ -14,13 +14,13 @@ import {
   MeetingListSchema,
   type MeetingSummaryResponse,
   type MeetingWireResponse,
-} from '#server/calendar/dto/meeting.dto.js';
+} from '@/calendar/dto/meeting.dto';
 import type {
   CalendarMeetingDetailRecord,
   CalendarMeetingListRecord,
-} from '#server/calendar/infrastructure/persistence/calendar.repository.js';
-import { CalendarProjectReferenceProvider } from '#server/calendar/infrastructure/project/calendar-project-reference.provider.js';
-import type { OrganizationUserSummary } from '#server/organizations/domain/organization-member.js';
+} from '@/calendar/infrastructure/persistence/calendar.repository';
+import { CalendarProjectReferenceProvider } from '@/calendar/infrastructure/project/calendar-project-reference.provider';
+import type { OrganizationUserSummary } from '@/organizations/domain/organization-member';
 
 @Injectable()
 export class CalendarMeetingPresenterService {

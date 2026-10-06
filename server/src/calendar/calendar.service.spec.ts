@@ -1,17 +1,17 @@
-import { CalendarService } from '#server/calendar/calendar.service.js';
-import { CalendarMeetingLoader } from '#server/calendar/calendar-meeting.loader.js';
-import { CalendarMeetingPolicy } from '#server/calendar/calendar-meeting.policy.js';
-import type { CalendarMeetingPresenterService } from '#server/calendar/calendar-meeting-presenter.service.js';
-import { CalendarMeetingCanceledError } from '#server/calendar/domain/calendar.error.js';
-import type { Meeting } from '#server/calendar/domain/meeting.js';
-import type { MeetingRoom } from '#server/calendar/domain/meeting-room.js';
-import { UpdateMeetingSchema } from '#server/calendar/dto/update-meeting.dto.js';
-import { CalendarRepository } from '#server/calendar/infrastructure/persistence/calendar.repository.js';
-import { CalendarProjectReferenceProvider } from '#server/calendar/infrastructure/project/calendar-project-reference.provider.js';
-import { CalendarReminderScheduler } from '#server/calendar/infrastructure/reminder/calendar-reminder-scheduler.provider.js';
-import { OrganizationAccessDeniedError } from '#server/organizations/domain/organization.error.js';
-import type { OrganizationActorContext } from '#server/organizations/organization-actor-context.js';
-import type { OrganizationsService } from '#server/organizations/organizations.service.js';
+import { CalendarService } from '@/calendar/calendar.service';
+import { CalendarMeetingLoader } from '@/calendar/calendar-meeting.loader';
+import { CalendarMeetingPolicy } from '@/calendar/calendar-meeting.policy';
+import type { CalendarMeetingPresenterService } from '@/calendar/calendar-meeting-presenter.service';
+import { CalendarMeetingCanceledError } from '@/calendar/domain/calendar.error';
+import type { Meeting } from '@/calendar/domain/meeting';
+import type { MeetingRoom } from '@/calendar/domain/meeting-room';
+import { UpdateMeetingSchema } from '@/calendar/dto/update-meeting.dto';
+import { CalendarRepository } from '@/calendar/infrastructure/persistence/calendar.repository';
+import { CalendarProjectReferenceProvider } from '@/calendar/infrastructure/project/calendar-project-reference.provider';
+import { CalendarReminderScheduler } from '@/calendar/infrastructure/reminder/calendar-reminder-scheduler.provider';
+import { OrganizationAccessDeniedError } from '@/organizations/domain/organization.error';
+import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
+import type { OrganizationsService } from '@/organizations/organizations.service';
 
 import { jest } from '@jest/globals';
 

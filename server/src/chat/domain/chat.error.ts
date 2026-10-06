@@ -1,4 +1,4 @@
-import { ApplicationError } from '#server/application.error.js';
+import { ApplicationError } from '@/application.error';
 
 export class ChatConversationNotFoundError extends ApplicationError {
   constructor(options?: ErrorOptions) {

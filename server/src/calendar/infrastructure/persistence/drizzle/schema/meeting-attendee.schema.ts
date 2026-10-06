@@ -1,5 +1,5 @@
-import { authUserIdColumn } from '#server/auth/infrastructure/persistence/drizzle/auth-user-reference.js';
-import { meeting } from '#server/calendar/infrastructure/persistence/drizzle/schema/meeting.schema.js';
+import { authUserIdColumn } from '@/auth/infrastructure/persistence/drizzle/auth-user-reference';
+import { meeting } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting.schema';
 
 import {
   index,

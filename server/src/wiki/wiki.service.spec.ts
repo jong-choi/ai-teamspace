@@ -1,14 +1,14 @@
-import type { OrganizationActorContext } from '#server/organizations/organization-actor-context.js';
-import type { OrganizationsService } from '#server/organizations/organizations.service.js';
+import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
+import type { OrganizationsService } from '@/organizations/organizations.service';
 import {
   WikiDocumentNotEmptyError,
   WikiDocumentNotFoundError,
-} from '#server/wiki/domain/wiki.error.js';
-import type { WikiDocument } from '#server/wiki/domain/wiki-document.js';
-import { WikiCollaborationInvalidationPublisher } from '#server/wiki/infrastructure/collaboration/wiki-collaboration-invalidation.provider.js';
-import { YjsCollaborationStateAdapter } from '#server/wiki/infrastructure/collaboration/yjs/yjs-collaboration-state.adapter.js';
-import { WikiRepository } from '#server/wiki/infrastructure/persistence/wiki.repository.js';
-import { WikiService } from '#server/wiki/wiki.service.js';
+} from '@/wiki/domain/wiki.error';
+import type { WikiDocument } from '@/wiki/domain/wiki-document';
+import { WikiCollaborationInvalidationPublisher } from '@/wiki/infrastructure/collaboration/wiki-collaboration-invalidation.provider';
+import { YjsCollaborationStateAdapter } from '@/wiki/infrastructure/collaboration/yjs/yjs-collaboration-state.adapter';
+import { WikiRepository } from '@/wiki/infrastructure/persistence/wiki.repository';
+import { WikiService } from '@/wiki/wiki.service';
 
 import { jest } from '@jest/globals';
 

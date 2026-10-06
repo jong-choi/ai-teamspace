@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
 
-import { DatabaseModule } from '#server/database/database.module.js';
-import { DatabaseService } from '#server/database/database.service.js';
+import { DatabaseModule } from '@/database/database.module';
+import { DatabaseService } from '@/database/database.service';
 
 import { jest } from '@jest/globals';
 

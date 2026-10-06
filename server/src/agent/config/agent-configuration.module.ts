@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 
-import { AgentConfiguration } from '#server/agent/config/agent-configuration.js';
-import { parseAgentEnvironment } from '#server/agent/config/agent-environment.js';
+import { AgentConfiguration } from '@/agent/config/agent-configuration';
+import { parseAgentEnvironment } from '@/agent/config/agent-environment';
 
 @Module({
   providers: [

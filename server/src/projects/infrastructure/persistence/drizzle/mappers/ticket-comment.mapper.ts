@@ -1,9 +1,9 @@
-import type { TicketComment } from '#server/projects/domain/ticket-comment.js';
+import type { TicketComment } from '@/projects/domain/ticket-comment';
 import {
   ticketCommentInsertSchema,
   ticketCommentSelectSchema,
   ticketCommentUpdateSchema,
-} from '#server/projects/infrastructure/persistence/drizzle/schema/ticket-comment.zod.js';
+} from '@/projects/infrastructure/persistence/drizzle/schema/ticket-comment.zod';
 
 import type { z } from 'zod';
 

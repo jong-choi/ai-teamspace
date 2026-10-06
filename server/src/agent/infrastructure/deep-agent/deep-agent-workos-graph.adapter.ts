@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 
 import type { AgentGraph } from '@repo/agent-runtime';
-import { WorkOsAgentGraphProvider } from '#server/agent/application/workos-agent-graph.provider.js';
-import { DeepAgentBuilder } from '#server/agent/infrastructure/deep-agent/deep-agent.builder.js';
+import { WorkOsAgentGraphProvider } from '@/agent/application/workos-agent-graph.provider';
+import { DeepAgentBuilder } from '@/agent/infrastructure/deep-agent/deep-agent.builder';
 import {
   DeepAgentLifecycle,
   noOpDeepAgentLifecycle,
-} from '#server/agent/infrastructure/deep-agent/deep-agent-lifecycle.js';
-import { DeepAgentProtocolAdapter } from '#server/agent/infrastructure/deep-agent/deep-agent-protocol.adapter.js';
-import { WorkOsToolSessionProvider } from '#server/agent/infrastructure/mcp/workos-tool-session.provider.js';
-import { AgentModelProvider } from '#server/agent/infrastructure/model/agent-model.provider.js';
-import { resolveAgentActor } from '#server/agent/infrastructure/runtime/agent-actor.mapper.js';
+} from '@/agent/infrastructure/deep-agent/deep-agent-lifecycle';
+import { DeepAgentProtocolAdapter } from '@/agent/infrastructure/deep-agent/deep-agent-protocol.adapter';
+import { WorkOsToolSessionProvider } from '@/agent/infrastructure/mcp/workos-tool-session.provider';
+import { AgentModelProvider } from '@/agent/infrastructure/model/agent-model.provider';
+import { resolveAgentActor } from '@/agent/infrastructure/runtime/agent-actor.mapper';
 
 @Injectable()
 export class DeepAgentWorkOsGraphAdapter extends WorkOsAgentGraphProvider {

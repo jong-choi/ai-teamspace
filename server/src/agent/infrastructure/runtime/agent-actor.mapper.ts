@@ -1,4 +1,4 @@
-import type { AgentActor } from '#server/agent/domain/agent-actor.js';
+import type { AgentActor } from '@/agent/domain/agent-actor';
 
 /** Agent runtime이 검증 뒤 주입한 server-owned principal만 제품 Agent actor로 변환한다. */
 export function resolveAgentActor(

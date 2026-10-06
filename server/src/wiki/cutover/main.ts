@@ -1,8 +1,8 @@
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 
-import { WikiCollaborationCutoverModule } from '#server/wiki/cutover/wiki-collaboration-cutover.module.js';
-import { WikiCollaborationCutoverService } from '#server/wiki/cutover/wiki-collaboration-cutover.service.js';
+import { WikiCollaborationCutoverModule } from '@/wiki/cutover/wiki-collaboration-cutover.module';
+import { WikiCollaborationCutoverService } from '@/wiki/cutover/wiki-collaboration-cutover.service';
 
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(

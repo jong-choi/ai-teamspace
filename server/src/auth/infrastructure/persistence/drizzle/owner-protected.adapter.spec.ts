@@ -1,7 +1,7 @@
-import { authOptions } from '#server/auth/auth-options.js';
-import { protectOrganizationOwners } from '#server/auth/infrastructure/persistence/drizzle/owner-protected.adapter.js';
-import { OwnerTransferRequiredError } from '#server/organizations/domain/organization.error.js';
-import { OrganizationRoleSchema } from '#server/organizations/domain/organization-role.js';
+import { authOptions } from '@/auth/auth-options';
+import { protectOrganizationOwners } from '@/auth/infrastructure/persistence/drizzle/owner-protected.adapter';
+import { OwnerTransferRequiredError } from '@/organizations/domain/organization.error';
+import { OrganizationRoleSchema } from '@/organizations/domain/organization-role';
 
 import { memoryAdapter } from 'better-auth/adapters/memory';
 

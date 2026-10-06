@@ -1,20 +1,20 @@
 import { Injectable } from '@nestjs/common';
 
-import { DatabaseService } from '#server/database/database.service.js';
+import { DatabaseService } from '@/database/database.service';
 import {
   cutoverWikiDocument,
   legacyWikiEntry,
-} from '#server/wiki/cutover/infrastructure/drizzle/legacy-wiki-tables.js';
+} from '@/wiki/cutover/infrastructure/drizzle/legacy-wiki-tables';
 import {
   WikiCollaborationCutoverRepository,
   type WikiCollaborationCutoverRepository as WikiCollaborationCutoverRepositoryPort,
   type WikiCutoverDocumentInput,
   type WikiCutoverFinalSnapshot,
   type WikiCutoverSnapshot,
-} from '#server/wiki/cutover/wiki-collaboration-cutover.repository.js';
-import { wikiCollection } from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-collection.schema.js';
-import { wikiDocumentRevision } from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-document-revision.schema.js';
-import { wikiDocumentRevisionCollaborator } from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-document-revision-collaborator.schema.js';
+} from '@/wiki/cutover/wiki-collaboration-cutover.repository';
+import { wikiCollection } from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-collection.schema';
+import { wikiDocumentRevision } from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-document-revision.schema';
+import { wikiDocumentRevisionCollaborator } from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-document-revision-collaborator.schema';
 
 import { eq, inArray } from 'drizzle-orm';
 

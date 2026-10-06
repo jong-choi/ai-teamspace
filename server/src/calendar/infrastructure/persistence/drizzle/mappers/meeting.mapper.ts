@@ -1,9 +1,9 @@
-import type { Meeting } from '#server/calendar/domain/meeting.js';
+import type { Meeting } from '@/calendar/domain/meeting';
 import {
   meetingInsertSchema,
   meetingSelectSchema,
   meetingUpdateSchema,
-} from '#server/calendar/infrastructure/persistence/drizzle/schema/meeting.zod.js';
+} from '@/calendar/infrastructure/persistence/drizzle/schema/meeting.zod';
 
 import type { z } from 'zod';
 

@@ -1,3 +1,3 @@
-import type { Project } from '#server/projects/domain/project.js';
+import type { Project } from '@/projects/domain/project';
 
 export type ProjectReference = Pick<Project, 'id' | 'name'>;

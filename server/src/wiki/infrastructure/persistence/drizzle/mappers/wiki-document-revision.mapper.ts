@@ -1,9 +1,9 @@
-import type { WikiDocumentRevision } from '#server/wiki/domain/wiki-document-revision.js';
-import { WikiDocumentRevisionSchema } from '#server/wiki/domain/wiki-document-revision.js';
+import type { WikiDocumentRevision } from '@/wiki/domain/wiki-document-revision';
+import { WikiDocumentRevisionSchema } from '@/wiki/domain/wiki-document-revision';
 import {
   wikiDocumentRevisionInsertSchema,
   wikiDocumentRevisionSelectSchema,
-} from '#server/wiki/infrastructure/persistence/drizzle/schema/wiki-document-revision.zod.js';
+} from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-document-revision.zod';
 
 export function toWikiDocumentRevisionDomain(
   row: unknown,

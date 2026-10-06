@@ -3,26 +3,26 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   OrganizationMemberNotFoundError,
   OrganizationNotFoundError,
-} from '#server/organizations/domain/organization.error.js';
-import type { OrganizationAccess } from '#server/organizations/domain/organization-access.js';
-import type { OrganizationMember } from '#server/organizations/domain/organization-member.js';
+} from '@/organizations/domain/organization.error';
+import type { OrganizationAccess } from '@/organizations/domain/organization-access';
+import type { OrganizationMember } from '@/organizations/domain/organization-member';
 import {
   assertMemberRemovalAllowed,
   assertMemberRoleChangeAllowed,
   assertOrganizationAdministrationAllowed,
-} from '#server/organizations/domain/organization-policy.js';
-import type { ActiveOrganization } from '#server/organizations/dto/active-organization.dto.js';
-import type { CreateOrganizationInput } from '#server/organizations/dto/create-organization.dto.js';
-import type { OrganizationList } from '#server/organizations/dto/organization-list.dto.js';
-import type { OrganizationMemberList } from '#server/organizations/dto/organization-member-list.dto.js';
-import type { QueryOrganizationMembersInput } from '#server/organizations/dto/query-organization-members.dto.js';
-import type { SetActiveOrganizationInput } from '#server/organizations/dto/set-active-organization.dto.js';
-import type { UpdateOrganizationMemberRoleInput } from '#server/organizations/dto/update-organization-member-role.dto.js';
-import { OrganizationPublicEventPublisher } from '#server/organizations/infrastructure/events/organization-public-event.provider.js';
+} from '@/organizations/domain/organization-policy';
+import type { ActiveOrganization } from '@/organizations/dto/active-organization.dto';
+import type { CreateOrganizationInput } from '@/organizations/dto/create-organization.dto';
+import type { OrganizationList } from '@/organizations/dto/organization-list.dto';
+import type { OrganizationMemberList } from '@/organizations/dto/organization-member-list.dto';
+import type { QueryOrganizationMembersInput } from '@/organizations/dto/query-organization-members.dto';
+import type { SetActiveOrganizationInput } from '@/organizations/dto/set-active-organization.dto';
+import type { UpdateOrganizationMemberRoleInput } from '@/organizations/dto/update-organization-member-role.dto';
+import { OrganizationPublicEventPublisher } from '@/organizations/infrastructure/events/organization-public-event.provider';
 import {
   type OrganizationActorContext,
   OrganizationProvider,
-} from '#server/organizations/infrastructure/organization/organization.provider.js';
+} from '@/organizations/infrastructure/organization/organization.provider';
 
 const memberSearchPageSize = 100;
 

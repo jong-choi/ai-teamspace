@@ -1,4 +1,4 @@
-import { authOrganizationIdColumn } from '#server/auth/infrastructure/persistence/drizzle/auth-organization-reference.js';
+import { authOrganizationIdColumn } from '@/auth/infrastructure/persistence/drizzle/auth-organization-reference';
 
 import { pgTable, text, timestamp, unique, uuid } from 'drizzle-orm/pg-core';
 

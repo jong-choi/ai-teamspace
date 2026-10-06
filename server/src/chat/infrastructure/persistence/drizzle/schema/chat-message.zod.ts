@@ -1,5 +1,5 @@
-import { chatMessageContentSchema } from '#server/chat/domain/chat-message-content.js';
-import { chatMessage } from '#server/chat/infrastructure/persistence/drizzle/schema/chat-message.schema.js';
+import { chatMessageContentSchema } from '@/chat/domain/chat-message-content';
+import { chatMessage } from '@/chat/infrastructure/persistence/drizzle/schema/chat-message.schema';
 
 import {
   createInsertSchema,

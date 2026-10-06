@@ -1,15 +1,15 @@
-import type { AuthUserDirectoryService } from '#server/auth/auth-user-directory.service.js';
-import { ChatService } from '#server/chat/chat.service.js';
+import type { AuthUserDirectoryService } from '@/auth/auth-user-directory.service';
+import { ChatService } from '@/chat/chat.service';
 import {
   ChatAccessDeniedError,
   ChatConversationNotFoundError,
-} from '#server/chat/domain/chat.error.js';
-import type { ChatConversation } from '#server/chat/domain/chat-conversation.js';
-import type { ChatConversationState } from '#server/chat/domain/chat-conversation-state.js';
-import type { ChatMessage } from '#server/chat/domain/chat-message.js';
-import { decodeChatMessageCursor } from '#server/chat/domain/chat-message-cursor.js';
-import { ChatRepository } from '#server/chat/infrastructure/persistence/chat.repository.js';
-import { ChatRealtimeProvider } from '#server/chat/infrastructure/realtime/chat-realtime.provider.js';
+} from '@/chat/domain/chat.error';
+import type { ChatConversation } from '@/chat/domain/chat-conversation';
+import type { ChatConversationState } from '@/chat/domain/chat-conversation-state';
+import type { ChatMessage } from '@/chat/domain/chat-message';
+import { decodeChatMessageCursor } from '@/chat/domain/chat-message-cursor';
+import { ChatRepository } from '@/chat/infrastructure/persistence/chat.repository';
+import { ChatRealtimeProvider } from '@/chat/infrastructure/realtime/chat-realtime.provider';
 
 import { jest } from '@jest/globals';
 import { EMPTY } from 'rxjs';

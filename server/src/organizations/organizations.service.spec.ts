@@ -7,15 +7,15 @@ import {
   OwnerTransferRequiredError,
   SelfMemberRemovalNotSupportedError,
   SelfRoleChangeNotSupportedError,
-} from '#server/organizations/domain/organization.error.js';
-import type { OrganizationMember } from '#server/organizations/domain/organization-member.js';
-import { OrganizationRoleSchema } from '#server/organizations/domain/organization-role.js';
-import { OrganizationPublicEventPublisher } from '#server/organizations/infrastructure/events/organization-public-event.provider.js';
+} from '@/organizations/domain/organization.error';
+import type { OrganizationMember } from '@/organizations/domain/organization-member';
+import { OrganizationRoleSchema } from '@/organizations/domain/organization-role';
+import { OrganizationPublicEventPublisher } from '@/organizations/infrastructure/events/organization-public-event.provider';
 import {
   type OrganizationActorContext,
   OrganizationProvider,
-} from '#server/organizations/infrastructure/organization/organization.provider.js';
-import { OrganizationsService } from '#server/organizations/organizations.service.js';
+} from '@/organizations/infrastructure/organization/organization.provider';
+import { OrganizationsService } from '@/organizations/organizations.service';
 
 import { jest } from '@jest/globals';
 

@@ -1,13 +1,13 @@
 import type { AgentGraphFactory } from '@repo/agent-runtime';
-import { WorkOsAgentFactory } from '#server/agent/application/workos-agent.factory.js';
-import { AgentConfiguration } from '#server/agent/config/agent-configuration.js';
-import { parseAgentEnvironment } from '#server/agent/config/agent-environment.js';
-import { DeepAgentBuilder } from '#server/agent/infrastructure/deep-agent/deep-agent.builder.js';
-import { DeepAgentWorkOsGraphAdapter } from '#server/agent/infrastructure/deep-agent/deep-agent-workos-graph.adapter.js';
-import { LangChainWorkOsMcpAdapter } from '#server/agent/infrastructure/mcp/langchain/langchain-workos-mcp.adapter.js';
-import { McpToolApprovalPolicy } from '#server/agent/infrastructure/mcp/langchain/mcp-tool-approval.policy.js';
-import type { McpCredentialProvider } from '#server/agent/infrastructure/mcp/mcp-credential.provider.js';
-import type { AgentModelProvider } from '#server/agent/infrastructure/model/agent-model.provider.js';
+import { WorkOsAgentFactory } from '@/agent/application/workos-agent.factory';
+import { AgentConfiguration } from '@/agent/config/agent-configuration';
+import { parseAgentEnvironment } from '@/agent/config/agent-environment';
+import { DeepAgentBuilder } from '@/agent/infrastructure/deep-agent/deep-agent.builder';
+import { DeepAgentWorkOsGraphAdapter } from '@/agent/infrastructure/deep-agent/deep-agent-workos-graph.adapter';
+import { LangChainWorkOsMcpAdapter } from '@/agent/infrastructure/mcp/langchain/langchain-workos-mcp.adapter';
+import { McpToolApprovalPolicy } from '@/agent/infrastructure/mcp/langchain/mcp-tool-approval.policy';
+import type { McpCredentialProvider } from '@/agent/infrastructure/mcp/mcp-credential.provider';
+import type { AgentModelProvider } from '@/agent/infrastructure/model/agent-model.provider';
 
 export function createTestWorkOsAgentGraphFactory(input: {
   mcpUrl: string;

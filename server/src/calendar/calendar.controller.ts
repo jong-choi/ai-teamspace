@@ -18,10 +18,10 @@ import {
 } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
-import type { Auth } from '#server/auth/auth.js';
-import { CalendarService } from '#server/calendar/calendar.service.js';
-import { CalendarIcsService } from '#server/calendar/calendar-ics.service.js';
-import { CalendarSchedulingService } from '#server/calendar/calendar-scheduling.service.js';
+import type { Auth } from '@/auth/auth';
+import { CalendarService } from '@/calendar/calendar.service';
+import { CalendarIcsService } from '@/calendar/calendar-ics.service';
+import { CalendarSchedulingService } from '@/calendar/calendar-scheduling.service';
 import {
   type CalendarAvailabilityRequest,
   CalendarAvailabilityRequestDto,
@@ -29,63 +29,63 @@ import {
   CalendarAvailabilityResponseDto,
   type CalendarRescheduleAvailabilityRequest,
   CalendarRescheduleAvailabilityRequestDto,
-} from '#server/calendar/dto/calendar-availability.dto.js';
+} from '@/calendar/dto/calendar-availability.dto';
 import {
   CancelMeetingDto,
   type CancelMeetingInput,
-} from '#server/calendar/dto/cancel-meeting.dto.js';
+} from '@/calendar/dto/cancel-meeting.dto';
 import {
   CreateMeetingDto,
   type CreateMeetingInput,
-} from '#server/calendar/dto/create-meeting.dto.js';
+} from '@/calendar/dto/create-meeting.dto';
 import {
   CreateMeetingRoomDto,
   type CreateMeetingRoomInput,
-} from '#server/calendar/dto/create-meeting-room.dto.js';
+} from '@/calendar/dto/create-meeting-room.dto';
 import {
   MeetingDetailDto,
   type MeetingDetailResponse,
   MeetingListDto,
   type MeetingListResponse,
-} from '#server/calendar/dto/meeting.dto.js';
+} from '@/calendar/dto/meeting.dto';
 import {
   MeetingRoomDto,
   MeetingRoomListDto,
   type MeetingRoomListResponse,
   type MeetingRoomResponse,
-} from '#server/calendar/dto/meeting-room.dto.js';
+} from '@/calendar/dto/meeting-room.dto';
 import {
   QueryCalendarMeetingsDto,
   type QueryCalendarMeetingsInput,
-} from '#server/calendar/dto/query-calendar-meetings.dto.js';
+} from '@/calendar/dto/query-calendar-meetings.dto';
 import {
   RescheduleMeetingDto,
   type RescheduleMeetingInput,
-} from '#server/calendar/dto/reschedule-meeting.dto.js';
+} from '@/calendar/dto/reschedule-meeting.dto';
 import {
   RsvpMeetingDto,
   type RsvpMeetingInput,
-} from '#server/calendar/dto/rsvp-meeting.dto.js';
+} from '@/calendar/dto/rsvp-meeting.dto';
 import {
   UpdateMeetingDto,
   type UpdateMeetingInput,
-} from '#server/calendar/dto/update-meeting.dto.js';
+} from '@/calendar/dto/update-meeting.dto';
 import {
   UpdateMeetingAttendeesDto,
   type UpdateMeetingAttendeesInput,
-} from '#server/calendar/dto/update-meeting-attendees.dto.js';
+} from '@/calendar/dto/update-meeting-attendees.dto';
 import {
   UpdateMeetingAgendaDto,
   type UpdateMeetingAgendaInput,
   UpdateMeetingNotesDto,
   type UpdateMeetingNotesInput,
-} from '#server/calendar/dto/update-meeting-content.dto.js';
+} from '@/calendar/dto/update-meeting-content.dto';
 import {
   UpdateMeetingRoomDto,
   type UpdateMeetingRoomInput,
-} from '#server/calendar/dto/update-meeting-room.dto.js';
-import { TrustedOriginGuard } from '#server/common/http/trusted-origin.guard.js';
-import { toOrganizationActorContext } from '#server/organizations/organization-actor-context.js';
+} from '@/calendar/dto/update-meeting-room.dto';
+import { TrustedOriginGuard } from '@/common/http/trusted-origin.guard';
+import { toOrganizationActorContext } from '@/organizations/organization-actor-context';
 
 import { Session, type UserSession } from '@thallesp/nestjs-better-auth';
 import type { Response } from 'express';

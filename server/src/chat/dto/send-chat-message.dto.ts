@@ -1,5 +1,5 @@
-import { chatTextMessageContentSchema } from '#server/chat/domain/chat-message-content.js';
-import { createZodDto } from '#server/common/dto/create-zod-dto.js';
+import { chatTextMessageContentSchema } from '@/chat/domain/chat-message-content';
+import { createZodDto } from '@/common/dto/create-zod-dto';
 
 import { z } from 'zod';
 

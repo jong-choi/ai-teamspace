@@ -1,5 +1,5 @@
-import { WikiCollaborationStateCorruptedError } from '#server/wiki/domain/wiki.error.js';
-import { YjsCollaborationStateAdapter } from '#server/wiki/infrastructure/collaboration/yjs/yjs-collaboration-state.adapter.js';
+import { WikiCollaborationStateCorruptedError } from '@/wiki/domain/wiki.error';
+import { YjsCollaborationStateAdapter } from '@/wiki/infrastructure/collaboration/yjs/yjs-collaboration-state.adapter';
 
 import * as Y from 'yjs';
 

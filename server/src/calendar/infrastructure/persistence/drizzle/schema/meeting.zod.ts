@@ -1,4 +1,4 @@
-import { meeting } from '#server/calendar/infrastructure/persistence/drizzle/schema/meeting.schema.js';
+import { meeting } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting.schema';
 
 import {
   createInsertSchema,

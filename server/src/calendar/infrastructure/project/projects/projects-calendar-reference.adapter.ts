@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 
-import { CalendarProjectNotFoundError } from '#server/calendar/domain/calendar.error.js';
-import type { CalendarProjectSummary } from '#server/calendar/domain/calendar-project-summary.js';
-import { CalendarProjectReferenceProvider } from '#server/calendar/infrastructure/project/calendar-project-reference.provider.js';
-import { ProjectReferenceQueryService } from '#server/projects/project-reference-query.service.js';
+import { CalendarProjectNotFoundError } from '@/calendar/domain/calendar.error';
+import type { CalendarProjectSummary } from '@/calendar/domain/calendar-project-summary';
+import { CalendarProjectReferenceProvider } from '@/calendar/infrastructure/project/calendar-project-reference.provider';
+import { ProjectReferenceQueryService } from '@/projects/project-reference-query.service';
 
 @Injectable()
 export class ProjectsCalendarReferenceAdapter extends CalendarProjectReferenceProvider {

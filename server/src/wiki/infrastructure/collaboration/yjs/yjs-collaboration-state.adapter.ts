@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 
-import { WikiCollaborationStateCorruptedError } from '#server/wiki/domain/wiki.error.js';
+import { WikiCollaborationStateCorruptedError } from '@/wiki/domain/wiki.error';
 import {
   type WikiCollaborationSnapshot,
   WikiCollaborationStateProvider,
-} from '#server/wiki/infrastructure/collaboration/wiki-collaboration-state.provider.js';
+} from '@/wiki/infrastructure/collaboration/wiki-collaboration-state.provider';
 
 import * as Y from 'yjs';
 

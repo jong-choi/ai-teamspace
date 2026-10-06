@@ -1,3 +1,3 @@
-import { organization } from '#server/auth/infrastructure/persistence/drizzle/generated/auth.schema.js';
+import { organization } from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
 
 export const authOrganizationIdColumn = organization.id;

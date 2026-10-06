@@ -1,5 +1,5 @@
-import { RedisChatRealtimeAdapter } from '#server-source/chat/infrastructure/realtime/redis/chat-realtime.adapter';
-import { parseCacheEnvironment } from '#server-source/config/runtime-environment';
+import { RedisChatRealtimeAdapter } from '@/chat/infrastructure/realtime/redis/chat-realtime.adapter';
+import { parseCacheEnvironment } from '@/config/runtime-environment';
 
 import { Redis } from 'ioredis';
 import { filter, firstValueFrom, timeout } from 'rxjs';

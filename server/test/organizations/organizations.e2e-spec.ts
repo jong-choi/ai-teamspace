@@ -1,10 +1,10 @@
 import type { INestApplication } from '@nestjs/common';
 
-import type { Auth } from '#server-source/auth/auth';
+import type { Auth } from '@/auth/auth';
 import {
   authOptions,
   organizationFacadeDisabledPaths,
-} from '#server-source/auth/auth-options';
+} from '@/auth/auth-options';
 import {
   account,
   invitation,
@@ -13,18 +13,18 @@ import {
   session,
   user,
   verification,
-} from '#server-source/auth/infrastructure/persistence/drizzle/generated/auth.schema';
-import { DatabaseService } from '#server-source/database/database.service';
-import { createOpenApiDocument, setupOpenApi } from '#server-source/openapi';
-import { OrganizationRoleSchema } from '#server-source/organizations/domain/organization-role';
-import { OrganizationProvider } from '#server-source/organizations/infrastructure/organization/organization.provider';
+} from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
+import { DatabaseService } from '@/database/database.service';
+import { createOpenApiDocument, setupOpenApi } from '@/openapi';
+import { OrganizationRoleSchema } from '@/organizations/domain/organization-role';
+import { OrganizationProvider } from '@/organizations/infrastructure/organization/organization.provider';
 
 import { jest } from '@jest/globals';
 import { AuthService } from '@thallesp/nestjs-better-auth';
 import { and, eq } from 'drizzle-orm';
 import request from 'supertest';
 
-import { createAppTestingModule } from '#server-test/support/app-testing-module.js';
+import { createAppTestingModule } from '@test/support/app-testing-module';
 
 type TestAgent = ReturnType<typeof request.agent>;
 

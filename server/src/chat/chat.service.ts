@@ -2,38 +2,38 @@ import { createHash } from 'node:crypto';
 
 import { Inject, Injectable, Logger } from '@nestjs/common';
 
-import { AuthUserDirectoryService } from '#server/auth/auth-user-directory.service.js';
+import { AuthUserDirectoryService } from '@/auth/auth-user-directory.service';
 import {
   ChatAccessDeniedError,
   ChatConversationNotFoundError,
   ChatDirectConversationConflictError,
   ChatMessageNotFoundError,
   ChatParticipantUnavailableError,
-} from '#server/chat/domain/chat.error.js';
-import type { ChatConversationState } from '#server/chat/domain/chat-conversation-state.js';
-import { chatTextMessageContentSchema } from '#server/chat/domain/chat-message-content.js';
+} from '@/chat/domain/chat.error';
+import type { ChatConversationState } from '@/chat/domain/chat-conversation-state';
+import { chatTextMessageContentSchema } from '@/chat/domain/chat-message-content';
 import {
   decodeChatMessageCursor,
   encodeChatMessageCursor,
-} from '#server/chat/domain/chat-message-cursor.js';
+} from '@/chat/domain/chat-message-cursor';
 import {
   type ChatConversationResponse,
   toChatConversationResponse,
-} from '#server/chat/dto/chat-conversation.dto.js';
-import type { ChatConversationListResponse } from '#server/chat/dto/chat-conversation-list.dto.js';
+} from '@/chat/dto/chat-conversation.dto';
+import type { ChatConversationListResponse } from '@/chat/dto/chat-conversation-list.dto';
 import {
   type ChatMessageResponse,
   toChatMessageResponse,
-} from '#server/chat/dto/chat-message.dto.js';
-import type { ChatMessagePageResponse } from '#server/chat/dto/chat-message-page.dto.js';
-import type { CreateChatChannelInput } from '#server/chat/dto/create-chat-channel.dto.js';
-import type { CreateChatDirectInput } from '#server/chat/dto/create-chat-direct.dto.js';
-import type { MarkChatReadInput } from '#server/chat/dto/mark-chat-read.dto.js';
-import type { QueryChatMessagesInput } from '#server/chat/dto/query-chat-messages.dto.js';
-import type { SendChatMessageInput } from '#server/chat/dto/send-chat-message.dto.js';
-import type { UpdateChatMessageInput } from '#server/chat/dto/update-chat-message.dto.js';
-import { ChatRepository } from '#server/chat/infrastructure/persistence/chat.repository.js';
-import { ChatRealtimeProvider } from '#server/chat/infrastructure/realtime/chat-realtime.provider.js';
+} from '@/chat/dto/chat-message.dto';
+import type { ChatMessagePageResponse } from '@/chat/dto/chat-message-page.dto';
+import type { CreateChatChannelInput } from '@/chat/dto/create-chat-channel.dto';
+import type { CreateChatDirectInput } from '@/chat/dto/create-chat-direct.dto';
+import type { MarkChatReadInput } from '@/chat/dto/mark-chat-read.dto';
+import type { QueryChatMessagesInput } from '@/chat/dto/query-chat-messages.dto';
+import type { SendChatMessageInput } from '@/chat/dto/send-chat-message.dto';
+import type { UpdateChatMessageInput } from '@/chat/dto/update-chat-message.dto';
+import { ChatRepository } from '@/chat/infrastructure/persistence/chat.repository';
+import { ChatRealtimeProvider } from '@/chat/infrastructure/realtime/chat-realtime.provider';
 
 export type DeliverOrganizationInvitationInput = {
   recipientUserId: string;

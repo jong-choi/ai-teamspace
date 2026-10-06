@@ -1,4 +1,4 @@
-import { UnavailableMcpCredentialAdapter } from '#server/agent/infrastructure/mcp/unavailable/unavailable-mcp-credential.adapter.js';
+import { UnavailableMcpCredentialAdapter } from '@/agent/infrastructure/mcp/unavailable/unavailable-mcp-credential.adapter';
 
 describe('사용 불가능한 MCP credential 어댑터', () => {
   test('delegation provider가 없으면 anonymous fallback 없이 실행을 거부한다', () => {

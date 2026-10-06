@@ -1,9 +1,9 @@
-import type { Ticket } from '#server/projects/domain/ticket.js';
+import type { Ticket } from '@/projects/domain/ticket';
 import {
   ticketInsertSchema,
   ticketSelectSchema,
   ticketUpdateSchema,
-} from '#server/projects/infrastructure/persistence/drizzle/schema/ticket.zod.js';
+} from '@/projects/infrastructure/persistence/drizzle/schema/ticket.zod';
 
 import type { z } from 'zod';
 

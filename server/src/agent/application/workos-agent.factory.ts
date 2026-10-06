@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import type { AgentGraphFactory } from '@repo/agent-runtime';
-import { WorkOsAgentGraphProvider } from '#server/agent/application/workos-agent-graph.provider.js';
+import { WorkOsAgentGraphProvider } from '@/agent/application/workos-agent-graph.provider';
 
 @Injectable()
 export class WorkOsAgentFactory {

@@ -23,31 +23,31 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import type { Auth } from '#server/auth/auth.js';
-import { TrustedOriginGuard } from '#server/common/http/trusted-origin.guard.js';
-import { toOrganizationActorContext } from '#server/organizations/organization-actor-context.js';
+import type { Auth } from '@/auth/auth';
+import { TrustedOriginGuard } from '@/common/http/trusted-origin.guard';
+import { toOrganizationActorContext } from '@/organizations/organization-actor-context';
 import {
   CreateWikiDocumentDto,
   type CreateWikiDocumentInput,
-} from '#server/wiki/dto/create-wiki-document.dto.js';
+} from '@/wiki/dto/create-wiki-document.dto';
 import {
   UpdateWikiDocumentDto,
   type UpdateWikiDocumentInput,
-} from '#server/wiki/dto/update-wiki-document.dto.js';
-import { WikiCollaborationSessionDto } from '#server/wiki/dto/wiki-collaboration-session.dto.js';
-import { WikiDocumentDto } from '#server/wiki/dto/wiki-document.dto.js';
+} from '@/wiki/dto/update-wiki-document.dto';
+import { WikiCollaborationSessionDto } from '@/wiki/dto/wiki-collaboration-session.dto';
+import { WikiDocumentDto } from '@/wiki/dto/wiki-document.dto';
 import {
   WikiDocumentHistoryDto,
   WikiDocumentRevisionDto,
-} from '#server/wiki/dto/wiki-document-history.dto.js';
+} from '@/wiki/dto/wiki-document-history.dto';
 import {
   QueryWikiSearchDto,
   type QueryWikiSearchInput,
   WikiSearchResultDto,
-} from '#server/wiki/dto/wiki-search.dto.js';
-import { WikiTreeDto } from '#server/wiki/dto/wiki-tree.dto.js';
-import { WikiService } from '#server/wiki/wiki.service.js';
-import { WikiCollaborationService } from '#server/wiki/wiki-collaboration.service.js';
+} from '@/wiki/dto/wiki-search.dto';
+import { WikiTreeDto } from '@/wiki/dto/wiki-tree.dto';
+import { WikiService } from '@/wiki/wiki.service';
+import { WikiCollaborationService } from '@/wiki/wiki-collaboration.service';
 
 import { Session, type UserSession } from '@thallesp/nestjs-better-auth';
 import { ApiProblemResponse } from 'nest-problem-details-filter/swagger';

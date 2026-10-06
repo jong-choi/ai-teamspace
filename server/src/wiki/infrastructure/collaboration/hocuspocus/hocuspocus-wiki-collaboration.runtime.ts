@@ -1,16 +1,16 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 
-import { ApplicationError } from '#server/application.error.js';
-import { buildWikiCollaborationDocumentName } from '#server/wiki/domain/wiki-collaboration-document-name.js';
+import { ApplicationError } from '@/application.error';
+import { buildWikiCollaborationDocumentName } from '@/wiki/domain/wiki-collaboration-document-name';
 import {
   WIKI_COLLABORATION_ENVIRONMENT,
   type WikiCollaborationEnvironment,
-} from '#server/wiki/infrastructure/collaboration/wiki-collaboration-configuration.provider.js';
-import { WikiCollaborationInvalidationSubscriber } from '#server/wiki/infrastructure/collaboration/wiki-collaboration-invalidation.provider.js';
+} from '@/wiki/infrastructure/collaboration/wiki-collaboration-configuration.provider';
+import { WikiCollaborationInvalidationSubscriber } from '@/wiki/infrastructure/collaboration/wiki-collaboration-invalidation.provider';
 import {
   type WikiCollaborationConnectionContext,
   WikiCollaborationService,
-} from '#server/wiki/wiki-collaboration.service.js';
+} from '@/wiki/wiki-collaboration.service';
 
 import { Redis as HocuspocusRedis } from '@hocuspocus/extension-redis';
 import { Throttle } from '@hocuspocus/extension-throttle';

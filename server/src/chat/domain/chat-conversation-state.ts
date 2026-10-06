@@ -1,6 +1,6 @@
-import type { ChatConversation } from '#server/chat/domain/chat-conversation.js';
-import type { ChatMessage } from '#server/chat/domain/chat-message.js';
-import type { ChatParticipant } from '#server/chat/domain/chat-participant.js';
+import type { ChatConversation } from '@/chat/domain/chat-conversation';
+import type { ChatMessage } from '@/chat/domain/chat-message';
+import type { ChatParticipant } from '@/chat/domain/chat-participant';
 
 export type ChatConversationState = {
   conversation: ChatConversation;

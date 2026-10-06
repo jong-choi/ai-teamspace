@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 
 import { getProblemDetails } from '@repo/client/api-client/runtime';
 import {
   type CalendarAvailabilityRequest,
   CalendarAvailabilityRequest as CalendarAvailabilityRequestSchema,
-  type CalendarAvailabilityResponse,
   type CreateMeeting,
   CreateMeeting as CreateMeetingSchema,
   type MeetingDetail,
@@ -49,6 +48,7 @@ import {
   createDefaultRecurrenceDraft,
   recurrenceDraftToContract,
 } from '@core/features/calendar/lib/calendar-recurrence';
+import { useCalendarAvailability } from '@core/features/calendar/use-calendar-availability';
 
 import { Bell, CalendarPlus } from 'lucide-react-native';
 
@@ -118,12 +118,6 @@ export function CalendarCreateDialog({
     [],
   );
   const [formError, setFormError] = useState<string | null>(null);
-  const [availabilityResult, setAvailabilityResult] =
-    useState<CalendarAvailabilityResponse | null>(null);
-  const [availabilityError, setAvailabilityError] = useState<string | null>(
-    null,
-  );
-  const availabilityRequestSequence = useRef(0);
   const availability = useCalendarAvailabilityPreview(organizationId);
   const mutation = useCreateCalendarMeeting(organizationId, (meeting) => {
     notifySuccess({
@@ -151,8 +145,6 @@ export function CalendarCreateDialog({
     setRecurrence(createDefaultRecurrenceDraft());
     setSelectedMembers([]);
     setFormError(null);
-    setAvailabilityResult(null);
-    setAvailabilityError(null);
   }, [
     open,
     request.dateKey,
@@ -173,52 +165,33 @@ export function CalendarCreateDialog({
     [selectedMembers],
   );
 
-  useEffect(() => {
-    if (!open) return;
-    const input = buildAvailabilityInput({
-      attendeeUserIds,
+  const availabilityInput = useMemo(
+    () =>
+      buildAvailabilityInput({
+        attendeeUserIds,
+        dateKey,
+        endTime,
+        locationType,
+        meetingRoomId,
+        startTime,
+        timeZone: meetingTimeZone,
+      }),
+    [
+      attendeeKey,
       dateKey,
       endTime,
       locationType,
       meetingRoomId,
+      meetingTimeZone,
       startTime,
-      timeZone: meetingTimeZone,
-    });
-    const sequence = availabilityRequestSequence.current + 1;
-    availabilityRequestSequence.current = sequence;
-    setAvailabilityResult(null);
-    setAvailabilityError(null);
-    if (!input) return;
-
-    const timer = setTimeout(() => {
-      void availability
-        .previewAvailability(input)
-        .then((result) => {
-          if (availabilityRequestSequence.current === sequence) {
-            setAvailabilityResult(result);
-          }
-        })
-        .catch((error: unknown) => {
-          if (availabilityRequestSequence.current !== sequence) return;
-          const problem = getProblemDetails(error);
-          setAvailabilityError(
-            problem?.detail ?? '일정 확인 요청을 완료하지 못했습니다.',
-          );
-        });
-    }, 250);
-
-    return () => clearTimeout(timer);
-  }, [
-    attendeeKey,
-    availability.previewAvailability,
-    dateKey,
-    endTime,
-    locationType,
-    meetingRoomId,
-    meetingTimeZone,
-    open,
-    startTime,
-  ]);
+    ],
+  );
+  const availabilityPreview = useCalendarAvailability({
+    enabled: open,
+    errorFallback: '일정 확인 요청을 완료하지 못했습니다.',
+    input: availabilityInput,
+    preview: availability.previewAvailability,
+  });
 
   const submit = async () => {
     setFormError(null);
@@ -235,7 +208,7 @@ export function CalendarCreateDialog({
       setFormError('장소를 입력해 주세요.');
       return;
     }
-    if (availabilityResult && !availabilityResult.available) {
+    if (availabilityPreview.result && !availabilityPreview.result.available) {
       setFormError('일정 충돌을 해결한 뒤 예약해 주세요.');
       return;
     }
@@ -295,7 +268,7 @@ export function CalendarCreateDialog({
   const submitBlocked =
     mutation.isPending ||
     availability.isPending ||
-    availabilityResult?.available === false;
+    availabilityPreview.result?.available === false;
 
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
@@ -497,10 +470,10 @@ export function CalendarCreateDialog({
             />
 
             <CalendarAvailabilityStatus
-              errorMessage={availabilityError}
+              errorMessage={availabilityPreview.errorMessage}
               participantLabels={participantLabels}
               pending={availability.isPending}
-              result={availabilityResult}
+              result={availabilityPreview.result}
               timeZone={meetingTimeZone}
             />
 

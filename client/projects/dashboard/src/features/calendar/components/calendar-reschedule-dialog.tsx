@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 
 import { getProblemDetails } from '@repo/client/api-client/runtime';
 import {
-  type CalendarAvailabilityResponse,
   type CalendarRescheduleAvailabilityRequest,
   CalendarRescheduleAvailabilityRequest as CalendarRescheduleAvailabilityRequestSchema,
   type MeetingDetail,
@@ -38,6 +37,7 @@ import {
   dateKeyInTimeZone,
 } from '@core/features/calendar/lib/calendar-time-zone';
 import { formatInstantTime } from '@core/features/calendar/lib/calendar-format';
+import { useCalendarAvailability } from '@core/features/calendar/use-calendar-availability';
 
 const rescheduleScopes = RescheduleMeetingSchema.shape.scope.unwrap().options;
 
@@ -83,12 +83,6 @@ export function CalendarRescheduleDialog({
   const [locationText, setLocationText] = useState(meeting.locationText ?? '');
   const [scope, setScope] = useState<RescheduleScope>('single');
   const [formError, setFormError] = useState<string | null>(null);
-  const [availabilityResult, setAvailabilityResult] =
-    useState<CalendarAvailabilityResponse | null>(null);
-  const [availabilityError, setAvailabilityError] = useState<string | null>(
-    null,
-  );
-  const availabilityRequestSequence = useRef(0);
   const availability = useCalendarRescheduleAvailabilityPreview(
     organizationId,
     meeting.id,
@@ -116,8 +110,6 @@ export function CalendarRescheduleDialog({
     setLocationText(meeting.locationText ?? '');
     setScope('single');
     setFormError(null);
-    setAvailabilityResult(null);
-    setAvailabilityError(null);
   }, [meeting, open]);
 
   const participantLabels = useMemo(() => {
@@ -129,50 +121,24 @@ export function CalendarRescheduleDialog({
     return labels;
   }, [meeting.attendees, meeting.organizer]);
 
-  useEffect(() => {
-    if (!open) return;
-    const input = buildAvailabilityInput({
-      dateKey,
-      endTime,
-      locationType,
-      meetingRoomId,
-      startTime,
-      timeZone,
-    });
-    const sequence = availabilityRequestSequence.current + 1;
-    availabilityRequestSequence.current = sequence;
-    setAvailabilityResult(null);
-    setAvailabilityError(null);
-    if (!input) return;
-
-    const timer = setTimeout(() => {
-      void availability
-        .previewAvailability(input)
-        .then((result) => {
-          if (availabilityRequestSequence.current === sequence) {
-            setAvailabilityResult(result);
-          }
-        })
-        .catch((error: unknown) => {
-          if (availabilityRequestSequence.current !== sequence) return;
-          const problem = getProblemDetails(error);
-          setAvailabilityError(
-            problem?.detail ?? '변경할 일정의 충돌 여부를 확인하지 못했습니다.',
-          );
-        });
-    }, 250);
-
-    return () => clearTimeout(timer);
-  }, [
-    availability.previewAvailability,
-    dateKey,
-    endTime,
-    locationType,
-    meetingRoomId,
-    open,
-    startTime,
-    timeZone,
-  ]);
+  const availabilityInput = useMemo(
+    () =>
+      buildAvailabilityInput({
+        dateKey,
+        endTime,
+        locationType,
+        meetingRoomId,
+        startTime,
+        timeZone,
+      }),
+    [dateKey, endTime, locationType, meetingRoomId, startTime, timeZone],
+  );
+  const availabilityPreview = useCalendarAvailability({
+    enabled: open,
+    errorFallback: '변경할 일정의 충돌 여부를 확인하지 못했습니다.',
+    input: availabilityInput,
+    preview: availability.previewAvailability,
+  });
 
   const submit = async () => {
     setFormError(null);
@@ -184,7 +150,7 @@ export function CalendarRescheduleDialog({
       setFormError('장소를 입력해 주세요.');
       return;
     }
-    if (availabilityResult && !availabilityResult.available) {
+    if (availabilityPreview.result && !availabilityPreview.result.available) {
       setFormError('일정 충돌을 해결한 뒤 변경해 주세요.');
       return;
     }
@@ -233,7 +199,7 @@ export function CalendarRescheduleDialog({
   const submitBlocked =
     mutation.isPending ||
     availability.isPending ||
-    availabilityResult?.available === false;
+    availabilityPreview.result?.available === false;
 
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
@@ -404,10 +370,10 @@ export function CalendarRescheduleDialog({
             ) : null}
 
             <CalendarAvailabilityStatus
-              errorMessage={availabilityError}
+              errorMessage={availabilityPreview.errorMessage}
               participantLabels={participantLabels}
               pending={availability.isPending}
-              result={availabilityResult}
+              result={availabilityPreview.result}
               timeZone={timeZone}
             />
 

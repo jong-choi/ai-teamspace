@@ -4,10 +4,7 @@ import { Pressable, View } from 'react-native';
 import type { WikiTreeOutput as WikiTreeData } from '@repo/client/api-client/schemas';
 import { cn } from '@repo/client/rnr/lib/utils';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
-import {
-  WikiDocumentViewer,
-  WikiMarkdownViewer,
-} from '@core/features/wiki/components/wiki-document-viewer';
+import { WikiMarkdownViewer } from '@core/features/wiki/components/wiki-document-viewer';
 import { WikiHeader } from '@core/features/wiki/components/wiki-header';
 import { WikiHistoryDialog } from '@core/features/wiki/components/wiki-history-dialog';
 import { WikiMarkdownEditor } from '@core/features/wiki/components/wiki-markdown-editor';
@@ -133,7 +130,13 @@ export function WikiDocumentWorkspace({
 
         <View className="min-h-0 min-w-0 flex-1 bg-background">
           {collaboration.mode === 'view' ? (
-            <WikiDocumentViewer document={document} />
+            <WikiMarkdownViewer
+              contentMarkdown={
+                collaboration.hasUsableState
+                  ? collaboration.liveMarkdown
+                  : document.contentMarkdown
+              }
+            />
           ) : collaboration.mode === 'edit' ? (
             <WikiMarkdownEditor
               collaborators={collaboration.collaborators}

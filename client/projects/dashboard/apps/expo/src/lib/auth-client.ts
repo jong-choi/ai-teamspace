@@ -14,8 +14,12 @@ if (!apiBaseUrl) {
   throw new Error('EXPO_PUBLIC_API_URL이 필요합니다.');
 }
 
+const apiUrl = new URL(apiBaseUrl);
+const authBasePath = `${apiUrl.pathname.replace(/\/$/, '')}/api/auth`;
+
 export const authClient = createAuthClient({
-  baseURL: apiBaseUrl,
+  baseURL: apiUrl.origin,
+  basePath: authBasePath,
   plugins: [
     expoClient({
       scheme: 'monorepoerp',

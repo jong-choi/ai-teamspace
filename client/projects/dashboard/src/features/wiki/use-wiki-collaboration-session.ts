@@ -68,6 +68,7 @@ export function useWikiCollaborationSession(input: {
   const [mode, setMode] = useState<WikiEditorMode>('view');
   const [liveMarkdown, setLiveMarkdown] = useState('');
   const [editorMarkdown, setEditorMarkdown] = useState('');
+  const [hasUsableState, setHasUsableState] = useState(false);
   const [collaborators, setCollaborators] = useState<WikiCollaborator[]>([]);
   const [connectionState, setConnectionState] =
     useState<WikiCollaborationConnectionState>('connecting');
@@ -113,6 +114,7 @@ export function useWikiCollaborationSession(input: {
     setMode('view');
     setLiveMarkdown('');
     setEditorMarkdown('');
+    setHasUsableState(false);
     setCollaborators([]);
     setConnectionState('connecting');
     setReadOnly(false);
@@ -253,6 +255,7 @@ export function useWikiCollaborationSession(input: {
         }
         if (updates.length > 0) {
           runtime.hasUsableState = true;
+          setHasUsableState(true);
           runtime.localRecoveryReady = true;
           setHasLocalRecovery(true);
         }
@@ -390,6 +393,7 @@ export function useWikiCollaborationSession(input: {
         onSynced: ({ state }) => {
           if (!state) return;
           runtime.hasUsableState = true;
+          setHasUsableState(true);
           setLiveMarkdown(text.toString());
           if (!runtime.localRecoveryReady && localStore) {
             setConnectionState('syncing');
@@ -598,6 +602,7 @@ export function useWikiCollaborationSession(input: {
     editorMarkdown,
     endComposition,
     exportMarkdown,
+    hasUsableState,
     indicator,
     liveMarkdown,
     mode,

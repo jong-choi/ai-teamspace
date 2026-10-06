@@ -3,7 +3,9 @@ import { CalendarMeetingLoader } from '@/calendar/calendar-meeting.loader';
 import { CalendarMeetingPolicy } from '@/calendar/calendar-meeting.policy';
 import type { CalendarMeetingPresenterService } from '@/calendar/calendar-meeting-presenter.service';
 import { CalendarParticipantPolicy } from '@/calendar/calendar-participant.policy';
+import { CalendarParticipationService } from '@/calendar/calendar-participation.service';
 import { CalendarRecurrenceService } from '@/calendar/calendar-recurrence.service';
+import { CalendarSchedulingConflictPolicy } from '@/calendar/calendar-scheduling-conflict.policy';
 import { CalendarSchedulingService } from '@/calendar/calendar-scheduling.service';
 import {
   CalendarMeetingAlreadyCanceledError,
@@ -187,6 +189,7 @@ describe('캘린더 scheduling 서비스', () => {
   let reminderScheduler: FakeReminderScheduler;
   let organizationsService: FakeOrganizationsService;
   let availabilityService: CalendarAvailabilityService;
+  let participationService: CalendarParticipationService;
   let service: CalendarSchedulingService;
 
   beforeEach(() => {
@@ -200,11 +203,21 @@ describe('캘린더 scheduling 서비스', () => {
     const participantPolicy = new CalendarParticipantPolicy(
       organizationsService,
     );
+    const conflictPolicy = new CalendarSchedulingConflictPolicy();
     availabilityService = new CalendarAvailabilityService(
       repository,
       meetingLoader,
       meetingPolicy,
       participantPolicy,
+      organizationsService,
+    );
+    participationService = new CalendarParticipationService(
+      repository,
+      meetingLoader,
+      meetingPolicy,
+      presenter,
+      participantPolicy,
+      conflictPolicy,
       organizationsService,
     );
     service = new CalendarSchedulingService(
@@ -214,6 +227,7 @@ describe('캘린더 scheduling 서비스', () => {
       presenter,
       new CalendarRecurrenceService(),
       participantPolicy,
+      conflictPolicy,
       projectProvider,
       reminderScheduler,
       organizationsService,
@@ -357,7 +371,7 @@ describe('캘린더 scheduling 서비스', () => {
     repository.findMeetingById.mockResolvedValue(current);
     presenter.presentDetail.mockResolvedValue({} as never);
 
-    await service.replaceAttendees(
+    await participationService.replaceAttendees(
       context,
       'organization-a',
       current.meeting.id,
@@ -375,7 +389,7 @@ describe('캘린더 scheduling 서비스', () => {
       record: current,
     });
 
-    await service.replaceAttendees(
+    await participationService.replaceAttendees(
       context,
       'organization-a',
       current.meeting.id,
@@ -400,9 +414,14 @@ describe('캘린더 scheduling 서비스', () => {
       attendee: attendee('organizer-user', 'accepted'),
     });
 
-    await service.updateRsvp(context, 'organization-a', current.meeting.id, {
-      status: 'accepted',
-    });
+    await participationService.updateRsvp(
+      context,
+      'organization-a',
+      current.meeting.id,
+      {
+        status: 'accepted',
+      },
+    );
 
     expect(repository.updateAttendeeRsvp).toHaveBeenCalledWith(
       'organization-a',
@@ -430,9 +449,14 @@ describe('캘린더 scheduling 서비스', () => {
     });
 
     await expect(
-      service.updateRsvp(context, 'organization-a', current.meeting.id, {
-        status: 'accepted',
-      }),
+      participationService.updateRsvp(
+        context,
+        'organization-a',
+        current.meeting.id,
+        {
+          status: 'accepted',
+        },
+      ),
     ).rejects.toBeInstanceOf(CalendarParticipantConflictError);
   });
 

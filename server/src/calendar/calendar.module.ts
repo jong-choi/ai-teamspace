@@ -13,9 +13,11 @@ import { CalendarMeetingRoomService } from '@/calendar/calendar-meeting-room.ser
 import { CalendarParticipantPolicy } from '@/calendar/calendar-participant.policy';
 import { CalendarMeetingsController } from '@/calendar/calendar-meetings.controller';
 import { CalendarParticipationController } from '@/calendar/calendar-participation.controller';
+import { CalendarParticipationService } from '@/calendar/calendar-participation.service';
 import { CalendarRecurrenceService } from '@/calendar/calendar-recurrence.service';
 import { CalendarRoomsController } from '@/calendar/calendar-rooms.controller';
 import { CalendarSchedulingController } from '@/calendar/calendar-scheduling.controller';
+import { CalendarSchedulingConflictPolicy } from '@/calendar/calendar-scheduling-conflict.policy';
 import { CalendarSchedulingService } from '@/calendar/calendar-scheduling.service';
 import { CalendarDrizzlePersistenceModule } from '@/calendar/infrastructure/persistence/drizzle/drizzle-persistence.module';
 import { ProjectsCalendarReferenceModule } from '@/calendar/infrastructure/project/projects/projects-calendar-reference.module';
@@ -47,6 +49,8 @@ import { OrganizationsModule } from '@/organizations/organizations.module';
     CalendarMeetingRoomService,
     CalendarParticipantPolicy,
     CalendarAvailabilityService,
+    CalendarSchedulingConflictPolicy,
+    CalendarParticipationService,
     CalendarRecurrenceService,
     CalendarSchedulingService,
     CalendarIcsService,

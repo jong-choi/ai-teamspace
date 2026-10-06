@@ -12,7 +12,7 @@ import {
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import type { Auth } from '@/auth/auth';
-import { CalendarSchedulingService } from '@/calendar/calendar-scheduling.service';
+import { CalendarParticipationService } from '@/calendar/calendar-participation.service';
 import {
   MeetingDetailDto,
   type MeetingDetailResponse,
@@ -43,7 +43,9 @@ const problemDetailsSchema = { $ref: '#/components/schemas/ProblemDetails' };
 @Controller('organizations/:organizationId/calendar/meetings/:meetingId')
 @UseGuards(TrustedOriginGuard)
 export class CalendarParticipationController {
-  constructor(private readonly schedulingService: CalendarSchedulingService) {}
+  constructor(
+    private readonly participationService: CalendarParticipationService,
+  ) {}
 
   @Put('rsvp')
   @ApiOperation({ operationId: 'CalendarController_updateRsvp' })
@@ -55,7 +57,7 @@ export class CalendarParticipationController {
     @Param('meetingId', ParseUUIDPipe) meetingId: string,
     @Body({ schema: RsvpMeetingDto.schema }) input: RsvpMeetingInput,
   ): Promise<MeetingDetailResponse> {
-    return this.schedulingService.updateRsvp(
+    return this.participationService.updateRsvp(
       toOrganizationActorContext(session, headers),
       organizationId,
       meetingId,
@@ -74,7 +76,7 @@ export class CalendarParticipationController {
     @Body({ schema: UpdateMeetingAttendeesDto.schema })
     input: UpdateMeetingAttendeesInput,
   ): Promise<MeetingDetailResponse> {
-    return this.schedulingService.replaceAttendees(
+    return this.participationService.replaceAttendees(
       toOrganizationActorContext(session, headers),
       organizationId,
       meetingId,

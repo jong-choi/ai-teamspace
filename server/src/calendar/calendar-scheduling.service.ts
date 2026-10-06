@@ -7,27 +7,22 @@ import { CalendarMeetingPolicy } from '@/calendar/calendar-meeting.policy';
 import { CalendarMeetingPresenterService } from '@/calendar/calendar-meeting-presenter.service';
 import { CalendarParticipantPolicy } from '@/calendar/calendar-participant.policy';
 import { CalendarRecurrenceService } from '@/calendar/calendar-recurrence.service';
+import { CalendarSchedulingConflictPolicy } from '@/calendar/calendar-scheduling-conflict.policy';
 import {
   CalendarInvalidRecurrenceScopeError,
   CalendarMeetingAlreadyCanceledError,
   CalendarMeetingCanceledError,
-  CalendarMeetingNotAttendeeError,
   CalendarMeetingNotFoundError,
   CalendarMeetingRoomInactiveError,
-  CalendarParticipantConflictError,
-  CalendarRoomConflictError,
 } from '@/calendar/domain/calendar.error';
 import type { MeetingRecurrenceSeries } from '@/calendar/domain/meeting-recurrence-series';
 import type { CancelMeetingInput } from '@/calendar/dto/cancel-meeting.dto';
 import type { CreateMeetingInput } from '@/calendar/dto/create-meeting.dto';
 import type { MeetingDetailResponse } from '@/calendar/dto/meeting.dto';
 import type { RescheduleMeetingInput } from '@/calendar/dto/reschedule-meeting.dto';
-import type { RsvpMeetingInput } from '@/calendar/dto/rsvp-meeting.dto';
-import type { UpdateMeetingAttendeesInput } from '@/calendar/dto/update-meeting-attendees.dto';
 import {
   type CalendarMeetingDetailRecord,
   CalendarRepository,
-  type CalendarSchedulingConflict,
   type RescheduleMeetingUpdate,
 } from '@/calendar/infrastructure/persistence/calendar.repository';
 import { CalendarProjectReferenceProvider } from '@/calendar/infrastructure/project/calendar-project-reference.provider';
@@ -54,6 +49,7 @@ export class CalendarSchedulingService {
     private readonly presenter: CalendarMeetingPresenter,
     private readonly recurrenceService: CalendarRecurrenceService,
     private readonly participantPolicy: CalendarParticipantPolicy,
+    private readonly conflictPolicy: CalendarSchedulingConflictPolicy,
     private readonly projectReferenceProvider: CalendarProjectReferenceProvider,
     private readonly reminderScheduler: CalendarReminderScheduler,
     @Inject(OrganizationsService)
@@ -150,61 +146,13 @@ export class CalendarSchedulingService {
     if (result.status === 'room_unavailable') {
       throw new CalendarMeetingRoomInactiveError();
     }
-    if (result.status === 'conflict') this.throwConflict(result);
+    if (result.status === 'conflict') {
+      this.conflictPolicy.throwConflict(result);
+    }
     await this.syncReminders(result.records);
     const first = result.records[0];
     if (!first) throw new CalendarMeetingNotFoundError();
     return this.presenter.presentDetail(organizationId, first);
-  }
-
-  async replaceAttendees(
-    context: OrganizationActorContext,
-    organizationId: string,
-    meetingId: string,
-    input: UpdateMeetingAttendeesInput,
-  ): Promise<MeetingDetailResponse> {
-    await this.organizationsService.getDetail(context, organizationId);
-    const current = await this.meetingLoader.requireMeeting(
-      organizationId,
-      meetingId,
-    );
-    this.meetingPolicy.assertActive(current);
-    await this.meetingPolicy.assertModificationAccess(
-      context,
-      organizationId,
-      current,
-    );
-
-    const attendeeUserIds = this.participantPolicy.normalizeAttendeeUserIds(
-      input.attendeeUserIds,
-      current.meeting.organizerUserId,
-    );
-    await this.participantPolicy.assertMembers(context, organizationId, [
-      current.meeting.organizerUserId,
-      ...attendeeUserIds,
-    ]);
-    const existingIds = new Set(current.attendees.map((item) => item.userId));
-    const attendeeSetUnchanged =
-      existingIds.size === attendeeUserIds.length &&
-      attendeeUserIds.every((userId) => existingIds.has(userId));
-    if (attendeeSetUnchanged) {
-      return this.presenter.presentDetail(organizationId, current);
-    }
-
-    const newlyAddedIds = attendeeUserIds.filter(
-      (userId) => !existingIds.has(userId),
-    );
-
-    const result = await this.calendarRepository.replaceMeetingAttendees({
-      organizationId,
-      meetingId,
-      attendeeUserIds,
-      conflictUserIds: newlyAddedIds,
-    });
-    if (result.status === 'not_found') throw new CalendarMeetingNotFoundError();
-    if (result.status === 'canceled') throw new CalendarMeetingCanceledError();
-    if (result.status === 'conflict') this.throwConflict(result);
-    return this.presenter.presentDetail(organizationId, result.record);
   }
 
   async rescheduleMeeting(
@@ -253,7 +201,9 @@ export class CalendarSchedulingService {
     if (result.status === 'room_unavailable') {
       throw new CalendarMeetingRoomInactiveError();
     }
-    if (result.status === 'conflict') this.throwConflict(result);
+    if (result.status === 'conflict') {
+      this.conflictPolicy.throwConflict(result);
+    }
     await this.syncReminders(result.records);
     const selected = result.records.find(
       (record) => record.meeting.id === meetingId,
@@ -297,36 +247,6 @@ export class CalendarSchedulingService {
     const selected = records.find((record) => record.meeting.id === meetingId);
     if (!selected) throw new CalendarMeetingNotFoundError();
     return this.presenter.presentDetail(organizationId, selected);
-  }
-
-  async updateRsvp(
-    context: OrganizationActorContext,
-    organizationId: string,
-    meetingId: string,
-    input: RsvpMeetingInput,
-  ): Promise<MeetingDetailResponse> {
-    await this.organizationsService.getDetail(context, organizationId);
-    const current = await this.meetingLoader.requireMeeting(
-      organizationId,
-      meetingId,
-    );
-    this.meetingPolicy.assertActive(current);
-    const result = await this.calendarRepository.updateAttendeeRsvp(
-      organizationId,
-      meetingId,
-      context.userId,
-      input.status,
-    );
-    if (result.status === 'not_found') throw new CalendarMeetingNotFoundError();
-    if (result.status === 'canceled') throw new CalendarMeetingCanceledError();
-    if (result.status === 'not_attendee') {
-      throw new CalendarMeetingNotAttendeeError();
-    }
-    if (result.status === 'conflict') this.throwConflict(result);
-    return this.presenter.presentDetail(
-      organizationId,
-      await this.meetingLoader.requireMeeting(organizationId, meetingId),
-    );
   }
 
   private async buildReschedulePlan(input: {
@@ -545,14 +465,6 @@ export class CalendarSchedulingService {
         record.meeting.recurrenceOriginalStartAt !== null &&
         record.meeting.recurrenceOriginalStartAt >= recurrenceOriginalStartAt,
     );
-  }
-
-  private throwConflict(conflict: CalendarSchedulingConflict): never {
-    if (conflict.participantConflicts.length > 0) {
-      throw new CalendarParticipantConflictError();
-    }
-    if (conflict.roomConflict) throw new CalendarRoomConflictError();
-    throw new CalendarParticipantConflictError();
   }
 
   private async syncReminders(

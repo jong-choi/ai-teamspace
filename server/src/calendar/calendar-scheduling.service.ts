@@ -5,9 +5,9 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { CalendarMeetingLoader } from '@/calendar/calendar-meeting.loader';
 import { CalendarMeetingPolicy } from '@/calendar/calendar-meeting.policy';
 import { CalendarMeetingPresenterService } from '@/calendar/calendar-meeting-presenter.service';
+import { CalendarParticipantPolicy } from '@/calendar/calendar-participant.policy';
 import { CalendarRecurrenceService } from '@/calendar/calendar-recurrence.service';
 import {
-  CalendarAttendeeNotMemberError,
   CalendarInvalidRecurrenceScopeError,
   CalendarMeetingAlreadyCanceledError,
   CalendarMeetingCanceledError,
@@ -18,12 +18,6 @@ import {
   CalendarRoomConflictError,
 } from '@/calendar/domain/calendar.error';
 import type { MeetingRecurrenceSeries } from '@/calendar/domain/meeting-recurrence-series';
-import type {
-  CalendarAvailabilityRequest,
-  CalendarAvailabilityResponse,
-  CalendarRescheduleAvailabilityRequest,
-} from '@/calendar/dto/calendar-availability.dto';
-import { CalendarAvailabilityResponseSchema } from '@/calendar/dto/calendar-availability.dto';
 import type { CancelMeetingInput } from '@/calendar/dto/cancel-meeting.dto';
 import type { CreateMeetingInput } from '@/calendar/dto/create-meeting.dto';
 import type { MeetingDetailResponse } from '@/calendar/dto/meeting.dto';
@@ -41,10 +35,7 @@ import { CalendarReminderScheduler } from '@/calendar/infrastructure/reminder/ca
 import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
 import { OrganizationsService } from '@/organizations/organizations.service';
 
-type CalendarOrganizationsAccess = Pick<
-  OrganizationsService,
-  'getDetail' | 'listMembersByUserIds'
->;
+type CalendarOrganizationsAccess = Pick<OrganizationsService, 'getDetail'>;
 
 type CalendarMeetingPresenter = Pick<
   CalendarMeetingPresenterService,
@@ -62,76 +53,12 @@ export class CalendarSchedulingService {
     @Inject(CalendarMeetingPresenterService)
     private readonly presenter: CalendarMeetingPresenter,
     private readonly recurrenceService: CalendarRecurrenceService,
+    private readonly participantPolicy: CalendarParticipantPolicy,
     private readonly projectReferenceProvider: CalendarProjectReferenceProvider,
     private readonly reminderScheduler: CalendarReminderScheduler,
     @Inject(OrganizationsService)
     private readonly organizationsService: CalendarOrganizationsAccess,
   ) {}
-
-  async previewAvailability(
-    context: OrganizationActorContext,
-    organizationId: string,
-    input: CalendarAvailabilityRequest,
-  ): Promise<CalendarAvailabilityResponse> {
-    await this.organizationsService.getDetail(context, organizationId);
-    const attendeeUserIds = this.normalizeAttendeeUserIds(
-      input.attendeeUserIds,
-      context.userId,
-    );
-    await this.assertParticipantsAreMembers(context, organizationId, [
-      context.userId,
-      ...attendeeUserIds,
-    ]);
-    if (input.meetingRoomId) {
-      await this.meetingLoader.requireSelectableMeetingRoom(
-        organizationId,
-        input.meetingRoomId,
-      );
-    }
-    return this.buildAvailability({
-      organizationId,
-      participantUserIds: [context.userId, ...attendeeUserIds],
-      meetingRoomId: input.meetingRoomId,
-      startAt: new Date(input.startAt),
-      endAt: new Date(input.endAt),
-    });
-  }
-
-  async previewRescheduleAvailability(
-    context: OrganizationActorContext,
-    organizationId: string,
-    meetingId: string,
-    input: CalendarRescheduleAvailabilityRequest,
-  ): Promise<CalendarAvailabilityResponse> {
-    await this.organizationsService.getDetail(context, organizationId);
-    const current = await this.meetingLoader.requireMeeting(
-      organizationId,
-      meetingId,
-    );
-    this.meetingPolicy.assertActive(current);
-    await this.meetingPolicy.assertModificationAccess(
-      context,
-      organizationId,
-      current,
-    );
-    const attendeeUserIds = current.attendees
-      .filter((attendee) => attendee.status !== 'declined')
-      .map((attendee) => attendee.userId);
-    if (input.meetingRoomId) {
-      await this.meetingLoader.requireSelectableMeetingRoom(
-        organizationId,
-        input.meetingRoomId,
-      );
-    }
-    return this.buildAvailability({
-      organizationId,
-      participantUserIds: [current.meeting.organizerUserId, ...attendeeUserIds],
-      meetingRoomId: input.meetingRoomId,
-      startAt: new Date(input.startAt),
-      endAt: new Date(input.endAt),
-      excludeMeetingIds: [meetingId],
-    });
-  }
 
   async createMeeting(
     context: OrganizationActorContext,
@@ -143,11 +70,11 @@ export class CalendarSchedulingService {
     const endAt = new Date(input.endAt);
     this.meetingPolicy.assertTimeRange(startAt, endAt);
 
-    const attendeeUserIds = this.normalizeAttendeeUserIds(
+    const attendeeUserIds = this.participantPolicy.normalizeAttendeeUserIds(
       input.attendeeUserIds,
       context.userId,
     );
-    await this.assertParticipantsAreMembers(context, organizationId, [
+    await this.participantPolicy.assertMembers(context, organizationId, [
       context.userId,
       ...attendeeUserIds,
     ]);
@@ -248,11 +175,11 @@ export class CalendarSchedulingService {
       current,
     );
 
-    const attendeeUserIds = this.normalizeAttendeeUserIds(
+    const attendeeUserIds = this.participantPolicy.normalizeAttendeeUserIds(
       input.attendeeUserIds,
       current.meeting.organizerUserId,
     );
-    await this.assertParticipantsAreMembers(context, organizationId, [
+    await this.participantPolicy.assertMembers(context, organizationId, [
       current.meeting.organizerUserId,
       ...attendeeUserIds,
     ]);
@@ -400,51 +327,6 @@ export class CalendarSchedulingService {
       organizationId,
       await this.meetingLoader.requireMeeting(organizationId, meetingId),
     );
-  }
-
-  private async buildAvailability(input: {
-    organizationId: string;
-    participantUserIds: readonly string[];
-    meetingRoomId: string | null;
-    startAt: Date;
-    endAt: Date;
-    excludeMeetingIds?: readonly string[];
-  }): Promise<CalendarAvailabilityResponse> {
-    this.meetingPolicy.assertTimeRange(input.startAt, input.endAt);
-    const participantConflicts =
-      await this.calendarRepository.findParticipantBusyIntervals({
-        organizationId: input.organizationId,
-        userIds: input.participantUserIds,
-        startAt: input.startAt,
-        endAt: input.endAt,
-        excludeMeetingIds: input.excludeMeetingIds,
-      });
-    const roomConflicts = input.meetingRoomId
-      ? await this.calendarRepository.findRoomBusyIntervals({
-          organizationId: input.organizationId,
-          meetingRoomId: input.meetingRoomId,
-          startAt: input.startAt,
-          endAt: input.endAt,
-          excludeMeetingIds: input.excludeMeetingIds,
-        })
-      : [];
-    return CalendarAvailabilityResponseSchema.parse({
-      available:
-        participantConflicts.length === 0 && roomConflicts.length === 0,
-      participantConflicts: participantConflicts.map((conflict) => ({
-        userId: conflict.userId,
-        startAt: conflict.startAt.toISOString(),
-        endAt: conflict.endAt.toISOString(),
-        sourceType: conflict.sourceType,
-      })),
-      roomConflict: roomConflicts[0]
-        ? {
-            meetingRoomId: roomConflicts[0].meetingRoomId,
-            startAt: roomConflicts[0].startAt.toISOString(),
-            endAt: roomConflicts[0].endAt.toISOString(),
-          }
-        : null,
-    });
   }
 
   private async buildReschedulePlan(input: {
@@ -663,32 +545,6 @@ export class CalendarSchedulingService {
         record.meeting.recurrenceOriginalStartAt !== null &&
         record.meeting.recurrenceOriginalStartAt >= recurrenceOriginalStartAt,
     );
-  }
-
-  private normalizeAttendeeUserIds(
-    attendeeUserIds: readonly string[],
-    organizerUserId: string,
-  ): string[] {
-    return [...new Set(attendeeUserIds)].filter(
-      (userId) => userId !== organizerUserId,
-    );
-  }
-
-  private async assertParticipantsAreMembers(
-    context: OrganizationActorContext,
-    organizationId: string,
-    userIds: readonly string[],
-  ): Promise<void> {
-    const uniqueUserIds = [...new Set(userIds)];
-    const members = await this.organizationsService.listMembersByUserIds(
-      context,
-      organizationId,
-      uniqueUserIds,
-    );
-    const memberUserIds = new Set(members.map((member) => member.userId));
-    if (uniqueUserIds.some((userId) => !memberUserIds.has(userId))) {
-      throw new CalendarAttendeeNotMemberError();
-    }
   }
 
   private throwConflict(conflict: CalendarSchedulingConflict): never {

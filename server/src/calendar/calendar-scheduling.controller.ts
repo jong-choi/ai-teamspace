@@ -19,6 +19,7 @@ import {
 } from '@nestjs/swagger';
 
 import type { Auth } from '@/auth/auth';
+import { CalendarAvailabilityService } from '@/calendar/calendar-availability.service';
 import { CalendarSchedulingService } from '@/calendar/calendar-scheduling.service';
 import {
   type CalendarAvailabilityRequest,
@@ -62,7 +63,10 @@ const problemDetailsSchema = { $ref: '#/components/schemas/ProblemDetails' };
 @Controller('organizations/:organizationId/calendar')
 @UseGuards(TrustedOriginGuard)
 export class CalendarSchedulingController {
-  constructor(private readonly schedulingService: CalendarSchedulingService) {}
+  constructor(
+    private readonly availabilityService: CalendarAvailabilityService,
+    private readonly schedulingService: CalendarSchedulingService,
+  ) {}
 
   @Post('availability')
   @HttpCode(HttpStatus.OK)
@@ -75,7 +79,7 @@ export class CalendarSchedulingController {
     @Body({ schema: CalendarAvailabilityRequestDto.schema })
     input: CalendarAvailabilityRequest,
   ): Promise<CalendarAvailabilityResponse> {
-    return this.schedulingService.previewAvailability(
+    return this.availabilityService.previewAvailability(
       toOrganizationActorContext(session, headers),
       organizationId,
       input,
@@ -113,7 +117,7 @@ export class CalendarSchedulingController {
     @Body({ schema: CalendarRescheduleAvailabilityRequestDto.schema })
     input: CalendarRescheduleAvailabilityRequest,
   ): Promise<CalendarAvailabilityResponse> {
-    return this.schedulingService.previewRescheduleAvailability(
+    return this.availabilityService.previewRescheduleAvailability(
       toOrganizationActorContext(session, headers),
       organizationId,
       meetingId,

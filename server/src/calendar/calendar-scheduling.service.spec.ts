@@ -1,6 +1,8 @@
+import { CalendarAvailabilityService } from '@/calendar/calendar-availability.service';
 import { CalendarMeetingLoader } from '@/calendar/calendar-meeting.loader';
 import { CalendarMeetingPolicy } from '@/calendar/calendar-meeting.policy';
 import type { CalendarMeetingPresenterService } from '@/calendar/calendar-meeting-presenter.service';
+import { CalendarParticipantPolicy } from '@/calendar/calendar-participant.policy';
 import { CalendarRecurrenceService } from '@/calendar/calendar-recurrence.service';
 import { CalendarSchedulingService } from '@/calendar/calendar-scheduling.service';
 import {
@@ -184,6 +186,7 @@ describe('캘린더 scheduling 서비스', () => {
   let projectProvider: FakeProjectReferenceProvider;
   let reminderScheduler: FakeReminderScheduler;
   let organizationsService: FakeOrganizationsService;
+  let availabilityService: CalendarAvailabilityService;
   let service: CalendarSchedulingService;
 
   beforeEach(() => {
@@ -192,12 +195,25 @@ describe('캘린더 scheduling 서비스', () => {
     projectProvider = new FakeProjectReferenceProvider();
     reminderScheduler = new FakeReminderScheduler();
     organizationsService = new FakeOrganizationsService();
+    const meetingLoader = new CalendarMeetingLoader(repository);
+    const meetingPolicy = new CalendarMeetingPolicy(organizationsService);
+    const participantPolicy = new CalendarParticipantPolicy(
+      organizationsService,
+    );
+    availabilityService = new CalendarAvailabilityService(
+      repository,
+      meetingLoader,
+      meetingPolicy,
+      participantPolicy,
+      organizationsService,
+    );
     service = new CalendarSchedulingService(
       repository,
-      new CalendarMeetingLoader(repository),
-      new CalendarMeetingPolicy(organizationsService),
+      meetingLoader,
+      meetingPolicy,
       presenter,
       new CalendarRecurrenceService(),
+      participantPolicy,
       projectProvider,
       reminderScheduler,
       organizationsService,
@@ -283,7 +299,7 @@ describe('캘린더 scheduling 서비스', () => {
     ]);
     repository.findRoomBusyIntervals.mockResolvedValue([]);
 
-    const result = await service.previewAvailability(
+    const result = await availabilityService.previewAvailability(
       context,
       'organization-a',
       {
@@ -316,7 +332,7 @@ describe('캘린더 scheduling 서비스', () => {
     repository.findParticipantBusyIntervals.mockResolvedValue([]);
     repository.findRoomBusyIntervals.mockResolvedValue([]);
 
-    await service.previewRescheduleAvailability(
+    await availabilityService.previewRescheduleAvailability(
       context,
       'organization-a',
       current.meeting.id,

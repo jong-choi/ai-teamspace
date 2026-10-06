@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { AuthModule } from '@/auth/auth.module';
+import { CalendarAvailabilityService } from '@/calendar/calendar-availability.service';
 import { CalendarIcsController } from '@/calendar/calendar-ics.controller';
 import { CalendarIcsService } from '@/calendar/calendar-ics.service';
 import { CalendarMeetingContentService } from '@/calendar/calendar-meeting-content.service';
@@ -9,6 +10,7 @@ import { CalendarMeetingPolicy } from '@/calendar/calendar-meeting.policy';
 import { CalendarMeetingPresenterService } from '@/calendar/calendar-meeting-presenter.service';
 import { CalendarMeetingQueryService } from '@/calendar/calendar-meeting-query.service';
 import { CalendarMeetingRoomService } from '@/calendar/calendar-meeting-room.service';
+import { CalendarParticipantPolicy } from '@/calendar/calendar-participant.policy';
 import { CalendarMeetingsController } from '@/calendar/calendar-meetings.controller';
 import { CalendarParticipationController } from '@/calendar/calendar-participation.controller';
 import { CalendarRecurrenceService } from '@/calendar/calendar-recurrence.service';
@@ -43,6 +45,8 @@ import { OrganizationsModule } from '@/organizations/organizations.module';
     CalendarMeetingQueryService,
     CalendarMeetingContentService,
     CalendarMeetingRoomService,
+    CalendarParticipantPolicy,
+    CalendarAvailabilityService,
     CalendarRecurrenceService,
     CalendarSchedulingService,
     CalendarIcsService,

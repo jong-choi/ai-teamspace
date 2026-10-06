@@ -10,17 +10,26 @@ import { ProjectResourceLoader } from '@/projects/project-resource.loader';
 import { ProjectUserResolver } from '@/projects/project-user.resolver';
 import { ProjectsController } from '@/projects/projects.controller';
 import { ProjectsService } from '@/projects/projects.service';
+import { TicketChecklistsController } from '@/projects/ticket-checklists.controller';
 import { TicketChecklistsService } from '@/projects/ticket-checklists.service';
+import { TicketCommentsController } from '@/projects/ticket-comments.controller';
 import { TicketCommentsService } from '@/projects/ticket-comments.service';
+import { TicketLabelsController } from '@/projects/ticket-labels.controller';
 import { TicketLabelsService } from '@/projects/ticket-labels.service';
+import { TicketOrderingController } from '@/projects/ticket-ordering.controller';
 import { TicketOrderingService } from '@/projects/ticket-ordering.service';
 import { TicketWorkflowAccessPolicy } from '@/projects/ticket-workflow-access.policy';
-import { TicketWorkflowController } from '@/projects/ticket-workflow.controller';
 import { TicketsService } from '@/projects/tickets.service';
 
 @Module({
   imports: [AuthModule, OrganizationsModule, ProjectDrizzlePersistenceModule],
-  controllers: [ProjectsController, TicketWorkflowController],
+  controllers: [
+    ProjectsController,
+    TicketOrderingController,
+    TicketLabelsController,
+    TicketChecklistsController,
+    TicketCommentsController,
+  ],
   providers: [
     ProjectsService,
     ProjectColumnsService,

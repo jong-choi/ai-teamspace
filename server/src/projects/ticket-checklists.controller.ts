@@ -4,7 +4,6 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
   Headers,
   HttpCode,
   HttpStatus,
@@ -12,13 +11,13 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
-  Put,
   UseGuards,
 } from '@nestjs/common';
 import {
   ApiCreatedResponse,
   ApiNoContentResponse,
   ApiOkResponse,
+  ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
 
@@ -34,19 +33,6 @@ import {
   type CreateTicketChecklistItemInput,
 } from '@/projects/dto/create-ticket-checklist-item.dto';
 import {
-  CreateTicketCommentDto,
-  type CreateTicketCommentInput,
-} from '@/projects/dto/create-ticket-comment.dto';
-import {
-  CreateTicketLabelDto,
-  type CreateTicketLabelInput,
-} from '@/projects/dto/create-ticket-label.dto';
-import {
-  MoveTicketDto,
-  type MoveTicketInput,
-  MoveTicketResultDto,
-} from '@/projects/dto/move-ticket.dto';
-import {
   MoveTicketChecklistItemDto,
   type MoveTicketChecklistItemInput,
   MoveTicketChecklistItemResultDto,
@@ -56,14 +42,6 @@ import {
   TicketChecklistItemDto,
 } from '@/projects/dto/ticket-checklist.dto';
 import {
-  TicketCommentDto,
-  TicketCommentListDto,
-} from '@/projects/dto/ticket-comment.dto';
-import {
-  TicketLabelDto,
-  TicketLabelListDto,
-} from '@/projects/dto/ticket-label.dto';
-import {
   UpdateTicketChecklistDto,
   type UpdateTicketChecklistInput,
 } from '@/projects/dto/update-ticket-checklist.dto';
@@ -71,18 +49,7 @@ import {
   UpdateTicketChecklistItemDto,
   type UpdateTicketChecklistItemInput,
 } from '@/projects/dto/update-ticket-checklist-item.dto';
-import {
-  UpdateTicketCommentDto,
-  type UpdateTicketCommentInput,
-} from '@/projects/dto/update-ticket-comment.dto';
-import {
-  UpdateTicketLabelDto,
-  type UpdateTicketLabelInput,
-} from '@/projects/dto/update-ticket-label.dto';
 import { TicketChecklistsService } from '@/projects/ticket-checklists.service';
-import { TicketCommentsService } from '@/projects/ticket-comments.service';
-import { TicketLabelsService } from '@/projects/ticket-labels.service';
-import { TicketOrderingService } from '@/projects/ticket-ordering.service';
 
 import { Session, type UserSession } from '@thallesp/nestjs-better-auth';
 import { ApiProblemResponse } from 'nest-problem-details-filter/swagger';
@@ -98,129 +65,14 @@ const problemDetailsSchema = { $ref: '#/components/schemas/ProblemDetails' };
 @ApiProblemResponse({ status: 500, schema: problemDetailsSchema })
 @Controller('organizations/:organizationId/projects')
 @UseGuards(TrustedOriginGuard)
-export class TicketWorkflowController {
-  constructor(
-    private readonly orderingService: TicketOrderingService,
-    private readonly labelsService: TicketLabelsService,
-    private readonly checklistsService: TicketChecklistsService,
-    private readonly commentsService: TicketCommentsService,
-  ) {}
-
-  @Get(':projectId/labels')
-  @ApiOkResponse({ standardSchema: TicketLabelListDto.schema })
-  listProjectLabels(
-    @Session() session: UserSession<Auth>,
-    @Headers() headers: IncomingHttpHeaders,
-    @Param('organizationId') organizationId: string,
-    @Param('projectId', ParseUUIDPipe) projectId: string,
-  ): Promise<TicketLabelListDto> {
-    return this.labelsService.listLabels(
-      toOrganizationActorContext(session, headers),
-      organizationId,
-      projectId,
-    );
-  }
-
-  @Post(':projectId/labels')
-  @HttpCode(HttpStatus.CREATED)
-  @ApiCreatedResponse({ standardSchema: TicketLabelDto.schema })
-  createProjectLabel(
-    @Session() session: UserSession<Auth>,
-    @Headers() headers: IncomingHttpHeaders,
-    @Param('organizationId') organizationId: string,
-    @Param('projectId', ParseUUIDPipe) projectId: string,
-    @Body({ schema: CreateTicketLabelDto.schema })
-    input: CreateTicketLabelInput,
-  ): Promise<TicketLabelDto> {
-    return this.labelsService.createLabel(
-      toOrganizationActorContext(session, headers),
-      organizationId,
-      projectId,
-      input,
-    );
-  }
-
-  @Patch(':projectId/labels/:labelId')
-  @ApiOkResponse({ standardSchema: TicketLabelDto.schema })
-  updateProjectLabel(
-    @Session() session: UserSession<Auth>,
-    @Headers() headers: IncomingHttpHeaders,
-    @Param('organizationId') organizationId: string,
-    @Param('projectId', ParseUUIDPipe) projectId: string,
-    @Param('labelId', ParseUUIDPipe) labelId: string,
-    @Body({ schema: UpdateTicketLabelDto.schema })
-    input: UpdateTicketLabelInput,
-  ): Promise<TicketLabelDto> {
-    return this.labelsService.updateLabel(
-      toOrganizationActorContext(session, headers),
-      organizationId,
-      projectId,
-      labelId,
-      input,
-    );
-  }
-
-  @Post(':projectId/tickets/:ticketId/move')
-  @HttpCode(HttpStatus.OK)
-  @ApiOkResponse({ standardSchema: MoveTicketResultDto.schema })
-  moveTicket(
-    @Session() session: UserSession<Auth>,
-    @Headers() headers: IncomingHttpHeaders,
-    @Param('organizationId') organizationId: string,
-    @Param('projectId', ParseUUIDPipe) projectId: string,
-    @Param('ticketId', ParseUUIDPipe) ticketId: string,
-    @Body({ schema: MoveTicketDto.schema }) input: MoveTicketInput,
-  ): Promise<MoveTicketResultDto> {
-    return this.orderingService.moveTicket(
-      toOrganizationActorContext(session, headers),
-      organizationId,
-      projectId,
-      ticketId,
-      input,
-    );
-  }
-
-  @Put(':projectId/tickets/:ticketId/labels/:labelId')
-  @ApiOkResponse({ standardSchema: TicketLabelDto.schema })
-  attachTicketLabel(
-    @Session() session: UserSession<Auth>,
-    @Headers() headers: IncomingHttpHeaders,
-    @Param('organizationId') organizationId: string,
-    @Param('projectId', ParseUUIDPipe) projectId: string,
-    @Param('ticketId', ParseUUIDPipe) ticketId: string,
-    @Param('labelId', ParseUUIDPipe) labelId: string,
-  ): Promise<TicketLabelDto> {
-    return this.labelsService.attachLabel(
-      toOrganizationActorContext(session, headers),
-      organizationId,
-      projectId,
-      ticketId,
-      labelId,
-    );
-  }
-
-  @Delete(':projectId/tickets/:ticketId/labels/:labelId')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiNoContentResponse()
-  detachTicketLabel(
-    @Session() session: UserSession<Auth>,
-    @Headers() headers: IncomingHttpHeaders,
-    @Param('organizationId') organizationId: string,
-    @Param('projectId', ParseUUIDPipe) projectId: string,
-    @Param('ticketId', ParseUUIDPipe) ticketId: string,
-    @Param('labelId', ParseUUIDPipe) labelId: string,
-  ): Promise<void> {
-    return this.labelsService.detachLabel(
-      toOrganizationActorContext(session, headers),
-      organizationId,
-      projectId,
-      ticketId,
-      labelId,
-    );
-  }
+export class TicketChecklistsController {
+  constructor(private readonly checklistsService: TicketChecklistsService) {}
 
   @Post(':projectId/tickets/:ticketId/checklists')
   @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    operationId: 'TicketWorkflowController_createTicketChecklist',
+  })
   @ApiCreatedResponse({ standardSchema: TicketChecklistDto.schema })
   createTicketChecklist(
     @Session() session: UserSession<Auth>,
@@ -241,6 +93,9 @@ export class TicketWorkflowController {
   }
 
   @Patch(':projectId/tickets/:ticketId/checklists/:checklistId')
+  @ApiOperation({
+    operationId: 'TicketWorkflowController_updateTicketChecklist',
+  })
   @ApiOkResponse({ standardSchema: TicketChecklistDto.schema })
   updateTicketChecklist(
     @Session() session: UserSession<Auth>,
@@ -264,6 +119,9 @@ export class TicketWorkflowController {
 
   @Delete(':projectId/tickets/:ticketId/checklists/:checklistId')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    operationId: 'TicketWorkflowController_removeTicketChecklist',
+  })
   @ApiNoContentResponse()
   removeTicketChecklist(
     @Session() session: UserSession<Auth>,
@@ -284,6 +142,9 @@ export class TicketWorkflowController {
 
   @Post(':projectId/tickets/:ticketId/checklists/:checklistId/items')
   @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    operationId: 'TicketWorkflowController_addTicketChecklistItem',
+  })
   @ApiCreatedResponse({ standardSchema: TicketChecklistItemDto.schema })
   addTicketChecklistItem(
     @Session() session: UserSession<Auth>,
@@ -306,6 +167,9 @@ export class TicketWorkflowController {
   }
 
   @Patch(':projectId/tickets/:ticketId/checklists/:checklistId/items/:itemId')
+  @ApiOperation({
+    operationId: 'TicketWorkflowController_updateTicketChecklistItem',
+  })
   @ApiOkResponse({ standardSchema: TicketChecklistItemDto.schema })
   updateTicketChecklistItem(
     @Session() session: UserSession<Auth>,
@@ -333,6 +197,9 @@ export class TicketWorkflowController {
     ':projectId/tickets/:ticketId/checklists/:checklistId/items/:itemId/move',
   )
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    operationId: 'TicketWorkflowController_moveTicketChecklistItem',
+  })
   @ApiOkResponse({ standardSchema: MoveTicketChecklistItemResultDto.schema })
   moveTicketChecklistItem(
     @Session() session: UserSession<Auth>,
@@ -358,6 +225,9 @@ export class TicketWorkflowController {
 
   @Delete(':projectId/tickets/:ticketId/checklists/:checklistId/items/:itemId')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    operationId: 'TicketWorkflowController_removeTicketChecklistItem',
+  })
   @ApiNoContentResponse()
   removeTicketChecklistItem(
     @Session() session: UserSession<Auth>,
@@ -375,86 +245,6 @@ export class TicketWorkflowController {
       ticketId,
       checklistId,
       itemId,
-    );
-  }
-
-  @Get(':projectId/tickets/:ticketId/comments')
-  @ApiOkResponse({ standardSchema: TicketCommentListDto.schema })
-  listTicketComments(
-    @Session() session: UserSession<Auth>,
-    @Headers() headers: IncomingHttpHeaders,
-    @Param('organizationId') organizationId: string,
-    @Param('projectId', ParseUUIDPipe) projectId: string,
-    @Param('ticketId', ParseUUIDPipe) ticketId: string,
-  ): Promise<TicketCommentListDto> {
-    return this.commentsService.listComments(
-      toOrganizationActorContext(session, headers),
-      organizationId,
-      projectId,
-      ticketId,
-    );
-  }
-
-  @Post(':projectId/tickets/:ticketId/comments')
-  @HttpCode(HttpStatus.CREATED)
-  @ApiCreatedResponse({ standardSchema: TicketCommentDto.schema })
-  createTicketComment(
-    @Session() session: UserSession<Auth>,
-    @Headers() headers: IncomingHttpHeaders,
-    @Param('organizationId') organizationId: string,
-    @Param('projectId', ParseUUIDPipe) projectId: string,
-    @Param('ticketId', ParseUUIDPipe) ticketId: string,
-    @Body({ schema: CreateTicketCommentDto.schema })
-    input: CreateTicketCommentInput,
-  ): Promise<TicketCommentDto> {
-    return this.commentsService.createComment(
-      toOrganizationActorContext(session, headers),
-      organizationId,
-      projectId,
-      ticketId,
-      input,
-    );
-  }
-
-  @Patch(':projectId/tickets/:ticketId/comments/:commentId')
-  @ApiOkResponse({ standardSchema: TicketCommentDto.schema })
-  updateTicketComment(
-    @Session() session: UserSession<Auth>,
-    @Headers() headers: IncomingHttpHeaders,
-    @Param('organizationId') organizationId: string,
-    @Param('projectId', ParseUUIDPipe) projectId: string,
-    @Param('ticketId', ParseUUIDPipe) ticketId: string,
-    @Param('commentId', ParseUUIDPipe) commentId: string,
-    @Body({ schema: UpdateTicketCommentDto.schema })
-    input: UpdateTicketCommentInput,
-  ): Promise<TicketCommentDto> {
-    return this.commentsService.updateComment(
-      toOrganizationActorContext(session, headers),
-      organizationId,
-      projectId,
-      ticketId,
-      commentId,
-      input,
-    );
-  }
-
-  @Delete(':projectId/tickets/:ticketId/comments/:commentId')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiNoContentResponse()
-  removeTicketComment(
-    @Session() session: UserSession<Auth>,
-    @Headers() headers: IncomingHttpHeaders,
-    @Param('organizationId') organizationId: string,
-    @Param('projectId', ParseUUIDPipe) projectId: string,
-    @Param('ticketId', ParseUUIDPipe) ticketId: string,
-    @Param('commentId', ParseUUIDPipe) commentId: string,
-  ): Promise<void> {
-    return this.commentsService.removeComment(
-      toOrganizationActorContext(session, headers),
-      organizationId,
-      projectId,
-      ticketId,
-      commentId,
     );
   }
 }

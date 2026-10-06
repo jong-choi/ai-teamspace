@@ -18,8 +18,9 @@ coverage/
 !.env.example
 
 # Environment-specific Docker Compose files copied from compose.example.yaml.
-compose.yaml
-compose.local.yaml
+/compose*.yaml
+/compose*.yml
+!/compose.example.yaml
 
 *.log
 *.tsbuildinfo

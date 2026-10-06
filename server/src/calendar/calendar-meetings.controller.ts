@@ -14,7 +14,8 @@ import {
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import type { Auth } from '@/auth/auth';
-import { CalendarService } from '@/calendar/calendar.service';
+import { CalendarMeetingContentService } from '@/calendar/calendar-meeting-content.service';
+import { CalendarMeetingQueryService } from '@/calendar/calendar-meeting-query.service';
 import {
   MeetingDetailDto,
   type MeetingDetailResponse,
@@ -53,7 +54,10 @@ const problemDetailsSchema = { $ref: '#/components/schemas/ProblemDetails' };
 @Controller('organizations/:organizationId/calendar/meetings')
 @UseGuards(TrustedOriginGuard)
 export class CalendarMeetingsController {
-  constructor(private readonly calendarService: CalendarService) {}
+  constructor(
+    private readonly meetingQueryService: CalendarMeetingQueryService,
+    private readonly meetingContentService: CalendarMeetingContentService,
+  ) {}
 
   @Get()
   @ApiOperation({ operationId: 'CalendarController_listMeetings' })
@@ -65,7 +69,7 @@ export class CalendarMeetingsController {
     @Query({ schema: QueryCalendarMeetingsDto.schema })
     query: QueryCalendarMeetingsInput,
   ): Promise<MeetingListResponse> {
-    return this.calendarService.listMeetings(
+    return this.meetingQueryService.listMeetings(
       toOrganizationActorContext(session, headers),
       organizationId,
       query,
@@ -81,7 +85,7 @@ export class CalendarMeetingsController {
     @Param('organizationId') organizationId: string,
     @Param('meetingId', ParseUUIDPipe) meetingId: string,
   ): Promise<MeetingDetailResponse> {
-    return this.calendarService.getMeeting(
+    return this.meetingQueryService.getMeeting(
       toOrganizationActorContext(session, headers),
       organizationId,
       meetingId,
@@ -98,7 +102,7 @@ export class CalendarMeetingsController {
     @Param('meetingId', ParseUUIDPipe) meetingId: string,
     @Body({ schema: UpdateMeetingDto.schema }) input: UpdateMeetingInput,
   ): Promise<MeetingDetailResponse> {
-    return this.calendarService.updateMeeting(
+    return this.meetingContentService.updateMeeting(
       toOrganizationActorContext(session, headers),
       organizationId,
       meetingId,
@@ -117,7 +121,7 @@ export class CalendarMeetingsController {
     @Body({ schema: UpdateMeetingAgendaDto.schema })
     input: UpdateMeetingAgendaInput,
   ): Promise<MeetingDetailResponse> {
-    return this.calendarService.updateAgenda(
+    return this.meetingContentService.updateAgenda(
       toOrganizationActorContext(session, headers),
       organizationId,
       meetingId,
@@ -136,7 +140,7 @@ export class CalendarMeetingsController {
     @Body({ schema: UpdateMeetingNotesDto.schema })
     input: UpdateMeetingNotesInput,
   ): Promise<MeetingDetailResponse> {
-    return this.calendarService.updateNotes(
+    return this.meetingContentService.updateNotes(
       toOrganizationActorContext(session, headers),
       organizationId,
       meetingId,

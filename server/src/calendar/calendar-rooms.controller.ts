@@ -21,7 +21,7 @@ import {
 } from '@nestjs/swagger';
 
 import type { Auth } from '@/auth/auth';
-import { CalendarService } from '@/calendar/calendar.service';
+import { CalendarMeetingRoomService } from '@/calendar/calendar-meeting-room.service';
 import {
   CreateMeetingRoomDto,
   type CreateMeetingRoomInput,
@@ -54,7 +54,9 @@ const problemDetailsSchema = { $ref: '#/components/schemas/ProblemDetails' };
 @Controller('organizations/:organizationId/calendar/rooms')
 @UseGuards(TrustedOriginGuard)
 export class CalendarRoomsController {
-  constructor(private readonly calendarService: CalendarService) {}
+  constructor(
+    private readonly meetingRoomService: CalendarMeetingRoomService,
+  ) {}
 
   @Get()
   @ApiOperation({ operationId: 'CalendarController_listMeetingRooms' })
@@ -64,7 +66,7 @@ export class CalendarRoomsController {
     @Headers() headers: IncomingHttpHeaders,
     @Param('organizationId') organizationId: string,
   ): Promise<MeetingRoomListResponse> {
-    return this.calendarService.listMeetingRooms(
+    return this.meetingRoomService.listMeetingRooms(
       toOrganizationActorContext(session, headers),
       organizationId,
     );
@@ -81,7 +83,7 @@ export class CalendarRoomsController {
     @Body({ schema: CreateMeetingRoomDto.schema })
     input: CreateMeetingRoomInput,
   ): Promise<MeetingRoomResponse> {
-    return this.calendarService.createMeetingRoom(
+    return this.meetingRoomService.createMeetingRoom(
       toOrganizationActorContext(session, headers),
       organizationId,
       input,
@@ -97,7 +99,7 @@ export class CalendarRoomsController {
     @Param('organizationId') organizationId: string,
     @Param('roomId', ParseUUIDPipe) roomId: string,
   ): Promise<MeetingRoomResponse> {
-    return this.calendarService.getMeetingRoom(
+    return this.meetingRoomService.getMeetingRoom(
       toOrganizationActorContext(session, headers),
       organizationId,
       roomId,
@@ -115,7 +117,7 @@ export class CalendarRoomsController {
     @Body({ schema: UpdateMeetingRoomDto.schema })
     input: UpdateMeetingRoomInput,
   ): Promise<MeetingRoomResponse> {
-    return this.calendarService.updateMeetingRoom(
+    return this.meetingRoomService.updateMeetingRoom(
       toOrganizationActorContext(session, headers),
       organizationId,
       roomId,

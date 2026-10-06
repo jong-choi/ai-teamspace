@@ -3,48 +3,30 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { CalendarMeetingLoader } from '@/calendar/calendar-meeting.loader';
 import { CalendarMeetingPolicy } from '@/calendar/calendar-meeting.policy';
 import { CalendarMeetingPresenterService } from '@/calendar/calendar-meeting-presenter.service';
-import {
-  CalendarMeetingNotFoundError,
-  CalendarMeetingRoomNotFoundError,
-} from '@/calendar/domain/calendar.error';
+import { CalendarMeetingNotFoundError } from '@/calendar/domain/calendar.error';
 import type { Meeting } from '@/calendar/domain/meeting';
-import type { CreateMeetingRoomInput } from '@/calendar/dto/create-meeting-room.dto';
-import type {
-  MeetingDetailResponse,
-  MeetingListResponse,
-} from '@/calendar/dto/meeting.dto';
-import {
-  type MeetingRoomListResponse,
-  MeetingRoomListSchema,
-  type MeetingRoomResponse,
-  toMeetingRoomResponse,
-} from '@/calendar/dto/meeting-room.dto';
-import type { QueryCalendarMeetingsInput } from '@/calendar/dto/query-calendar-meetings.dto';
+import type { MeetingDetailResponse } from '@/calendar/dto/meeting.dto';
 import type { UpdateMeetingInput } from '@/calendar/dto/update-meeting.dto';
 import type {
   UpdateMeetingAgendaInput,
   UpdateMeetingNotesInput,
 } from '@/calendar/dto/update-meeting-content.dto';
-import type { UpdateMeetingRoomInput } from '@/calendar/dto/update-meeting-room.dto';
 import { CalendarRepository } from '@/calendar/infrastructure/persistence/calendar.repository';
 import { CalendarProjectReferenceProvider } from '@/calendar/infrastructure/project/calendar-project-reference.provider';
 import { CalendarReminderScheduler } from '@/calendar/infrastructure/reminder/calendar-reminder-scheduler.provider';
 import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
 import { OrganizationsService } from '@/organizations/organizations.service';
 
-type CalendarOrganizationsAccess = Pick<
-  OrganizationsService,
-  'getDetail' | 'searchMemberUserIds' | 'assertAdministrativeAccess'
->;
+type CalendarOrganizationsAccess = Pick<OrganizationsService, 'getDetail'>;
 
 type CalendarMeetingPresenter = Pick<
   CalendarMeetingPresenterService,
-  'presentList' | 'presentDetail'
+  'presentDetail'
 >;
 
 @Injectable()
-export class CalendarService {
-  private readonly logger = new Logger(CalendarService.name);
+export class CalendarMeetingContentService {
+  private readonly logger = new Logger(CalendarMeetingContentService.name);
 
   constructor(
     private readonly calendarRepository: CalendarRepository,
@@ -57,50 +39,6 @@ export class CalendarService {
     @Inject(OrganizationsService)
     private readonly organizationsService: CalendarOrganizationsAccess,
   ) {}
-
-  async listMeetings(
-    context: OrganizationActorContext,
-    organizationId: string,
-    query: QueryCalendarMeetingsInput,
-  ): Promise<MeetingListResponse> {
-    await this.organizationsService.getDetail(context, organizationId);
-    const from = new Date(query.from);
-    const to = new Date(query.to);
-    this.meetingPolicy.assertTimeRange(from, to);
-
-    const searchParticipantUserIds = query.search
-      ? await this.organizationsService.searchMemberUserIds(
-          context,
-          organizationId,
-          query.search,
-        )
-      : undefined;
-    const records = await this.calendarRepository.listMeetingsInRange({
-      organizationId,
-      from,
-      to,
-      category: query.category,
-      projectId: query.projectId,
-      attendeeUserId: query.attendeeUserId,
-      roomId: query.roomId,
-      search: query.search,
-      searchParticipantUserIds,
-    });
-
-    return this.presenter.presentList(organizationId, records);
-  }
-
-  async getMeeting(
-    context: OrganizationActorContext,
-    organizationId: string,
-    meetingId: string,
-  ): Promise<MeetingDetailResponse> {
-    await this.organizationsService.getDetail(context, organizationId);
-    return this.presenter.presentDetail(
-      organizationId,
-      await this.meetingLoader.requireMeeting(organizationId, meetingId),
-    );
-  }
 
   async updateMeeting(
     context: OrganizationActorContext,
@@ -222,82 +160,6 @@ export class CalendarService {
     );
     if (!updated) throw new CalendarMeetingNotFoundError();
     return this.presenter.presentDetail(organizationId, updated);
-  }
-
-  async listMeetingRooms(
-    context: OrganizationActorContext,
-    organizationId: string,
-  ): Promise<MeetingRoomListResponse> {
-    await this.organizationsService.getDetail(context, organizationId);
-    return MeetingRoomListSchema.parse({
-      items: (
-        await this.calendarRepository.listMeetingRooms(organizationId)
-      ).map(toMeetingRoomResponse),
-    });
-  }
-
-  async getMeetingRoom(
-    context: OrganizationActorContext,
-    organizationId: string,
-    meetingRoomId: string,
-  ): Promise<MeetingRoomResponse> {
-    await this.organizationsService.getDetail(context, organizationId);
-    const room = await this.calendarRepository.findMeetingRoomById(
-      organizationId,
-      meetingRoomId,
-    );
-    if (!room) throw new CalendarMeetingRoomNotFoundError();
-    return toMeetingRoomResponse(room);
-  }
-
-  async createMeetingRoom(
-    context: OrganizationActorContext,
-    organizationId: string,
-    input: CreateMeetingRoomInput,
-  ): Promise<MeetingRoomResponse> {
-    await this.organizationsService.assertAdministrativeAccess(
-      context,
-      organizationId,
-    );
-    return toMeetingRoomResponse(
-      await this.calendarRepository.createMeetingRoom({
-        organizationId,
-        name: input.name,
-        capacity: input.capacity,
-        floor: input.floor ?? null,
-        description: input.description ?? null,
-      }),
-    );
-  }
-
-  async updateMeetingRoom(
-    context: OrganizationActorContext,
-    organizationId: string,
-    meetingRoomId: string,
-    input: UpdateMeetingRoomInput,
-  ): Promise<MeetingRoomResponse> {
-    await this.organizationsService.assertAdministrativeAccess(
-      context,
-      organizationId,
-    );
-    const changes: Parameters<
-      CalendarRepository['updateMeetingRoom']
-    >[0]['changes'] = {};
-    if (input.name !== undefined) changes.name = input.name;
-    if (input.capacity !== undefined) changes.capacity = input.capacity;
-    if (input.floor !== undefined) changes.floor = input.floor;
-    if (input.description !== undefined) {
-      changes.description = input.description;
-    }
-    if (input.active !== undefined) changes.active = input.active;
-
-    const room = await this.calendarRepository.updateMeetingRoom({
-      organizationId,
-      meetingRoomId,
-      changes,
-    });
-    if (!room) throw new CalendarMeetingRoomNotFoundError();
-    return toMeetingRoomResponse(room);
   }
 
   private async syncReminder(meeting: Meeting): Promise<void> {

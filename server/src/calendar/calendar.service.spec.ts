@@ -1,4 +1,4 @@
-import { CalendarService } from '@/calendar/calendar.service';
+import { CalendarMeetingContentService } from '@/calendar/calendar-meeting-content.service';
 import { CalendarMeetingLoader } from '@/calendar/calendar-meeting.loader';
 import { CalendarMeetingPolicy } from '@/calendar/calendar-meeting.policy';
 import type { CalendarMeetingPresenterService } from '@/calendar/calendar-meeting-presenter.service';
@@ -121,13 +121,13 @@ function record(overrides: Partial<Meeting> = {}) {
   };
 }
 
-describe('캘린더 기본 서비스', () => {
+describe('캘린더 회의 content 서비스', () => {
   let repository: FakeCalendarRepository;
   let presenter: FakePresenter;
   let projectProvider: FakeProjectReferenceProvider;
   let reminderScheduler: FakeReminderScheduler;
   let organizationsService: FakeOrganizationsService;
-  let service: CalendarService;
+  let service: CalendarMeetingContentService;
 
   beforeEach(() => {
     repository = new FakeCalendarRepository();
@@ -135,7 +135,7 @@ describe('캘린더 기본 서비스', () => {
     projectProvider = new FakeProjectReferenceProvider();
     reminderScheduler = new FakeReminderScheduler();
     organizationsService = new FakeOrganizationsService();
-    service = new CalendarService(
+    service = new CalendarMeetingContentService(
       repository,
       new CalendarMeetingLoader(repository),
       new CalendarMeetingPolicy(organizationsService),

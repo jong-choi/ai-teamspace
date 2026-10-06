@@ -34,6 +34,22 @@ export type CreateTicketResult =
   | { kind: 'project_not_found' }
   | { kind: 'column_not_found' };
 
+export type ProjectChanges = {
+  name?: string;
+  description?: string;
+  leadUserId?: string | null;
+  archivedAt?: Date | null;
+};
+
+export type TicketChanges = {
+  title?: string;
+  descriptionMarkdown?: string;
+  priority?: TicketPriority;
+  assigneeUserId?: string | null;
+  dueAt?: Date | null;
+  archivedAt?: Date | null;
+};
+
 export type ListTicketsPersistenceInput = {
   organizationId: string;
   projectId: string;
@@ -57,29 +73,11 @@ export abstract class ProjectRepository {
     input: CreateProjectPersistenceInput,
   ): Promise<Project>;
 
-  abstract renameProject(
-    organizationId: string,
-    projectId: string,
-    name: string,
-  ): Promise<Project | null>;
-
-  abstract changeProjectDescription(
-    organizationId: string,
-    projectId: string,
-    description: string,
-  ): Promise<Project | null>;
-
-  abstract changeProjectLead(
-    organizationId: string,
-    projectId: string,
-    leadUserId: string | null,
-  ): Promise<Project | null>;
-
-  abstract setProjectArchived(
-    organizationId: string,
-    projectId: string,
-    archivedAt: Date | null,
-  ): Promise<Project | null>;
+  abstract updateProject(input: {
+    organizationId: string;
+    projectId: string;
+    changes: ProjectChanges;
+  }): Promise<Project | null>;
 
   abstract listColumns(
     organizationId: string,
@@ -117,39 +115,10 @@ export abstract class ProjectRepository {
     input: CreateTicketPersistenceInput,
   ): Promise<CreateTicketResult>;
 
-  abstract editTicketContent(input: {
+  abstract updateTicket(input: {
     organizationId: string;
     projectId: string;
     ticketId: string;
-    title: string;
-    descriptionMarkdown: string;
-  }): Promise<Ticket | null>;
-
-  abstract changeTicketPriority(input: {
-    organizationId: string;
-    projectId: string;
-    ticketId: string;
-    priority: TicketPriority;
-  }): Promise<Ticket | null>;
-
-  abstract assignTicket(input: {
-    organizationId: string;
-    projectId: string;
-    ticketId: string;
-    assigneeUserId: string | null;
-  }): Promise<Ticket | null>;
-
-  abstract changeTicketDueAt(input: {
-    organizationId: string;
-    projectId: string;
-    ticketId: string;
-    dueAt: Date | null;
-  }): Promise<Ticket | null>;
-
-  abstract setTicketArchived(input: {
-    organizationId: string;
-    projectId: string;
-    ticketId: string;
-    archivedAt: Date | null;
+    changes: TicketChanges;
   }): Promise<Ticket | null>;
 }

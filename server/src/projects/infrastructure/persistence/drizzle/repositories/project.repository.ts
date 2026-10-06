@@ -5,7 +5,7 @@ import { ProjectKeyConflictError } from '#server/projects/domain/project.error.j
 import type { Project } from '#server/projects/domain/project.js';
 import type { ProjectColumn } from '#server/projects/domain/project-column.js';
 import { defaultProjectColumns } from '#server/projects/domain/project-default-columns.js';
-import type { Ticket, TicketPriority } from '#server/projects/domain/ticket.js';
+import type { Ticket } from '#server/projects/domain/ticket.js';
 import {
   toProjectDomain,
   toProjectInsert,
@@ -29,8 +29,10 @@ import {
   type CreateTicketPersistenceInput,
   type CreateTicketResult,
   type ListTicketsPersistenceInput,
+  type ProjectChanges,
   ProjectRepository,
   type ProjectSummaryReadModel,
+  type TicketChanges,
 } from '#server/projects/infrastructure/persistence/project.repository.js';
 
 import {
@@ -54,14 +56,6 @@ type ProjectStats = {
 type ProjectTransaction = Parameters<
   Parameters<DatabaseService['db']['transaction']>[0]
 >[0];
-
-type TicketMutationInput = {
-  organizationId: string;
-  projectId: string;
-  ticketId: string;
-  requireActiveTicket: boolean;
-  values: Parameters<typeof toTicketUpdate>[0];
-};
 
 @Injectable()
 export class ProjectDrizzleRepository extends ProjectRepository {
@@ -176,36 +170,48 @@ export class ProjectDrizzleRepository extends ProjectRepository {
     }
   }
 
-  renameProject(
-    organizationId: string,
-    projectId: string,
-    name: string,
-  ): Promise<Project | null> {
-    return this.updateActiveProject(organizationId, projectId, { name });
-  }
+  async updateProject(input: {
+    organizationId: string;
+    projectId: string;
+    changes: ProjectChanges;
+  }): Promise<Project | null> {
+    return this.database.db.transaction(async (transaction) => {
+      const [current] = await transaction
+        .select()
+        .from(project)
+        .where(
+          and(
+            eq(project.id, input.projectId),
+            eq(project.organizationId, input.organizationId),
+          ),
+        )
+        .for('update')
+        .limit(1);
+      if (!current) {
+        return null;
+      }
 
-  changeProjectDescription(
-    organizationId: string,
-    projectId: string,
-    description: string,
-  ): Promise<Project | null> {
-    return this.updateActiveProject(organizationId, projectId, { description });
-  }
+      const restoring =
+        current.archivedAt !== null &&
+        input.changes.archivedAt === null &&
+        hasOnlyDefinedChange(input.changes, 'archivedAt');
+      if (current.archivedAt !== null && !restoring) {
+        return null;
+      }
 
-  changeProjectLead(
-    organizationId: string,
-    projectId: string,
-    leadUserId: string | null,
-  ): Promise<Project | null> {
-    return this.updateActiveProject(organizationId, projectId, { leadUserId });
-  }
+      const [row] = await transaction
+        .update(project)
+        .set(toProjectUpdate({ ...input.changes, updatedAt: new Date() }))
+        .where(
+          and(
+            eq(project.id, input.projectId),
+            eq(project.organizationId, input.organizationId),
+          ),
+        )
+        .returning();
 
-  setProjectArchived(
-    organizationId: string,
-    projectId: string,
-    archivedAt: Date | null,
-  ): Promise<Project | null> {
-    return this.updateProject(organizationId, projectId, { archivedAt });
+      return row ? toProjectDomain(row) : null;
+    });
   }
 
   async listColumns(
@@ -488,67 +494,11 @@ export class ProjectDrizzleRepository extends ProjectRepository {
     });
   }
 
-  editTicketContent(input: {
+  async updateTicket(input: {
     organizationId: string;
     projectId: string;
     ticketId: string;
-    title: string;
-    descriptionMarkdown: string;
-  }): Promise<Ticket | null> {
-    return this.updateTicketAndTouchProject({
-      ...input,
-      requireActiveTicket: true,
-      values: {
-        title: input.title,
-        descriptionMarkdown: input.descriptionMarkdown,
-      },
-    });
-  }
-
-  changeTicketPriority(input: {
-    organizationId: string;
-    projectId: string;
-    ticketId: string;
-    priority: TicketPriority;
-  }): Promise<Ticket | null> {
-    return this.updateTicketAndTouchProject({
-      ...input,
-      requireActiveTicket: true,
-      values: { priority: input.priority },
-    });
-  }
-
-  assignTicket(input: {
-    organizationId: string;
-    projectId: string;
-    ticketId: string;
-    assigneeUserId: string | null;
-  }): Promise<Ticket | null> {
-    return this.updateTicketAndTouchProject({
-      ...input,
-      requireActiveTicket: true,
-      values: { assigneeUserId: input.assigneeUserId },
-    });
-  }
-
-  changeTicketDueAt(input: {
-    organizationId: string;
-    projectId: string;
-    ticketId: string;
-    dueAt: Date | null;
-  }): Promise<Ticket | null> {
-    return this.updateTicketAndTouchProject({
-      ...input,
-      requireActiveTicket: true,
-      values: { dueAt: input.dueAt },
-    });
-  }
-
-  async setTicketArchived(input: {
-    organizationId: string;
-    projectId: string;
-    ticketId: string;
-    archivedAt: Date | null;
+    changes: TicketChanges;
   }): Promise<Ticket | null> {
     return this.database.db.transaction(async (transaction) => {
       const [projectRow] = await transaction
@@ -584,9 +534,16 @@ export class ProjectDrizzleRepository extends ProjectRepository {
       }
 
       const now = new Date();
-      let position = current.position;
+      const archivedAt = input.changes.archivedAt;
       const restoring =
-        input.archivedAt === null && current.archivedAt !== null;
+        archivedAt === null &&
+        current.archivedAt !== null &&
+        hasOnlyDefinedChange(input.changes, 'archivedAt');
+      if (current.archivedAt !== null && !restoring) {
+        return null;
+      }
+
+      let position = current.position;
       if (restoring) {
         const [positionRow] = await transaction
           .select({ position: max(ticket.position) })
@@ -606,7 +563,7 @@ export class ProjectDrizzleRepository extends ProjectRepository {
         .update(ticket)
         .set(
           toTicketUpdate({
-            archivedAt: input.archivedAt,
+            ...input.changes,
             position,
             updatedAt: now,
           }),
@@ -617,7 +574,11 @@ export class ProjectDrizzleRepository extends ProjectRepository {
         throw new Error('티켓 보관 상태 변경 결과가 없습니다.');
       }
 
-      if (input.archivedAt !== null && current.archivedAt === null) {
+      if (
+        archivedAt !== undefined &&
+        archivedAt !== null &&
+        current.archivedAt === null
+      ) {
         await normalizeActiveTicketOrder(
           transaction,
           input.organizationId,
@@ -625,87 +586,6 @@ export class ProjectDrizzleRepository extends ProjectRepository {
           current.columnId,
           now,
         );
-      }
-
-      await transaction
-        .update(project)
-        .set(toProjectUpdate({ updatedAt: now }))
-        .where(
-          and(
-            eq(project.id, input.projectId),
-            eq(project.organizationId, input.organizationId),
-          ),
-        );
-
-      return toTicketDomain(row);
-    });
-  }
-
-  private updateActiveProject(
-    organizationId: string,
-    projectId: string,
-    values: Parameters<typeof toProjectUpdate>[0],
-  ): Promise<Project | null> {
-    return this.updateProject(organizationId, projectId, values, true);
-  }
-
-  private async updateProject(
-    organizationId: string,
-    projectId: string,
-    values: Parameters<typeof toProjectUpdate>[0],
-    requireActive = false,
-  ): Promise<Project | null> {
-    const [row] = await this.database.db
-      .update(project)
-      .set(toProjectUpdate({ ...values, updatedAt: new Date() }))
-      .where(
-        and(
-          eq(project.id, projectId),
-          eq(project.organizationId, organizationId),
-          requireActive ? isNull(project.archivedAt) : undefined,
-        ),
-      )
-      .returning();
-
-    return row ? toProjectDomain(row) : null;
-  }
-
-  private async updateTicketAndTouchProject(
-    input: TicketMutationInput,
-  ): Promise<Ticket | null> {
-    return this.database.db.transaction(async (transaction) => {
-      const [projectRow] = await transaction
-        .select({ id: project.id })
-        .from(project)
-        .where(
-          and(
-            eq(project.id, input.projectId),
-            eq(project.organizationId, input.organizationId),
-            isNull(project.archivedAt),
-          ),
-        )
-        .for('update')
-        .limit(1);
-      if (!projectRow) {
-        return null;
-      }
-
-      const now = new Date();
-      const [row] = await transaction
-        .update(ticket)
-        .set(toTicketUpdate({ ...input.values, updatedAt: now }))
-        .where(
-          and(
-            eq(ticket.id, input.ticketId),
-            eq(ticket.organizationId, input.organizationId),
-            eq(ticket.projectId, input.projectId),
-            input.requireActiveTicket ? isNull(ticket.archivedAt) : undefined,
-          ),
-        )
-        .returning();
-
-      if (!row) {
-        return null;
       }
 
       await transaction
@@ -822,6 +702,16 @@ function escapeLikePattern(value: string): string {
     .replaceAll('\\', '\\\\')
     .replaceAll('%', '\\%')
     .replaceAll('_', '\\_');
+}
+
+function hasOnlyDefinedChange(
+  changes: ProjectChanges | TicketChanges,
+  expectedKey: keyof ProjectChanges & keyof TicketChanges,
+): boolean {
+  const definedKeys = Object.entries(changes)
+    .filter(([, value]) => value !== undefined)
+    .map(([key]) => key);
+  return definedKeys.length === 1 && definedKeys[0] === expectedKey;
 }
 
 function hasPostgresConstraint(error: unknown, constraint: string): boolean {

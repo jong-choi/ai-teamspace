@@ -145,42 +145,23 @@ export class ProjectsService {
       await this.assertMemberUser(organizationId, input.leadUserId);
     }
 
-    if (input.name !== undefined) {
-      await this.requireProjectMutation(
-        this.projectRepository.renameProject(
-          organizationId,
-          projectId,
-          input.name,
-        ),
-      );
-    }
-    if (input.description !== undefined) {
-      await this.requireProjectMutation(
-        this.projectRepository.changeProjectDescription(
-          organizationId,
-          projectId,
-          input.description,
-        ),
-      );
-    }
-    if (input.leadUserId !== undefined) {
-      await this.requireProjectMutation(
-        this.projectRepository.changeProjectLead(
-          organizationId,
-          projectId,
-          input.leadUserId,
-        ),
-      );
-    }
-    if (input.archived !== undefined) {
-      await this.requireProjectMutation(
-        this.projectRepository.setProjectArchived(
-          organizationId,
-          projectId,
-          input.archived ? new Date() : null,
-        ),
-      );
-    }
+    await this.requireProjectMutation(
+      this.projectRepository.updateProject({
+        organizationId,
+        projectId,
+        changes: {
+          name: input.name,
+          description: input.description,
+          leadUserId: input.leadUserId,
+          archivedAt:
+            input.archived === undefined
+              ? undefined
+              : input.archived
+                ? new Date()
+                : null,
+        },
+      }),
+    );
 
     return this.toProjectDetail(
       await this.requireProject(organizationId, projectId),
@@ -367,58 +348,31 @@ export class ProjectsService {
       await this.assertMemberUser(organizationId, input.assigneeUserId);
     }
 
-    if (input.title !== undefined || input.descriptionMarkdown !== undefined) {
-      await this.requireTicketMutation(
-        this.projectRepository.editTicketContent({
-          organizationId,
-          projectId,
-          ticketId,
-          title: input.title ?? current.title,
-          descriptionMarkdown:
-            input.descriptionMarkdown ?? current.descriptionMarkdown,
-        }),
-      );
-    }
-    if (input.priority !== undefined) {
-      await this.requireTicketMutation(
-        this.projectRepository.changeTicketPriority({
-          organizationId,
-          projectId,
-          ticketId,
+    await this.requireTicketMutation(
+      this.projectRepository.updateTicket({
+        organizationId,
+        projectId,
+        ticketId,
+        changes: {
+          title: input.title,
+          descriptionMarkdown: input.descriptionMarkdown,
           priority: input.priority,
-        }),
-      );
-    }
-    if (input.assigneeUserId !== undefined) {
-      await this.requireTicketMutation(
-        this.projectRepository.assignTicket({
-          organizationId,
-          projectId,
-          ticketId,
           assigneeUserId: input.assigneeUserId,
-        }),
-      );
-    }
-    if (input.dueAt !== undefined) {
-      await this.requireTicketMutation(
-        this.projectRepository.changeTicketDueAt({
-          organizationId,
-          projectId,
-          ticketId,
-          dueAt: input.dueAt ? new Date(input.dueAt) : null,
-        }),
-      );
-    }
-    if (input.archived !== undefined) {
-      await this.requireTicketMutation(
-        this.projectRepository.setTicketArchived({
-          organizationId,
-          projectId,
-          ticketId,
-          archivedAt: input.archived ? new Date() : null,
-        }),
-      );
-    }
+          dueAt:
+            input.dueAt === undefined
+              ? undefined
+              : input.dueAt
+                ? new Date(input.dueAt)
+                : null,
+          archivedAt:
+            input.archived === undefined
+              ? undefined
+              : input.archived
+                ? new Date()
+                : null,
+        },
+      }),
+    );
 
     return this.toTicketDetail(
       project,

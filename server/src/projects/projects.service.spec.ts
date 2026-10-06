@@ -23,11 +23,7 @@ class FakeProjectRepository extends ProjectRepository {
   findProjectById = jest.fn<ProjectRepository['findProjectById']>();
   createProjectWithDefaultColumns =
     jest.fn<ProjectRepository['createProjectWithDefaultColumns']>();
-  renameProject = jest.fn<ProjectRepository['renameProject']>();
-  changeProjectDescription =
-    jest.fn<ProjectRepository['changeProjectDescription']>();
-  changeProjectLead = jest.fn<ProjectRepository['changeProjectLead']>();
-  setProjectArchived = jest.fn<ProjectRepository['setProjectArchived']>();
+  updateProject = jest.fn<ProjectRepository['updateProject']>();
   listColumns = jest.fn<ProjectRepository['listColumns']>();
   findColumnById = jest.fn<ProjectRepository['findColumnById']>();
   createColumn = jest.fn<ProjectRepository['createColumn']>();
@@ -36,11 +32,7 @@ class FakeProjectRepository extends ProjectRepository {
   findTicketById = jest.fn<ProjectRepository['findTicketById']>();
   createTicketWithNumber =
     jest.fn<ProjectRepository['createTicketWithNumber']>();
-  editTicketContent = jest.fn<ProjectRepository['editTicketContent']>();
-  changeTicketPriority = jest.fn<ProjectRepository['changeTicketPriority']>();
-  assignTicket = jest.fn<ProjectRepository['assignTicket']>();
-  changeTicketDueAt = jest.fn<ProjectRepository['changeTicketDueAt']>();
-  setTicketArchived = jest.fn<ProjectRepository['setTicketArchived']>();
+  updateTicket = jest.fn<ProjectRepository['updateTicket']>();
 }
 
 class FakeTicketWorkflowRepository extends TicketWorkflowRepository {

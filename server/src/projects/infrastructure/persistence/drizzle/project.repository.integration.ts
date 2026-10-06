@@ -228,7 +228,7 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
     expect(doneRow?.isCompleted).toBe(true);
   });
 
-  it('티켓 content·priority·assignee·due 변경 capability를 독립적으로 적용한다', async () => {
+  it('티켓의 여러 변경을 단일 capability로 원자적으로 적용한다', async () => {
     const createdProject =
       await repository.createProjectWithDefaultColumns(createProjectInput);
     const [column] = await repository.listColumns(
@@ -255,41 +255,25 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
     const dueAt = new Date('2026-10-10T03:00:00.000Z');
 
     await expect(
-      repository.editTicketContent({
+      repository.updateTicket({
         organizationId,
         projectId: createdProject.id,
         ticketId: ticketResult.ticket.id,
-        title: '변경된 제목',
-        descriptionMarkdown: '변경된 설명',
+        changes: {
+          title: '변경된 제목',
+          descriptionMarkdown: '변경된 설명',
+          priority: 'urgent',
+          assigneeUserId,
+          dueAt,
+        },
       }),
     ).resolves.toMatchObject({
       title: '변경된 제목',
       descriptionMarkdown: '변경된 설명',
+      priority: 'urgent',
+      assigneeUserId,
+      dueAt,
     });
-    await expect(
-      repository.changeTicketPriority({
-        organizationId,
-        projectId: createdProject.id,
-        ticketId: ticketResult.ticket.id,
-        priority: 'urgent',
-      }),
-    ).resolves.toMatchObject({ priority: 'urgent' });
-    await expect(
-      repository.assignTicket({
-        organizationId,
-        projectId: createdProject.id,
-        ticketId: ticketResult.ticket.id,
-        assigneeUserId,
-      }),
-    ).resolves.toMatchObject({ assigneeUserId });
-    await expect(
-      repository.changeTicketDueAt({
-        organizationId,
-        projectId: createdProject.id,
-        ticketId: ticketResult.ticket.id,
-        dueAt,
-      }),
-    ).resolves.toMatchObject({ dueAt });
   });
 
   it('보관된 티켓은 일반 변경을 거부하고 복원 후 다시 변경할 수 있다', async () => {
@@ -317,37 +301,37 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
       throw new Error('보관 테스트 티켓 생성에 실패했습니다.');
     }
 
-    await repository.setTicketArchived({
+    await repository.updateTicket({
       organizationId,
       projectId: createdProject.id,
       ticketId: ticketResult.ticket.id,
-      archivedAt: new Date('2026-10-06T01:30:00.000Z'),
+      changes: { archivedAt: new Date('2026-10-06T01:30:00.000Z') },
     });
 
     await expect(
-      repository.changeTicketPriority({
+      repository.updateTicket({
         organizationId,
         projectId: createdProject.id,
         ticketId: ticketResult.ticket.id,
-        priority: 'urgent',
+        changes: { priority: 'urgent' },
       }),
     ).resolves.toBeNull();
 
     await expect(
-      repository.setTicketArchived({
+      repository.updateTicket({
         organizationId,
         projectId: createdProject.id,
         ticketId: ticketResult.ticket.id,
-        archivedAt: null,
+        changes: { archivedAt: null },
       }),
     ).resolves.toMatchObject({ archivedAt: null });
 
     await expect(
-      repository.changeTicketPriority({
+      repository.updateTicket({
         organizationId,
         projectId: createdProject.id,
         ticketId: ticketResult.ticket.id,
-        priority: 'urgent',
+        changes: { priority: 'urgent' },
       }),
     ).resolves.toMatchObject({ priority: 'urgent' });
   });
@@ -386,11 +370,11 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
       throw new Error('보관 순서 테스트 티켓을 준비하지 못했습니다.');
     }
 
-    await repository.setTicketArchived({
+    await repository.updateTicket({
       organizationId,
       projectId: createdProject.id,
       ticketId: second.id,
-      archivedAt: new Date('2026-10-06T03:00:00.000Z'),
+      changes: { archivedAt: new Date('2026-10-06T03:00:00.000Z') },
     });
 
     await expect(
@@ -404,11 +388,11 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
       expect.objectContaining({ id: third.id, position: 1 }),
     ]);
 
-    await repository.setTicketArchived({
+    await repository.updateTicket({
       organizationId,
       projectId: createdProject.id,
       ticketId: second.id,
-      archivedAt: null,
+      changes: { archivedAt: null },
     });
 
     await expect(
@@ -449,14 +433,18 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
       throw new Error('보관 테스트 티켓 생성에 실패했습니다.');
     }
 
-    await repository.setProjectArchived(
+    await repository.updateProject({
       organizationId,
-      createdProject.id,
-      new Date('2026-10-06T02:00:00.000Z'),
-    );
+      projectId: createdProject.id,
+      changes: { archivedAt: new Date('2026-10-06T02:00:00.000Z') },
+    });
 
     await expect(
-      repository.renameProject(organizationId, createdProject.id, '변경 금지'),
+      repository.updateProject({
+        organizationId,
+        projectId: createdProject.id,
+        changes: { name: '변경 금지' },
+      }),
     ).resolves.toBeNull();
     await expect(
       repository.renameColumn(
@@ -467,11 +455,11 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
       ),
     ).resolves.toBeNull();
     await expect(
-      repository.changeTicketPriority({
+      repository.updateTicket({
         organizationId,
         projectId: createdProject.id,
         ticketId: ticketResult.ticket.id,
-        priority: 'urgent',
+        changes: { priority: 'urgent' },
       }),
     ).resolves.toBeNull();
   });

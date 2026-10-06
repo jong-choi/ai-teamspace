@@ -17,7 +17,7 @@ import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
 import type { CalendarCreateRequest } from '@core/features/calendar/components/calendar-create-dialog';
 import { CALENDAR_CATEGORY_META } from '@core/features/calendar/lib/calendar-category';
-import { formatDateKeyLabel } from '@core/features/calendar/lib/calendar-datetime';
+import { formatDateKeyLabel } from '@core/features/calendar/lib/calendar-format';
 import {
   type CalendarRoomSlot,
   createRoomTimelineSlots,

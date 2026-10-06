@@ -43,7 +43,7 @@ import {
   CALENDAR_CATEGORY_META,
   type CalendarCategory,
 } from '@core/features/calendar/lib/calendar-category';
-import { calendarLocalScheduleToInstants } from '@core/features/calendar/lib/calendar-datetime';
+import { calendarLocalScheduleToInstants } from '@core/features/calendar/lib/calendar-time-zone';
 import {
   type CalendarRecurrenceDraft,
   createDefaultRecurrenceDraft,

@@ -2,7 +2,7 @@ import type { MeetingSummary } from '@repo/client/api-client/schemas';
 import {
   minutesInDayForInstant,
   zonedDateTimeToIso,
-} from '@core/features/calendar/lib/calendar-datetime';
+} from '@core/features/calendar/lib/calendar-time-zone';
 
 export const CALENDAR_TIMELINE_START_HOUR = 8;
 export const CALENDAR_TIMELINE_END_HOUR = 21;

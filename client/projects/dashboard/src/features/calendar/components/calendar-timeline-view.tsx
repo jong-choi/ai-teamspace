@@ -8,10 +8,10 @@ import { CALENDAR_CATEGORY_META } from '@core/features/calendar/lib/calendar-cat
 import {
   CALENDAR_WEEKDAYS_KO,
   dayOfMonth,
-  getPeriodTitle,
   getWeekDateKeys,
   weekdayIndex,
-} from '@core/features/calendar/lib/calendar-datetime';
+} from '@core/features/calendar/lib/calendar-date-key';
+import { getPeriodTitle } from '@core/features/calendar/lib/calendar-range';
 import {
   getMeetingAttendeeCount,
   getMeetingLocationLabel,

@@ -2,10 +2,8 @@ import {
   type RecurrenceRule,
   RecurrenceRule as RecurrenceRuleSchema,
 } from '@repo/client/api-client/schemas';
-import {
-  weekdayIndex,
-  zonedDateTimeToIso,
-} from '@core/features/calendar/lib/calendar-datetime';
+import { weekdayIndex } from '@core/features/calendar/lib/calendar-date-key';
+import { zonedDateTimeToIso } from '@core/features/calendar/lib/calendar-time-zone';
 
 export type CalendarRecurrenceDraft = {
   enabled: boolean;

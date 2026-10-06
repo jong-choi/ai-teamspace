@@ -1,8 +1,6 @@
 import type { MeetingSummary } from '@repo/client/api-client/schemas';
-import {
-  formatInstantTime,
-  zonedDateTimeToIso,
-} from '@core/features/calendar/lib/calendar-datetime';
+import { formatInstantTime } from '@core/features/calendar/lib/calendar-format';
+import { zonedDateTimeToIso } from '@core/features/calendar/lib/calendar-time-zone';
 
 export const ROOM_TIMELINE_START_HOUR = 9;
 export const ROOM_TIMELINE_END_HOUR = 18;

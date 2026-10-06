@@ -4,7 +4,7 @@ import { Button } from '@repo/client/rnr/components/ui/button';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
-import type { CalendarViewMode } from '@core/features/calendar/lib/calendar-datetime';
+import type { CalendarViewMode } from '@core/features/calendar/lib/calendar-range';
 
 import {
   Building2,

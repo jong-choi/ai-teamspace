@@ -9,7 +9,7 @@ import {
   dayOfMonth,
   getMonthGridDateKeys,
   isDateKeyInSameMonth,
-} from '@core/features/calendar/lib/calendar-datetime';
+} from '@core/features/calendar/lib/calendar-date-key';
 import { groupMeetingsByDate } from '@core/features/calendar/lib/calendar-meeting';
 
 const minimumCalendarWidth = 720;

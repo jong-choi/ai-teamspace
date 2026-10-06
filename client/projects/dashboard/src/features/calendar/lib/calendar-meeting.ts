@@ -1,9 +1,7 @@
 import type { MeetingSummary } from '@repo/client/api-client/schemas';
-import {
-  addCalendarDays,
-  dateKeyInTimeZone,
-  formatInstantTime,
-} from '@core/features/calendar/lib/calendar-datetime';
+import { addCalendarDays } from '@core/features/calendar/lib/calendar-date-key';
+import { formatInstantTime } from '@core/features/calendar/lib/calendar-format';
+import { dateKeyInTimeZone } from '@core/features/calendar/lib/calendar-time-zone';
 
 export type CalendarMeeting = MeetingSummary;
 

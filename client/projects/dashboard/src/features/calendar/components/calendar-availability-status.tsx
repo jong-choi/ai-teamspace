@@ -5,7 +5,7 @@ import type { CalendarAvailabilityResponse } from '@repo/client/api-client/schem
 import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
-import { formatInstantTime } from '@core/features/calendar/lib/calendar-datetime';
+import { formatInstantTime } from '@core/features/calendar/lib/calendar-format';
 
 import { AlertTriangle, CheckCircle2, LoaderCircle } from 'lucide-react-native';
 

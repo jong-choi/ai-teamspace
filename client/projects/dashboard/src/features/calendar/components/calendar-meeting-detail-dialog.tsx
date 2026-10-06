@@ -23,7 +23,7 @@ import {
 import { CalendarMeetingParticipants } from '@core/features/calendar/components/calendar-meeting-participants';
 import { CalendarRescheduleDialog } from '@core/features/calendar/components/calendar-reschedule-dialog';
 import { CALENDAR_CATEGORY_META } from '@core/features/calendar/lib/calendar-category';
-import { formatInstantDateTimeRange } from '@core/features/calendar/lib/calendar-datetime';
+import { formatInstantDateTimeRange } from '@core/features/calendar/lib/calendar-format';
 import { getMeetingLocationLabel } from '@core/features/calendar/lib/calendar-meeting';
 
 import { MapPin, Monitor } from 'lucide-react-native';

@@ -36,8 +36,8 @@ import { CalendarAvailabilityStatus } from '@core/features/calendar/components/c
 import {
   calendarLocalScheduleToInstants,
   dateKeyInTimeZone,
-  formatInstantTime,
-} from '@core/features/calendar/lib/calendar-datetime';
+} from '@core/features/calendar/lib/calendar-time-zone';
+import { formatInstantTime } from '@core/features/calendar/lib/calendar-format';
 
 const rescheduleScopes = RescheduleMeetingSchema.shape.scope.unwrap().options;
 

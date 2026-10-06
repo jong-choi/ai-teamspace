@@ -1,13 +1,17 @@
 import {
   addCalendarMonths,
-  calendarLocalScheduleToInstants,
-  dateKeyInTimeZone,
-  getCalendarQueryRange,
   getMonthGridDateKeys,
+} from '@core/features/calendar/lib/calendar-date-key';
+import {
+  getCalendarQueryRange,
   getPeriodTitle,
   shiftCalendarPeriod,
+} from '@core/features/calendar/lib/calendar-range';
+import {
+  calendarLocalScheduleToInstants,
+  dateKeyInTimeZone,
   zonedDateTimeToIso,
-} from '@core/features/calendar/lib/calendar-datetime';
+} from '@core/features/calendar/lib/calendar-time-zone';
 
 import { describe, expect, test } from '@jest/globals';
 

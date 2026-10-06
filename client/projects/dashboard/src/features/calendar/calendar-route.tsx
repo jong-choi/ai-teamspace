@@ -38,10 +38,12 @@ import type { CalendarCategory } from '@core/features/calendar/lib/calendar-cate
 import {
   type CalendarViewMode,
   getCalendarQueryRange,
-  getSystemTimeZone,
   shiftCalendarPeriod,
+} from '@core/features/calendar/lib/calendar-range';
+import {
+  getSystemTimeZone,
   todayDateKey,
-} from '@core/features/calendar/lib/calendar-datetime';
+} from '@core/features/calendar/lib/calendar-time-zone';
 
 export function CalendarRoute() {
   const { currentUserId, sessionPending } = useDashboardPlatform();

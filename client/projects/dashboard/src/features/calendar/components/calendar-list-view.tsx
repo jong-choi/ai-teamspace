@@ -5,7 +5,7 @@ import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
 import { CALENDAR_CATEGORY_META } from '@core/features/calendar/lib/calendar-category';
-import { formatDateKeyLabel } from '@core/features/calendar/lib/calendar-datetime';
+import { formatDateKeyLabel } from '@core/features/calendar/lib/calendar-format';
 import {
   getMeetingAttendeeCount,
   getMeetingLocationLabel,

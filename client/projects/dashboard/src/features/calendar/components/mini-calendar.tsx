@@ -8,9 +8,9 @@ import {
   CALENDAR_WEEKDAYS_KO,
   dayOfMonth,
   getMiniCalendarDateKeys,
-  getPeriodTitle,
   isDateKeyInSameMonth,
-} from '@core/features/calendar/lib/calendar-datetime';
+} from '@core/features/calendar/lib/calendar-date-key';
+import { getPeriodTitle } from '@core/features/calendar/lib/calendar-range';
 
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 

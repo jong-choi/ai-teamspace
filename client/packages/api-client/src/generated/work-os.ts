@@ -4715,6 +4715,94 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getProjectsControllerUpdateTicketMutationOptions(options), queryClient);
     }
 
+export const getTicketWorkflowControllerMoveTicketUrl = (organizationId: string,
+    projectId: string,
+    ticketId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/projects/${projectId}/tickets/${ticketId}/move`
+}
+
+export const ticketWorkflowControllerMoveTicket = async (organizationId: string,
+    projectId: string,
+    ticketId: string,
+    moveTicket: MoveTicket, options?: Parameters<typeof workOsFetcher>[1]): Promise<MoveTicketResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<MoveTicketResult>(getTicketWorkflowControllerMoveTicketUrl(organizationId,projectId,ticketId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(moveTicket),
+    schema: MoveTicketResult
+  }
+);}
+
+
+
+
+
+export const getTicketWorkflowControllerMoveTicketMutationKey = () => ['ticketWorkflowControllerMoveTicket'] as const;
+
+export const getTicketWorkflowControllerMoveTicketMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerMoveTicket>>, TError,TicketWorkflowControllerMoveTicketMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerMoveTicket>>, TError,TicketWorkflowControllerMoveTicketMutationVariables, TContext> => {
+
+const mutationKey = getTicketWorkflowControllerMoveTicketMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof ticketWorkflowControllerMoveTicket>>, TicketWorkflowControllerMoveTicketMutationVariables> = (props) => {
+          const {organizationId,projectId,ticketId,data} = props ?? {};
+
+          return  ticketWorkflowControllerMoveTicket(organizationId,projectId,ticketId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TicketWorkflowControllerMoveTicketMutationResult = NonNullable<Awaited<ReturnType<typeof ticketWorkflowControllerMoveTicket>>>
+    export type TicketWorkflowControllerMoveTicketMutationBody = MoveTicket
+    export type TicketWorkflowControllerMoveTicketMutationError = ErrorType<ProblemDetails>
+    export type TicketWorkflowControllerMoveTicketMutationVariables = {organizationId: string;projectId: string;ticketId: string;data: MoveTicket}
+
+    export const useTicketWorkflowControllerMoveTicket = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerMoveTicket>>, TError,TicketWorkflowControllerMoveTicketMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof ticketWorkflowControllerMoveTicket>>,
+        TError,
+        TicketWorkflowControllerMoveTicketMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTicketWorkflowControllerMoveTicketMutationOptions(options), queryClient);
+    }
+
 export const getTicketWorkflowControllerListProjectLabelsUrl = (organizationId: string,
     projectId: string,) => {
 
@@ -4979,94 +5067,6 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getTicketWorkflowControllerUpdateProjectLabelMutationOptions(options), queryClient);
-    }
-
-export const getTicketWorkflowControllerMoveTicketUrl = (organizationId: string,
-    projectId: string,
-    ticketId: string,) => {
-
-
-
-
-  return `/organizations/${organizationId}/projects/${projectId}/tickets/${ticketId}/move`
-}
-
-export const ticketWorkflowControllerMoveTicket = async (organizationId: string,
-    projectId: string,
-    ticketId: string,
-    moveTicket: MoveTicket, options?: Parameters<typeof workOsFetcher>[1]): Promise<MoveTicketResult> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return workOsFetcher<MoveTicketResult>(getTicketWorkflowControllerMoveTicketUrl(organizationId,projectId,ticketId),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(moveTicket),
-    schema: MoveTicketResult
-  }
-);}
-
-
-
-
-
-export const getTicketWorkflowControllerMoveTicketMutationKey = () => ['ticketWorkflowControllerMoveTicket'] as const;
-
-export const getTicketWorkflowControllerMoveTicketMutationOptions = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerMoveTicket>>, TError,TicketWorkflowControllerMoveTicketMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
-): UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerMoveTicket>>, TError,TicketWorkflowControllerMoveTicketMutationVariables, TContext> => {
-
-const mutationKey = getTicketWorkflowControllerMoveTicketMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof ticketWorkflowControllerMoveTicket>>, TicketWorkflowControllerMoveTicketMutationVariables> = (props) => {
-          const {organizationId,projectId,ticketId,data} = props ?? {};
-
-          return  ticketWorkflowControllerMoveTicket(organizationId,projectId,ticketId,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type TicketWorkflowControllerMoveTicketMutationResult = NonNullable<Awaited<ReturnType<typeof ticketWorkflowControllerMoveTicket>>>
-    export type TicketWorkflowControllerMoveTicketMutationBody = MoveTicket
-    export type TicketWorkflowControllerMoveTicketMutationError = ErrorType<ProblemDetails>
-    export type TicketWorkflowControllerMoveTicketMutationVariables = {organizationId: string;projectId: string;ticketId: string;data: MoveTicket}
-
-    export const useTicketWorkflowControllerMoveTicket = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketWorkflowControllerMoveTicket>>, TError,TicketWorkflowControllerMoveTicketMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof ticketWorkflowControllerMoveTicket>>,
-        TError,
-        TicketWorkflowControllerMoveTicketMutationVariables,
-        TContext
-      > => {
-      return useMutation(getTicketWorkflowControllerMoveTicketMutationOptions(options), queryClient);
     }
 
 export const getTicketWorkflowControllerAttachTicketLabelUrl = (organizationId: string,

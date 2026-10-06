@@ -8,6 +8,7 @@ import {
   DashboardQueryBoundary,
   DashboardState,
 } from '@core/app/state/dashboard-query-state';
+import { AuthenticationRequiredState } from '@core/features/auth/authentication-required-state';
 import { useOrganizationMemberFilters } from '@core/features/organizations/organization-member-filters';
 import { OrganizationMemberList } from '@core/features/organizations/organization-member-list';
 import { OrganizationMemberMetrics } from '@core/features/organizations/organization-member-metrics';
@@ -37,11 +38,7 @@ export function OrganizationMembersRoute({
   if (!currentUserId) {
     return (
       <DashboardShell activeNavigationItem="members">
-        <DashboardState
-          className="py-10"
-          description="조직 멤버 정보는 로그인 세션을 사용합니다. 먼저 로그인한 뒤 다시 열어 주세요."
-          title="로그인이 필요합니다"
-        />
+        <AuthenticationRequiredState className="py-10" />
       </DashboardShell>
     );
   }

@@ -1,11 +1,10 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 import { ApplicationError } from '@/application.error';
+import type { AllConfigType } from '@/config/config.type';
 import { buildWikiCollaborationDocumentName } from '@/wiki/domain/wiki-collaboration-document-name';
-import {
-  WIKI_COLLABORATION_ENVIRONMENT,
-  type WikiCollaborationEnvironment,
-} from '@/wiki/infrastructure/collaboration/wiki-collaboration-configuration.provider';
+import type { CollaborationConfig } from '@/wiki/infrastructure/collaboration/config/collaboration-config.type';
 import { WikiCollaborationInvalidationSubscriber } from '@/wiki/infrastructure/collaboration/wiki-collaboration-invalidation.provider';
 import {
   type WikiCollaborationConnectionContext,
@@ -48,13 +47,15 @@ export class HocuspocusWikiCollaborationRuntime {
   private draining = false;
   private server: Server<WikiCollaborationConnectionContext> | null = null;
   private invalidationCleanup: (() => Promise<void>) | null = null;
+  private readonly config: CollaborationConfig;
 
   constructor(
-    @Inject(WIKI_COLLABORATION_ENVIRONMENT)
-    private readonly environment: WikiCollaborationEnvironment,
+    configService: ConfigService<AllConfigType>,
     private readonly collaborationService: WikiCollaborationService,
     private readonly invalidationSubscriber: WikiCollaborationInvalidationSubscriber,
-  ) {}
+  ) {
+    this.config = configService.getOrThrow('collaboration', { infer: true });
+  }
 
   async start(): Promise<void> {
     if (this.server) {
@@ -67,13 +68,13 @@ export class HocuspocusWikiCollaborationRuntime {
     const redisExtension = new HocuspocusRedis({
       prefix: 'wiki:collaboration:hocuspocus',
       createClient: () =>
-        new Redis(this.environment.REDIS_COLLABORATION_URL, {
+        new Redis(this.config.redisUrl, {
           maxRetriesPerRequest: 3,
         }),
     });
 
     const server = new Server<WikiCollaborationConnectionContext>({
-      port: this.environment.COLLABORATION_PORT,
+      port: this.config.port,
       stopOnSignals: false,
       quiet: true,
       debounce: storeDebounceMilliseconds,
@@ -256,7 +257,7 @@ export class HocuspocusWikiCollaborationRuntime {
     await server.listen();
     this.ready = true;
     this.logger.log(
-      `위키 공동편집 서버가 ${this.environment.COLLABORATION_PORT} 포트에서 시작되었습니다.`,
+      `위키 공동편집 서버가 ${this.config.port} 포트에서 시작되었습니다.`,
     );
   }
 

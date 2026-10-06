@@ -36,6 +36,7 @@ function ExpoDashboardPlatformBridge({ children }: { children: ReactNode }) {
 
   const value = useMemo<DashboardPlatformValue>(
     () => ({
+      authentication: authClient,
       currentUserId,
       sessionPending: session.isPending,
       copyText: async (text: string) => {

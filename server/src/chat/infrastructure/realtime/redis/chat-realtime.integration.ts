@@ -1,5 +1,9 @@
+import { ConfigService } from '@nestjs/config';
+
+import type { CacheConfig } from '@/chat/config/cache-config.type';
+import cacheConfig from '@/chat/config/cache.config';
 import { RedisChatRealtimeAdapter } from '@/chat/infrastructure/realtime/redis/chat-realtime.adapter';
-import { parseCacheEnvironment } from '@/config/runtime-environment';
+import type { AllConfigType } from '@/config/config.type';
 
 import { Redis } from 'ioredis';
 import { filter, firstValueFrom, timeout } from 'rxjs';
@@ -10,10 +14,11 @@ const channel = `work-os:chat:user:${userId}`;
 
 describe('채팅 Redis 실시간 통합', () => {
   it('서로 다른 Redis 어댑터 인스턴스 사이에서 사용자 이벤트를 전달한다', async () => {
-    const publisher = new RedisChatRealtimeAdapter();
-    const subscriber = new RedisChatRealtimeAdapter();
-    const { REDIS_CACHE_URL } = parseCacheEnvironment();
-    const inspector = new Redis(REDIS_CACHE_URL, {
+    const config = cacheConfig() as CacheConfig;
+    const configService = new ConfigService<AllConfigType>({ cache: config });
+    const publisher = new RedisChatRealtimeAdapter(configService);
+    const subscriber = new RedisChatRealtimeAdapter(configService);
+    const inspector = new Redis(config.redisUrl, {
       enableOfflineQueue: false,
       lazyConnect: true,
       maxRetriesPerRequest: 1,

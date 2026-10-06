@@ -1,7 +1,7 @@
 import type { AgentGraphFactory } from '@repo/agent-runtime';
 import { WorkOsAgentFactory } from '@/agent/application/workos-agent.factory';
 import { AgentConfiguration } from '@/agent/config/agent-configuration';
-import { parseAgentEnvironment } from '@/agent/config/agent-environment';
+import type { AgentConfig } from '@/agent/config/agent-config.type';
 import { DeepAgentBuilder } from '@/agent/infrastructure/deep-agent/deep-agent.builder';
 import { DeepAgentWorkOsGraphAdapter } from '@/agent/infrastructure/deep-agent/deep-agent-workos-graph.adapter';
 import { LangChainWorkOsMcpAdapter } from '@/agent/infrastructure/mcp/langchain/langchain-workos-mcp.adapter';
@@ -15,17 +15,24 @@ export function createTestWorkOsAgentGraphFactory(input: {
   credentialProvider: McpCredentialProvider;
   mcpToolTimeoutMs?: number;
 }): AgentGraphFactory {
-  const configuration = new AgentConfiguration(
-    parseAgentEnvironment({
-      AGENT_DATABASE_URL: 'postgresql://localhost/agent-test',
-      AGENT_REDIS_URL: 'redis://localhost:6379',
-      AGENT_REDIS_PREFIX: 'agent-test',
-      AGENT_MODEL: 'test:model',
-      WORKOS_MCP_URL: input.mcpUrl,
-      AGENT_MCP_TOOL_TIMEOUT_MS: String(input.mcpToolTimeoutMs ?? 5_000),
-      AGENT_RUN_QUEUE_NAME: 'agent-test-runs',
-    }),
-  );
+  const config = {
+    databaseUrl: 'postgresql://localhost/agent-test',
+    redisUrl: 'redis://localhost:6379',
+    redisPrefix: 'agent-test',
+    model: 'test:model',
+    workOsMcpUrl: input.mcpUrl,
+    mcpToolTimeoutMs: input.mcpToolTimeoutMs ?? 5_000,
+    runQueueName: 'agent-test-runs',
+    runConcurrency: 4,
+    runTimeoutMs: 300_000,
+    shutdownGraceMs: 30_000,
+    migrateOnStartup: true,
+    replayStreamTtlSeconds: 3_600,
+    replayClosedTtlSeconds: 86_400,
+    replayStreamMaxLength: 10_000,
+    replaySubscriberBufferFrames: 512,
+  } satisfies AgentConfig;
+  const configuration = new AgentConfiguration(config);
   const sessions = new LangChainWorkOsMcpAdapter(
     input.credentialProvider,
     configuration,

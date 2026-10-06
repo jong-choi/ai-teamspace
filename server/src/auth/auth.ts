@@ -2,23 +2,25 @@ import {
   authOptions,
   organizationFacadeDisabledPaths,
 } from '@/auth/auth-options';
+import type { AuthConfig } from '@/auth/config/auth-config.type';
 import * as authSchema from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
 import { protectOrganizationOwners } from '@/auth/infrastructure/persistence/drizzle/owner-protected.adapter';
 import { problemDetailsPlugin } from '@/auth/plugins/problem-details.plugin';
-import { parseAuthEnvironment } from '@/config/runtime-environment';
 import type { DatabaseService } from '@/database/database.service';
 
 import { drizzleAdapter } from '@better-auth/drizzle-adapter';
 import type { BetterAuthOptions } from 'better-auth';
 import { betterAuth } from 'better-auth';
 
-export function createAuth(database: DatabaseService['db']) {
-  const { BETTER_AUTH_SECRET, BETTER_AUTH_URL } = parseAuthEnvironment();
-
+export function createAuth(
+  database: DatabaseService['db'],
+  config: AuthConfig,
+) {
   return betterAuth({
     ...authOptions,
-    baseURL: BETTER_AUTH_URL,
-    secret: BETTER_AUTH_SECRET,
+    baseURL: config.baseUrl,
+    secret: config.secret,
+    trustedOrigins: config.trustedOrigins,
     plugins: [
       ...authOptions.plugins,
       problemDetailsPlugin({

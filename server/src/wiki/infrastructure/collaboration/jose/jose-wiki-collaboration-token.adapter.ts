@@ -1,10 +1,8 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
+import type { AllConfigType } from '@/config/config.type';
 import { WikiCollaborationInvalidTokenError } from '@/wiki/domain/wiki.error';
-import {
-  WIKI_COLLABORATION_ENVIRONMENT,
-  type WikiCollaborationEnvironment,
-} from '@/wiki/infrastructure/collaboration/wiki-collaboration-configuration.provider';
 import {
   WIKI_COLLABORATION_TOKEN_TYPE,
   type WikiCollaborationTokenClaims,
@@ -31,13 +29,10 @@ const tokenPayloadSchema = z.object({
 export class JoseWikiCollaborationTokenAdapter extends WikiCollaborationTokenProvider {
   private readonly secret: Uint8Array;
 
-  constructor(
-    @Inject(WIKI_COLLABORATION_ENVIRONMENT)
-    environment: WikiCollaborationEnvironment,
-  ) {
+  constructor(configService: ConfigService<AllConfigType>) {
     super();
     this.secret = new TextEncoder().encode(
-      environment.COLLABORATION_JWT_SECRET,
+      configService.getOrThrow('collaboration.jwtSecret', { infer: true }),
     );
   }
 

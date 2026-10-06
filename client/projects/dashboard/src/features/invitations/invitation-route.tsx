@@ -8,6 +8,7 @@ import {
   DashboardQueryBoundary,
   DashboardState,
 } from '@core/app/state/dashboard-query-state';
+import { AuthenticationRequiredState } from '@core/features/auth/authentication-required-state';
 import { InvitationDetail } from '@core/features/invitations/invitation-detail';
 import { useInvitationMutations } from '@core/features/invitations/invitation-mutations';
 import { useInvitationDetail } from '@core/features/invitations/invitation-query';
@@ -26,10 +27,7 @@ export function InvitationRoute({ invitationId }: { invitationId?: string }) {
   if (!currentUserId) {
     return (
       <DashboardShell>
-        <DashboardState
-          description="조직 초대를 확인하려면 먼저 로그인해 주세요."
-          title="로그인이 필요합니다"
-        />
+        <AuthenticationRequiredState />
       </DashboardShell>
     );
   }

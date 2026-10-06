@@ -2,14 +2,22 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 import { PostgresOutboxStore } from '@nestjs/outbox/postgres';
+import { ConfigModule } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 
+import databaseConfig from '@/database/config/database.config';
 import { OutboxInfrastructureModule } from '@/outbox/outbox.module';
 
 describe('Transactional Outbox 통합', () => {
   it('Drizzle migration으로 준비한 Outbox schema를 검증한다', async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [OutboxInfrastructureModule],
+      imports: [
+        ConfigModule.forRoot({
+          isGlobal: true,
+          load: [databaseConfig],
+        }),
+        OutboxInfrastructureModule,
+      ],
     }).compile();
 
     try {

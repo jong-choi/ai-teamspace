@@ -10,6 +10,7 @@ import { Text } from '@repo/client/rnr/components/ui/text';
 import { useMutationErrorNotification } from '@core/app/error/use-mutation-error-notification';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 import { DashboardShell } from '@core/app/shell/dashboard-shell';
+import { AuthenticationRequiredState } from '@core/features/auth/authentication-required-state';
 import { mergeUpdatedMessage } from '@core/features/chat/chat-cache';
 import { ChatMessageRouteHeader } from '@core/features/chat/chat-message-route-header';
 import { useChatMessage } from '@core/features/chat/chat-query';
@@ -35,10 +36,7 @@ export function ChatMessageEditRoute(props: ChatMessageEditRouteProps) {
       {sessionPending ? (
         <ChatLoading label="세션을 확인하는 중..." />
       ) : !currentUserId ? (
-        <ChatState
-          title="로그인이 필요합니다"
-          description="메시지를 수정하려면 먼저 로그인해 주세요."
-        />
+        <AuthenticationRequiredState />
       ) : (
         <ChatQueryBoundary
           fallback={<ChatLoading label="메시지를 불러오는 중..." />}

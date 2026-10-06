@@ -5,9 +5,11 @@ import {
   WorkerHost,
 } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 
-import { parseQueueEnvironment } from '@/config/runtime-environment';
+import type { AllConfigType } from '@/config/config.type';
+import queueConfig from '@/queue/config/queue.config';
 import { createWorkerRedisOptions } from '@/queue/queue.config';
 import { QueueModule } from '@/queue/queue.module';
 
@@ -28,6 +30,11 @@ class TestProcessor extends WorkerHost {
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [queueConfig],
+      envFilePath: ['.env'],
+    }),
     QueueModule.forProducer(),
     BullModule.registerQueue({ name: TEST_QUEUE_NAME }),
   ],
@@ -36,6 +43,11 @@ class TestProducerModule {}
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [queueConfig],
+      envFilePath: ['.env'],
+    }),
     QueueModule.forWorker(),
     BullModule.registerQueue({ name: TEST_QUEUE_NAME }),
   ],
@@ -54,10 +66,11 @@ describe('BullMQ 큐 통합', () => {
       { logger: false },
     );
     const queue = producerApp.get<Queue>(getQueueToken(TEST_QUEUE_NAME));
-    const { BULLMQ_PREFIX, REDIS_QUEUE_URL } = parseQueueEnvironment();
+    const configService = producerApp.get(ConfigService<AllConfigType>);
+    const config = configService.getOrThrow('queue', { infer: true });
     const queueEvents = new QueueEvents(TEST_QUEUE_NAME, {
-      connection: createWorkerRedisOptions(REDIS_QUEUE_URL),
-      prefix: BULLMQ_PREFIX,
+      connection: createWorkerRedisOptions(config.redisUrl),
+      prefix: config.prefix,
     });
 
     try {

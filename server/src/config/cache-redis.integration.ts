@@ -1,11 +1,12 @@
-import { parseCacheEnvironment } from '@/config/runtime-environment';
+import type { CacheConfig } from '@/chat/config/cache-config.type';
+import cacheConfig from '@/chat/config/cache.config';
 
 import { Redis } from 'ioredis';
 
 describe('캐시 Redis 통합', () => {
   it('cache Redis에 연결해 PONG을 받는다', async () => {
-    const { REDIS_CACHE_URL } = parseCacheEnvironment();
-    const client = new Redis(REDIS_CACHE_URL, {
+    const config = cacheConfig() as CacheConfig;
+    const client = new Redis(config.redisUrl, {
       enableOfflineQueue: false,
       lazyConnect: true,
       maxRetriesPerRequest: 1,

@@ -1,5 +1,5 @@
 import { AgentConfiguration } from '@/agent/config/agent-configuration';
-import { parseAgentEnvironment } from '@/agent/config/agent-environment';
+import type { AgentConfig } from '@/agent/config/agent-config.type';
 import { LangChainWorkOsMcpAdapter } from '@/agent/infrastructure/mcp/langchain/langchain-workos-mcp.adapter';
 import { McpToolApprovalPolicy } from '@/agent/infrastructure/mcp/langchain/mcp-tool-approval.policy';
 import type { McpCredentialProvider } from '@/agent/infrastructure/mcp/mcp-credential.provider';
@@ -18,17 +18,24 @@ function createAdapter(input: {
   credentialProvider?: McpCredentialProvider;
   timeoutMs?: number;
 }): LangChainWorkOsMcpAdapter {
-  const configuration = new AgentConfiguration(
-    parseAgentEnvironment({
-      AGENT_DATABASE_URL: 'postgresql://localhost/agent-test',
-      AGENT_REDIS_URL: 'redis://localhost:6379',
-      AGENT_REDIS_PREFIX: 'agent-test',
-      AGENT_MODEL: 'test:model',
-      WORKOS_MCP_URL: input.url,
-      AGENT_MCP_TOOL_TIMEOUT_MS: String(input.timeoutMs ?? 2_000),
-      AGENT_RUN_QUEUE_NAME: 'agent-test-runs',
-    }),
-  );
+  const config = {
+    databaseUrl: 'postgresql://localhost/agent-test',
+    redisUrl: 'redis://localhost:6379',
+    redisPrefix: 'agent-test',
+    model: 'test:model',
+    workOsMcpUrl: input.url,
+    mcpToolTimeoutMs: input.timeoutMs ?? 2_000,
+    runQueueName: 'agent-test-runs',
+    runConcurrency: 4,
+    runTimeoutMs: 300_000,
+    shutdownGraceMs: 30_000,
+    migrateOnStartup: true,
+    replayStreamTtlSeconds: 3_600,
+    replayClosedTtlSeconds: 86_400,
+    replayStreamMaxLength: 10_000,
+    replaySubscriberBufferFrames: 512,
+  } satisfies AgentConfig;
+  const configuration = new AgentConfiguration(config);
   return new LangChainWorkOsMcpAdapter(
     input.credentialProvider ?? credentials,
     configuration,

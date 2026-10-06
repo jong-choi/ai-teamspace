@@ -1,15 +1,8 @@
-import {
-  Inject,
-  Injectable,
-  Logger,
-  OnApplicationShutdown,
-} from '@nestjs/common';
+import { Injectable, Logger, OnApplicationShutdown } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
+import type { AllConfigType } from '@/config/config.type';
 import { WIKI_COLLABORATION_INVALIDATION_CHANNEL } from '@/wiki/infrastructure/collaboration/redis/redis-wiki-collaboration-invalidation.publisher';
-import {
-  WIKI_COLLABORATION_ENVIRONMENT,
-  type WikiCollaborationEnvironment,
-} from '@/wiki/infrastructure/collaboration/wiki-collaboration-configuration.provider';
 import {
   WikiCollaborationInvalidationEventSchema,
   WikiCollaborationInvalidationSubscriber,
@@ -28,15 +21,15 @@ export class RedisWikiCollaborationInvalidationSubscriber
   private readonly redis: Redis;
   private cleanup: (() => Promise<void>) | null = null;
 
-  constructor(
-    @Inject(WIKI_COLLABORATION_ENVIRONMENT)
-    environment: WikiCollaborationEnvironment,
-  ) {
+  constructor(configService: ConfigService<AllConfigType>) {
     super();
-    this.redis = new Redis(environment.REDIS_COLLABORATION_URL, {
-      maxRetriesPerRequest: 3,
-      lazyConnect: true,
-    });
+    this.redis = new Redis(
+      configService.getOrThrow('collaboration.redisUrl', { infer: true }),
+      {
+        maxRetriesPerRequest: 3,
+        lazyConnect: true,
+      },
+    );
   }
 
   async subscribe(

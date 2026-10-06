@@ -1,7 +1,8 @@
 import { BullModule } from '@nestjs/bullmq';
 import { DynamicModule, Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
-import { parseQueueEnvironment } from '@/config/runtime-environment';
+import type { AllConfigType } from '@/config/config.type';
 import {
   createProducerRedisOptions,
   createWorkerRedisOptions,
@@ -11,15 +12,20 @@ import {
 @Module({})
 export class QueueModule {
   static forProducer(): DynamicModule {
-    const { BULLMQ_PREFIX, REDIS_QUEUE_URL } = parseQueueEnvironment();
-
     return {
       module: QueueModule,
       imports: [
-        BullModule.forRoot({
-          prefix: BULLMQ_PREFIX,
-          connection: createProducerRedisOptions(REDIS_QUEUE_URL),
-          defaultJobOptions: DEFAULT_JOB_OPTIONS,
+        BullModule.forRootAsync({
+          imports: [ConfigModule],
+          inject: [ConfigService],
+          useFactory: (configService: ConfigService<AllConfigType>) => {
+            const config = configService.getOrThrow('queue', { infer: true });
+            return {
+              prefix: config.prefix,
+              connection: createProducerRedisOptions(config.redisUrl),
+              defaultJobOptions: DEFAULT_JOB_OPTIONS,
+            };
+          },
         }),
       ],
       exports: [BullModule],
@@ -27,15 +33,20 @@ export class QueueModule {
   }
 
   static forWorker(): DynamicModule {
-    const { BULLMQ_PREFIX, REDIS_QUEUE_URL } = parseQueueEnvironment();
-
     return {
       module: QueueModule,
       imports: [
-        BullModule.forRoot({
-          prefix: BULLMQ_PREFIX,
-          connection: createWorkerRedisOptions(REDIS_QUEUE_URL),
-          defaultJobOptions: DEFAULT_JOB_OPTIONS,
+        BullModule.forRootAsync({
+          imports: [ConfigModule],
+          inject: [ConfigService],
+          useFactory: (configService: ConfigService<AllConfigType>) => {
+            const config = configService.getOrThrow('queue', { infer: true });
+            return {
+              prefix: config.prefix,
+              connection: createWorkerRedisOptions(config.redisUrl),
+              defaultJobOptions: DEFAULT_JOB_OPTIONS,
+            };
+          },
         }),
       ],
       exports: [BullModule],

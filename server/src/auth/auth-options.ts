@@ -14,7 +14,6 @@ export const organizationFacadeDisabledPaths = organizationFacadeEndpoints.map(
 
 export const authOptions = {
   basePath: '/api/auth',
-  trustedOrigins: ['monorepoerp://'],
   emailAndPassword: {
     enabled: true,
   },

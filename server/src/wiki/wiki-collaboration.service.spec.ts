@@ -1,3 +1,6 @@
+import { ConfigService } from '@nestjs/config';
+
+import type { AllConfigType } from '@/config/config.type';
 import type { OrganizationsService } from '@/organizations/organizations.service';
 import {
   WikiCollaborationAccessDeniedError,
@@ -11,9 +14,9 @@ import {
   WIKI_COLLABORATION_SCHEMA_VERSION,
 } from '@/wiki/domain/wiki-collaboration-version';
 import type { WikiDocument } from '@/wiki/domain/wiki-document';
+import type { CollaborationConfig } from '@/wiki/infrastructure/collaboration/config/collaboration-config.type';
 import { WikiCollaborationAttributionProvider } from '@/wiki/infrastructure/collaboration/wiki-collaboration-attribution.provider';
 import { WikiCollaborationAuthorizationProvider } from '@/wiki/infrastructure/collaboration/wiki-collaboration-authorization.provider';
-import type { WikiCollaborationEnvironment } from '@/wiki/infrastructure/collaboration/wiki-collaboration-configuration.provider';
 import { WikiCollaborationTokenProvider } from '@/wiki/infrastructure/collaboration/wiki-collaboration-token.provider';
 import { YjsCollaborationStateAdapter } from '@/wiki/infrastructure/collaboration/yjs/yjs-collaboration-state.adapter';
 import { WikiRepository } from '@/wiki/infrastructure/persistence/wiki.repository';
@@ -62,13 +65,15 @@ const organizationId = 'organization-a';
 const documentId = '11111111-1111-4111-8111-111111111111';
 const userId = 'user-a';
 const documentName = `wiki.${organizationId}.${documentId}`;
-const collaborationEnvironment: WikiCollaborationEnvironment = {
-  COLLABORATION_PORT: 3002,
-  COLLABORATION_PUBLIC_URL: 'ws://localhost:3002',
-  COLLABORATION_JWT_SECRET:
-    'test-collaboration-secret-that-is-at-least-32-characters-long',
-  REDIS_COLLABORATION_URL: 'redis://localhost:6382',
+const collaborationConfig: CollaborationConfig = {
+  port: 3002,
+  publicUrl: 'ws://localhost:3002',
+  jwtSecret: 'test-collaboration-secret-that-is-at-least-32-characters-long',
+  redisUrl: 'redis://localhost:6382',
 };
+const configService = new ConfigService<AllConfigType>({
+  collaboration: collaborationConfig,
+});
 
 function document(): WikiDocument {
   return {
@@ -118,7 +123,7 @@ describe('위키 공동편집 서비스', () => {
     stateProvider = new YjsCollaborationStateAdapter();
     service = new WikiCollaborationService(
       organizationsService,
-      collaborationEnvironment,
+      configService,
       repository,
       tokenProvider,
       authorizationProvider,

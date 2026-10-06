@@ -9,6 +9,7 @@ import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 import { DashboardShell } from '@core/app/shell/dashboard-shell';
+import { AuthenticationRequiredState } from '@core/features/auth/authentication-required-state';
 import { ChatConversationPanel } from '@core/features/chat/chat-conversation-panel';
 import { ChatConversationSidebar } from '@core/features/chat/chat-conversation-sidebar';
 import { ChatCreateConversationDialog } from '@core/features/chat/chat-create-conversation-dialog';
@@ -38,10 +39,7 @@ export function ChatRoute({
       {sessionPending ? (
         <ChatLoading label="세션을 확인하는 중..." />
       ) : !currentUserId ? (
-        <ChatState
-          title="로그인이 필요합니다"
-          description="채팅은 로그인 세션을 사용합니다. 먼저 로그인한 뒤 다시 열어 주세요."
-        />
+        <AuthenticationRequiredState />
       ) : (
         <AuthenticatedChatRoute
           conversationId={conversationId}

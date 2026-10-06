@@ -4,5 +4,4 @@ export default {
   ...baseConfig,
   testMatch: ['<rootDir>/src/**/*.integration.ts'],
   maxWorkers: 1,
-  setupFiles: ['<rootDir>/jest.setup.ts'],
 };

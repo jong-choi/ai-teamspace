@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
 import { Test, type TestingModule } from '@nestjs/testing';
+import { ConfigModule } from '@nestjs/config';
 
 import {
   organization,
@@ -20,6 +21,7 @@ import { meetingRecurrenceSeries } from '@/calendar/infrastructure/persistence/d
 import { meetingRoom } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting-room.schema';
 import { MeetingParticipationRepository } from '@/calendar/infrastructure/persistence/meeting-participation.repository';
 import { MeetingRoomRepository } from '@/calendar/infrastructure/persistence/meeting-room.repository';
+import databaseConfig from '@/database/config/database.config';
 import { DatabaseModule } from '@/database/database.module';
 import { DatabaseService } from '@/database/database.service';
 
@@ -127,7 +129,14 @@ describe('캘린더 Drizzle scheduling 저장소 통합', () => {
 
   beforeAll(async () => {
     moduleRef = await Test.createTestingModule({
-      imports: [DatabaseModule, CalendarDrizzlePersistenceModule],
+      imports: [
+        ConfigModule.forRoot({
+          isGlobal: true,
+          load: [databaseConfig],
+        }),
+        DatabaseModule,
+        CalendarDrizzlePersistenceModule,
+      ],
     }).compile();
     await moduleRef.init();
     database = moduleRef.get(DatabaseService).db;

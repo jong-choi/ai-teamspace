@@ -1,9 +1,15 @@
+import 'dotenv/config';
+
 import { authOptions } from '@/auth/auth-options';
 
 import { betterAuth } from 'better-auth';
 
+const baseUrl = process.env.BETTER_AUTH_URL;
+if (!baseUrl) {
+  throw new Error('BETTER_AUTH_URL 환경 변수가 필요합니다.');
+}
+
 export const auth = betterAuth({
   ...authOptions,
-  // CLI schema 생성에는 요청 origin이 없으므로 고정된 로컬 URL을 사용한다.
-  baseURL: 'http://localhost:3000',
+  baseURL: baseUrl,
 });

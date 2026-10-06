@@ -1,6 +1,8 @@
 import { Test, type TestingModule } from '@nestjs/testing';
+import { ConfigModule } from '@nestjs/config';
 
 import { user } from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
+import databaseConfig from '@/database/config/database.config';
 import { DatabaseModule } from '@/database/database.module';
 import { DatabaseService } from '@/database/database.service';
 import { ProjectKeyConflictError } from '@/projects/domain/project.error';
@@ -39,7 +41,14 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
 
   beforeAll(async () => {
     moduleRef = await Test.createTestingModule({
-      imports: [DatabaseModule, ProjectDrizzlePersistenceModule],
+      imports: [
+        ConfigModule.forRoot({
+          isGlobal: true,
+          load: [databaseConfig],
+        }),
+        DatabaseModule,
+        ProjectDrizzlePersistenceModule,
+      ],
     }).compile();
     await moduleRef.init();
     database = moduleRef.get(DatabaseService).db;

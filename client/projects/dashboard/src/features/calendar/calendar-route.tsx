@@ -14,6 +14,7 @@ import {
   DashboardQueryBoundary,
   DashboardState,
 } from '@core/app/state/dashboard-query-state';
+import { AuthenticationRequiredState } from '@core/features/auth/authentication-required-state';
 import {
   useCalendarActiveOrganization,
   useCalendarMeetings,
@@ -59,10 +60,7 @@ export function CalendarRoute() {
   if (!currentUserId) {
     return (
       <DashboardShell activeNavigationItem="calendar">
-        <DashboardState
-          description="회의일정은 조직의 로그인 세션을 사용합니다. 먼저 로그인한 뒤 다시 열어 주세요."
-          title="로그인이 필요합니다"
-        />
+        <AuthenticationRequiredState />
       </DashboardShell>
     );
   }

@@ -1,16 +1,23 @@
-import { parseCollaborationEnvironment } from '@/config/runtime-environment';
+import { ConfigService } from '@nestjs/config';
+
+import type { AllConfigType } from '@/config/config.type';
+import type { CollaborationConfig } from '@/wiki/infrastructure/collaboration/config/collaboration-config.type';
+import collaborationConfig from '@/wiki/infrastructure/collaboration/config/collaboration.config';
 import { RedisWikiCollaborationInvalidationPublisher } from '@/wiki/infrastructure/collaboration/redis/redis-wiki-collaboration-invalidation.publisher';
 import { RedisWikiCollaborationInvalidationSubscriber } from '@/wiki/infrastructure/collaboration/redis/redis-wiki-collaboration-invalidation.subscriber';
 import type { WikiCollaborationInvalidationEvent } from '@/wiki/infrastructure/collaboration/wiki-collaboration-invalidation.provider';
 
 describe('위키 공동편집 Redis invalidation 통합', () => {
   it('publisher 이벤트를 subscriber까지 전달한다', async () => {
-    const environment = parseCollaborationEnvironment();
+    const config = collaborationConfig() as CollaborationConfig;
+    const configService = new ConfigService<AllConfigType>({
+      collaboration: config,
+    });
     const publisher = new RedisWikiCollaborationInvalidationPublisher(
-      environment,
+      configService,
     );
     const subscriber = new RedisWikiCollaborationInvalidationSubscriber(
-      environment,
+      configService,
     );
     const expected: WikiCollaborationInvalidationEvent = {
       scope: 'organization-user',

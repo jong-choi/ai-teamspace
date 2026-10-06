@@ -12,6 +12,7 @@ import {
   DashboardQueryBoundary,
   DashboardState,
 } from '@core/app/state/dashboard-query-state';
+import { AuthenticationRequiredState } from '@core/features/auth/authentication-required-state';
 import { useWikiCollaborationPlatform } from '@core/features/wiki/collaboration/wiki-collaboration-platform';
 import { WikiCreateDialog } from '@core/features/wiki/components/wiki-create-dialog';
 import { WikiDeleteDialog } from '@core/features/wiki/components/wiki-delete-dialog';
@@ -51,10 +52,7 @@ export function WikiRoute({ documentId }: WikiRouteProps) {
   if (!currentUserId) {
     return (
       <DashboardShell activeNavigationItem="wiki">
-        <DashboardState
-          description="위키는 조직의 로그인 세션을 사용합니다. 먼저 로그인한 뒤 다시 열어 주세요."
-          title="로그인이 필요합니다"
-        />
+        <AuthenticationRequiredState />
       </DashboardShell>
     );
   }

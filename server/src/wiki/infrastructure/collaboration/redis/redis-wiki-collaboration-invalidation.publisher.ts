@@ -1,9 +1,7 @@
-import { Inject, Injectable, OnApplicationShutdown } from '@nestjs/common';
+import { Injectable, OnApplicationShutdown } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
-import {
-  WIKI_COLLABORATION_ENVIRONMENT,
-  type WikiCollaborationEnvironment,
-} from '@/wiki/infrastructure/collaboration/wiki-collaboration-configuration.provider';
+import type { AllConfigType } from '@/config/config.type';
 import {
   type WikiCollaborationInvalidationEvent,
   WikiCollaborationInvalidationEventSchema,
@@ -22,15 +20,15 @@ export class RedisWikiCollaborationInvalidationPublisher
 {
   private readonly redis: Redis;
 
-  constructor(
-    @Inject(WIKI_COLLABORATION_ENVIRONMENT)
-    environment: WikiCollaborationEnvironment,
-  ) {
+  constructor(configService: ConfigService<AllConfigType>) {
     super();
-    this.redis = new Redis(environment.REDIS_COLLABORATION_URL, {
-      maxRetriesPerRequest: 3,
-      lazyConnect: true,
-    });
+    this.redis = new Redis(
+      configService.getOrThrow('collaboration.redisUrl', { infer: true }),
+      {
+        maxRetriesPerRequest: 3,
+        lazyConnect: true,
+      },
+    );
   }
 
   async publish(event: WikiCollaborationInvalidationEvent): Promise<void> {

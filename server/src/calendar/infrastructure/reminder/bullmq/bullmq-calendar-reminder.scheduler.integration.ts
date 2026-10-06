@@ -5,8 +5,9 @@ import {
 } from '@/calendar/domain/calendar-reminder';
 import type { Meeting } from '@/calendar/domain/meeting';
 import { BullMqCalendarReminderScheduler } from '@/calendar/infrastructure/reminder/bullmq/bullmq-calendar-reminder.scheduler';
-import { parseQueueEnvironment } from '@/config/runtime-environment';
 import type { DatabaseService } from '@/database/database.service';
+import type { QueueConfig } from '@/queue/config/queue-config.type';
+import queueConfig from '@/queue/config/queue.config';
 import { createProducerRedisOptions } from '@/queue/queue.config';
 
 import { Queue } from 'bullmq';
@@ -44,14 +45,14 @@ function meeting(overrides: Partial<Meeting> = {}): Meeting {
 }
 
 describe('캘린더 BullMQ reminder scheduler 통합', () => {
-  const { BULLMQ_PREFIX, REDIS_QUEUE_URL } = parseQueueEnvironment();
+  const config = queueConfig() as QueueConfig;
   let queue: Queue;
   let scheduler: BullMqCalendarReminderScheduler;
 
   beforeAll(async () => {
     queue = new Queue(CALENDAR_REMINDER_QUEUE, {
-      connection: createProducerRedisOptions(REDIS_QUEUE_URL),
-      prefix: BULLMQ_PREFIX,
+      connection: createProducerRedisOptions(config.redisUrl),
+      prefix: config.prefix,
     });
     await queue.waitUntilReady();
     scheduler = new BullMqCalendarReminderScheduler(

@@ -6,6 +6,7 @@ import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 import { DashboardShell } from '@core/app/shell/dashboard-shell';
+import { AuthenticationRequiredState } from '@core/features/auth/authentication-required-state';
 import { ChatMessageRouteHeader } from '@core/features/chat/chat-message-route-header';
 import {
   formatMessageDateTime,
@@ -37,10 +38,7 @@ export function ChatMessageDetailRoute(props: ChatMessageDetailRouteProps) {
       {sessionPending ? (
         <ChatLoading label="세션을 확인하는 중..." />
       ) : !currentUserId ? (
-        <ChatState
-          title="로그인이 필요합니다"
-          description="메시지를 보려면 먼저 로그인해 주세요."
-        />
+        <AuthenticationRequiredState />
       ) : (
         <ChatQueryBoundary
           fallback={<ChatLoading label="메시지를 불러오는 중..." />}

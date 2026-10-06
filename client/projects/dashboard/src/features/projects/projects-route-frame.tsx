@@ -7,6 +7,7 @@ import {
   DashboardQueryBoundary,
   DashboardState,
 } from '@core/app/state/dashboard-query-state';
+import { AuthenticationRequiredState } from '@core/features/auth/authentication-required-state';
 import { useProjectsActiveOrganization } from '@core/features/projects/projects-query';
 
 export function ProjectsRouteFrame({
@@ -29,10 +30,7 @@ export function ProjectsRouteFrame({
   if (!currentUserId) {
     return (
       <DashboardShell activeNavigationItem="projects">
-        <DashboardState
-          description="프로젝트는 조직의 로그인 세션을 사용합니다. 먼저 로그인한 뒤 다시 열어 주세요."
-          title="로그인이 필요합니다"
-        />
+        <AuthenticationRequiredState />
       </DashboardShell>
     );
   }

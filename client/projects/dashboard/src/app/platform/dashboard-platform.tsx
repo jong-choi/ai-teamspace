@@ -1,5 +1,7 @@
 import { createContext, type ReactNode, useContext } from 'react';
 
+import type { createAuthClient } from 'better-auth/react';
+
 export type DashboardNotification = {
   id?: string;
   title: string;
@@ -17,6 +19,10 @@ export type DashboardCalendarExport = {
 };
 
 export type DashboardPlatformValue = {
+  authentication: Pick<
+    ReturnType<typeof createAuthClient>,
+    'signIn' | 'signUp'
+  >;
   currentUserId: string | null;
   sessionPending: boolean;
   copyText: (value: string) => Promise<void>;

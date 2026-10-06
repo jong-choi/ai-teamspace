@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 
 import { TrustedOriginGuard } from '@/common/http/trusted-origin.guard';
 import { OrganizationsModule } from '@/organizations/organizations.module';
@@ -6,7 +7,6 @@ import { BetterAuthWikiCollaborationAuthorizationModule } from '@/wiki/infrastru
 import { JoseWikiCollaborationTokenModule } from '@/wiki/infrastructure/collaboration/jose/jose-wiki-collaboration-token.module';
 import { RedisWikiCollaborationAttributionModule } from '@/wiki/infrastructure/collaboration/redis/redis-wiki-collaboration-attribution.module';
 import { RedisWikiCollaborationInvalidationPublisherModule } from '@/wiki/infrastructure/collaboration/redis/redis-wiki-collaboration-invalidation-publisher.module';
-import { WikiCollaborationConfigurationModule } from '@/wiki/infrastructure/collaboration/wiki-collaboration-configuration.module';
 import { YjsWikiCollaborationStateModule } from '@/wiki/infrastructure/collaboration/yjs/yjs-wiki-collaboration-state.module';
 import { WikiDrizzlePersistenceModule } from '@/wiki/infrastructure/persistence/drizzle/drizzle-persistence.module';
 import { WikiController } from '@/wiki/wiki.controller';
@@ -16,11 +16,11 @@ import { WikiCollaborationService } from '@/wiki/wiki-collaboration.service';
 @Module({
   imports: [
     BetterAuthWikiCollaborationAuthorizationModule,
+    ConfigModule,
     JoseWikiCollaborationTokenModule,
     OrganizationsModule,
     RedisWikiCollaborationAttributionModule,
     RedisWikiCollaborationInvalidationPublisherModule,
-    WikiCollaborationConfigurationModule,
     WikiDrizzlePersistenceModule,
     YjsWikiCollaborationStateModule,
   ],

@@ -1,7 +1,9 @@
 import { randomUUID } from 'node:crypto';
 
 import { Inject, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
+import type { AllConfigType } from '@/config/config.type';
 import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
 import { OrganizationsService } from '@/organizations/organizations.service';
 import {
@@ -27,10 +29,6 @@ import {
 } from '@/wiki/dto/wiki-collaboration-session.dto';
 import { WikiCollaborationAttributionProvider } from '@/wiki/infrastructure/collaboration/wiki-collaboration-attribution.provider';
 import { WikiCollaborationAuthorizationProvider } from '@/wiki/infrastructure/collaboration/wiki-collaboration-authorization.provider';
-import {
-  WIKI_COLLABORATION_ENVIRONMENT,
-  type WikiCollaborationEnvironment,
-} from '@/wiki/infrastructure/collaboration/wiki-collaboration-configuration.provider';
 import { WikiCollaborationStateProvider } from '@/wiki/infrastructure/collaboration/wiki-collaboration-state.provider';
 import { WikiCollaborationTokenProvider } from '@/wiki/infrastructure/collaboration/wiki-collaboration-token.provider';
 import {
@@ -58,17 +56,23 @@ type WikiCollaborationOrganizationAccess = Pick<
 
 @Injectable()
 export class WikiCollaborationService {
+  private readonly collaborationPublicUrl: string;
+
   constructor(
     @Inject(OrganizationsService)
     private readonly organizationsService: WikiCollaborationOrganizationAccess,
-    @Inject(WIKI_COLLABORATION_ENVIRONMENT)
-    private readonly environment: WikiCollaborationEnvironment,
+    configService: ConfigService<AllConfigType>,
     private readonly repository: WikiRepository,
     private readonly tokenProvider: WikiCollaborationTokenProvider,
     private readonly authorizationProvider: WikiCollaborationAuthorizationProvider,
     private readonly stateProvider: WikiCollaborationStateProvider,
     private readonly attributionProvider: WikiCollaborationAttributionProvider,
-  ) {}
+  ) {
+    this.collaborationPublicUrl = configService.getOrThrow(
+      'collaboration.publicUrl',
+      { infer: true },
+    );
+  }
 
   async assertReady(): Promise<void> {
     await Promise.all([
@@ -100,7 +104,7 @@ export class WikiCollaborationService {
     return WikiCollaborationSessionSchema.parse({
       token: issued.token,
       expiresAt: issued.expiresAt.toISOString(),
-      webSocketUrl: this.environment.COLLABORATION_PUBLIC_URL,
+      webSocketUrl: this.collaborationPublicUrl,
       documentName: buildWikiCollaborationDocumentName({
         organizationId,
         documentId,

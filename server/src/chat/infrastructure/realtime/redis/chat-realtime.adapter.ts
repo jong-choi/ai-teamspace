@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
 import { Injectable, Logger, type OnApplicationShutdown } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 import type { ChatMessageResponse } from '@/chat/dto/chat-message.dto';
 import {
@@ -8,7 +9,7 @@ import {
   ChatRealtimeEventSchema,
 } from '@/chat/infrastructure/realtime/chat-realtime.event';
 import { ChatRealtimeProvider } from '@/chat/infrastructure/realtime/chat-realtime.provider';
-import { parseCacheEnvironment } from '@/config/runtime-environment';
+import type { AllConfigType } from '@/config/config.type';
 
 import { Redis, type RedisOptions } from 'ioredis';
 import { Observable, Subject } from 'rxjs';
@@ -39,11 +40,13 @@ export class RedisChatRealtimeAdapter
   private publisherConnection: Promise<void> | null = null;
   private subscriberConnection: Promise<void> | null = null;
 
-  constructor() {
+  constructor(configService: ConfigService<AllConfigType>) {
     super();
-    const { REDIS_CACHE_URL } = parseCacheEnvironment();
-    this.publisher = new Redis(REDIS_CACHE_URL, redisOptions);
-    this.subscriber = new Redis(REDIS_CACHE_URL, redisOptions);
+    const redisUrl = configService.getOrThrow('cache.redisUrl', {
+      infer: true,
+    });
+    this.publisher = new Redis(redisUrl, redisOptions);
+    this.subscriber = new Redis(redisUrl, redisOptions);
     this.subscriber.on('message', (channel, payload) => {
       this.onRedisMessage(channel, payload);
     });

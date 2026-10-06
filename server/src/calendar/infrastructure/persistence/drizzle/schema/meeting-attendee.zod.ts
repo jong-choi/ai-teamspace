@@ -5,8 +5,21 @@ import {
   createSelectSchema,
   createUpdateSchema,
 } from 'drizzle-zod';
+import { z } from 'zod';
 
-export const meetingAttendeeSelectSchema = createSelectSchema(meetingAttendee);
-export const meetingAttendeeInsertSchema = createInsertSchema(meetingAttendee);
-export const meetingAttendeeUpdateSchema =
-  createUpdateSchema(meetingAttendee).partial();
+const fieldRefinements = {
+  userId: z.string().trim().min(1),
+};
+
+export const meetingAttendeeSelectSchema = createSelectSchema(
+  meetingAttendee,
+  fieldRefinements,
+);
+export const meetingAttendeeInsertSchema = createInsertSchema(
+  meetingAttendee,
+  fieldRefinements,
+);
+export const meetingAttendeeUpdateSchema = createUpdateSchema(
+  meetingAttendee,
+  fieldRefinements,
+).partial();

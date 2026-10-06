@@ -3,12 +3,13 @@ import { Inject, Injectable } from '@nestjs/common';
 import { CalendarMeetingLoader } from '@/calendar/calendar-meeting.loader';
 import { CalendarMeetingPolicy } from '@/calendar/calendar-meeting.policy';
 import { CalendarMeetingPresenterService } from '@/calendar/calendar-meeting-presenter.service';
+import type { Meeting } from '@/calendar/domain/meeting';
 import type {
   MeetingDetailResponse,
   MeetingListResponse,
 } from '@/calendar/dto/meeting.dto';
 import type { QueryCalendarMeetingsInput } from '@/calendar/dto/query-calendar-meetings.dto';
-import { CalendarRepository } from '@/calendar/infrastructure/persistence/calendar.repository';
+import { CalendarMeetingQueryRepository } from '@/calendar/infrastructure/persistence/calendar-meeting-query.repository';
 import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
 import { OrganizationsService } from '@/organizations/organizations.service';
 
@@ -25,7 +26,7 @@ type CalendarMeetingPresenter = Pick<
 @Injectable()
 export class CalendarMeetingQueryService {
   constructor(
-    private readonly calendarRepository: CalendarRepository,
+    private readonly calendarRepository: CalendarMeetingQueryRepository,
     private readonly meetingLoader: CalendarMeetingLoader,
     private readonly meetingPolicy: CalendarMeetingPolicy,
     @Inject(CalendarMeetingPresenterService)
@@ -36,7 +37,7 @@ export class CalendarMeetingQueryService {
 
   async listMeetings(
     context: OrganizationActorContext,
-    organizationId: string,
+    organizationId: Meeting['organizationId'],
     query: QueryCalendarMeetingsInput,
   ): Promise<MeetingListResponse> {
     await this.organizationsService.getDetail(context, organizationId);
@@ -68,8 +69,8 @@ export class CalendarMeetingQueryService {
 
   async getMeeting(
     context: OrganizationActorContext,
-    organizationId: string,
-    meetingId: string,
+    organizationId: Meeting['organizationId'],
+    meetingId: Meeting['id'],
   ): Promise<MeetingDetailResponse> {
     await this.organizationsService.getDetail(context, organizationId);
     return this.presenter.presentDetail(

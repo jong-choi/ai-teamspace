@@ -5,20 +5,26 @@ import {
   CalendarMeetingRoomInactiveError,
   CalendarMeetingRoomNotFoundError,
 } from '@/calendar/domain/calendar.error';
+import type { Meeting } from '@/calendar/domain/meeting';
+import type { MeetingRoom } from '@/calendar/domain/meeting-room';
 import {
   type CalendarMeetingDetailRecord,
-  CalendarRepository,
-} from '@/calendar/infrastructure/persistence/calendar.repository';
+  CalendarMeetingQueryRepository,
+} from '@/calendar/infrastructure/persistence/calendar-meeting-query.repository';
+import { MeetingRoomRepository } from '@/calendar/infrastructure/persistence/meeting-room.repository';
 
 @Injectable()
 export class CalendarMeetingLoader {
-  constructor(private readonly repository: CalendarRepository) {}
+  constructor(
+    private readonly meetingQueryRepository: CalendarMeetingQueryRepository,
+    private readonly meetingRoomRepository: MeetingRoomRepository,
+  ) {}
 
   async requireMeeting(
-    organizationId: string,
-    meetingId: string,
+    organizationId: Meeting['organizationId'],
+    meetingId: Meeting['id'],
   ): Promise<CalendarMeetingDetailRecord> {
-    const record = await this.repository.findMeetingById(
+    const record = await this.meetingQueryRepository.findMeetingById(
       organizationId,
       meetingId,
     );
@@ -29,10 +35,10 @@ export class CalendarMeetingLoader {
   }
 
   async requireSelectableMeetingRoom(
-    organizationId: string,
-    meetingRoomId: string,
+    organizationId: Meeting['organizationId'],
+    meetingRoomId: MeetingRoom['id'],
   ): Promise<void> {
-    const room = await this.repository.findMeetingRoomById(
+    const room = await this.meetingRoomRepository.findMeetingRoomById(
       organizationId,
       meetingRoomId,
     );

@@ -18,7 +18,7 @@ import {
 import type {
   CalendarMeetingDetailRecord,
   CalendarMeetingListRecord,
-} from '@/calendar/infrastructure/persistence/calendar.repository';
+} from '@/calendar/infrastructure/persistence/calendar-meeting-query.repository';
 import { CalendarProjectReferenceProvider } from '@/calendar/infrastructure/project/calendar-project-reference.provider';
 import type { OrganizationUserSummary } from '@/organizations/domain/organization-member';
 
@@ -31,7 +31,7 @@ export class CalendarMeetingPresenterService {
   ) {}
 
   async presentList(
-    organizationId: string,
+    organizationId: Meeting['organizationId'],
     records: readonly CalendarMeetingListRecord[],
   ): Promise<MeetingListResponse> {
     const usersById = await this.loadUsers(
@@ -52,7 +52,7 @@ export class CalendarMeetingPresenterService {
   }
 
   async presentDetail(
-    organizationId: string,
+    organizationId: Meeting['organizationId'],
     record: CalendarMeetingDetailRecord,
   ): Promise<MeetingDetailResponse> {
     const usersById = await this.loadUsers([
@@ -81,8 +81,11 @@ export class CalendarMeetingPresenterService {
 
   private toSummary(
     record: CalendarMeetingListRecord,
-    usersById: ReadonlyMap<string, OrganizationUserSummary>,
-    projectsById: ReadonlyMap<string, CalendarProjectSummary>,
+    usersById: ReadonlyMap<Meeting['organizerUserId'], OrganizationUserSummary>,
+    projectsById: ReadonlyMap<
+      NonNullable<Meeting['projectId']>,
+      CalendarProjectSummary
+    >,
   ): MeetingSummaryResponse {
     return {
       ...this.toWire(record.meeting),
@@ -123,8 +126,8 @@ export class CalendarMeetingPresenterService {
   }
 
   private async loadUsers(
-    userIds: readonly string[],
-  ): Promise<Map<string, OrganizationUserSummary>> {
+    userIds: readonly Meeting['organizerUserId'][],
+  ): Promise<Map<Meeting['organizerUserId'], OrganizationUserSummary>> {
     const identities = await this.userDirectory.findByIds([
       ...new Set(userIds),
     ]);
@@ -143,8 +146,8 @@ export class CalendarMeetingPresenterService {
   }
 
   private requireUser(
-    usersById: ReadonlyMap<string, OrganizationUserSummary>,
-    userId: string,
+    usersById: ReadonlyMap<Meeting['organizerUserId'], OrganizationUserSummary>,
+    userId: Meeting['organizerUserId'],
   ): OrganizationUserSummary {
     const user = usersById.get(userId);
     if (!user) {
@@ -154,12 +157,15 @@ export class CalendarMeetingPresenterService {
   }
 
   private async loadProjects(
-    organizationId: string,
-    projectIds: readonly string[],
-  ): Promise<Map<string, CalendarProjectSummary>> {
+    organizationId: Meeting['organizationId'],
+    projectIds: readonly NonNullable<Meeting['projectId']>[],
+  ): Promise<Map<NonNullable<Meeting['projectId']>, CalendarProjectSummary>> {
     const uniqueProjectIds = [...new Set(projectIds)];
     if (uniqueProjectIds.length === 0) {
-      return new Map<string, CalendarProjectSummary>();
+      return new Map<
+        NonNullable<Meeting['projectId']>,
+        CalendarProjectSummary
+      >();
     }
     const summaries = await this.projectReferenceProvider.listSummaries(
       organizationId,

@@ -6,7 +6,7 @@ import {
   CalendarMeetingCanceledError,
 } from '@/calendar/domain/calendar.error';
 import type { Meeting } from '@/calendar/domain/meeting';
-import type { CalendarMeetingDetailRecord } from '@/calendar/infrastructure/persistence/calendar.repository';
+import type { CalendarMeetingDetailRecord } from '@/calendar/infrastructure/persistence/calendar-meeting-query.repository';
 import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
 import { OrganizationsService } from '@/organizations/organizations.service';
 
@@ -24,7 +24,7 @@ export class CalendarMeetingPolicy {
 
   async assertModificationAccess(
     context: OrganizationActorContext,
-    organizationId: string,
+    organizationId: Meeting['organizationId'],
     record: CalendarMeetingDetailRecord,
   ): Promise<void> {
     if (record.meeting.organizerUserId !== context.userId) {
@@ -49,7 +49,7 @@ export class CalendarMeetingPolicy {
 
   assertLocation(
     locationType: Meeting['locationType'],
-    meetingRoomId: string | null,
+    meetingRoomId: Meeting['meetingRoomId'],
   ): void {
     if (
       (locationType === 'meeting_room' && meetingRoomId === null) ||

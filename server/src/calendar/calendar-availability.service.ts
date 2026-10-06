@@ -3,13 +3,16 @@ import { Inject, Injectable } from '@nestjs/common';
 import { CalendarMeetingLoader } from '@/calendar/calendar-meeting.loader';
 import { CalendarMeetingPolicy } from '@/calendar/calendar-meeting.policy';
 import { CalendarParticipantPolicy } from '@/calendar/calendar-participant.policy';
+import type { Meeting } from '@/calendar/domain/meeting';
+import type { MeetingAttendee } from '@/calendar/domain/meeting-attendee';
+import type { MeetingRoom } from '@/calendar/domain/meeting-room';
 import {
   type CalendarAvailabilityRequest,
   type CalendarAvailabilityResponse,
   CalendarAvailabilityResponseSchema,
   type CalendarRescheduleAvailabilityRequest,
 } from '@/calendar/dto/calendar-availability.dto';
-import { CalendarRepository } from '@/calendar/infrastructure/persistence/calendar.repository';
+import { CalendarAvailabilityRepository } from '@/calendar/infrastructure/persistence/calendar-availability.repository';
 import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
 import { OrganizationsService } from '@/organizations/organizations.service';
 
@@ -18,7 +21,7 @@ type CalendarOrganizationsAccess = Pick<OrganizationsService, 'getDetail'>;
 @Injectable()
 export class CalendarAvailabilityService {
   constructor(
-    private readonly calendarRepository: CalendarRepository,
+    private readonly calendarRepository: CalendarAvailabilityRepository,
     private readonly meetingLoader: CalendarMeetingLoader,
     private readonly meetingPolicy: CalendarMeetingPolicy,
     private readonly participantPolicy: CalendarParticipantPolicy,
@@ -28,7 +31,7 @@ export class CalendarAvailabilityService {
 
   async previewAvailability(
     context: OrganizationActorContext,
-    organizationId: string,
+    organizationId: Meeting['organizationId'],
     input: CalendarAvailabilityRequest,
   ): Promise<CalendarAvailabilityResponse> {
     await this.organizationsService.getDetail(context, organizationId);
@@ -57,8 +60,8 @@ export class CalendarAvailabilityService {
 
   async previewRescheduleAvailability(
     context: OrganizationActorContext,
-    organizationId: string,
-    meetingId: string,
+    organizationId: Meeting['organizationId'],
+    meetingId: Meeting['id'],
     input: CalendarRescheduleAvailabilityRequest,
   ): Promise<CalendarAvailabilityResponse> {
     await this.organizationsService.getDetail(context, organizationId);
@@ -92,12 +95,12 @@ export class CalendarAvailabilityService {
   }
 
   private async buildAvailability(input: {
-    organizationId: string;
-    participantUserIds: readonly string[];
-    meetingRoomId: string | null;
-    startAt: Date;
-    endAt: Date;
-    excludeMeetingIds?: readonly string[];
+    organizationId: Meeting['organizationId'];
+    participantUserIds: readonly MeetingAttendee['userId'][];
+    meetingRoomId: MeetingRoom['id'] | null;
+    startAt: Meeting['startAt'];
+    endAt: Meeting['endAt'];
+    excludeMeetingIds?: readonly Meeting['id'][];
   }): Promise<CalendarAvailabilityResponse> {
     this.meetingPolicy.assertTimeRange(input.startAt, input.endAt);
     const participantConflicts =

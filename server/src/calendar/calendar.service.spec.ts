@@ -4,38 +4,29 @@ import { CalendarMeetingPolicy } from '@/calendar/calendar-meeting.policy';
 import type { CalendarMeetingPresenterService } from '@/calendar/calendar-meeting-presenter.service';
 import { CalendarMeetingCanceledError } from '@/calendar/domain/calendar.error';
 import type { Meeting } from '@/calendar/domain/meeting';
-import type { MeetingRoom } from '@/calendar/domain/meeting-room';
 import { UpdateMeetingSchema } from '@/calendar/dto/update-meeting.dto';
-import { CalendarRepository } from '@/calendar/infrastructure/persistence/calendar.repository';
+import type { CalendarMeetingDetailRecord } from '@/calendar/infrastructure/persistence/calendar-meeting-query.repository';
+import { MeetingContentRepository } from '@/calendar/infrastructure/persistence/meeting-content.repository';
 import { CalendarProjectReferenceProvider } from '@/calendar/infrastructure/project/calendar-project-reference.provider';
 import { CalendarReminderScheduler } from '@/calendar/infrastructure/reminder/calendar-reminder-scheduler.provider';
+import { createMeetingDetailResponseFixture } from '@/calendar/testing/meeting-detail.fixture';
 import { OrganizationAccessDeniedError } from '@/organizations/domain/organization.error';
 import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
 import type { OrganizationsService } from '@/organizations/organizations.service';
 
 import { jest } from '@jest/globals';
 
-class FakeCalendarRepository extends CalendarRepository {
-  listMeetingsInRange = jest.fn<CalendarRepository['listMeetingsInRange']>();
-  findMeetingById = jest.fn<CalendarRepository['findMeetingById']>();
-  listMeetingsInSeries = jest.fn<CalendarRepository['listMeetingsInSeries']>();
-  findParticipantBusyIntervals =
-    jest.fn<CalendarRepository['findParticipantBusyIntervals']>();
-  findRoomBusyIntervals =
-    jest.fn<CalendarRepository['findRoomBusyIntervals']>();
-  scheduleMeeting = jest.fn<CalendarRepository['scheduleMeeting']>();
-  editMeetingDetails = jest.fn<CalendarRepository['editMeetingDetails']>();
-  replaceMeetingAttendees =
-    jest.fn<CalendarRepository['replaceMeetingAttendees']>();
-  rescheduleMeetings = jest.fn<CalendarRepository['rescheduleMeetings']>();
-  cancelMeetings = jest.fn<CalendarRepository['cancelMeetings']>();
-  updateAttendeeRsvp = jest.fn<CalendarRepository['updateAttendeeRsvp']>();
-  updateMeetingAgenda = jest.fn<CalendarRepository['updateMeetingAgenda']>();
-  updateMeetingNotes = jest.fn<CalendarRepository['updateMeetingNotes']>();
-  listMeetingRooms = jest.fn<CalendarRepository['listMeetingRooms']>();
-  findMeetingRoomById = jest.fn<CalendarRepository['findMeetingRoomById']>();
-  createMeetingRoom = jest.fn<CalendarRepository['createMeetingRoom']>();
-  updateMeetingRoom = jest.fn<CalendarRepository['updateMeetingRoom']>();
+class FakeMeetingContentRepository extends MeetingContentRepository {
+  editMeetingDetails =
+    jest.fn<MeetingContentRepository['editMeetingDetails']>();
+  updateMeetingAgenda =
+    jest.fn<MeetingContentRepository['updateMeetingAgenda']>();
+  updateMeetingNotes =
+    jest.fn<MeetingContentRepository['updateMeetingNotes']>();
+}
+
+class FakeMeetingLoader {
+  requireMeeting = jest.fn<CalendarMeetingLoader['requireMeeting']>();
 }
 
 class FakeProjectReferenceProvider extends CalendarProjectReferenceProvider {
@@ -97,32 +88,18 @@ function meeting(overrides: Partial<Meeting> = {}): Meeting {
   };
 }
 
-function room(overrides: Partial<MeetingRoom> = {}): MeetingRoom {
-  return {
-    id: '00000000-0000-4000-8000-000000000002',
-    organizationId: 'organization-a',
-    name: '회의실 A',
-    capacity: 8,
-    floor: '3F',
-    description: null,
-    active: true,
-    createdAt: new Date('2026-10-06T00:00:00.000Z'),
-    updatedAt: new Date('2026-10-06T00:00:00.000Z'),
-    ...overrides,
-  };
-}
-
-function record(overrides: Partial<Meeting> = {}) {
+function record(overrides: Partial<Meeting> = {}): CalendarMeetingDetailRecord {
   return {
     meeting: meeting(overrides),
-    meetingRoom: overrides.meetingRoomId ? room() : null,
+    meetingRoom: null,
     recurrence: null,
     attendees: [],
   };
 }
 
 describe('캘린더 회의 content 서비스', () => {
-  let repository: FakeCalendarRepository;
+  let contentRepository: FakeMeetingContentRepository;
+  let meetingLoader: FakeMeetingLoader;
   let presenter: FakePresenter;
   let projectProvider: FakeProjectReferenceProvider;
   let reminderScheduler: FakeReminderScheduler;
@@ -130,14 +107,15 @@ describe('캘린더 회의 content 서비스', () => {
   let service: CalendarMeetingContentService;
 
   beforeEach(() => {
-    repository = new FakeCalendarRepository();
+    contentRepository = new FakeMeetingContentRepository();
+    meetingLoader = new FakeMeetingLoader();
     presenter = new FakePresenter();
     projectProvider = new FakeProjectReferenceProvider();
     reminderScheduler = new FakeReminderScheduler();
     organizationsService = new FakeOrganizationsService();
     service = new CalendarMeetingContentService(
-      repository,
-      new CalendarMeetingLoader(repository),
+      contentRepository,
+      meetingLoader,
       new CalendarMeetingPolicy(organizationsService),
       presenter,
       projectProvider,
@@ -157,7 +135,7 @@ describe('캘린더 회의 content 서비스', () => {
   });
 
   test('주최자가 아닌 사용자의 기본 수정은 조직 관리 권한 경계를 통과해야 한다', async () => {
-    repository.findMeetingById.mockResolvedValue(
+    meetingLoader.requireMeeting.mockResolvedValue(
       record({ organizerUserId: 'another-organizer' }),
     );
     organizationsService.assertAdministrativeAccess.mockRejectedValue(
@@ -169,13 +147,15 @@ describe('캘린더 회의 content 서비스', () => {
         title: '수정된 제목',
       }),
     ).rejects.toBeInstanceOf(OrganizationAccessDeniedError);
-    expect(repository.editMeetingDetails).not.toHaveBeenCalled();
+    expect(contentRepository.editMeetingDetails).not.toHaveBeenCalled();
   });
 
   test('동일한 일반 필드 PATCH는 저장이나 reminder 재예약을 하지 않는다', async () => {
     const current = record({ reminderMinutes: 15 });
-    repository.findMeetingById.mockResolvedValue(current);
-    presenter.presentDetail.mockResolvedValue({} as never);
+    meetingLoader.requireMeeting.mockResolvedValue(current);
+    presenter.presentDetail.mockResolvedValue(
+      createMeetingDetailResponseFixture(),
+    );
 
     await service.updateMeeting(context, 'organization-a', current.meeting.id, {
       title: current.meeting.title,
@@ -184,7 +164,7 @@ describe('캘린더 회의 content 서비스', () => {
       reminderMinutes: current.meeting.reminderMinutes,
     });
 
-    expect(repository.editMeetingDetails).not.toHaveBeenCalled();
+    expect(contentRepository.editMeetingDetails).not.toHaveBeenCalled();
     expect(reminderScheduler.sync).not.toHaveBeenCalled();
   });
 
@@ -196,36 +176,40 @@ describe('캘린더 회의 content 서비스', () => {
 
   test('agenda 수정은 narrow repository capability만 사용한다', async () => {
     const current = record();
-    repository.findMeetingById.mockResolvedValue(current);
-    repository.updateMeetingAgenda.mockResolvedValue(current);
-    presenter.presentDetail.mockResolvedValue({} as never);
+    meetingLoader.requireMeeting.mockResolvedValue(current);
+    contentRepository.updateMeetingAgenda.mockResolvedValue(current);
+    presenter.presentDetail.mockResolvedValue(
+      createMeetingDetailResponseFixture(),
+    );
 
     await service.updateAgenda(context, 'organization-a', current.meeting.id, {
       agendaMarkdown: '# 논의',
     });
 
-    expect(repository.updateMeetingAgenda).toHaveBeenCalledWith(
+    expect(contentRepository.updateMeetingAgenda).toHaveBeenCalledWith(
       'organization-a',
       current.meeting.id,
-      '# 논의',
+      { agendaMarkdown: '# 논의' },
     );
-    expect(repository.editMeetingDetails).not.toHaveBeenCalled();
+    expect(contentRepository.editMeetingDetails).not.toHaveBeenCalled();
   });
 
   test('notes 수정은 scheduling mutation과 분리된 narrow capability를 사용한다', async () => {
     const current = record();
-    repository.findMeetingById.mockResolvedValue(current);
-    repository.updateMeetingNotes.mockResolvedValue(current);
-    presenter.presentDetail.mockResolvedValue({} as never);
+    meetingLoader.requireMeeting.mockResolvedValue(current);
+    contentRepository.updateMeetingNotes.mockResolvedValue(current);
+    presenter.presentDetail.mockResolvedValue(
+      createMeetingDetailResponseFixture(),
+    );
 
     await service.updateNotes(context, 'organization-a', current.meeting.id, {
       notesMarkdown: '결정사항',
     });
 
-    expect(repository.updateMeetingNotes).toHaveBeenCalledWith(
+    expect(contentRepository.updateMeetingNotes).toHaveBeenCalledWith(
       'organization-a',
       current.meeting.id,
-      '결정사항',
+      { notesMarkdown: '결정사항' },
     );
   });
 
@@ -234,13 +218,13 @@ describe('캘린더 회의 content 서비스', () => {
       canceledAt: new Date('2026-10-06T01:00:00.000Z'),
       canceledByUserId: 'organizer-user',
     });
-    repository.findMeetingById.mockResolvedValue(current);
+    meetingLoader.requireMeeting.mockResolvedValue(current);
 
     await expect(
       service.updateNotes(context, 'organization-a', current.meeting.id, {
         notesMarkdown: '수정하면 안 됨',
       }),
     ).rejects.toBeInstanceOf(CalendarMeetingCanceledError);
-    expect(repository.updateMeetingNotes).not.toHaveBeenCalled();
+    expect(contentRepository.updateMeetingNotes).not.toHaveBeenCalled();
   });
 });

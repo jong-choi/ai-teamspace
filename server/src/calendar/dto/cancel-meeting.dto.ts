@@ -1,11 +1,12 @@
 import { RecurrenceScopeSchema } from '@/calendar/dto/recurrence.dto';
+import { meetingUpdateSchema } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting.zod';
 import { createZodDto } from '@/common/dto/create-zod-dto';
 
 import { z } from 'zod';
 
 export const CancelMeetingSchema = z
   .object({
-    reason: z.string().trim().min(1).max(1_000).nullable().default(null),
+    reason: meetingUpdateSchema.shape.cancelReason.default(null),
     scope: RecurrenceScopeSchema.default('single'),
   })
   .meta({ id: 'CancelMeeting' });

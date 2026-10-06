@@ -1,5 +1,5 @@
 import { InjectQueue } from '@nestjs/bullmq';
-import { Injectable, Logger, type OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, Logger, type OnModuleInit } from '@nestjs/common';
 
 import {
   CALENDAR_REMINDER_JOB,
@@ -18,6 +18,18 @@ import { and, asc, gt, isNotNull, isNull } from 'drizzle-orm';
 
 const reconciliationBatchSize = 500;
 
+type CalendarReminderJob = Pick<
+  NonNullable<Awaited<ReturnType<Queue['getJob']>>>,
+  'remove'
+>;
+
+type CalendarReminderQueue = {
+  getJob: (
+    ...args: Parameters<Queue['getJob']>
+  ) => Promise<CalendarReminderJob | undefined>;
+  add: (...args: Parameters<Queue['add']>) => ReturnType<Queue['add']>;
+};
+
 @Injectable()
 export class BullMqCalendarReminderScheduler
   extends CalendarReminderScheduler
@@ -27,8 +39,9 @@ export class BullMqCalendarReminderScheduler
 
   constructor(
     @InjectQueue(CALENDAR_REMINDER_QUEUE)
-    private readonly queue: Queue,
-    private readonly database: DatabaseService,
+    private readonly queue: CalendarReminderQueue,
+    @Inject(DatabaseService)
+    private readonly database: DatabaseService | undefined,
   ) {
     super();
   }
@@ -67,7 +80,7 @@ export class BullMqCalendarReminderScheduler
     }
   }
 
-  async cancel(meetingIds: readonly string[]): Promise<void> {
+  async cancel(meetingIds: readonly Meeting['id'][]): Promise<void> {
     for (const meetingId of new Set(meetingIds)) {
       const existing = await this.queue.getJob(
         calendarReminderJobId(meetingId),
@@ -80,23 +93,36 @@ export class BullMqCalendarReminderScheduler
     let offset = 0;
     const now = new Date();
     while (true) {
-      const rows = await this.database.db
-        .select()
-        .from(meeting)
-        .where(
-          and(
-            gt(meeting.startAt, now),
-            isNotNull(meeting.reminderMinutes),
-            isNull(meeting.canceledAt),
-          ),
-        )
-        .orderBy(asc(meeting.startAt), asc(meeting.id))
-        .limit(reconciliationBatchSize)
-        .offset(offset);
-      if (rows.length === 0) break;
-      await this.sync(rows.map(toMeetingDomain));
-      offset += rows.length;
-      if (rows.length < reconciliationBatchSize) break;
+      const meetings = await this.loadFutureReminderMeetings(now, offset);
+      if (meetings.length === 0) break;
+      await this.sync(meetings);
+      offset += meetings.length;
+      if (meetings.length < reconciliationBatchSize) break;
     }
+  }
+
+  protected async loadFutureReminderMeetings(
+    now: Date,
+    offset: number,
+  ): Promise<Meeting[]> {
+    if (!this.database) {
+      throw new Error(
+        '캘린더 reminder reconciliation DB가 설정되지 않았습니다.',
+      );
+    }
+    const rows = await this.database.db
+      .select()
+      .from(meeting)
+      .where(
+        and(
+          gt(meeting.startAt, now),
+          isNotNull(meeting.reminderMinutes),
+          isNull(meeting.canceledAt),
+        ),
+      )
+      .orderBy(asc(meeting.startAt), asc(meeting.id))
+      .limit(reconciliationBatchSize)
+      .offset(offset);
+    return rows.map(toMeetingDomain);
   }
 }

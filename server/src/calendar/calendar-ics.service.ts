@@ -6,10 +6,13 @@ import {
 } from '@/auth/auth-user-directory.service';
 import { CalendarMeetingLoader } from '@/calendar/calendar-meeting.loader';
 import { CalendarIcsGenerationError } from '@/calendar/domain/calendar.error';
+import type { Meeting } from '@/calendar/domain/meeting';
 import type { MeetingAttendee } from '@/calendar/domain/meeting-attendee';
 import type { MeetingRecurrenceSeries } from '@/calendar/domain/meeting-recurrence-series';
-import type { CalendarMeetingDetailRecord } from '@/calendar/infrastructure/persistence/calendar.repository';
-import { CalendarRepository } from '@/calendar/infrastructure/persistence/calendar.repository';
+import {
+  type CalendarMeetingDetailRecord,
+  CalendarMeetingQueryRepository,
+} from '@/calendar/infrastructure/persistence/calendar-meeting-query.repository';
 import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
 import { OrganizationsService } from '@/organizations/organizations.service';
 
@@ -65,7 +68,7 @@ export type CalendarIcsDocument = {
 @Injectable()
 export class CalendarIcsService {
   constructor(
-    private readonly calendarRepository: CalendarRepository,
+    private readonly calendarRepository: CalendarMeetingQueryRepository,
     private readonly meetingLoader: CalendarMeetingLoader,
     @Inject(AuthUserDirectoryService)
     private readonly userDirectory: Pick<AuthUserDirectoryService, 'findByIds'>,
@@ -78,8 +81,8 @@ export class CalendarIcsService {
 
   async exportMeeting(
     context: OrganizationActorContext,
-    organizationId: string,
-    meetingId: string,
+    organizationId: Meeting['organizationId'],
+    meetingId: Meeting['id'],
   ): Promise<CalendarIcsDocument> {
     await this.organizationsService.getDetail(context, organizationId);
     const selected = await this.meetingLoader.requireMeeting(
@@ -130,7 +133,7 @@ export class CalendarIcsService {
 
   private buildEvents(
     records: readonly CalendarMeetingDetailRecord[],
-    users: ReadonlyMap<string, AuthUserIdentity>,
+    users: ReadonlyMap<Meeting['organizerUserId'], AuthUserIdentity>,
   ): ICalEventData[] {
     const first = records[0];
     if (!first) throw new CalendarIcsGenerationError();
@@ -180,7 +183,7 @@ export class CalendarIcsService {
 
   private toEvent(
     record: CalendarMeetingDetailRecord,
-    users: ReadonlyMap<string, AuthUserIdentity>,
+    users: ReadonlyMap<Meeting['organizerUserId'], AuthUserIdentity>,
     override: {
       startAt?: Date;
       endAt?: Date;
@@ -265,7 +268,7 @@ export class CalendarIcsService {
 
   private toAttendee(
     attendee: MeetingAttendee,
-    users: ReadonlyMap<string, AuthUserIdentity>,
+    users: ReadonlyMap<Meeting['organizerUserId'], AuthUserIdentity>,
   ): ICalAttendeeData {
     const user = this.requireUser(users, attendee.userId);
     return {
@@ -288,7 +291,7 @@ export class CalendarIcsService {
 
   private async loadUsers(
     records: readonly CalendarMeetingDetailRecord[],
-  ): Promise<Map<string, AuthUserIdentity>> {
+  ): Promise<Map<Meeting['organizerUserId'], AuthUserIdentity>> {
     const userIds = [
       ...new Set(
         records.flatMap((record) => [
@@ -302,8 +305,8 @@ export class CalendarIcsService {
   }
 
   private requireUser(
-    users: ReadonlyMap<string, AuthUserIdentity>,
-    userId: string,
+    users: ReadonlyMap<Meeting['organizerUserId'], AuthUserIdentity>,
+    userId: Meeting['organizerUserId'],
   ): AuthUserIdentity {
     const user = users.get(userId);
     if (!user) {

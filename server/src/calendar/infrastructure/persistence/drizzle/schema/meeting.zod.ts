@@ -31,7 +31,7 @@ const fieldRefinements = {
   notesMarkdown: z.string(),
   reminderMinutes: z.number().int().min(0).max(postgresIntegerMax).nullable(),
   iCalSequence: z.number().int().min(0).max(postgresIntegerMax),
-  cancelReason: z.string().trim().min(1).nullable(),
+  cancelReason: z.string().trim().min(1).max(1_000).nullable(),
 };
 
 export const meetingSelectSchema = createSelectSchema(

@@ -7,32 +7,26 @@ import { CalendarMeetingLoader } from '@/calendar/calendar-meeting.loader';
 import type { Meeting } from '@/calendar/domain/meeting';
 import type { MeetingAttendee } from '@/calendar/domain/meeting-attendee';
 import type { MeetingRecurrenceSeries } from '@/calendar/domain/meeting-recurrence-series';
-import { CalendarRepository } from '@/calendar/infrastructure/persistence/calendar.repository';
+import { CalendarMeetingQueryRepository } from '@/calendar/infrastructure/persistence/calendar-meeting-query.repository';
+import { MeetingRoomRepository } from '@/calendar/infrastructure/persistence/meeting-room.repository';
 import type { OrganizationsService } from '@/organizations/organizations.service';
 
 import { jest } from '@jest/globals';
 
-class FakeCalendarRepository extends CalendarRepository {
-  listMeetingsInRange = jest.fn<CalendarRepository['listMeetingsInRange']>();
-  findMeetingById = jest.fn<CalendarRepository['findMeetingById']>();
-  listMeetingsInSeries = jest.fn<CalendarRepository['listMeetingsInSeries']>();
-  findParticipantBusyIntervals =
-    jest.fn<CalendarRepository['findParticipantBusyIntervals']>();
-  findRoomBusyIntervals =
-    jest.fn<CalendarRepository['findRoomBusyIntervals']>();
-  scheduleMeeting = jest.fn<CalendarRepository['scheduleMeeting']>();
-  editMeetingDetails = jest.fn<CalendarRepository['editMeetingDetails']>();
-  replaceMeetingAttendees =
-    jest.fn<CalendarRepository['replaceMeetingAttendees']>();
-  rescheduleMeetings = jest.fn<CalendarRepository['rescheduleMeetings']>();
-  cancelMeetings = jest.fn<CalendarRepository['cancelMeetings']>();
-  updateAttendeeRsvp = jest.fn<CalendarRepository['updateAttendeeRsvp']>();
-  updateMeetingAgenda = jest.fn<CalendarRepository['updateMeetingAgenda']>();
-  updateMeetingNotes = jest.fn<CalendarRepository['updateMeetingNotes']>();
-  listMeetingRooms = jest.fn<CalendarRepository['listMeetingRooms']>();
-  findMeetingRoomById = jest.fn<CalendarRepository['findMeetingRoomById']>();
-  createMeetingRoom = jest.fn<CalendarRepository['createMeetingRoom']>();
-  updateMeetingRoom = jest.fn<CalendarRepository['updateMeetingRoom']>();
+class FakeCalendarMeetingQueryRepository extends CalendarMeetingQueryRepository {
+  listMeetingsInRange =
+    jest.fn<CalendarMeetingQueryRepository['listMeetingsInRange']>();
+  findMeetingById =
+    jest.fn<CalendarMeetingQueryRepository['findMeetingById']>();
+  listMeetingsInSeries =
+    jest.fn<CalendarMeetingQueryRepository['listMeetingsInSeries']>();
+}
+
+class FakeMeetingRoomRepository extends MeetingRoomRepository {
+  listMeetingRooms = jest.fn<MeetingRoomRepository['listMeetingRooms']>();
+  findMeetingRoomById = jest.fn<MeetingRoomRepository['findMeetingRoomById']>();
+  createMeetingRoom = jest.fn<MeetingRoomRepository['createMeetingRoom']>();
+  updateMeetingRoom = jest.fn<MeetingRoomRepository['updateMeetingRoom']>();
 }
 
 class FakeUserDirectory {
@@ -77,7 +71,7 @@ function meeting(overrides: Partial<Meeting> = {}): Meeting {
 }
 
 function attendee(
-  userId: string,
+  userId: MeetingAttendee['userId'],
   status: MeetingAttendee['status'],
 ): MeetingAttendee {
   return {
@@ -138,18 +132,20 @@ const identities: AuthUserIdentity[] = [
 ];
 
 describe('캘린더 ICS 서비스', () => {
-  let repository: FakeCalendarRepository;
+  let repository: FakeCalendarMeetingQueryRepository;
+  let meetingRoomRepository: FakeMeetingRoomRepository;
   let userDirectory: FakeUserDirectory;
   let organizationsService: FakeOrganizationsService;
   let service: CalendarIcsService;
 
   beforeEach(() => {
-    repository = new FakeCalendarRepository();
+    repository = new FakeCalendarMeetingQueryRepository();
+    meetingRoomRepository = new FakeMeetingRoomRepository();
     userDirectory = new FakeUserDirectory();
     organizationsService = new FakeOrganizationsService();
     service = new CalendarIcsService(
       repository,
-      new CalendarMeetingLoader(repository),
+      new CalendarMeetingLoader(repository, meetingRoomRepository),
       userDirectory,
       organizationsService,
     );

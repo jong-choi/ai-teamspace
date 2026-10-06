@@ -11,7 +11,7 @@ import type {
   UpdateMeetingAgendaInput,
   UpdateMeetingNotesInput,
 } from '@/calendar/dto/update-meeting-content.dto';
-import { CalendarRepository } from '@/calendar/infrastructure/persistence/calendar.repository';
+import { MeetingContentRepository } from '@/calendar/infrastructure/persistence/meeting-content.repository';
 import { CalendarProjectReferenceProvider } from '@/calendar/infrastructure/project/calendar-project-reference.provider';
 import { CalendarReminderScheduler } from '@/calendar/infrastructure/reminder/calendar-reminder-scheduler.provider';
 import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
@@ -29,8 +29,12 @@ export class CalendarMeetingContentService {
   private readonly logger = new Logger(CalendarMeetingContentService.name);
 
   constructor(
-    private readonly calendarRepository: CalendarRepository,
-    private readonly meetingLoader: CalendarMeetingLoader,
+    private readonly meetingContentRepository: MeetingContentRepository,
+    @Inject(CalendarMeetingLoader)
+    private readonly meetingLoader: Pick<
+      CalendarMeetingLoader,
+      'requireMeeting'
+    >,
     private readonly meetingPolicy: CalendarMeetingPolicy,
     @Inject(CalendarMeetingPresenterService)
     private readonly presenter: CalendarMeetingPresenter,
@@ -42,8 +46,8 @@ export class CalendarMeetingContentService {
 
   async updateMeeting(
     context: OrganizationActorContext,
-    organizationId: string,
-    meetingId: string,
+    organizationId: Meeting['organizationId'],
+    meetingId: Meeting['id'],
     input: UpdateMeetingInput,
   ): Promise<MeetingDetailResponse> {
     await this.organizationsService.getDetail(context, organizationId);
@@ -58,9 +62,7 @@ export class CalendarMeetingContentService {
       current,
     );
 
-    const changes: Parameters<
-      CalendarRepository['editMeetingDetails']
-    >[0]['changes'] = {};
+    const changes: UpdateMeetingInput = {};
     if (input.title !== undefined && input.title !== current.meeting.title) {
       changes.title = input.title;
     }
@@ -92,11 +94,11 @@ export class CalendarMeetingContentService {
       return this.presenter.presentDetail(organizationId, current);
     }
 
-    const updated = await this.calendarRepository.editMeetingDetails({
+    const updated = await this.meetingContentRepository.editMeetingDetails(
       organizationId,
       meetingId,
       changes,
-    });
+    );
     if (!updated) throw new CalendarMeetingNotFoundError();
     if (changes.reminderMinutes !== undefined) {
       await this.syncReminder(updated.meeting);
@@ -106,8 +108,8 @@ export class CalendarMeetingContentService {
 
   async updateAgenda(
     context: OrganizationActorContext,
-    organizationId: string,
-    meetingId: string,
+    organizationId: Meeting['organizationId'],
+    meetingId: Meeting['id'],
     input: UpdateMeetingAgendaInput,
   ): Promise<MeetingDetailResponse> {
     await this.organizationsService.getDetail(context, organizationId);
@@ -124,10 +126,10 @@ export class CalendarMeetingContentService {
     if (input.agendaMarkdown === current.meeting.agendaMarkdown) {
       return this.presenter.presentDetail(organizationId, current);
     }
-    const updated = await this.calendarRepository.updateMeetingAgenda(
+    const updated = await this.meetingContentRepository.updateMeetingAgenda(
       organizationId,
       meetingId,
-      input.agendaMarkdown,
+      input,
     );
     if (!updated) throw new CalendarMeetingNotFoundError();
     return this.presenter.presentDetail(organizationId, updated);
@@ -135,8 +137,8 @@ export class CalendarMeetingContentService {
 
   async updateNotes(
     context: OrganizationActorContext,
-    organizationId: string,
-    meetingId: string,
+    organizationId: Meeting['organizationId'],
+    meetingId: Meeting['id'],
     input: UpdateMeetingNotesInput,
   ): Promise<MeetingDetailResponse> {
     await this.organizationsService.getDetail(context, organizationId);
@@ -153,10 +155,10 @@ export class CalendarMeetingContentService {
     if (input.notesMarkdown === current.meeting.notesMarkdown) {
       return this.presenter.presentDetail(organizationId, current);
     }
-    const updated = await this.calendarRepository.updateMeetingNotes(
+    const updated = await this.meetingContentRepository.updateMeetingNotes(
       organizationId,
       meetingId,
-      input.notesMarkdown,
+      input,
     );
     if (!updated) throw new CalendarMeetingNotFoundError();
     return this.presenter.presentDetail(organizationId, updated);

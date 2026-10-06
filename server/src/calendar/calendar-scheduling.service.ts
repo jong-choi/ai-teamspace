@@ -14,14 +14,13 @@ import {
   CalendarMeetingNotFoundError,
   CalendarMeetingRoomInactiveError,
 } from '@/calendar/domain/calendar.error';
+import type { Meeting } from '@/calendar/domain/meeting';
 import type { CancelMeetingInput } from '@/calendar/dto/cancel-meeting.dto';
 import type { CreateMeetingInput } from '@/calendar/dto/create-meeting.dto';
 import type { MeetingDetailResponse } from '@/calendar/dto/meeting.dto';
 import type { RescheduleMeetingInput } from '@/calendar/dto/reschedule-meeting.dto';
-import {
-  type CalendarMeetingDetailRecord,
-  CalendarRepository,
-} from '@/calendar/infrastructure/persistence/calendar.repository';
+import type { CalendarMeetingDetailRecord } from '@/calendar/infrastructure/persistence/calendar-meeting-query.repository';
+import { CalendarSchedulingRepository } from '@/calendar/infrastructure/persistence/calendar-scheduling.repository';
 import { CalendarProjectReferenceProvider } from '@/calendar/infrastructure/project/calendar-project-reference.provider';
 import { CalendarReminderScheduler } from '@/calendar/infrastructure/reminder/calendar-reminder-scheduler.provider';
 import { RecurrenceSchedulingPlanService } from '@/calendar/recurrence-scheduling-plan.service';
@@ -40,7 +39,7 @@ export class CalendarSchedulingService {
   private readonly logger = new Logger(CalendarSchedulingService.name);
 
   constructor(
-    private readonly calendarRepository: CalendarRepository,
+    private readonly schedulingRepository: CalendarSchedulingRepository,
     private readonly meetingLoader: CalendarMeetingLoader,
     private readonly meetingPolicy: CalendarMeetingPolicy,
     @Inject(CalendarMeetingPresenterService)
@@ -57,7 +56,7 @@ export class CalendarSchedulingService {
 
   async createMeeting(
     context: OrganizationActorContext,
-    organizationId: string,
+    organizationId: Meeting['organizationId'],
     input: CreateMeetingInput,
   ): Promise<MeetingDetailResponse> {
     await this.organizationsService.getDetail(context, organizationId);
@@ -104,33 +103,28 @@ export class CalendarSchedulingService {
             originalStartAt: startAt,
           },
         ];
-    const result = await this.calendarRepository.scheduleMeeting({
-      template: {
-        organizationId,
+    const result = await this.schedulingRepository.scheduleMeeting(
+      organizationId,
+      context.userId,
+      {
+        ...input,
         projectId,
-        organizerUserId: context.userId,
-        title: input.title,
-        category: input.category,
-        timeZone: input.timeZone,
-        locationType: input.locationType,
         meetingRoomId,
         locationText: input.locationText ?? null,
         agendaMarkdown: input.agendaMarkdown ?? '',
         notesMarkdown: input.notesMarkdown ?? '',
         reminderMinutes: input.reminderMinutes ?? null,
-        iCalUid: randomUUID(),
       },
       attendeeUserIds,
-      occurrences: occurrences.map((occurrence) => ({
+      occurrences.map((occurrence) => ({
         startAt: occurrence.startAt,
         endAt: occurrence.endAt,
         recurrenceOriginalStartAt: input.recurrence
           ? occurrence.originalStartAt
           : null,
       })),
-      recurrence: input.recurrence
+      input.recurrence
         ? {
-            organizationId,
             frequency: input.recurrence.frequency,
             interval: input.recurrence.interval,
             count: input.recurrence.count ?? null,
@@ -141,7 +135,8 @@ export class CalendarSchedulingService {
             timeZone: input.recurrence.timeZone,
           }
         : null,
-    });
+      randomUUID(),
+    );
     if (result.status === 'room_unavailable') {
       throw new CalendarMeetingRoomInactiveError();
     }
@@ -156,8 +151,8 @@ export class CalendarSchedulingService {
 
   async rescheduleMeeting(
     context: OrganizationActorContext,
-    organizationId: string,
-    meetingId: string,
+    organizationId: Meeting['organizationId'],
+    meetingId: Meeting['id'],
     input: RescheduleMeetingInput,
   ): Promise<MeetingDetailResponse> {
     await this.organizationsService.getDetail(context, organizationId);
@@ -183,18 +178,14 @@ export class CalendarSchedulingService {
         meetingRoomId,
       );
     }
-    const locationText = input.locationText;
-
     const plan = await this.recurrencePlanService.buildReschedulePlan({
       organizationId,
       current,
       input,
       startAt,
       endAt,
-      meetingRoomId,
-      locationText,
     });
-    const result = await this.calendarRepository.rescheduleMeetings(plan);
+    const result = await this.schedulingRepository.rescheduleMeetings(...plan);
     if (result.status === 'not_found') throw new CalendarMeetingNotFoundError();
     if (result.status === 'canceled') throw new CalendarMeetingCanceledError();
     if (result.status === 'room_unavailable') {
@@ -213,8 +204,8 @@ export class CalendarSchedulingService {
 
   async cancelMeeting(
     context: OrganizationActorContext,
-    organizationId: string,
-    meetingId: string,
+    organizationId: Meeting['organizationId'],
+    meetingId: Meeting['id'],
     input: CancelMeetingInput,
   ): Promise<MeetingDetailResponse> {
     await this.organizationsService.getDetail(context, organizationId);
@@ -236,12 +227,12 @@ export class CalendarSchedulingService {
       current,
       input.scope,
     );
-    const records = await this.calendarRepository.cancelMeetings({
+    const records = await this.schedulingRepository.cancelMeetings(
       organizationId,
-      meetingIds: targets.map((record) => record.meeting.id),
-      canceledByUserId: context.userId,
-      cancelReason: input.reason,
-    });
+      targets.map((record) => record.meeting.id),
+      context.userId,
+      input,
+    );
     await this.cancelReminders(targets.map((record) => record.meeting.id));
     const selected = records.find((record) => record.meeting.id === meetingId);
     if (!selected) throw new CalendarMeetingNotFoundError();
@@ -263,7 +254,9 @@ export class CalendarSchedulingService {
     }
   }
 
-  private async cancelReminders(meetingIds: readonly string[]): Promise<void> {
+  private async cancelReminders(
+    meetingIds: readonly Meeting['id'][],
+  ): Promise<void> {
     try {
       await this.reminderScheduler.cancel(meetingIds);
     } catch (error) {

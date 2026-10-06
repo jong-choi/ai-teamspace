@@ -4,7 +4,7 @@ import {
   CalendarParticipantConflictError,
   CalendarRoomConflictError,
 } from '@/calendar/domain/calendar.error';
-import type { CalendarSchedulingConflict } from '@/calendar/infrastructure/persistence/calendar.repository';
+import type { CalendarSchedulingConflict } from '@/calendar/infrastructure/persistence/calendar-availability.repository';
 
 @Injectable()
 export class CalendarSchedulingConflictPolicy {

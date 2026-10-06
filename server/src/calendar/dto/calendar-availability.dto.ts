@@ -1,4 +1,7 @@
-import { meetingTimeZoneSchema } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting.zod';
+import { meetingAttendeeSelectSchema } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting-attendee.zod';
+import { meetingRoomSelectSchema } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting-room.zod';
+import { meetingSelectSchema } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting.zod';
+import { MeetingDetailSchema } from '@/calendar/dto/meeting.dto';
 import { createZodDto } from '@/common/dto/create-zod-dto';
 
 import { z } from 'zod';
@@ -8,8 +11,8 @@ const instantSchema = z.string().datetime({ offset: true });
 const availabilityTimeSchema = z.object({
   startAt: instantSchema,
   endAt: instantSchema,
-  timeZone: meetingTimeZoneSchema,
-  meetingRoomId: z.string().uuid().nullable().default(null),
+  timeZone: meetingSelectSchema.shape.timeZone,
+  meetingRoomId: meetingSelectSchema.shape.meetingRoomId.default(null),
 });
 
 function hasValidTimeRange(input: { startAt: string; endAt: string }): boolean {
@@ -18,7 +21,10 @@ function hasValidTimeRange(input: { startAt: string; endAt: string }): boolean {
 
 export const CalendarAvailabilityRequestSchema = availabilityTimeSchema
   .extend({
-    attendeeUserIds: z.array(z.string().trim().min(1)).max(500).default([]),
+    attendeeUserIds: z
+      .array(meetingAttendeeSelectSchema.shape.userId)
+      .max(500)
+      .default([]),
   })
   .refine(hasValidTimeRange, {
     message: '회의 종료 시각은 시작 시각보다 늦어야 합니다.',
@@ -36,18 +42,18 @@ export const CalendarRescheduleAvailabilityRequestSchema =
 
 export const ParticipantConflictSchema = z
   .object({
-    userId: z.string().min(1),
-    startAt: z.string().datetime(),
-    endAt: z.string().datetime(),
+    userId: meetingAttendeeSelectSchema.shape.userId,
+    startAt: MeetingDetailSchema.shape.startAt,
+    endAt: MeetingDetailSchema.shape.endAt,
     sourceType: z.enum(['organizer', 'attendee']),
   })
   .meta({ id: 'CalendarParticipantConflict' });
 
 export const RoomConflictSchema = z
   .object({
-    meetingRoomId: z.string().uuid(),
-    startAt: z.string().datetime(),
-    endAt: z.string().datetime(),
+    meetingRoomId: meetingRoomSelectSchema.shape.id,
+    startAt: MeetingDetailSchema.shape.startAt,
+    endAt: MeetingDetailSchema.shape.endAt,
   })
   .meta({ id: 'CalendarRoomConflict' });
 

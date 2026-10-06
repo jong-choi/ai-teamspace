@@ -4,10 +4,7 @@ import {
 } from '@/calendar/domain/calendar-reminder';
 import type { Meeting } from '@/calendar/domain/meeting';
 import { BullMqCalendarReminderScheduler } from '@/calendar/infrastructure/reminder/bullmq/bullmq-calendar-reminder.scheduler';
-import type { DatabaseService } from '@/database/database.service';
-
 import { jest } from '@jest/globals';
-import type { Queue } from 'bullmq';
 
 function meeting(overrides: Partial<Meeting> = {}): Meeting {
   return {
@@ -39,26 +36,40 @@ function meeting(overrides: Partial<Meeting> = {}): Meeting {
   };
 }
 
-type FakeJob = { remove: () => Promise<void> };
-type GetJob = (jobId: string) => Promise<FakeJob | undefined>;
-type AddJob = (name: string, data: unknown, options: unknown) => Promise<void>;
+type ReminderQueue = ConstructorParameters<
+  typeof BullMqCalendarReminderScheduler
+>[0];
+type ReminderJob = NonNullable<Awaited<ReturnType<ReminderQueue['getJob']>>>;
+
+class ReconciliationTestScheduler extends BullMqCalendarReminderScheduler {
+  constructor(
+    queue: ReminderQueue,
+    private readonly meetings: readonly Meeting[],
+  ) {
+    super(queue, undefined);
+  }
+
+  protected override async loadFutureReminderMeetings(
+    _now: Date,
+    offset: number,
+  ): Promise<Meeting[]> {
+    return offset === 0 ? [...this.meetings] : [];
+  }
+}
 
 describe('캘린더 BullMQ reminder scheduler', () => {
   const now = new Date('2026-10-07T00:00:00.000Z').getTime();
-  let getJob: jest.MockedFunction<GetJob>;
-  let add: jest.MockedFunction<AddJob>;
-  let queue: Queue;
+  let getJob: jest.MockedFunction<ReminderQueue['getJob']>;
+  let add: jest.MockedFunction<ReminderQueue['add']>;
+  let queue: ReminderQueue;
   let scheduler: BullMqCalendarReminderScheduler;
 
   beforeEach(() => {
     jest.spyOn(Date, 'now').mockReturnValue(now);
-    getJob = jest.fn<GetJob>().mockResolvedValue(undefined);
-    add = jest.fn<AddJob>().mockResolvedValue(undefined);
-    queue = { getJob, add } as unknown as Queue;
-    scheduler = new BullMqCalendarReminderScheduler(
-      queue,
-      {} as DatabaseService,
-    );
+    getJob = jest.fn<ReminderQueue['getJob']>();
+    add = jest.fn<ReminderQueue['add']>();
+    queue = { getJob, add };
+    scheduler = new BullMqCalendarReminderScheduler(queue, undefined);
   });
 
   afterEach(() => {
@@ -87,26 +98,36 @@ describe('캘린더 BullMQ reminder scheduler', () => {
     );
   });
 
-  test('reschedule 동기화는 기존 reminder를 제거한 뒤 새 job으로 대체한다', async () => {
-    const remove = jest.fn<() => Promise<void>>(async () => undefined);
-    getJob.mockResolvedValue({ remove });
+  test('같은 Meeting을 반복 동기화하면 안정적인 job id로 기존 job을 제거하고 하나만 다시 예약한다', async () => {
+    const remove = jest
+      .fn<ReminderJob['remove']>()
+      .mockResolvedValue(undefined);
+    getJob.mockResolvedValueOnce(undefined).mockResolvedValueOnce({ remove });
     const item = meeting({
       startAt: new Date('2026-10-07T03:00:00.000Z'),
     });
 
     await scheduler.sync([item]);
+    await scheduler.sync([item]);
 
+    expect(getJob).toHaveBeenNthCalledWith(1, calendarReminderJobId(item.id));
+    expect(getJob).toHaveBeenNthCalledWith(2, calendarReminderJobId(item.id));
     expect(remove).toHaveBeenCalledTimes(1);
-    expect(add).toHaveBeenCalledTimes(1);
-    expect(add).toHaveBeenCalledWith(
+    expect(add).toHaveBeenCalledTimes(2);
+    expect(add).toHaveBeenLastCalledWith(
       CALENDAR_REMINDER_JOB,
       expect.any(Object),
-      expect.objectContaining({ delay: 170 * 60 * 1_000 }),
+      expect.objectContaining({
+        jobId: calendarReminderJobId(item.id),
+        delay: 170 * 60 * 1_000,
+      }),
     );
   });
 
   test('reminder가 없거나 취소된 Meeting은 기존 job만 정리하고 새로 예약하지 않는다', async () => {
-    const remove = jest.fn<() => Promise<void>>(async () => undefined);
+    const remove = jest
+      .fn<ReminderJob['remove']>()
+      .mockResolvedValue(undefined);
     getJob.mockResolvedValue({ remove });
 
     await scheduler.sync([
@@ -122,8 +143,41 @@ describe('캘린더 BullMQ reminder scheduler', () => {
     expect(add).not.toHaveBeenCalled();
   });
 
+  test('startup reconciliation은 미래의 활성 reminder를 다시 예약한다', async () => {
+    const item = meeting({
+      startAt: new Date('2026-10-07T04:00:00.000Z'),
+    });
+    scheduler = new ReconciliationTestScheduler(queue, [item]);
+
+    await scheduler.onModuleInit();
+
+    expect(add).toHaveBeenCalledTimes(1);
+    expect(add).toHaveBeenCalledWith(
+      CALENDAR_REMINDER_JOB,
+      expect.objectContaining({ meetingId: item.id }),
+      expect.objectContaining({ jobId: calendarReminderJobId(item.id) }),
+    );
+  });
+
+  test('startup reconciliation은 취소되었거나 reminder가 없는 Meeting을 재등록하지 않는다', async () => {
+    scheduler = new ReconciliationTestScheduler(queue, [
+      meeting({ reminderMinutes: null }),
+      meeting({
+        id: '22222222-2222-4222-8222-222222222222',
+        canceledAt: new Date('2026-10-06T23:00:00.000Z'),
+        canceledByUserId: 'organizer-user',
+      }),
+    ]);
+
+    await scheduler.onModuleInit();
+
+    expect(add).not.toHaveBeenCalled();
+  });
+
   test('cancel은 중복 Meeting id를 dedupe해서 reminder job을 제거한다', async () => {
-    const remove = jest.fn<() => Promise<void>>(async () => undefined);
+    const remove = jest
+      .fn<ReminderJob['remove']>()
+      .mockResolvedValue(undefined);
     getJob.mockResolvedValue({ remove });
     const meetingId = meeting().id;
 

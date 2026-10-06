@@ -10,10 +10,11 @@ import {
   CalendarMeetingNotAttendeeError,
   CalendarMeetingNotFoundError,
 } from '@/calendar/domain/calendar.error';
+import type { Meeting } from '@/calendar/domain/meeting';
 import type { MeetingDetailResponse } from '@/calendar/dto/meeting.dto';
 import type { RsvpMeetingInput } from '@/calendar/dto/rsvp-meeting.dto';
 import type { UpdateMeetingAttendeesInput } from '@/calendar/dto/update-meeting-attendees.dto';
-import { CalendarRepository } from '@/calendar/infrastructure/persistence/calendar.repository';
+import { MeetingParticipationRepository } from '@/calendar/infrastructure/persistence/meeting-participation.repository';
 import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
 import { OrganizationsService } from '@/organizations/organizations.service';
 
@@ -26,7 +27,7 @@ type CalendarMeetingPresenter = Pick<
 @Injectable()
 export class CalendarParticipationService {
   constructor(
-    private readonly calendarRepository: CalendarRepository,
+    private readonly participationRepository: MeetingParticipationRepository,
     private readonly meetingLoader: CalendarMeetingLoader,
     private readonly meetingPolicy: CalendarMeetingPolicy,
     @Inject(CalendarMeetingPresenterService)
@@ -39,8 +40,8 @@ export class CalendarParticipationService {
 
   async replaceAttendees(
     context: OrganizationActorContext,
-    organizationId: string,
-    meetingId: string,
+    organizationId: Meeting['organizationId'],
+    meetingId: Meeting['id'],
     input: UpdateMeetingAttendeesInput,
   ): Promise<MeetingDetailResponse> {
     await this.organizationsService.getDetail(context, organizationId);
@@ -74,12 +75,12 @@ export class CalendarParticipationService {
     const newlyAddedIds = attendeeUserIds.filter(
       (userId) => !existingIds.has(userId),
     );
-    const result = await this.calendarRepository.replaceMeetingAttendees({
+    const result = await this.participationRepository.replaceMeetingAttendees(
       organizationId,
       meetingId,
-      attendeeUserIds,
-      conflictUserIds: newlyAddedIds,
-    });
+      { attendeeUserIds },
+      newlyAddedIds,
+    );
     if (result.status === 'not_found') throw new CalendarMeetingNotFoundError();
     if (result.status === 'canceled') throw new CalendarMeetingCanceledError();
     if (result.status === 'conflict') {
@@ -90,8 +91,8 @@ export class CalendarParticipationService {
 
   async updateRsvp(
     context: OrganizationActorContext,
-    organizationId: string,
-    meetingId: string,
+    organizationId: Meeting['organizationId'],
+    meetingId: Meeting['id'],
     input: RsvpMeetingInput,
   ): Promise<MeetingDetailResponse> {
     await this.organizationsService.getDetail(context, organizationId);
@@ -100,11 +101,11 @@ export class CalendarParticipationService {
       meetingId,
     );
     this.meetingPolicy.assertActive(current);
-    const result = await this.calendarRepository.updateAttendeeRsvp(
+    const result = await this.participationRepository.updateAttendeeRsvp(
       organizationId,
       meetingId,
       context.userId,
-      input.status,
+      input,
     );
     if (result.status === 'not_found') throw new CalendarMeetingNotFoundError();
     if (result.status === 'canceled') throw new CalendarMeetingCanceledError();

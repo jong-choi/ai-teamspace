@@ -2,45 +2,37 @@ import { Injectable } from '@nestjs/common';
 
 import { CalendarRecurrenceService } from '@/calendar/calendar-recurrence.service';
 import { CalendarInvalidRecurrenceScopeError } from '@/calendar/domain/calendar.error';
+import type { Meeting } from '@/calendar/domain/meeting';
 import type { MeetingRecurrenceSeries } from '@/calendar/domain/meeting-recurrence-series';
 import type { CancelMeetingInput } from '@/calendar/dto/cancel-meeting.dto';
 import type { RescheduleMeetingInput } from '@/calendar/dto/reschedule-meeting.dto';
 import {
   type CalendarMeetingDetailRecord,
-  CalendarRepository,
-  type RescheduleMeetingUpdate,
-} from '@/calendar/infrastructure/persistence/calendar.repository';
+  CalendarMeetingQueryRepository,
+} from '@/calendar/infrastructure/persistence/calendar-meeting-query.repository';
+import { CalendarSchedulingRepository } from '@/calendar/infrastructure/persistence/calendar-scheduling.repository';
 
 @Injectable()
 export class RecurrenceSchedulingPlanService {
   constructor(
-    private readonly calendarRepository: CalendarRepository,
+    private readonly meetingQueryRepository: CalendarMeetingQueryRepository,
     private readonly recurrenceService: CalendarRecurrenceService,
   ) {}
 
   async buildReschedulePlan(input: {
-    organizationId: string;
+    organizationId: Meeting['organizationId'];
     current: CalendarMeetingDetailRecord;
     input: RescheduleMeetingInput;
     startAt: Date;
     endAt: Date;
-    meetingRoomId: string | null;
-    locationText: string | null;
-  }): Promise<Parameters<CalendarRepository['rescheduleMeetings']>[0]> {
+  }): Promise<Parameters<CalendarSchedulingRepository['rescheduleMeetings']>> {
     if (input.input.scope === 'single') {
-      return {
-        organizationId: input.organizationId,
-        updates: [
-          this.toRescheduleUpdate(
-            input.current,
-            input.startAt,
-            input.endAt,
-            input.input,
-            input.meetingRoomId,
-            input.locationText,
-          ),
-        ],
-      };
+      return [
+        input.organizationId,
+        input.input,
+        [this.toRescheduleUpdate(input.current, input.startAt, input.endAt)],
+        [],
+      ];
     }
 
     const recurrence = input.current.recurrence;
@@ -49,7 +41,7 @@ export class RecurrenceSchedulingPlanService {
     if (!recurrence || !recurrenceSeriesId || !selectedOriginal) {
       throw new CalendarInvalidRecurrenceScopeError();
     }
-    const series = await this.calendarRepository.listMeetingsInSeries(
+    const series = await this.meetingQueryRepository.listMeetingsInSeries(
       input.organizationId,
       recurrenceSeriesId,
     );
@@ -95,17 +87,15 @@ export class RecurrenceSchedulingPlanService {
       futureAffectsWholeSeries ||
       shouldSplitFuture;
 
-    const updates: RescheduleMeetingUpdate[] = targets.map((record, index) => {
+    const updates: Parameters<
+      CalendarSchedulingRepository['rescheduleMeetings']
+    >[2] = targets.map((record, index) => {
       const next = shifted[index];
       if (!next) throw new CalendarInvalidRecurrenceScopeError();
       return {
-        meetingId: record.meeting.id,
+        id: record.meeting.id,
         startAt: next.startAt,
         endAt: next.endAt,
-        timeZone: input.input.timeZone,
-        locationType: input.input.locationType,
-        meetingRoomId: input.meetingRoomId,
-        locationText: input.locationText,
         recurrenceOriginalStartAt: shouldRewriteRecurrenceIdentity
           ? next.originalStartAt
           : undefined,
@@ -117,11 +107,12 @@ export class RecurrenceSchedulingPlanService {
       !futureAffectsWholeSeries &&
       !shouldSplitFuture
     ) {
-      return {
-        organizationId: input.organizationId,
+      return [
+        input.organizationId,
+        input.input,
         updates,
         allowedCanceledMeetingIds,
-      };
+      ];
     }
 
     const dayShift = this.recurrenceService.calendarDayShift({
@@ -139,11 +130,12 @@ export class RecurrenceSchedulingPlanService {
     );
 
     if (input.input.scope === 'series' || futureAffectsWholeSeries) {
-      return {
-        organizationId: input.organizationId,
+      return [
+        input.organizationId,
+        input.input,
         updates,
         allowedCanceledMeetingIds,
-        recurrenceMutation: {
+        {
           kind: 'update',
           seriesId: recurrence.id,
           changes: {
@@ -152,7 +144,7 @@ export class RecurrenceSchedulingPlanService {
             timeZone: input.input.timeZone,
           },
         },
-      };
+      ];
     }
 
     const sourceStarts = sourceRecords.map((record) => {
@@ -160,17 +152,17 @@ export class RecurrenceSchedulingPlanService {
       if (!originalStartAt) throw new CalendarInvalidRecurrenceScopeError();
       return originalStartAt;
     });
-    return {
-      organizationId: input.organizationId,
+    return [
+      input.organizationId,
+      input.input,
       updates,
       allowedCanceledMeetingIds,
-      recurrenceMutation: {
+      {
         kind: 'split',
         sourceSeriesId: recurrence.id,
         sourceChanges: this.recurrenceTermination(recurrence, sourceStarts),
         meetingIds: targets.map((record) => record.meeting.id),
         create: {
-          organizationId: input.organizationId,
           frequency: recurrence.frequency,
           interval: recurrence.interval,
           ...this.recurrenceTermination(recurrence, shiftedStarts),
@@ -178,11 +170,11 @@ export class RecurrenceSchedulingPlanService {
           timeZone: input.input.timeZone,
         },
       },
-    };
+    ];
   }
 
   async resolveScopedMeetings(
-    organizationId: string,
+    organizationId: Meeting['organizationId'],
     current: CalendarMeetingDetailRecord,
     scope: CancelMeetingInput['scope'],
   ): Promise<CalendarMeetingDetailRecord[]> {
@@ -192,7 +184,7 @@ export class RecurrenceSchedulingPlanService {
     if (!recurrenceSeriesId || !recurrenceOriginalStartAt) {
       throw new CalendarInvalidRecurrenceScopeError();
     }
-    const series = await this.calendarRepository.listMeetingsInSeries(
+    const series = await this.meetingQueryRepository.listMeetingsInSeries(
       organizationId,
       recurrenceSeriesId,
     );
@@ -208,18 +200,11 @@ export class RecurrenceSchedulingPlanService {
     record: CalendarMeetingDetailRecord,
     startAt: Date,
     endAt: Date,
-    input: RescheduleMeetingInput,
-    meetingRoomId: string | null,
-    locationText: string | null,
-  ): RescheduleMeetingUpdate {
+  ): Parameters<CalendarSchedulingRepository['rescheduleMeetings']>[2][number] {
     return {
-      meetingId: record.meeting.id,
+      id: record.meeting.id,
       startAt,
       endAt,
-      timeZone: input.timeZone,
-      locationType: input.locationType,
-      meetingRoomId,
-      locationText,
     };
   }
 

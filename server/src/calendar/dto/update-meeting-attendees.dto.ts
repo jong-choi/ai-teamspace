@@ -1,10 +1,11 @@
+import { meetingAttendeeInsertSchema } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting-attendee.zod';
 import { createZodDto } from '@/common/dto/create-zod-dto';
 
 import { z } from 'zod';
 
 export const UpdateMeetingAttendeesSchema = z
   .object({
-    attendeeUserIds: z.array(z.string().trim().min(1)).max(500),
+    attendeeUserIds: z.array(meetingAttendeeInsertSchema.shape.userId).max(500),
   })
   .meta({ id: 'UpdateMeetingAttendees' });
 

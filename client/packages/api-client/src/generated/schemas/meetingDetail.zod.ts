@@ -25,6 +25,7 @@ export const meetingDetailICalSequenceMin = 0;
 export const meetingDetailICalSequenceMax = 2147483647;
 
 export const meetingDetailRecurrenceSeriesIdRegExp = new RegExp('^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$');
+export const meetingDetailCancelReasonMax = 1000;
 
 export const meetingDetailStartAtRegExp = new RegExp('^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$');
 export const meetingDetailEndAtRegExp = new RegExp('^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$');
@@ -52,7 +53,7 @@ export const MeetingDetail = zod.object({
   "iCalSequence": zod.int().min(meetingDetailICalSequenceMin).max(meetingDetailICalSequenceMax),
   "recurrenceSeriesId": zod.uuid().regex(meetingDetailRecurrenceSeriesIdRegExp).nullable(),
   "canceledByUserId": zod.string().nullable(),
-  "cancelReason": zod.string().min(1).nullable(),
+  "cancelReason": zod.string().min(1).max(meetingDetailCancelReasonMax).nullable(),
   "startAt": zod.iso.datetime({"offset":true}).regex(meetingDetailStartAtRegExp),
   "endAt": zod.iso.datetime({"offset":true}).regex(meetingDetailEndAtRegExp),
   "createdAt": zod.iso.datetime({"offset":true}).regex(meetingDetailCreatedAtRegExp),

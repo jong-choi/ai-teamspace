@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { CalendarInvalidRecurrenceError } from '@/calendar/domain/calendar.error';
+import type { Meeting } from '@/calendar/domain/meeting';
 import type { MeetingRecurrenceSeries } from '@/calendar/domain/meeting-recurrence-series';
 import type { RecurrenceRuleInput } from '@/calendar/dto/recurrence.dto';
 
@@ -27,10 +28,8 @@ const weekdayByName = {
   SU: RRule.SU,
 } as const satisfies Record<string, Weekday>;
 
-export type MaterializedOccurrence = {
-  startAt: Date;
-  endAt: Date;
-  originalStartAt: Date;
+export type MaterializedOccurrence = Pick<Meeting, 'startAt' | 'endAt'> & {
+  originalStartAt: Meeting['startAt'];
 };
 
 type ZonedParts = {

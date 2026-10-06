@@ -401,90 +401,6 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getCalendarControllerCreateMeetingMutationOptions(options), queryClient);
     }
 
-export const getCalendarControllerPreviewAvailabilityUrl = (organizationId: string,) => {
-
-
-
-
-  return `/organizations/${organizationId}/calendar/availability`
-}
-
-export const calendarControllerPreviewAvailability = async (organizationId: string,
-    calendarAvailabilityRequest: CalendarAvailabilityRequest, options?: Parameters<typeof workOsFetcher>[1]): Promise<CalendarAvailabilityResponse> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return workOsFetcher<CalendarAvailabilityResponse>(getCalendarControllerPreviewAvailabilityUrl(organizationId),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(calendarAvailabilityRequest),
-    schema: CalendarAvailabilityResponse
-  }
-);}
-
-
-
-
-
-export const getCalendarControllerPreviewAvailabilityMutationKey = () => ['calendarControllerPreviewAvailability'] as const;
-
-export const getCalendarControllerPreviewAvailabilityMutationOptions = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerPreviewAvailability>>, TError,CalendarControllerPreviewAvailabilityMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
-): UseMutationOptions<Awaited<ReturnType<typeof calendarControllerPreviewAvailability>>, TError,CalendarControllerPreviewAvailabilityMutationVariables, TContext> => {
-
-const mutationKey = getCalendarControllerPreviewAvailabilityMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof calendarControllerPreviewAvailability>>, CalendarControllerPreviewAvailabilityMutationVariables> = (props) => {
-          const {organizationId,data} = props ?? {};
-
-          return  calendarControllerPreviewAvailability(organizationId,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CalendarControllerPreviewAvailabilityMutationResult = NonNullable<Awaited<ReturnType<typeof calendarControllerPreviewAvailability>>>
-    export type CalendarControllerPreviewAvailabilityMutationBody = CalendarAvailabilityRequest
-    export type CalendarControllerPreviewAvailabilityMutationError = ErrorType<ProblemDetails>
-    export type CalendarControllerPreviewAvailabilityMutationVariables = {organizationId: string;data: CalendarAvailabilityRequest}
-
-    export const useCalendarControllerPreviewAvailability = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerPreviewAvailability>>, TError,CalendarControllerPreviewAvailabilityMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof calendarControllerPreviewAvailability>>,
-        TError,
-        CalendarControllerPreviewAvailabilityMutationVariables,
-        TContext
-      > => {
-      return useMutation(getCalendarControllerPreviewAvailabilityMutationOptions(options), queryClient);
-    }
-
 export const getCalendarControllerGetMeetingUrl = (organizationId: string,
     meetingId: string,) => {
 
@@ -661,6 +577,262 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getCalendarControllerUpdateMeetingMutationOptions(options), queryClient);
+    }
+
+export const getCalendarControllerUpdateAgendaUrl = (organizationId: string,
+    meetingId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/calendar/meetings/${meetingId}/agenda`
+}
+
+export const calendarControllerUpdateAgenda = async (organizationId: string,
+    meetingId: string,
+    updateMeetingAgenda: UpdateMeetingAgenda, options?: Parameters<typeof workOsFetcher>[1]): Promise<MeetingDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<MeetingDetail>(getCalendarControllerUpdateAgendaUrl(organizationId,meetingId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateMeetingAgenda),
+    schema: MeetingDetail
+  }
+);}
+
+
+
+
+
+export const getCalendarControllerUpdateAgendaMutationKey = () => ['calendarControllerUpdateAgenda'] as const;
+
+export const getCalendarControllerUpdateAgendaMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerUpdateAgenda>>, TError,CalendarControllerUpdateAgendaMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof calendarControllerUpdateAgenda>>, TError,CalendarControllerUpdateAgendaMutationVariables, TContext> => {
+
+const mutationKey = getCalendarControllerUpdateAgendaMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof calendarControllerUpdateAgenda>>, CalendarControllerUpdateAgendaMutationVariables> = (props) => {
+          const {organizationId,meetingId,data} = props ?? {};
+
+          return  calendarControllerUpdateAgenda(organizationId,meetingId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CalendarControllerUpdateAgendaMutationResult = NonNullable<Awaited<ReturnType<typeof calendarControllerUpdateAgenda>>>
+    export type CalendarControllerUpdateAgendaMutationBody = UpdateMeetingAgenda
+    export type CalendarControllerUpdateAgendaMutationError = ErrorType<ProblemDetails>
+    export type CalendarControllerUpdateAgendaMutationVariables = {organizationId: string;meetingId: string;data: UpdateMeetingAgenda}
+
+    export const useCalendarControllerUpdateAgenda = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerUpdateAgenda>>, TError,CalendarControllerUpdateAgendaMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof calendarControllerUpdateAgenda>>,
+        TError,
+        CalendarControllerUpdateAgendaMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCalendarControllerUpdateAgendaMutationOptions(options), queryClient);
+    }
+
+export const getCalendarControllerUpdateNotesUrl = (organizationId: string,
+    meetingId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/calendar/meetings/${meetingId}/notes`
+}
+
+export const calendarControllerUpdateNotes = async (organizationId: string,
+    meetingId: string,
+    updateMeetingNotes: UpdateMeetingNotes, options?: Parameters<typeof workOsFetcher>[1]): Promise<MeetingDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<MeetingDetail>(getCalendarControllerUpdateNotesUrl(organizationId,meetingId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateMeetingNotes),
+    schema: MeetingDetail
+  }
+);}
+
+
+
+
+
+export const getCalendarControllerUpdateNotesMutationKey = () => ['calendarControllerUpdateNotes'] as const;
+
+export const getCalendarControllerUpdateNotesMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerUpdateNotes>>, TError,CalendarControllerUpdateNotesMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof calendarControllerUpdateNotes>>, TError,CalendarControllerUpdateNotesMutationVariables, TContext> => {
+
+const mutationKey = getCalendarControllerUpdateNotesMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof calendarControllerUpdateNotes>>, CalendarControllerUpdateNotesMutationVariables> = (props) => {
+          const {organizationId,meetingId,data} = props ?? {};
+
+          return  calendarControllerUpdateNotes(organizationId,meetingId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CalendarControllerUpdateNotesMutationResult = NonNullable<Awaited<ReturnType<typeof calendarControllerUpdateNotes>>>
+    export type CalendarControllerUpdateNotesMutationBody = UpdateMeetingNotes
+    export type CalendarControllerUpdateNotesMutationError = ErrorType<ProblemDetails>
+    export type CalendarControllerUpdateNotesMutationVariables = {organizationId: string;meetingId: string;data: UpdateMeetingNotes}
+
+    export const useCalendarControllerUpdateNotes = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerUpdateNotes>>, TError,CalendarControllerUpdateNotesMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof calendarControllerUpdateNotes>>,
+        TError,
+        CalendarControllerUpdateNotesMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCalendarControllerUpdateNotesMutationOptions(options), queryClient);
+    }
+
+export const getCalendarControllerPreviewAvailabilityUrl = (organizationId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/calendar/availability`
+}
+
+export const calendarControllerPreviewAvailability = async (organizationId: string,
+    calendarAvailabilityRequest: CalendarAvailabilityRequest, options?: Parameters<typeof workOsFetcher>[1]): Promise<CalendarAvailabilityResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<CalendarAvailabilityResponse>(getCalendarControllerPreviewAvailabilityUrl(organizationId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(calendarAvailabilityRequest),
+    schema: CalendarAvailabilityResponse
+  }
+);}
+
+
+
+
+
+export const getCalendarControllerPreviewAvailabilityMutationKey = () => ['calendarControllerPreviewAvailability'] as const;
+
+export const getCalendarControllerPreviewAvailabilityMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerPreviewAvailability>>, TError,CalendarControllerPreviewAvailabilityMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof calendarControllerPreviewAvailability>>, TError,CalendarControllerPreviewAvailabilityMutationVariables, TContext> => {
+
+const mutationKey = getCalendarControllerPreviewAvailabilityMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof calendarControllerPreviewAvailability>>, CalendarControllerPreviewAvailabilityMutationVariables> = (props) => {
+          const {organizationId,data} = props ?? {};
+
+          return  calendarControllerPreviewAvailability(organizationId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CalendarControllerPreviewAvailabilityMutationResult = NonNullable<Awaited<ReturnType<typeof calendarControllerPreviewAvailability>>>
+    export type CalendarControllerPreviewAvailabilityMutationBody = CalendarAvailabilityRequest
+    export type CalendarControllerPreviewAvailabilityMutationError = ErrorType<ProblemDetails>
+    export type CalendarControllerPreviewAvailabilityMutationVariables = {organizationId: string;data: CalendarAvailabilityRequest}
+
+    export const useCalendarControllerPreviewAvailability = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerPreviewAvailability>>, TError,CalendarControllerPreviewAvailabilityMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof calendarControllerPreviewAvailability>>,
+        TError,
+        CalendarControllerPreviewAvailabilityMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCalendarControllerPreviewAvailabilityMutationOptions(options), queryClient);
     }
 
 export const getCalendarControllerPreviewRescheduleAvailabilityUrl = (organizationId: string,
@@ -1093,269 +1265,6 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getCalendarControllerReplaceAttendeesMutationOptions(options), queryClient);
     }
 
-export const getCalendarControllerUpdateAgendaUrl = (organizationId: string,
-    meetingId: string,) => {
-
-
-
-
-  return `/organizations/${organizationId}/calendar/meetings/${meetingId}/agenda`
-}
-
-export const calendarControllerUpdateAgenda = async (organizationId: string,
-    meetingId: string,
-    updateMeetingAgenda: UpdateMeetingAgenda, options?: Parameters<typeof workOsFetcher>[1]): Promise<MeetingDetail> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return workOsFetcher<MeetingDetail>(getCalendarControllerUpdateAgendaUrl(organizationId,meetingId),
-  {
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(updateMeetingAgenda),
-    schema: MeetingDetail
-  }
-);}
-
-
-
-
-
-export const getCalendarControllerUpdateAgendaMutationKey = () => ['calendarControllerUpdateAgenda'] as const;
-
-export const getCalendarControllerUpdateAgendaMutationOptions = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerUpdateAgenda>>, TError,CalendarControllerUpdateAgendaMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
-): UseMutationOptions<Awaited<ReturnType<typeof calendarControllerUpdateAgenda>>, TError,CalendarControllerUpdateAgendaMutationVariables, TContext> => {
-
-const mutationKey = getCalendarControllerUpdateAgendaMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof calendarControllerUpdateAgenda>>, CalendarControllerUpdateAgendaMutationVariables> = (props) => {
-          const {organizationId,meetingId,data} = props ?? {};
-
-          return  calendarControllerUpdateAgenda(organizationId,meetingId,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CalendarControllerUpdateAgendaMutationResult = NonNullable<Awaited<ReturnType<typeof calendarControllerUpdateAgenda>>>
-    export type CalendarControllerUpdateAgendaMutationBody = UpdateMeetingAgenda
-    export type CalendarControllerUpdateAgendaMutationError = ErrorType<ProblemDetails>
-    export type CalendarControllerUpdateAgendaMutationVariables = {organizationId: string;meetingId: string;data: UpdateMeetingAgenda}
-
-    export const useCalendarControllerUpdateAgenda = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerUpdateAgenda>>, TError,CalendarControllerUpdateAgendaMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof calendarControllerUpdateAgenda>>,
-        TError,
-        CalendarControllerUpdateAgendaMutationVariables,
-        TContext
-      > => {
-      return useMutation(getCalendarControllerUpdateAgendaMutationOptions(options), queryClient);
-    }
-
-export const getCalendarControllerUpdateNotesUrl = (organizationId: string,
-    meetingId: string,) => {
-
-
-
-
-  return `/organizations/${organizationId}/calendar/meetings/${meetingId}/notes`
-}
-
-export const calendarControllerUpdateNotes = async (organizationId: string,
-    meetingId: string,
-    updateMeetingNotes: UpdateMeetingNotes, options?: Parameters<typeof workOsFetcher>[1]): Promise<MeetingDetail> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return workOsFetcher<MeetingDetail>(getCalendarControllerUpdateNotesUrl(organizationId,meetingId),
-  {
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(updateMeetingNotes),
-    schema: MeetingDetail
-  }
-);}
-
-
-
-
-
-export const getCalendarControllerUpdateNotesMutationKey = () => ['calendarControllerUpdateNotes'] as const;
-
-export const getCalendarControllerUpdateNotesMutationOptions = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerUpdateNotes>>, TError,CalendarControllerUpdateNotesMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
-): UseMutationOptions<Awaited<ReturnType<typeof calendarControllerUpdateNotes>>, TError,CalendarControllerUpdateNotesMutationVariables, TContext> => {
-
-const mutationKey = getCalendarControllerUpdateNotesMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof calendarControllerUpdateNotes>>, CalendarControllerUpdateNotesMutationVariables> = (props) => {
-          const {organizationId,meetingId,data} = props ?? {};
-
-          return  calendarControllerUpdateNotes(organizationId,meetingId,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CalendarControllerUpdateNotesMutationResult = NonNullable<Awaited<ReturnType<typeof calendarControllerUpdateNotes>>>
-    export type CalendarControllerUpdateNotesMutationBody = UpdateMeetingNotes
-    export type CalendarControllerUpdateNotesMutationError = ErrorType<ProblemDetails>
-    export type CalendarControllerUpdateNotesMutationVariables = {organizationId: string;meetingId: string;data: UpdateMeetingNotes}
-
-    export const useCalendarControllerUpdateNotes = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof calendarControllerUpdateNotes>>, TError,CalendarControllerUpdateNotesMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof calendarControllerUpdateNotes>>,
-        TError,
-        CalendarControllerUpdateNotesMutationVariables,
-        TContext
-      > => {
-      return useMutation(getCalendarControllerUpdateNotesMutationOptions(options), queryClient);
-    }
-
-export const getCalendarControllerExportIcsUrl = (organizationId: string,
-    meetingId: string,) => {
-
-
-
-
-  return `/organizations/${organizationId}/calendar/meetings/${meetingId}/ics`
-}
-
-export const calendarControllerExportIcs = async (organizationId: string,
-    meetingId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<string> => {
-
-  return workOsFetcher<string>(getCalendarControllerExportIcsUrl(organizationId,meetingId),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getCalendarControllerExportIcsQueryKey = (organizationId: string,
-    meetingId: string,) => {
-    return [
-    `/organizations/${organizationId}/calendar/meetings/${meetingId}/ics`
-    ] as const;
-    }
-
-
-export const getCalendarControllerExportIcsSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError = ErrorType<ProblemDetails>>(organizationId: string,
-    meetingId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getCalendarControllerExportIcsQueryKey(organizationId,meetingId);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof calendarControllerExportIcs>>> = ({ signal }) => calendarControllerExportIcs(organizationId,meetingId, { signal, ...requestOptions });
-
-
-
-
-
-   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
-}
-
-export type CalendarControllerExportIcsSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof calendarControllerExportIcs>>>
-export type CalendarControllerExportIcsSuspenseQueryError = ErrorType<ProblemDetails>
-
-
-export function useCalendarControllerExportIcsSuspense<TData = Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError = ErrorType<ProblemDetails>>(
- organizationId: string,
-    meetingId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
- , queryClient?: QueryClient
-  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useCalendarControllerExportIcsSuspense<TData = Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError = ErrorType<ProblemDetails>>(
- organizationId: string,
-    meetingId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
- , queryClient?: QueryClient
-  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useCalendarControllerExportIcsSuspense<TData = Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError = ErrorType<ProblemDetails>>(
- organizationId: string,
-    meetingId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
- , queryClient?: QueryClient
-  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useCalendarControllerExportIcsSuspense<TData = Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError = ErrorType<ProblemDetails>>(
- organizationId: string,
-    meetingId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
- , queryClient?: QueryClient
- ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getCalendarControllerExportIcsSuspenseQueryOptions(organizationId,meetingId,options)
-
-  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
 export const getCalendarControllerListMeetingRoomsUrl = (organizationId: string,) => {
 
 
@@ -1701,6 +1610,97 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getCalendarControllerUpdateMeetingRoomMutationOptions(options), queryClient);
     }
+
+export const getCalendarControllerExportIcsUrl = (organizationId: string,
+    meetingId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/calendar/meetings/${meetingId}/ics`
+}
+
+export const calendarControllerExportIcs = async (organizationId: string,
+    meetingId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<string> => {
+
+  return workOsFetcher<string>(getCalendarControllerExportIcsUrl(organizationId,meetingId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getCalendarControllerExportIcsQueryKey = (organizationId: string,
+    meetingId: string,) => {
+    return [
+    `/organizations/${organizationId}/calendar/meetings/${meetingId}/ics`
+    ] as const;
+    }
+
+
+export const getCalendarControllerExportIcsSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError = ErrorType<ProblemDetails>>(organizationId: string,
+    meetingId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getCalendarControllerExportIcsQueryKey(organizationId,meetingId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof calendarControllerExportIcs>>> = ({ signal }) => calendarControllerExportIcs(organizationId,meetingId, { signal, ...requestOptions });
+
+
+
+
+
+   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
+}
+
+export type CalendarControllerExportIcsSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof calendarControllerExportIcs>>>
+export type CalendarControllerExportIcsSuspenseQueryError = ErrorType<ProblemDetails>
+
+
+export function useCalendarControllerExportIcsSuspense<TData = Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    meetingId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCalendarControllerExportIcsSuspense<TData = Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    meetingId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCalendarControllerExportIcsSuspense<TData = Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    meetingId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useCalendarControllerExportIcsSuspense<TData = Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string,
+    meetingId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof calendarControllerExportIcs>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getCalendarControllerExportIcsSuspenseQueryOptions(organizationId,meetingId,options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getOrganizationsControllerListUrl = () => {
 

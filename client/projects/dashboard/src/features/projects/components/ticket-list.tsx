@@ -13,11 +13,11 @@ import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
 import { getProjectColumnPresentation } from '@core/features/projects/lib/project-column-presentation';
-import { getTicketPriorityPresentation } from '@core/features/projects/lib/ticket-priority-presentation';
 import {
   formatTicketDueAt,
   sortTicketsForList,
 } from '@core/features/projects/lib/ticket-presentation';
+import { getTicketPriorityPresentation } from '@core/features/projects/lib/ticket-priority-presentation';
 
 import { Clock3, FolderKanban } from 'lucide-react-native';
 

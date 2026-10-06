@@ -10,8 +10,8 @@ import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
 import { getTicketLabelClasses } from '@core/features/projects/lib/ticket-label-presentation';
-import { getTicketPriorityPresentation } from '@core/features/projects/lib/ticket-priority-presentation';
 import { formatTicketDueAt } from '@core/features/projects/lib/ticket-presentation';
+import { getTicketPriorityPresentation } from '@core/features/projects/lib/ticket-priority-presentation';
 
 import { CheckSquare2, Clock3, MessageSquare } from 'lucide-react-native';
 

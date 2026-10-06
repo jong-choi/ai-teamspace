@@ -42,8 +42,8 @@ import {
 } from '#server/projects/dto/project-column.dto.js';
 import {
   QueryTicketsDto,
-  QueryTicketsSchema,
   type QueryTicketsInput,
+  QueryTicketsSchema,
 } from '#server/projects/dto/query-tickets.dto.js';
 import {
   TicketDetailDto,

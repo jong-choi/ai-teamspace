@@ -1,7 +1,7 @@
 import {
   Draggable,
-  DropProvider,
   Droppable,
+  DropProvider,
 } from 'react-native-reanimated-dnd';
 
 import { createKanbanDndAdapter } from '@core/features/projects/dnd/kanban-dnd-adapter.shared';

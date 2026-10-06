@@ -3,13 +3,11 @@ import { View } from 'react-native';
 import type {
   OrganizationMember,
   ProjectColumn,
-  ProjectSummary,
   ProjectsControllerListTicketsParams,
+  ProjectSummary,
 } from '@repo/client/api-client/schemas';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Input } from '@repo/client/rnr/components/ui/input';
-import { getProjectColumnPresentation } from '@core/features/projects/lib/project-column-presentation';
-import { TICKET_PRIORITY_OPTIONS } from '@core/features/projects/lib/ticket-priority-presentation';
 import {
   Select,
   SelectContent,
@@ -17,6 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@repo/client/rnr/components/ui/select';
+import { getProjectColumnPresentation } from '@core/features/projects/lib/project-column-presentation';
+import { TICKET_PRIORITY_OPTIONS } from '@core/features/projects/lib/ticket-priority-presentation';
 
 import { Search } from 'lucide-react-native';
 

@@ -1,9 +1,8 @@
-import { useState, type ReactNode } from 'react';
-
+import { type ReactNode, useState } from 'react';
 import type {
   Draggable as NativeDraggable,
-  DropProvider as NativeDropProvider,
   Droppable as NativeDroppable,
+  DropProvider as NativeDropProvider,
 } from 'react-native-reanimated-dnd';
 
 type DndPrimitives = {
@@ -24,7 +23,19 @@ export type KanbanDropIntent = {
   ticketId: string;
 };
 
-type DropTargetProps = {
+export type KanbanDndProviderProps = {
+  children: ReactNode;
+};
+
+export type KanbanDraggableTicketProps = {
+  children: ReactNode;
+  data: KanbanDragData;
+  disabled?: boolean;
+  onDragEnd?: (data: KanbanDragData) => void;
+  onDragStart?: (data: KanbanDragData) => void;
+};
+
+export type KanbanDropTargetProps = {
   beforeTicketId: string | null;
   children: (active: boolean) => ReactNode;
   disabled?: boolean;
@@ -37,7 +48,7 @@ export function createKanbanDndAdapter({
   Droppable,
   DropProvider,
 }: DndPrimitives) {
-  function KanbanDndProvider({ children }: { children: ReactNode }) {
+  function KanbanDndProvider({ children }: KanbanDndProviderProps) {
     return <DropProvider>{children}</DropProvider>;
   }
 
@@ -47,13 +58,7 @@ export function createKanbanDndAdapter({
     disabled = false,
     onDragEnd,
     onDragStart,
-  }: {
-    children: ReactNode;
-    data: KanbanDragData;
-    disabled?: boolean;
-    onDragEnd?: (data: KanbanDragData) => void;
-    onDragStart?: (data: KanbanDragData) => void;
-  }) {
+  }: KanbanDraggableTicketProps) {
     const [dragSession, setDragSession] = useState(0);
 
     return (
@@ -80,7 +85,7 @@ export function createKanbanDndAdapter({
     disabled = false,
     onDropIntent,
     targetColumnId,
-  }: DropTargetProps) {
+  }: KanbanDropTargetProps) {
     const [active, setActive] = useState(false);
 
     return (

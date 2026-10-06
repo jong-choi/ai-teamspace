@@ -1,5 +1,5 @@
 import { InjectQueue } from '@nestjs/bullmq';
-import { Injectable } from '@nestjs/common';
+import { Injectable, type OnApplicationBootstrap } from '@nestjs/common';
 
 import {
   ORGANIZATION_AUTHORIZATION_CHANGED_JOB,
@@ -22,12 +22,19 @@ const authorizationChangedJobOptions = {
 } satisfies JobsOptions;
 
 @Injectable()
-export class BullMqOrganizationPublicEventPublisher extends OrganizationPublicEventPublisher {
+export class BullMqOrganizationPublicEventPublisher
+  extends OrganizationPublicEventPublisher
+  implements OnApplicationBootstrap
+{
   constructor(
     @InjectQueue(ORGANIZATION_PUBLIC_EVENT_QUEUE)
     private readonly queue: Queue,
   ) {
     super();
+  }
+
+  async onApplicationBootstrap(): Promise<void> {
+    await this.queue.waitUntilReady();
   }
 
   async publishAuthorizationChanged(

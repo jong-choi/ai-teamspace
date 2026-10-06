@@ -22,13 +22,13 @@ import {
 } from '@/projects/dto/ticket-checklist.dto';
 import type { UpdateTicketChecklistInput } from '@/projects/dto/update-ticket-checklist.dto';
 import type { UpdateTicketChecklistItemInput } from '@/projects/dto/update-ticket-checklist-item.dto';
-import { TicketWorkflowRepository } from '@/projects/infrastructure/persistence/ticket-workflow.repository';
+import { TicketChecklistRepository } from '@/projects/infrastructure/persistence/ticket-checklist.repository';
 import { TicketWorkflowAccessPolicy } from '@/projects/ticket-workflow-access.policy';
 
 @Injectable()
 export class TicketChecklistsService {
   constructor(
-    private readonly workflowRepository: TicketWorkflowRepository,
+    private readonly checklistRepository: TicketChecklistRepository,
     private readonly accessPolicy: TicketWorkflowAccessPolicy,
   ) {}
 
@@ -45,12 +45,12 @@ export class TicketChecklistsService {
       projectId,
       ticketId,
     );
-    const model = await this.workflowRepository.createChecklist({
+    const model = await this.checklistRepository.createChecklist(
       organizationId,
       projectId,
       ticketId,
-      title: input.title,
-    });
+      input,
+    );
     if (!model) throw new TicketNotFoundError();
     return toTicketChecklistResponse(model.checklist, model.items);
   }
@@ -69,13 +69,13 @@ export class TicketChecklistsService {
       projectId,
       ticketId,
     );
-    const model = await this.workflowRepository.renameChecklist({
+    const model = await this.checklistRepository.updateChecklist(
       organizationId,
       projectId,
       ticketId,
       checklistId,
-      title: input.title,
-    });
+      input,
+    );
     if (!model) throw new TicketChecklistNotFoundError();
     return toTicketChecklistResponse(model.checklist, model.items);
   }
@@ -93,12 +93,12 @@ export class TicketChecklistsService {
       projectId,
       ticketId,
     );
-    const removed = await this.workflowRepository.removeChecklist({
+    const removed = await this.checklistRepository.removeChecklist(
       organizationId,
       projectId,
       ticketId,
       checklistId,
-    });
+    );
     if (!removed) throw new TicketChecklistNotFoundError();
   }
 
@@ -116,13 +116,13 @@ export class TicketChecklistsService {
       projectId,
       ticketId,
     );
-    const item = await this.workflowRepository.addChecklistItem({
+    const item = await this.checklistRepository.addChecklistItem(
       organizationId,
       projectId,
       ticketId,
       checklistId,
-      title: input.title,
-    });
+      input,
+    );
     if (!item) throw new TicketChecklistNotFoundError();
     return toTicketChecklistItemResponse(item);
   }
@@ -143,29 +143,14 @@ export class TicketChecklistsService {
       ticketId,
     );
 
-    const item =
-      input.title !== undefined
-        ? await this.workflowRepository.renameChecklistItem({
-            organizationId,
-            projectId,
-            ticketId,
-            checklistId,
-            itemId,
-            title: input.title,
-          })
-        : input.completed !== undefined
-          ? await this.workflowRepository.toggleChecklistItem({
-              organizationId,
-              projectId,
-              ticketId,
-              checklistId,
-              itemId,
-              completed: input.completed,
-            })
-          : undefined;
-    if (item === undefined) {
-      throw new Error('검증된 체크리스트 항목 변경 입력이 없습니다.');
-    }
+    const item = await this.checklistRepository.updateChecklistItem(
+      organizationId,
+      projectId,
+      ticketId,
+      checklistId,
+      itemId,
+      input,
+    );
     if (item === null) throw new TicketChecklistItemNotFoundError();
     return toTicketChecklistItemResponse(item);
   }
@@ -185,15 +170,14 @@ export class TicketChecklistsService {
       projectId,
       ticketId,
     );
-    const result = await this.workflowRepository.moveChecklistItem({
+    const result = await this.checklistRepository.moveChecklistItem(
       organizationId,
       projectId,
       ticketId,
       checklistId,
       itemId,
-      beforeItemId: input.beforeItemId ?? null,
-      afterItemId: input.afterItemId ?? null,
-    });
+      input,
+    );
 
     switch (result.kind) {
       case 'project_not_found':
@@ -230,13 +214,13 @@ export class TicketChecklistsService {
       projectId,
       ticketId,
     );
-    const removed = await this.workflowRepository.removeChecklistItem({
+    const removed = await this.checklistRepository.removeChecklistItem(
       organizationId,
       projectId,
       ticketId,
       checklistId,
       itemId,
-    });
+    );
     if (!removed) throw new TicketChecklistItemNotFoundError();
   }
 }

@@ -26,12 +26,12 @@ import {
 } from '@/projects/dto/ticket-comment.dto';
 import type { UpdateTicketInput } from '@/projects/dto/update-ticket.dto';
 import { type ProjectSummaryReadModel } from '@/projects/infrastructure/persistence/project.repository';
-import { TicketRepository } from '@/projects/infrastructure/persistence/ticket.repository';
 import {
   type TicketCardMetadata,
   type TicketDetailChildren,
-  TicketWorkflowRepository,
-} from '@/projects/infrastructure/persistence/ticket-workflow.repository';
+  TicketDetailQueryRepository,
+} from '@/projects/infrastructure/persistence/ticket-detail-query.repository';
+import { TicketRepository } from '@/projects/infrastructure/persistence/ticket.repository';
 import { ProjectResourceLoader } from '@/projects/project-resource.loader';
 import { ProjectUserResolver } from '@/projects/project-user.resolver';
 
@@ -44,7 +44,7 @@ type TicketOrganizationMembership = Pick<
 export class TicketsService {
   constructor(
     private readonly ticketRepository: TicketRepository,
-    private readonly ticketWorkflowRepository: TicketWorkflowRepository,
+    private readonly ticketDetailQueryRepository: TicketDetailQueryRepository,
     private readonly resourceLoader: ProjectResourceLoader,
     @Inject(OrganizationMembershipService)
     private readonly organizationMembership: TicketOrganizationMembership,
@@ -72,18 +72,18 @@ export class TicketsService {
     if (query.assigneeUserId) {
       await this.assertMemberUser(organizationId, query.assigneeUserId);
     }
-    const tickets = await this.ticketRepository.listTickets({
+    const tickets = await this.ticketRepository.listTickets(
       organizationId,
       projectId,
-      ...query,
-    });
+      query,
+    );
     const [usersById, metadata] = await Promise.all([
       this.userResolver.findByIds(
         tickets.flatMap(({ assigneeUserId }) =>
           assigneeUserId ? [assigneeUserId] : [],
         ),
       ),
-      this.ticketWorkflowRepository.loadCardMetadata(
+      this.ticketDetailQueryRepository.loadCardMetadata(
         organizationId,
         projectId,
         tickets.map(({ id }) => id),
@@ -120,17 +120,12 @@ export class TicketsService {
     );
     this.resourceLoader.assertProjectWritable(project);
     await this.assertMemberUser(organizationId, input.assigneeUserId ?? null);
-    const result = await this.ticketRepository.createTicketWithNumber({
+    const result = await this.ticketRepository.createTicketWithNumber(
       organizationId,
       projectId,
-      columnId: input.columnId,
-      title: input.title,
-      descriptionMarkdown: input.descriptionMarkdown ?? '',
-      priority: input.priority ?? 'medium',
-      assigneeUserId: input.assigneeUserId ?? null,
-      reporterUserId: context.userId,
-      dueAt: input.dueAt ? new Date(input.dueAt) : null,
-    });
+      context.userId,
+      input,
+    );
     if (result.kind === 'project_not_found') throw new ProjectNotFoundError();
     if (result.kind === 'column_not_found') {
       throw new ProjectColumnNotFoundError();
@@ -183,29 +178,12 @@ export class TicketsService {
     if (input.assigneeUserId !== undefined) {
       await this.assertMemberUser(organizationId, input.assigneeUserId);
     }
-    const updated = await this.ticketRepository.updateTicket({
+    const updated = await this.ticketRepository.updateTicket(
       organizationId,
       projectId,
       ticketId,
-      changes: {
-        title: input.title,
-        descriptionMarkdown: input.descriptionMarkdown,
-        priority: input.priority,
-        assigneeUserId: input.assigneeUserId,
-        dueAt:
-          input.dueAt === undefined
-            ? undefined
-            : input.dueAt
-              ? new Date(input.dueAt)
-              : null,
-        archivedAt:
-          input.archived === undefined
-            ? undefined
-            : input.archived
-              ? new Date()
-              : null,
-      },
-    });
+      input,
+    );
     if (!updated) throw new TicketNotFoundError();
     return this.toTicketDetail(
       project,
@@ -221,7 +199,7 @@ export class TicketsService {
     project: ProjectSummaryReadModel,
     ticket: Ticket,
   ): Promise<TicketDetailResponse> {
-    const children = await this.ticketWorkflowRepository.loadDetailChildren(
+    const children = await this.ticketDetailQueryRepository.loadDetailChildren(
       project.project.organizationId,
       project.project.id,
       ticket.id,

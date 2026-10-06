@@ -181,19 +181,21 @@ describe('채팅 서비스', () => {
       referenceId: 'invitation-a',
     });
 
-    expect(repository.deliverReferencedSystemMessage).toHaveBeenCalledWith({
+    expect(repository.deliverReferencedSystemMessage).toHaveBeenCalledWith(
       recipientUserId,
-      contentType: 'organization_invitation',
-      content: {
-        type: 'organization_invitation',
-        invitationId: 'invitation-a',
-        organizationId: 'organization-a',
-        inviterUserId: actorUserId,
-        organizationNameAtSend: '조직 A',
+      {
+        contentType: 'organization_invitation',
+        content: {
+          type: 'organization_invitation',
+          invitationId: 'invitation-a',
+          organizationId: 'organization-a',
+          inviterUserId: actorUserId,
+          organizationNameAtSend: '조직 A',
+        },
       },
-      referenceKind: 'organization_invitation',
-      referenceId: 'invitation-a',
-    });
+      'organization_invitation',
+      'invitation-a',
+    );
     expect(realtime.publishConversationChanged).toHaveBeenCalledWith(
       [recipientUserId],
       conversationId,

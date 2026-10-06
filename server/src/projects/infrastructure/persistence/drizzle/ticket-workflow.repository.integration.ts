@@ -5,13 +5,15 @@ import { DatabaseModule } from '@/database/database.module';
 import { DatabaseService } from '@/database/database.service';
 import { ProjectDrizzlePersistenceModule } from '@/projects/infrastructure/persistence/drizzle/drizzle-persistence.module';
 import { project } from '@/projects/infrastructure/persistence/drizzle/schema/project.schema';
+import type { CreateProjectInput } from '@/projects/dto/create-project.dto';
 import { ProjectColumnRepository } from '@/projects/infrastructure/persistence/project-column.repository';
-import {
-  type CreateProjectPersistenceInput,
-  ProjectRepository,
-} from '@/projects/infrastructure/persistence/project.repository';
+import { ProjectRepository } from '@/projects/infrastructure/persistence/project.repository';
+import { TicketChecklistRepository } from '@/projects/infrastructure/persistence/ticket-checklist.repository';
+import { TicketCommentRepository } from '@/projects/infrastructure/persistence/ticket-comment.repository';
+import { TicketDetailQueryRepository } from '@/projects/infrastructure/persistence/ticket-detail-query.repository';
+import { TicketLabelRepository } from '@/projects/infrastructure/persistence/ticket-label.repository';
+import { TicketOrderingRepository } from '@/projects/infrastructure/persistence/ticket-ordering.repository';
 import { TicketRepository } from '@/projects/infrastructure/persistence/ticket.repository';
-import { TicketWorkflowRepository } from '@/projects/infrastructure/persistence/ticket-workflow.repository';
 
 import { inArray } from 'drizzle-orm';
 
@@ -21,14 +23,12 @@ const actorUserId = 'ticket-workflow-actor';
 const otherUserId = 'ticket-workflow-other-user';
 const userIds = [actorUserId, otherUserId] as const;
 
-const baseProjectInput: CreateProjectPersistenceInput = {
-  organizationId,
+const baseProjectInput = {
   key: 'WF',
   name: '워크플로 프로젝트',
   description: '',
   leadUserId: null,
-  createdByUserId: actorUserId,
-};
+} satisfies CreateProjectInput;
 
 describe('티켓 워크플로 Drizzle 저장소 통합', () => {
   let moduleRef: TestingModule;
@@ -36,7 +36,11 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
   let projects: ProjectRepository;
   let projectColumns: ProjectColumnRepository;
   let ticketRepository: TicketRepository;
-  let workflow: TicketWorkflowRepository;
+  let detailQuery: TicketDetailQueryRepository;
+  let ordering: TicketOrderingRepository;
+  let labels: TicketLabelRepository;
+  let checklists: TicketChecklistRepository;
+  let comments: TicketCommentRepository;
 
   beforeAll(async () => {
     moduleRef = await Test.createTestingModule({
@@ -47,7 +51,11 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
     projects = moduleRef.get(ProjectRepository);
     projectColumns = moduleRef.get(ProjectColumnRepository);
     ticketRepository = moduleRef.get(TicketRepository);
-    workflow = moduleRef.get(TicketWorkflowRepository);
+    detailQuery = moduleRef.get(TicketDetailQueryRepository);
+    ordering = moduleRef.get(TicketOrderingRepository);
+    labels = moduleRef.get(TicketLabelRepository);
+    checklists = moduleRef.get(TicketChecklistRepository);
+    comments = moduleRef.get(TicketCommentRepository);
   });
 
   beforeEach(async () => {
@@ -90,10 +98,7 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
     const third = await createTicket(fixture.project.id, backlog.id, '세 번째');
 
     await expect(
-      workflow.moveTicket({
-        organizationId,
-        projectId: fixture.project.id,
-        ticketId: third.id,
+      ordering.moveTicket(organizationId, fixture.project.id, third.id, {
         targetColumnId: backlog.id,
         beforeTicketId: first.id,
         afterTicketId: null,
@@ -109,10 +114,7 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
       { id: second.id, position: 2 },
     ]);
 
-    await workflow.moveTicket({
-      organizationId,
-      projectId: fixture.project.id,
-      ticketId: third.id,
+    await ordering.moveTicket(organizationId, fixture.project.id, third.id, {
       targetColumnId: backlog.id,
       beforeTicketId: null,
       afterTicketId: first.id,
@@ -123,10 +125,7 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
       { id: second.id, position: 2 },
     ]);
 
-    await workflow.moveTicket({
-      organizationId,
-      projectId: fixture.project.id,
-      ticketId: first.id,
+    await ordering.moveTicket(organizationId, fixture.project.id, first.id, {
       targetColumnId: backlog.id,
       beforeTicketId: null,
       afterTicketId: null,
@@ -138,10 +137,7 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
     ]);
 
     await expect(
-      workflow.moveTicket({
-        organizationId,
-        projectId: fixture.project.id,
-        ticketId: first.id,
+      ordering.moveTicket(organizationId, fixture.project.id, first.id, {
         targetColumnId: todo.id,
         beforeTicketId: null,
         afterTicketId: null,
@@ -178,21 +174,17 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
       '잘못된 기준',
     );
 
-    const other = await createProjectFixture({
-      organizationId: otherOrganizationId,
-      key: 'OTHER',
-      name: '다른 프로젝트',
-    });
+    const other = await createProjectFixture(
+      { key: 'OTHER', name: '다른 프로젝트' },
+      otherOrganizationId,
+    );
     const otherColumn = other.columns[0];
     if (!otherColumn) {
       throw new Error('다른 프로젝트 컬럼을 조회하지 못했습니다.');
     }
 
     await expect(
-      workflow.moveTicket({
-        organizationId,
-        projectId: fixture.project.id,
-        ticketId: source.id,
+      ordering.moveTicket(organizationId, fixture.project.id, source.id, {
         targetColumnId: otherColumn.id,
         beforeTicketId: null,
         afterTicketId: null,
@@ -200,10 +192,7 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
     ).resolves.toEqual({ kind: 'column_not_found' });
 
     await expect(
-      workflow.moveTicket({
-        organizationId,
-        projectId: fixture.project.id,
-        ticketId: source.id,
+      ordering.moveTicket(organizationId, fixture.project.id, source.id, {
         targetColumnId: todo.id,
         beforeTicketId: wrongReference.id,
         afterTicketId: null,
@@ -227,10 +216,7 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
 
     const results = await Promise.all(
       tickets.map(({ id }) =>
-        workflow.moveTicket({
-          organizationId,
-          projectId: fixture.project.id,
-          ticketId: id,
+        ordering.moveTicket(organizationId, fixture.project.id, id, {
           targetColumnId: todo.id,
           beforeTicketId: null,
           afterTicketId: null,
@@ -239,20 +225,20 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
     );
 
     expect(results.every(({ kind }) => kind === 'moved')).toBe(true);
-    const todoTickets = await ticketRepository.listTickets({
+    const todoTickets = await ticketRepository.listTickets(
       organizationId,
-      projectId: fixture.project.id,
-      columnId: todo.id,
-    });
+      fixture.project.id,
+      {
+        columnId: todo.id,
+      },
+    );
     expect(todoTickets).toHaveLength(8);
     expect(todoTickets.map(({ position }) => position)).toEqual([
       0, 1, 2, 3, 4, 5, 6, 7,
     ]);
     expect(new Set(todoTickets.map(({ position }) => position)).size).toBe(8);
     await expect(
-      ticketRepository.listTickets({
-        organizationId,
-        projectId: fixture.project.id,
+      ticketRepository.listTickets(organizationId, fixture.project.id, {
         columnId: backlog.id,
       }),
     ).resolves.toHaveLength(0);
@@ -270,83 +256,80 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
       '상세 데이터 티켓',
     );
 
-    const label = await workflow.createLabel({
-      organizationId,
-      projectId: fixture.project.id,
+    const label = await labels.createLabel(organizationId, fixture.project.id, {
       name: 'Backend',
       color: 'blue',
     });
     if (!label) {
       throw new Error('라벨 생성에 실패했습니다.');
     }
-    await workflow.attachLabel({
+    await labels.attachLabel(
       organizationId,
-      projectId: fixture.project.id,
-      ticketId: createdTicket.id,
-      labelId: label.id,
-    });
+      fixture.project.id,
+      createdTicket.id,
+      label.id,
+    );
 
-    const checklist = await workflow.createChecklist({
+    const checklist = await checklists.createChecklist(
       organizationId,
-      projectId: fixture.project.id,
-      ticketId: createdTicket.id,
-      title: '완료 조건',
-    });
+      fixture.project.id,
+      createdTicket.id,
+      { title: '완료 조건' },
+    );
     if (!checklist) {
       throw new Error('체크리스트 생성에 실패했습니다.');
     }
-    const firstItem = await workflow.addChecklistItem({
+    const firstItem = await checklists.addChecklistItem(
       organizationId,
-      projectId: fixture.project.id,
-      ticketId: createdTicket.id,
-      checklistId: checklist.checklist.id,
-      title: '첫 번째 조건',
-    });
-    const secondItem = await workflow.addChecklistItem({
+      fixture.project.id,
+      createdTicket.id,
+      checklist.checklist.id,
+      { title: '첫 번째 조건' },
+    );
+    const secondItem = await checklists.addChecklistItem(
       organizationId,
-      projectId: fixture.project.id,
-      ticketId: createdTicket.id,
-      checklistId: checklist.checklist.id,
-      title: '두 번째 조건',
-    });
+      fixture.project.id,
+      createdTicket.id,
+      checklist.checklist.id,
+      { title: '두 번째 조건' },
+    );
     if (!firstItem || !secondItem) {
       throw new Error('체크리스트 항목 생성에 실패했습니다.');
     }
-    await workflow.toggleChecklistItem({
+    await checklists.updateChecklistItem(
       organizationId,
-      projectId: fixture.project.id,
-      ticketId: createdTicket.id,
-      checklistId: checklist.checklist.id,
-      itemId: firstItem.id,
-      completed: true,
-    });
-    await workflow.moveChecklistItem({
+      fixture.project.id,
+      createdTicket.id,
+      checklist.checklist.id,
+      firstItem.id,
+      { completed: true },
+    );
+    await checklists.moveChecklistItem(
       organizationId,
-      projectId: fixture.project.id,
-      ticketId: createdTicket.id,
-      checklistId: checklist.checklist.id,
-      itemId: secondItem.id,
-      beforeItemId: firstItem.id,
-      afterItemId: null,
-    });
+      fixture.project.id,
+      createdTicket.id,
+      checklist.checklist.id,
+      secondItem.id,
+      { beforeItemId: firstItem.id, afterItemId: null },
+    );
 
-    await workflow.createComment({
+    await comments.createComment(
       organizationId,
-      projectId: fixture.project.id,
-      ticketId: createdTicket.id,
-      authorUserId: actorUserId,
-      contentMarkdown: '**첫 댓글**',
-    });
-    await workflow.createComment({
+      fixture.project.id,
+      createdTicket.id,
+      actorUserId,
+      { contentMarkdown: '**첫 댓글**' },
+    );
+    await comments.createComment(
       organizationId,
-      projectId: fixture.project.id,
-      ticketId: createdTicket.id,
-      authorUserId: otherUserId,
-      contentMarkdown: '두 번째 댓글',
-    });
+      fixture.project.id,
+      createdTicket.id,
+      otherUserId,
+      { contentMarkdown: '두 번째 댓글' },
+    );
 
     await expect(
-      workflow.loadCardMetadata(organizationId, fixture.project.id, [
+      detailQuery.loadCardMetadata(organizationId, fixture.project.id, [
         createdTicket.id,
       ]),
     ).resolves.toEqual([
@@ -359,7 +342,7 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
       }),
     ]);
 
-    const detail = await workflow.loadDetailChildren(
+    const detail = await detailQuery.loadDetailChildren(
       organizationId,
       fixture.project.id,
       createdTicket.id,
@@ -397,9 +380,7 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
       '생명주기 티켓',
     );
 
-    const label = await workflow.createLabel({
-      organizationId,
-      projectId: fixture.project.id,
+    const label = await labels.createLabel(organizationId, fixture.project.id, {
       name: 'Lifecycle',
       color: 'green',
     });
@@ -407,23 +388,23 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
       throw new Error('lifecycle 라벨 생성에 실패했습니다.');
     }
     await expect(
-      workflow.attachLabel({
+      labels.attachLabel(
         organizationId,
-        projectId: fixture.project.id,
-        ticketId: createdTicket.id,
-        labelId: label.id,
-      }),
+        fixture.project.id,
+        createdTicket.id,
+        label.id,
+      ),
     ).resolves.toMatchObject({ id: label.id });
     await expect(
-      workflow.attachLabel({
+      labels.attachLabel(
         organizationId,
-        projectId: fixture.project.id,
-        ticketId: createdTicket.id,
-        labelId: label.id,
-      }),
+        fixture.project.id,
+        createdTicket.id,
+        label.id,
+      ),
     ).resolves.toMatchObject({ id: label.id });
     await expect(
-      workflow.loadCardMetadata(organizationId, fixture.project.id, [
+      detailQuery.loadCardMetadata(organizationId, fixture.project.id, [
         createdTicket.id,
       ]),
     ).resolves.toEqual([
@@ -432,112 +413,112 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
       }),
     ]);
     await expect(
-      workflow.detachLabel({
+      labels.detachLabel(
         organizationId,
-        projectId: fixture.project.id,
-        ticketId: createdTicket.id,
-        labelId: label.id,
-      }),
+        fixture.project.id,
+        createdTicket.id,
+        label.id,
+      ),
     ).resolves.toBe(true);
     await expect(
-      workflow.detachLabel({
+      labels.detachLabel(
         organizationId,
-        projectId: fixture.project.id,
-        ticketId: createdTicket.id,
-        labelId: label.id,
-      }),
+        fixture.project.id,
+        createdTicket.id,
+        label.id,
+      ),
     ).resolves.toBe(true);
 
-    const checklist = await workflow.createChecklist({
+    const checklist = await checklists.createChecklist(
       organizationId,
-      projectId: fixture.project.id,
-      ticketId: createdTicket.id,
-      title: '초기 체크리스트',
-    });
+      fixture.project.id,
+      createdTicket.id,
+      { title: '초기 체크리스트' },
+    );
     if (!checklist) {
       throw new Error('lifecycle 체크리스트 생성에 실패했습니다.');
     }
     await expect(
-      workflow.renameChecklist({
+      checklists.updateChecklist(
         organizationId,
-        projectId: fixture.project.id,
-        ticketId: createdTicket.id,
-        checklistId: checklist.checklist.id,
-        title: '변경된 체크리스트',
-      }),
+        fixture.project.id,
+        createdTicket.id,
+        checklist.checklist.id,
+        { title: '변경된 체크리스트' },
+      ),
     ).resolves.toMatchObject({
       checklist: { title: '변경된 체크리스트' },
     });
 
-    const item = await workflow.addChecklistItem({
+    const item = await checklists.addChecklistItem(
       organizationId,
-      projectId: fixture.project.id,
-      ticketId: createdTicket.id,
-      checklistId: checklist.checklist.id,
-      title: '초기 항목',
-    });
+      fixture.project.id,
+      createdTicket.id,
+      checklist.checklist.id,
+      { title: '초기 항목' },
+    );
     if (!item) {
       throw new Error('lifecycle 체크리스트 항목 생성에 실패했습니다.');
     }
     await expect(
-      workflow.renameChecklistItem({
+      checklists.updateChecklistItem(
         organizationId,
-        projectId: fixture.project.id,
-        ticketId: createdTicket.id,
-        checklistId: checklist.checklist.id,
-        itemId: item.id,
-        title: '변경된 항목',
-      }),
+        fixture.project.id,
+        createdTicket.id,
+        checklist.checklist.id,
+        item.id,
+        { title: '변경된 항목' },
+      ),
     ).resolves.toMatchObject({ title: '변경된 항목' });
     await expect(
-      workflow.toggleChecklistItem({
+      checklists.updateChecklistItem(
         organizationId,
-        projectId: fixture.project.id,
-        ticketId: createdTicket.id,
-        checklistId: checklist.checklist.id,
-        itemId: item.id,
-        completed: true,
-      }),
+        fixture.project.id,
+        createdTicket.id,
+        checklist.checklist.id,
+        item.id,
+        { completed: true },
+      ),
     ).resolves.toMatchObject({ completed: true });
     await expect(
-      workflow.removeChecklistItem({
+      checklists.removeChecklistItem(
         organizationId,
-        projectId: fixture.project.id,
-        ticketId: createdTicket.id,
-        checklistId: checklist.checklist.id,
-        itemId: item.id,
-      }),
+        fixture.project.id,
+        createdTicket.id,
+        checklist.checklist.id,
+        item.id,
+      ),
     ).resolves.toBe(true);
     await expect(
-      workflow.removeChecklist({
+      checklists.removeChecklist(
         organizationId,
-        projectId: fixture.project.id,
-        ticketId: createdTicket.id,
-        checklistId: checklist.checklist.id,
-      }),
+        fixture.project.id,
+        createdTicket.id,
+        checklist.checklist.id,
+      ),
     ).resolves.toBe(true);
 
-    const comment = await workflow.createComment({
+    const comment = await comments.createComment(
       organizationId,
-      projectId: fixture.project.id,
-      ticketId: createdTicket.id,
-      authorUserId: actorUserId,
-      contentMarkdown: '초기 댓글',
-    });
+      fixture.project.id,
+      createdTicket.id,
+      actorUserId,
+      { contentMarkdown: '초기 댓글' },
+    );
     if (!comment) {
       throw new Error('lifecycle 댓글 생성에 실패했습니다.');
     }
     await expect(
-      workflow.updateComment({
+      comments.updateComment(
         organizationId,
-        projectId: fixture.project.id,
-        ticketId: createdTicket.id,
-        commentId: comment.id,
-        contentMarkdown: '변경된 댓글',
-      }),
+        fixture.project.id,
+        createdTicket.id,
+        comment.id,
+        { contentMarkdown: '변경된 댓글' },
+      ),
     ).resolves.toMatchObject({ contentMarkdown: '변경된 댓글' });
     await expect(
-      workflow.listComments(
+      comments.listComments(
         organizationId,
         fixture.project.id,
         createdTicket.id,
@@ -549,15 +530,15 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
       }),
     ]);
     await expect(
-      workflow.removeComment({
+      comments.removeComment(
         organizationId,
-        projectId: fixture.project.id,
-        ticketId: createdTicket.id,
-        commentId: comment.id,
-      }),
+        fixture.project.id,
+        createdTicket.id,
+        comment.id,
+      ),
     ).resolves.toBe(true);
 
-    const detail = await workflow.loadDetailChildren(
+    const detail = await detailQuery.loadDetailChildren(
       organizationId,
       fixture.project.id,
       createdTicket.id,
@@ -580,28 +561,26 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
       backlog.id,
       '라벨 scope 티켓',
     );
-    const other = await createProjectFixture({
-      organizationId: otherOrganizationId,
-      key: 'LABEL',
-      name: '다른 라벨 프로젝트',
-    });
-    const otherLabel = await workflow.createLabel({
-      organizationId: otherOrganizationId,
-      projectId: other.project.id,
-      name: 'Other',
-      color: 'red',
-    });
+    const other = await createProjectFixture(
+      { key: 'LABEL', name: '다른 라벨 프로젝트' },
+      otherOrganizationId,
+    );
+    const otherLabel = await labels.createLabel(
+      otherOrganizationId,
+      other.project.id,
+      { name: 'Other', color: 'red' },
+    );
     if (!otherLabel) {
       throw new Error('다른 프로젝트 라벨 생성에 실패했습니다.');
     }
 
     await expect(
-      workflow.attachLabel({
+      labels.attachLabel(
         organizationId,
-        projectId: fixture.project.id,
-        ticketId: createdTicket.id,
-        labelId: otherLabel.id,
-      }),
+        fixture.project.id,
+        createdTicket.id,
+        otherLabel.id,
+      ),
     ).resolves.toBeNull();
   });
 
@@ -615,12 +594,14 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
   }
 
   async function createProjectFixture(
-    overrides: Partial<CreateProjectPersistenceInput> = {},
+    overrides: Partial<CreateProjectInput> = {},
+    targetOrganizationId = organizationId,
   ) {
-    const created = await projects.createProjectWithDefaultColumns({
-      ...baseProjectInput,
-      ...overrides,
-    });
+    const created = await projects.createProjectWithDefaultColumns(
+      targetOrganizationId,
+      actorUserId,
+      { ...baseProjectInput, ...overrides },
+    );
     const columns = await projectColumns.listColumns(
       created.organizationId,
       created.id,
@@ -633,17 +614,19 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
     columnId: string,
     title: string,
   ) {
-    const result = await ticketRepository.createTicketWithNumber({
+    const result = await ticketRepository.createTicketWithNumber(
       organizationId,
       projectId,
-      columnId,
-      title,
-      descriptionMarkdown: '',
-      priority: 'medium',
-      assigneeUserId: null,
-      reporterUserId: actorUserId,
-      dueAt: null,
-    });
+      actorUserId,
+      {
+        columnId,
+        title,
+        descriptionMarkdown: '',
+        priority: 'medium',
+        assigneeUserId: null,
+        dueAt: null,
+      },
+    );
     if (result.kind !== 'created') {
       throw new Error(`티켓 생성 실패: ${result.kind}`);
     }
@@ -651,9 +634,7 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
   }
 
   async function ticketOrder(projectId: string, columnId: string) {
-    const rows = await ticketRepository.listTickets({
-      organizationId,
-      projectId,
+    const rows = await ticketRepository.listTickets(organizationId, projectId, {
       columnId,
     });
     return rows.map(({ id, position }) => ({ id, position }));

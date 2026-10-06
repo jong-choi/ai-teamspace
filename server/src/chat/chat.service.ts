@@ -12,10 +12,7 @@ import {
 } from '@/chat/domain/chat.error';
 import type { ChatConversationState } from '@/chat/domain/chat-conversation-state';
 import { chatTextMessageContentSchema } from '@/chat/domain/chat-message-content';
-import {
-  decodeChatMessageCursor,
-  encodeChatMessageCursor,
-} from '@/chat/domain/chat-message-cursor';
+import { encodeChatMessageCursor } from '@/chat/domain/chat-message-cursor';
 import {
   type ChatConversationResponse,
   toChatConversationResponse,
@@ -68,24 +65,26 @@ export class ChatService {
   async deliverOrganizationInvitation(
     input: DeliverOrganizationInvitationInput,
   ): Promise<ChatMessageResponse> {
-    const result = await this.chatRepository.deliverReferencedSystemMessage({
-      recipientUserId: input.recipientUserId,
-      contentType: 'organization_invitation',
-      content: {
-        type: 'organization_invitation',
-        invitationId: input.invitationId,
-        organizationId: input.organizationId,
-        inviterUserId: input.inviterUserId,
-        ...(input.organizationNameAtSend
-          ? { organizationNameAtSend: input.organizationNameAtSend }
-          : {}),
-        ...(input.inviterDisplayNameAtSend
-          ? { inviterDisplayNameAtSend: input.inviterDisplayNameAtSend }
-          : {}),
+    const result = await this.chatRepository.deliverReferencedSystemMessage(
+      input.recipientUserId,
+      {
+        contentType: 'organization_invitation',
+        content: {
+          type: 'organization_invitation',
+          invitationId: input.invitationId,
+          organizationId: input.organizationId,
+          inviterUserId: input.inviterUserId,
+          ...(input.organizationNameAtSend
+            ? { organizationNameAtSend: input.organizationNameAtSend }
+            : {}),
+          ...(input.inviterDisplayNameAtSend
+            ? { inviterDisplayNameAtSend: input.inviterDisplayNameAtSend }
+            : {}),
+        },
       },
-      referenceKind: 'organization_invitation',
-      referenceId: input.invitationId,
-    });
+      'organization_invitation',
+      input.invitationId,
+    );
     const response = toChatMessageResponse(result.message);
 
     if (result.conversationCreated) {
@@ -160,11 +159,10 @@ export class ChatService {
       ]),
     ];
 
-    const conversation = await this.chatRepository.createChannelConversation({
-      name: input.name,
-      topic: input.topic || null,
+    const conversation = await this.chatRepository.createChannelConversation(
+      input,
       participantUserIds,
-    });
+    );
     await this.realtime.publishConversationChanged(
       participantUserIds,
       conversation.id,
@@ -194,10 +192,10 @@ export class ChatService {
       return this.getConversation(userId, existing.id);
     }
 
-    const created = await this.chatRepository.createDirectConversation({
+    const created = await this.chatRepository.createDirectConversation(
       directKey,
       participantUserIds,
-    });
+    );
     if (created) {
       await this.realtime.publishConversationChanged(
         participantUserIds,
@@ -221,12 +219,11 @@ export class ChatService {
     conversationId: string,
     query: QueryChatMessagesInput,
   ): Promise<ChatMessagePageResponse> {
-    const page = await this.chatRepository.listMessages({
+    const page = await this.chatRepository.listMessages(
       conversationId,
       userId,
-      before: query.before ? decodeChatMessageCursor(query.before) : undefined,
-      limit: query.limit,
-    });
+      query,
+    );
     if (!page) {
       throw new ChatConversationNotFoundError();
     }
@@ -266,11 +263,11 @@ export class ChatService {
     input: SendChatMessageInput,
   ): Promise<ChatMessageResponse> {
     const state = await this.requireConversationState(userId, conversationId);
-    const message = await this.chatRepository.createTextMessage({
+    const message = await this.chatRepository.createTextMessage(
       conversationId,
-      senderUserId: userId,
-      text: input.text,
-    });
+      userId,
+      input,
+    );
     const response = toChatMessageResponse(message);
     await this.realtime.publishMessageCreated(
       state.participants.map((participant) => participant.userId),
@@ -306,12 +303,12 @@ export class ChatService {
     }
 
     const state = await this.requireConversationState(userId, conversationId);
-    const updated = await this.chatRepository.updateTextMessage({
+    const updated = await this.chatRepository.updateTextMessage(
       conversationId,
       messageId,
-      senderUserId: userId,
-      text: input.text,
-    });
+      userId,
+      input,
+    );
     if (!updated) {
       throw new ChatMessageNotFoundError();
     }
@@ -328,31 +325,25 @@ export class ChatService {
     conversationId: string,
     input: MarkChatReadInput,
   ): Promise<void> {
-    const message = await this.chatRepository.findMessage(
+    const result = await this.chatRepository.markRead(
       conversationId,
-      input.messageId,
       userId,
+      input,
     );
-    if (!message) {
-      throw new ChatMessageNotFoundError();
-    }
-
-    const result = await this.chatRepository.markRead({
-      conversationId,
-      userId,
-      readAt: message.createdAt,
-    });
     if (result === null) {
       throw new ChatConversationNotFoundError();
     }
-    if (result === 'unchanged') {
+    if (result.status === 'message_not_found') {
+      throw new ChatMessageNotFoundError();
+    }
+    if (result.status === 'unchanged') {
       return;
     }
 
     await this.realtime.publishConversationRead([userId], {
       conversationId,
       userId,
-      readAt: message.createdAt.toISOString(),
+      readAt: result.readAt.toISOString(),
     });
   }
 

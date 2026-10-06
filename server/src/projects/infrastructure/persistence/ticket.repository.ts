@@ -1,42 +1,19 @@
-import type { Ticket, TicketPriority } from '@/projects/domain/ticket';
-
-export type CreateTicketPersistenceInput = {
-  organizationId: string;
-  projectId: string;
-  columnId: string;
-  title: string;
-  descriptionMarkdown: string;
-  priority: TicketPriority;
-  assigneeUserId: string | null;
-  reporterUserId: string;
-  dueAt: Date | null;
-};
+import type { Ticket } from '@/projects/domain/ticket';
+import type { CreateTicketInput } from '@/projects/dto/create-ticket.dto';
+import type { QueryTicketsInput } from '@/projects/dto/query-tickets.dto';
+import type { UpdateTicketInput } from '@/projects/dto/update-ticket.dto';
 
 export type CreateTicketResult =
   | { kind: 'created'; ticket: Ticket }
   | { kind: 'project_not_found' }
   | { kind: 'column_not_found' };
 
-export type TicketChanges = {
-  title?: string;
-  descriptionMarkdown?: string;
-  priority?: TicketPriority;
-  assigneeUserId?: string | null;
-  dueAt?: Date | null;
-  archivedAt?: Date | null;
-};
-
-export type ListTicketsPersistenceInput = {
-  organizationId: string;
-  projectId: string;
-  search?: string;
-  columnId?: string;
-  assigneeUserId?: string;
-  priority?: TicketPriority;
-};
-
 export abstract class TicketRepository {
-  abstract listTickets(input: ListTicketsPersistenceInput): Promise<Ticket[]>;
+  abstract listTickets(
+    organizationId: string,
+    projectId: string,
+    input: QueryTicketsInput,
+  ): Promise<Ticket[]>;
 
   abstract findTicketById(
     organizationId: string,
@@ -45,13 +22,16 @@ export abstract class TicketRepository {
   ): Promise<Ticket | null>;
 
   abstract createTicketWithNumber(
-    input: CreateTicketPersistenceInput,
+    organizationId: string,
+    projectId: string,
+    reporterUserId: string,
+    input: CreateTicketInput,
   ): Promise<CreateTicketResult>;
 
-  abstract updateTicket(input: {
-    organizationId: string;
-    projectId: string;
-    ticketId: string;
-    changes: TicketChanges;
-  }): Promise<Ticket | null>;
+  abstract updateTicket(
+    organizationId: string,
+    projectId: string,
+    ticketId: string,
+    input: UpdateTicketInput,
+  ): Promise<Ticket | null>;
 }

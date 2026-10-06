@@ -5,6 +5,11 @@ import type {
   DropProvider as NativeDropProvider,
 } from 'react-native-reanimated-dnd';
 
+import type {
+  MoveTicket,
+  TicketSummary,
+} from '@repo/client/api-client/schemas';
+
 type DndPrimitives = {
   Draggable: typeof NativeDraggable;
   Droppable: typeof NativeDroppable;
@@ -12,15 +17,15 @@ type DndPrimitives = {
 };
 
 export type KanbanDragData = {
-  sourceColumnId: string;
-  ticketId: string;
+  sourceColumnId: TicketSummary['columnId'];
+  ticketId: TicketSummary['id'];
 };
 
-export type KanbanDropIntent = {
-  afterTicketId: string | null;
-  beforeTicketId: string | null;
-  targetColumnId: string;
-  ticketId: string;
+export type KanbanDropIntent = Pick<
+  MoveTicket,
+  'afterTicketId' | 'beforeTicketId' | 'targetColumnId'
+> & {
+  ticketId: TicketSummary['id'];
 };
 
 export type KanbanDndProviderProps = {

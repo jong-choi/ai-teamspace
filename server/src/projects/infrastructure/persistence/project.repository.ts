@@ -1,25 +1,11 @@
 import type { Project } from '@/projects/domain/project';
+import type { CreateProjectInput } from '@/projects/dto/create-project.dto';
+import type { UpdateProjectInput } from '@/projects/dto/update-project.dto';
 
 export type ProjectSummaryReadModel = {
   project: Project;
   activeTicketCount: number;
   doneTicketCount: number;
-};
-
-export type CreateProjectPersistenceInput = {
-  organizationId: string;
-  key: string;
-  name: string;
-  description: string;
-  leadUserId: string | null;
-  createdByUserId: string;
-};
-
-export type ProjectChanges = {
-  name?: string;
-  description?: string;
-  leadUserId?: string | null;
-  archivedAt?: Date | null;
 };
 
 export abstract class ProjectRepository {
@@ -33,12 +19,14 @@ export abstract class ProjectRepository {
   ): Promise<ProjectSummaryReadModel | null>;
 
   abstract createProjectWithDefaultColumns(
-    input: CreateProjectPersistenceInput,
+    organizationId: string,
+    createdByUserId: string,
+    input: CreateProjectInput,
   ): Promise<Project>;
 
-  abstract updateProject(input: {
-    organizationId: string;
-    projectId: string;
-    changes: ProjectChanges;
-  }): Promise<Project | null>;
+  abstract updateProject(
+    organizationId: string,
+    projectId: string,
+    input: UpdateProjectInput,
+  ): Promise<Project | null>;
 }

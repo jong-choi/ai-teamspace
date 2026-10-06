@@ -14,8 +14,11 @@ import {
   ProjectRepository,
   type ProjectSummaryReadModel,
 } from '@/projects/infrastructure/persistence/project.repository';
+import { TicketChecklistRepository } from '@/projects/infrastructure/persistence/ticket-checklist.repository';
+import { TicketCommentRepository } from '@/projects/infrastructure/persistence/ticket-comment.repository';
+import { TicketLabelRepository } from '@/projects/infrastructure/persistence/ticket-label.repository';
+import { TicketOrderingRepository } from '@/projects/infrastructure/persistence/ticket-ordering.repository';
 import { TicketRepository } from '@/projects/infrastructure/persistence/ticket.repository';
-import { TicketWorkflowRepository } from '@/projects/infrastructure/persistence/ticket-workflow.repository';
 import { ProjectResourceLoader } from '@/projects/project-resource.loader';
 import { ProjectUserResolver } from '@/projects/project-user.resolver';
 import { TicketChecklistsService } from '@/projects/ticket-checklists.service';
@@ -49,32 +52,36 @@ class FakeTicketRepository extends TicketRepository {
   updateTicket = jest.fn<TicketRepository['updateTicket']>();
 }
 
-class FakeTicketWorkflowRepository extends TicketWorkflowRepository {
-  loadCardMetadata = jest.fn<TicketWorkflowRepository['loadCardMetadata']>();
-  loadDetailChildren =
-    jest.fn<TicketWorkflowRepository['loadDetailChildren']>();
-  moveTicket = jest.fn<TicketWorkflowRepository['moveTicket']>();
-  listLabels = jest.fn<TicketWorkflowRepository['listLabels']>();
-  createLabel = jest.fn<TicketWorkflowRepository['createLabel']>();
-  updateLabel = jest.fn<TicketWorkflowRepository['updateLabel']>();
-  attachLabel = jest.fn<TicketWorkflowRepository['attachLabel']>();
-  detachLabel = jest.fn<TicketWorkflowRepository['detachLabel']>();
-  createChecklist = jest.fn<TicketWorkflowRepository['createChecklist']>();
-  renameChecklist = jest.fn<TicketWorkflowRepository['renameChecklist']>();
-  removeChecklist = jest.fn<TicketWorkflowRepository['removeChecklist']>();
-  addChecklistItem = jest.fn<TicketWorkflowRepository['addChecklistItem']>();
-  renameChecklistItem =
-    jest.fn<TicketWorkflowRepository['renameChecklistItem']>();
-  toggleChecklistItem =
-    jest.fn<TicketWorkflowRepository['toggleChecklistItem']>();
-  moveChecklistItem = jest.fn<TicketWorkflowRepository['moveChecklistItem']>();
+class FakeTicketOrderingRepository extends TicketOrderingRepository {
+  moveTicket = jest.fn<TicketOrderingRepository['moveTicket']>();
+}
+
+class FakeTicketLabelRepository extends TicketLabelRepository {
+  listLabels = jest.fn<TicketLabelRepository['listLabels']>();
+  createLabel = jest.fn<TicketLabelRepository['createLabel']>();
+  updateLabel = jest.fn<TicketLabelRepository['updateLabel']>();
+  attachLabel = jest.fn<TicketLabelRepository['attachLabel']>();
+  detachLabel = jest.fn<TicketLabelRepository['detachLabel']>();
+}
+
+class FakeTicketChecklistRepository extends TicketChecklistRepository {
+  createChecklist = jest.fn<TicketChecklistRepository['createChecklist']>();
+  updateChecklist = jest.fn<TicketChecklistRepository['updateChecklist']>();
+  removeChecklist = jest.fn<TicketChecklistRepository['removeChecklist']>();
+  addChecklistItem = jest.fn<TicketChecklistRepository['addChecklistItem']>();
+  updateChecklistItem =
+    jest.fn<TicketChecklistRepository['updateChecklistItem']>();
+  moveChecklistItem = jest.fn<TicketChecklistRepository['moveChecklistItem']>();
   removeChecklistItem =
-    jest.fn<TicketWorkflowRepository['removeChecklistItem']>();
-  listComments = jest.fn<TicketWorkflowRepository['listComments']>();
-  findComment = jest.fn<TicketWorkflowRepository['findComment']>();
-  createComment = jest.fn<TicketWorkflowRepository['createComment']>();
-  updateComment = jest.fn<TicketWorkflowRepository['updateComment']>();
-  removeComment = jest.fn<TicketWorkflowRepository['removeComment']>();
+    jest.fn<TicketChecklistRepository['removeChecklistItem']>();
+}
+
+class FakeTicketCommentRepository extends TicketCommentRepository {
+  listComments = jest.fn<TicketCommentRepository['listComments']>();
+  findComment = jest.fn<TicketCommentRepository['findComment']>();
+  createComment = jest.fn<TicketCommentRepository['createComment']>();
+  updateComment = jest.fn<TicketCommentRepository['updateComment']>();
+  removeComment = jest.fn<TicketCommentRepository['removeComment']>();
 }
 
 type MembershipBoundary = Pick<OrganizationMembershipService, 'requireAccess'>;
@@ -136,7 +143,10 @@ describe('티켓 워크플로 application 서비스', () => {
   let projects: FakeProjectRepository;
   let columns: FakeProjectColumnRepository;
   let tickets: FakeTicketRepository;
-  let workflow: FakeTicketWorkflowRepository;
+  let ordering: FakeTicketOrderingRepository;
+  let labels: FakeTicketLabelRepository;
+  let checklists: FakeTicketChecklistRepository;
+  let comments: FakeTicketCommentRepository;
   let membership: {
     requireAccess: jest.MockedFunction<MembershipBoundary['requireAccess']>;
   };
@@ -152,7 +162,10 @@ describe('티켓 워크플로 application 서비스', () => {
     projects = new FakeProjectRepository();
     columns = new FakeProjectColumnRepository();
     tickets = new FakeTicketRepository();
-    workflow = new FakeTicketWorkflowRepository();
+    ordering = new FakeTicketOrderingRepository();
+    labels = new FakeTicketLabelRepository();
+    checklists = new FakeTicketChecklistRepository();
+    comments = new FakeTicketCommentRepository();
     membership = {
       requireAccess: jest.fn<MembershipBoundary['requireAccess']>(),
     };
@@ -176,18 +189,18 @@ describe('티켓 워크플로 application 서비스', () => {
       new ProjectResourceLoader(projects, columns, tickets),
       membership,
     );
-    orderingService = new TicketOrderingService(workflow, accessPolicy);
-    labelsService = new TicketLabelsService(workflow, accessPolicy);
-    checklistsService = new TicketChecklistsService(workflow, accessPolicy);
+    orderingService = new TicketOrderingService(ordering, accessPolicy);
+    labelsService = new TicketLabelsService(labels, accessPolicy);
+    checklistsService = new TicketChecklistsService(checklists, accessPolicy);
     commentsService = new TicketCommentsService(
-      workflow,
+      comments,
       accessPolicy,
       new ProjectUserResolver(userDirectory),
     );
   });
 
   it('move 기준 티켓이 대상 컬럼에 없으면 명시적 오류로 변환한다', async () => {
-    workflow.moveTicket.mockResolvedValue({ kind: 'reference_not_found' });
+    ordering.moveTicket.mockResolvedValue({ kind: 'reference_not_found' });
 
     await expect(
       orderingService.moveTicket(context, organizationId, projectId, ticketId, {
@@ -196,18 +209,19 @@ describe('티켓 워크플로 application 서비스', () => {
       }),
     ).rejects.toBeInstanceOf(TicketMoveReferenceInvalidError);
 
-    expect(workflow.moveTicket).toHaveBeenCalledWith({
+    expect(ordering.moveTicket).toHaveBeenCalledWith(
       organizationId,
       projectId,
       ticketId,
-      targetColumnId: columnId,
-      beforeTicketId: '88888888-8888-4888-8888-888888888888',
-      afterTicketId: null,
-    });
+      {
+        targetColumnId: columnId,
+        beforeTicketId: '88888888-8888-4888-8888-888888888888',
+      },
+    );
   });
 
   it('다른 프로젝트 라벨을 티켓에 붙이려는 요청을 거부한다', async () => {
-    workflow.attachLabel.mockResolvedValue(null);
+    labels.attachLabel.mockResolvedValue(null);
 
     await expect(
       labelsService.attachLabel(
@@ -221,7 +235,7 @@ describe('티켓 워크플로 application 서비스', () => {
   });
 
   it('다른 티켓 체크리스트에는 항목을 추가하지 않는다', async () => {
-    workflow.addChecklistItem.mockResolvedValue(null);
+    checklists.addChecklistItem.mockResolvedValue(null);
 
     await expect(
       checklistsService.addChecklistItem(
@@ -236,7 +250,7 @@ describe('티켓 워크플로 application 서비스', () => {
   });
 
   it('댓글 작성자가 아니면 댓글을 수정할 수 없다', async () => {
-    workflow.findComment.mockResolvedValue({
+    comments.findComment.mockResolvedValue({
       id: commentId,
       ticketId,
       authorUserId: 'other-user',
@@ -256,6 +270,6 @@ describe('티켓 워크플로 application 서비스', () => {
       ),
     ).rejects.toBeInstanceOf(TicketCommentAuthorRequiredError);
 
-    expect(workflow.updateComment).not.toHaveBeenCalled();
+    expect(comments.updateComment).not.toHaveBeenCalled();
   });
 });

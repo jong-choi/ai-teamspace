@@ -14,8 +14,8 @@ import {
   ProjectRepository,
   type ProjectSummaryReadModel,
 } from '@/projects/infrastructure/persistence/project.repository';
+import { TicketDetailQueryRepository } from '@/projects/infrastructure/persistence/ticket-detail-query.repository';
 import { TicketRepository } from '@/projects/infrastructure/persistence/ticket.repository';
-import { TicketWorkflowRepository } from '@/projects/infrastructure/persistence/ticket-workflow.repository';
 import { ProjectColumnsService } from '@/projects/project-columns.service';
 import { ProjectsService } from '@/projects/projects.service';
 import { ProjectResourceLoader } from '@/projects/project-resource.loader';
@@ -47,32 +47,10 @@ class FakeTicketRepository extends TicketRepository {
   updateTicket = jest.fn<TicketRepository['updateTicket']>();
 }
 
-class FakeTicketWorkflowRepository extends TicketWorkflowRepository {
-  loadCardMetadata = jest.fn<TicketWorkflowRepository['loadCardMetadata']>();
+class FakeTicketDetailQueryRepository extends TicketDetailQueryRepository {
+  loadCardMetadata = jest.fn<TicketDetailQueryRepository['loadCardMetadata']>();
   loadDetailChildren =
-    jest.fn<TicketWorkflowRepository['loadDetailChildren']>();
-  moveTicket = jest.fn<TicketWorkflowRepository['moveTicket']>();
-  listLabels = jest.fn<TicketWorkflowRepository['listLabels']>();
-  createLabel = jest.fn<TicketWorkflowRepository['createLabel']>();
-  updateLabel = jest.fn<TicketWorkflowRepository['updateLabel']>();
-  attachLabel = jest.fn<TicketWorkflowRepository['attachLabel']>();
-  detachLabel = jest.fn<TicketWorkflowRepository['detachLabel']>();
-  createChecklist = jest.fn<TicketWorkflowRepository['createChecklist']>();
-  renameChecklist = jest.fn<TicketWorkflowRepository['renameChecklist']>();
-  removeChecklist = jest.fn<TicketWorkflowRepository['removeChecklist']>();
-  addChecklistItem = jest.fn<TicketWorkflowRepository['addChecklistItem']>();
-  renameChecklistItem =
-    jest.fn<TicketWorkflowRepository['renameChecklistItem']>();
-  toggleChecklistItem =
-    jest.fn<TicketWorkflowRepository['toggleChecklistItem']>();
-  moveChecklistItem = jest.fn<TicketWorkflowRepository['moveChecklistItem']>();
-  removeChecklistItem =
-    jest.fn<TicketWorkflowRepository['removeChecklistItem']>();
-  listComments = jest.fn<TicketWorkflowRepository['listComments']>();
-  findComment = jest.fn<TicketWorkflowRepository['findComment']>();
-  createComment = jest.fn<TicketWorkflowRepository['createComment']>();
-  updateComment = jest.fn<TicketWorkflowRepository['updateComment']>();
-  removeComment = jest.fn<TicketWorkflowRepository['removeComment']>();
+    jest.fn<TicketDetailQueryRepository['loadDetailChildren']>();
 }
 
 type MembershipBoundary = Pick<
@@ -145,7 +123,7 @@ describe('프로젝트 서비스', () => {
   let projectRepository: FakeProjectRepository;
   let projectColumnRepository: FakeProjectColumnRepository;
   let ticketRepository: FakeTicketRepository;
-  let workflowRepository: FakeTicketWorkflowRepository;
+  let detailQueryRepository: FakeTicketDetailQueryRepository;
   let membership: {
     requireAccess: jest.MockedFunction<MembershipBoundary['requireAccess']>;
     hasMemberUser: jest.MockedFunction<MembershipBoundary['hasMemberUser']>;
@@ -161,7 +139,7 @@ describe('프로젝트 서비스', () => {
     projectRepository = new FakeProjectRepository();
     projectColumnRepository = new FakeProjectColumnRepository();
     ticketRepository = new FakeTicketRepository();
-    workflowRepository = new FakeTicketWorkflowRepository();
+    detailQueryRepository = new FakeTicketDetailQueryRepository();
     membership = {
       requireAccess: jest.fn<MembershipBoundary['requireAccess']>(),
       hasMemberUser: jest.fn<MembershipBoundary['hasMemberUser']>(),
@@ -181,8 +159,8 @@ describe('프로젝트 서비스', () => {
     });
     membership.hasMemberUser.mockResolvedValue(true);
     userDirectory.findByIds.mockResolvedValue([]);
-    workflowRepository.loadCardMetadata.mockResolvedValue([]);
-    workflowRepository.loadDetailChildren.mockResolvedValue({
+    detailQueryRepository.loadCardMetadata.mockResolvedValue([]);
+    detailQueryRepository.loadDetailChildren.mockResolvedValue({
       labels: [],
       checklists: [],
       comments: [],
@@ -206,7 +184,7 @@ describe('프로젝트 서비스', () => {
     );
     ticketsService = new TicketsService(
       ticketRepository,
-      workflowRepository,
+      detailQueryRepository,
       resourceLoader,
       membership,
       userResolver,

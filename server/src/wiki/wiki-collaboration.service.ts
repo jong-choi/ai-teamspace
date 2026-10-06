@@ -34,7 +34,6 @@ import {
 import { WikiCollaborationStateProvider } from '@/wiki/infrastructure/collaboration/wiki-collaboration-state.provider';
 import { WikiCollaborationTokenProvider } from '@/wiki/infrastructure/collaboration/wiki-collaboration-token.provider';
 import {
-  type PersistWikiCollaborationSnapshotInput,
   type PersistWikiCollaborationSnapshotResult,
   WikiRepository,
 } from '@/wiki/infrastructure/persistence/wiki.repository';
@@ -201,16 +200,15 @@ export class WikiCollaborationService {
         ? attribution.collaboratorUserIds
         : [lastEditorUserId];
 
-    const result = await this.persistCollaborationSnapshotWithRetry({
-      organizationId: scope.organizationId,
-      documentId: scope.documentId,
-      encodedState: snapshot.encodedState,
-      contentMarkdown: snapshot.contentMarkdown,
+    const result = await this.persistCollaborationSnapshotWithRetry(
+      scope.organizationId,
+      scope.documentId,
+      snapshot,
       lastEditorUserId,
       collaboratorUserIds,
-      schemaVersion: WIKI_COLLABORATION_SCHEMA_VERSION,
-      createCheckpoint: input.createCheckpoint,
-    });
+      WIKI_COLLABORATION_SCHEMA_VERSION,
+      input.createCheckpoint,
+    );
     if (result.checkpointCreated && attribution.maxSequence !== null) {
       await this.attributionProvider.clearThrough(
         input.documentName,
@@ -220,12 +218,12 @@ export class WikiCollaborationService {
   }
 
   private async persistCollaborationSnapshotWithRetry(
-    input: PersistWikiCollaborationSnapshotInput,
+    ...input: Parameters<WikiRepository['persistCollaborationSnapshot']>
   ): Promise<PersistWikiCollaborationSnapshotResult> {
     let lastError: unknown;
     for (let attempt = 0; ; attempt += 1) {
       try {
-        return await this.repository.persistCollaborationSnapshot(input);
+        return await this.repository.persistCollaborationSnapshot(...input);
       } catch (error) {
         if (
           error instanceof WikiCollaborationStateCorruptedError ||

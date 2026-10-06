@@ -1,31 +1,15 @@
-export type LegacyWikiEntry = {
-  id: string;
-  organizationId: string;
-  parentFolderId: string | null;
-  kind: 'folder' | 'document';
-  name: string;
-  position: number;
-  createdByUserId: string;
-  createdAt: Date;
-  updatedAt: Date;
-};
+import type {
+  cutoverWikiDocument,
+  legacyWikiEntry,
+} from '@/wiki/cutover/infrastructure/drizzle/legacy-wiki-tables';
+import type { wikiDocumentRevision } from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-document-revision.schema';
+import type { wikiDocumentRevisionCollaborator } from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-document-revision-collaborator.schema';
 
-export type LegacyWikiDocument = {
-  id: string;
-  collectionId: string | null;
-  organizationId: string | null;
-  parentDocumentId: string | null;
-  title: string | null;
-  position: number | null;
-  contentMarkdown: string;
-  collaborationState: Uint8Array | null;
-  collaborationSchemaVersion: number | null;
-  revision: number;
-  createdByUserId: string | null;
-  updatedByUserId: string;
-  createdAt: Date | null;
-  updatedAt: Date | null;
-};
+export type LegacyWikiEntry = typeof legacyWikiEntry.$inferSelect;
+export type LegacyWikiDocument = Omit<
+  typeof cutoverWikiDocument.$inferSelect,
+  'collaborationPersistedAt'
+>;
 
 export type WikiCutoverSnapshot = {
   entries: LegacyWikiEntry[];
@@ -33,46 +17,30 @@ export type WikiCutoverSnapshot = {
   revisions: WikiCutoverFinalRevision[];
 };
 
-export type WikiCutoverDocumentInput = {
+export type WikiCutoverDocumentInput = Pick<
+  LegacyWikiDocument,
+  'contentMarkdown' | 'revision' | 'updatedByUserId'
+> & {
   entry: LegacyWikiEntry;
-  contentMarkdown: string;
-  revision: number;
-  updatedByUserId: string;
-  collaborationState: Uint8Array;
-  collaborationSchemaVersion: number;
+  collaborationState: NonNullable<LegacyWikiDocument['collaborationState']>;
+  collaborationSchemaVersion: NonNullable<
+    LegacyWikiDocument['collaborationSchemaVersion']
+  >;
 };
 
-export type WikiCutoverFinalDocument = {
-  id: string;
-  collectionId: string | null;
-  organizationId: string | null;
-  parentDocumentId: string | null;
-  title: string | null;
-  position: number | null;
-  contentMarkdown: string;
-  collaborationState: Uint8Array | null;
-  collaborationSchemaVersion: number | null;
-  revision: number;
-  createdByUserId: string | null;
-  updatedByUserId: string;
-  createdAt: Date | null;
-  updatedAt: Date | null;
-};
-
-export type WikiCutoverFinalRevision = {
-  documentId: string;
-  organizationId: string;
-  revision: number;
-  editorUserId: string;
-  contentMarkdown: string;
-};
-
-export type WikiCutoverFinalRevisionCollaborator = {
-  documentId: string;
-  revision: number;
-  userId: string;
-  ordinal: number;
-};
+export type WikiCutoverFinalDocument = LegacyWikiDocument;
+export type WikiCutoverFinalRevision = Pick<
+  typeof wikiDocumentRevision.$inferSelect,
+  | 'documentId'
+  | 'organizationId'
+  | 'revision'
+  | 'editorUserId'
+  | 'contentMarkdown'
+>;
+export type WikiCutoverFinalRevisionCollaborator = Pick<
+  typeof wikiDocumentRevisionCollaborator.$inferSelect,
+  'documentId' | 'revision' | 'userId' | 'ordinal'
+>;
 
 export type WikiCutoverFinalSnapshot = {
   collectionOrganizationIds: string[];

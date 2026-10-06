@@ -66,16 +66,13 @@ export class WikiService {
       this.collaborationStateProvider.create(contentMarkdown);
 
     return toWikiDocumentResponse(
-      await this.wikiRepository.createDocument({
+      await this.wikiRepository.createDocument(
         organizationId,
-        parentDocumentId: input.parentDocumentId ?? null,
-        title: input.title,
-        position: input.position ?? 0,
-        contentMarkdown: collaboration.contentMarkdown,
-        collaborationState: collaboration.encodedState,
-        collaborationSchemaVersion: WIKI_COLLABORATION_SCHEMA_VERSION,
-        actorUserId: context.userId,
-      }),
+        context.userId,
+        input,
+        collaboration,
+        WIKI_COLLABORATION_SCHEMA_VERSION,
+      ),
     );
   }
 
@@ -98,17 +95,19 @@ export class WikiService {
   ): Promise<WikiDocumentResponse> {
     await this.assertOrganizationAccess(context, organizationId);
     const current = await this.requireDocument(organizationId, documentId);
-    const updated = await this.wikiRepository.updateDocumentMetadata({
+    const updated = await this.wikiRepository.updateDocumentMetadata(
       organizationId,
       documentId,
-      parentDocumentId:
-        input.parentDocumentId === undefined
-          ? current.parentDocumentId
-          : input.parentDocumentId,
-      title: input.title ?? current.title,
-      position: input.position ?? current.position,
-      actorUserId: context.userId,
-    });
+      context.userId,
+      {
+        parentDocumentId:
+          input.parentDocumentId === undefined
+            ? current.parentDocumentId
+            : input.parentDocumentId,
+        title: input.title ?? current.title,
+        position: input.position ?? current.position,
+      },
+    );
     if (!updated) {
       throw new WikiDocumentNotFoundError();
     }

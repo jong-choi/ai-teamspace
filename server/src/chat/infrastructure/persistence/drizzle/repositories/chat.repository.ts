@@ -3,15 +3,18 @@ import { Injectable } from '@nestjs/common';
 import type { ChatConversation } from '@/chat/domain/chat-conversation';
 import type { ChatConversationState } from '@/chat/domain/chat-conversation-state';
 import type { ChatMessage } from '@/chat/domain/chat-message';
+import type { ChatMessageContentInput } from '@/chat/domain/chat-message-content';
+import { decodeChatMessageCursor } from '@/chat/domain/chat-message-cursor';
 import type { ChatParticipant } from '@/chat/domain/chat-participant';
+import type { CreateChatChannelInput } from '@/chat/dto/create-chat-channel.dto';
+import type { MarkChatReadInput } from '@/chat/dto/mark-chat-read.dto';
+import type { QueryChatMessagesInput } from '@/chat/dto/query-chat-messages.dto';
+import type { SendChatMessageInput } from '@/chat/dto/send-chat-message.dto';
+import type { UpdateChatMessageInput } from '@/chat/dto/update-chat-message.dto';
 import {
   type ChatMessagePage,
   ChatRepository,
-  type CreateChatChannelConversationInput,
-  type CreateDirectChatConversationInput,
-  type DeliverReferencedSystemMessageInput,
   type DeliverReferencedSystemMessageResult,
-  type ListChatMessagesInput,
   type MarkChatReadResult,
 } from '@/chat/infrastructure/persistence/chat.repository';
 import {
@@ -54,7 +57,8 @@ export class ChatDrizzleRepository extends ChatRepository {
   }
 
   async createChannelConversation(
-    input: CreateChatChannelConversationInput,
+    input: CreateChatChannelInput,
+    participantUserIds: readonly ChatParticipant['userId'][],
   ): Promise<ChatConversation> {
     return this.database.db.transaction(async (transaction) => {
       const [row] = await transaction
@@ -63,7 +67,7 @@ export class ChatDrizzleRepository extends ChatRepository {
           toChatConversationInsert({
             kind: 'channel',
             name: input.name,
-            topic: input.topic,
+            topic: input.topic ?? null,
             directKey: null,
           }),
         )
@@ -74,7 +78,7 @@ export class ChatDrizzleRepository extends ChatRepository {
       }
 
       await transaction.insert(chatParticipant).values(
-        input.participantUserIds.map((userId) =>
+        participantUserIds.map((userId) =>
           toChatParticipantInsert({
             conversationId: row.id,
             userId,
@@ -87,7 +91,8 @@ export class ChatDrizzleRepository extends ChatRepository {
   }
 
   async createDirectConversation(
-    input: CreateDirectChatConversationInput,
+    directKey: NonNullable<ChatConversation['directKey']>,
+    participantUserIds: readonly ChatParticipant['userId'][],
   ): Promise<ChatConversation | null> {
     return this.database.db.transaction(async (transaction) => {
       const [row] = await transaction
@@ -97,7 +102,7 @@ export class ChatDrizzleRepository extends ChatRepository {
             kind: 'direct',
             name: null,
             topic: null,
-            directKey: input.directKey,
+            directKey,
           }),
         )
         .onConflictDoNothing({ target: chatConversation.directKey })
@@ -108,7 +113,7 @@ export class ChatDrizzleRepository extends ChatRepository {
       }
 
       await transaction.insert(chatParticipant).values(
-        input.participantUserIds.map((userId) =>
+        participantUserIds.map((userId) =>
           toChatParticipantInsert({
             conversationId: row.id,
             userId,
@@ -143,7 +148,10 @@ export class ChatDrizzleRepository extends ChatRepository {
   }
 
   async deliverReferencedSystemMessage(
-    input: DeliverReferencedSystemMessageInput,
+    recipientUserId: ChatParticipant['userId'],
+    content: ChatMessageContentInput,
+    referenceKind: NonNullable<ChatMessage['referenceKind']>,
+    referenceId: NonNullable<ChatMessage['referenceId']>,
   ): Promise<DeliverReferencedSystemMessageResult> {
     return this.database.db.transaction(async (transaction) => {
       const [createdConversation] = await transaction
@@ -154,7 +162,7 @@ export class ChatDrizzleRepository extends ChatRepository {
             name: null,
             topic: null,
             directKey: null,
-            systemUserId: input.recipientUserId,
+            systemUserId: recipientUserId,
           }),
         )
         .onConflictDoNothing({ target: chatConversation.systemUserId })
@@ -165,14 +173,14 @@ export class ChatDrizzleRepository extends ChatRepository {
         await transaction.insert(chatParticipant).values(
           toChatParticipantInsert({
             conversationId: createdConversation.id,
-            userId: input.recipientUserId,
+            userId: recipientUserId,
           }),
         );
       } else {
         [conversation] = await transaction
           .select()
           .from(chatConversation)
-          .where(eq(chatConversation.systemUserId, input.recipientUserId))
+          .where(eq(chatConversation.systemUserId, recipientUserId))
           .limit(1);
       }
 
@@ -187,10 +195,10 @@ export class ChatDrizzleRepository extends ChatRepository {
             conversationId: conversation.id,
             senderKind: 'system',
             senderUserId: null,
-            contentType: input.contentType,
-            content: input.content,
-            referenceKind: input.referenceKind,
-            referenceId: input.referenceId,
+            contentType: content.contentType,
+            content: content.content,
+            referenceKind,
+            referenceId,
           }),
         )
         .onConflictDoNothing({
@@ -212,8 +220,8 @@ export class ChatDrizzleRepository extends ChatRepository {
           .from(chatMessage)
           .where(
             and(
-              eq(chatMessage.referenceKind, input.referenceKind),
-              eq(chatMessage.referenceId, input.referenceId),
+              eq(chatMessage.referenceKind, referenceKind),
+              eq(chatMessage.referenceId, referenceId),
             ),
           )
           .limit(1);
@@ -259,22 +267,27 @@ export class ChatDrizzleRepository extends ChatRepository {
   }
 
   async listMessages(
-    input: ListChatMessagesInput,
+    conversationId: ChatConversation['id'],
+    userId: ChatParticipant['userId'],
+    input: QueryChatMessagesInput,
   ): Promise<ChatMessagePage | null> {
     const conversation = await this.findConversationForUser(
-      input.conversationId,
-      input.userId,
+      conversationId,
+      userId,
     );
     if (!conversation) {
       return null;
     }
 
-    const cursorCondition = input.before
+    const before = input.before
+      ? decodeChatMessageCursor(input.before)
+      : undefined;
+    const cursorCondition = before
       ? or(
-          lt(chatMessage.createdAt, input.before.createdAt),
+          lt(chatMessage.createdAt, before.createdAt),
           and(
-            eq(chatMessage.createdAt, input.before.createdAt),
-            lt(chatMessage.id, input.before.id),
+            eq(chatMessage.createdAt, before.createdAt),
+            lt(chatMessage.id, before.id),
           ),
         )
       : undefined;
@@ -284,11 +297,8 @@ export class ChatDrizzleRepository extends ChatRepository {
       .from(chatMessage)
       .where(
         cursorCondition
-          ? and(
-              eq(chatMessage.conversationId, input.conversationId),
-              cursorCondition,
-            )
-          : eq(chatMessage.conversationId, input.conversationId),
+          ? and(eq(chatMessage.conversationId, conversationId), cursorCondition)
+          : eq(chatMessage.conversationId, conversationId),
       )
       .orderBy(desc(chatMessage.createdAt), desc(chatMessage.id))
       .limit(input.limit + 1);
@@ -324,19 +334,19 @@ export class ChatDrizzleRepository extends ChatRepository {
     return row ? toChatMessageDomain(row.message) : null;
   }
 
-  async createTextMessage(input: {
-    conversationId: string;
-    senderUserId: string;
-    text: string;
-  }): Promise<ChatMessage> {
+  async createTextMessage(
+    conversationId: ChatConversation['id'],
+    senderUserId: ChatParticipant['userId'],
+    input: SendChatMessageInput,
+  ): Promise<ChatMessage> {
     return this.database.db.transaction(async (transaction) => {
       const [row] = await transaction
         .insert(chatMessage)
         .values(
           toChatMessageInsert({
-            conversationId: input.conversationId,
+            conversationId,
             senderKind: 'user',
-            senderUserId: input.senderUserId,
+            senderUserId,
             contentType: 'text',
             content: { text: input.text },
           }),
@@ -350,18 +360,18 @@ export class ChatDrizzleRepository extends ChatRepository {
       await transaction
         .update(chatConversation)
         .set(toChatConversationUpdate({ updatedAt: row.createdAt }))
-        .where(eq(chatConversation.id, input.conversationId));
+        .where(eq(chatConversation.id, conversationId));
 
       return toChatMessageDomain(row);
     });
   }
 
-  async updateTextMessage(input: {
-    conversationId: string;
-    messageId: string;
-    senderUserId: string;
-    text: string;
-  }): Promise<ChatMessage | null> {
+  async updateTextMessage(
+    conversationId: ChatConversation['id'],
+    messageId: ChatMessage['id'],
+    senderUserId: ChatParticipant['userId'],
+    input: UpdateChatMessageInput,
+  ): Promise<ChatMessage | null> {
     const now = new Date();
     const [row] = await this.database.db
       .update(chatMessage)
@@ -374,10 +384,10 @@ export class ChatDrizzleRepository extends ChatRepository {
       )
       .where(
         and(
-          eq(chatMessage.id, input.messageId),
-          eq(chatMessage.conversationId, input.conversationId),
+          eq(chatMessage.id, messageId),
+          eq(chatMessage.conversationId, conversationId),
           eq(chatMessage.senderKind, 'user'),
-          eq(chatMessage.senderUserId, input.senderUserId),
+          eq(chatMessage.senderUserId, senderUserId),
           eq(chatMessage.contentType, 'text'),
         ),
       )
@@ -386,42 +396,65 @@ export class ChatDrizzleRepository extends ChatRepository {
     return row ? toChatMessageDomain(row) : null;
   }
 
-  async markRead(input: {
-    conversationId: string;
-    userId: string;
-    readAt: Date;
-  }): Promise<MarkChatReadResult> {
-    const rows = await this.database.db
-      .update(chatParticipant)
-      .set(toChatParticipantUpdate({ lastReadAt: input.readAt }))
-      .where(
-        and(
-          eq(chatParticipant.conversationId, input.conversationId),
-          eq(chatParticipant.userId, input.userId),
-          or(
-            isNull(chatParticipant.lastReadAt),
-            lt(chatParticipant.lastReadAt, input.readAt),
+  async markRead(
+    conversationId: ChatConversation['id'],
+    userId: ChatParticipant['userId'],
+    input: MarkChatReadInput,
+  ): Promise<MarkChatReadResult> {
+    return this.database.db.transaction(async (transaction) => {
+      const [message] = await transaction
+        .select({ createdAt: chatMessage.createdAt })
+        .from(chatMessage)
+        .innerJoin(
+          chatParticipant,
+          eq(chatParticipant.conversationId, chatMessage.conversationId),
+        )
+        .where(
+          and(
+            eq(chatMessage.id, input.messageId),
+            eq(chatMessage.conversationId, conversationId),
+            eq(chatParticipant.userId, userId),
           ),
-        ),
-      )
-      .returning({ conversationId: chatParticipant.conversationId });
+        )
+        .limit(1);
+      if (!message) {
+        return { status: 'message_not_found' };
+      }
 
-    if (rows.length > 0) {
-      return 'advanced';
-    }
+      const rows = await transaction
+        .update(chatParticipant)
+        .set(toChatParticipantUpdate({ lastReadAt: message.createdAt }))
+        .where(
+          and(
+            eq(chatParticipant.conversationId, conversationId),
+            eq(chatParticipant.userId, userId),
+            or(
+              isNull(chatParticipant.lastReadAt),
+              lt(chatParticipant.lastReadAt, message.createdAt),
+            ),
+          ),
+        )
+        .returning({ conversationId: chatParticipant.conversationId });
 
-    const [participant] = await this.database.db
-      .select({ conversationId: chatParticipant.conversationId })
-      .from(chatParticipant)
-      .where(
-        and(
-          eq(chatParticipant.conversationId, input.conversationId),
-          eq(chatParticipant.userId, input.userId),
-        ),
-      )
-      .limit(1);
+      if (rows.length > 0) {
+        return { status: 'advanced', readAt: message.createdAt };
+      }
 
-    return participant ? 'unchanged' : null;
+      const [participant] = await transaction
+        .select({ conversationId: chatParticipant.conversationId })
+        .from(chatParticipant)
+        .where(
+          and(
+            eq(chatParticipant.conversationId, conversationId),
+            eq(chatParticipant.userId, userId),
+          ),
+        )
+        .limit(1);
+
+      return participant
+        ? { status: 'unchanged', readAt: message.createdAt }
+        : null;
+    });
   }
 
   private async listConversationsForUser(

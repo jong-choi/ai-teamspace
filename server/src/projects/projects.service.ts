@@ -68,14 +68,11 @@ export class ProjectsService {
     await this.organizationMembership.requireAccess(context, organizationId);
     await this.assertMemberUser(organizationId, input.leadUserId ?? null);
     const project =
-      await this.projectRepository.createProjectWithDefaultColumns({
+      await this.projectRepository.createProjectWithDefaultColumns(
         organizationId,
-        key: input.key,
-        name: input.name,
-        description: input.description ?? '',
-        leadUserId: input.leadUserId ?? null,
-        createdByUserId: context.userId,
-      });
+        context.userId,
+        input,
+      );
     return this.toProjectDetail(
       await this.resourceLoader.requireProject(organizationId, project.id),
     );
@@ -109,21 +106,11 @@ export class ProjectsService {
     if (input.leadUserId !== undefined) {
       await this.assertMemberUser(organizationId, input.leadUserId);
     }
-    const updated = await this.projectRepository.updateProject({
+    const updated = await this.projectRepository.updateProject(
       organizationId,
       projectId,
-      changes: {
-        name: input.name,
-        description: input.description,
-        leadUserId: input.leadUserId,
-        archivedAt:
-          input.archived === undefined
-            ? undefined
-            : input.archived
-              ? new Date()
-              : null,
-      },
-    });
+      input,
+    );
     if (!updated) throw new ProjectNotFoundError();
     return this.toProjectDetail(
       await this.resourceLoader.requireProject(organizationId, projectId),

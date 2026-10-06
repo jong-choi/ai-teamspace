@@ -21,7 +21,7 @@ import { ticketSelectSchema } from '@/projects/infrastructure/persistence/drizzl
 import type {
   TicketCardMetadata,
   TicketChecklistReadModel,
-} from '@/projects/infrastructure/persistence/ticket-workflow.repository';
+} from '@/projects/infrastructure/persistence/ticket-detail-query.repository';
 
 import { z } from 'zod';
 

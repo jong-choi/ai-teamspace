@@ -7,28 +7,10 @@ import type {
   WikiDocumentRevision,
   WikiDocumentRevisionSummary,
 } from '@/wiki/domain/wiki-document-revision';
+import type { CreateWikiDocumentInput } from '@/wiki/dto/create-wiki-document.dto';
+import type { WikiCollaborationSnapshot } from '@/wiki/infrastructure/collaboration/wiki-collaboration-state.provider';
 
 export type WikiTree = WikiDocumentSummary[];
-
-export type CreateWikiDocumentPersistenceInput = {
-  organizationId: string;
-  parentDocumentId: string | null;
-  title: string;
-  position: number;
-  contentMarkdown: string;
-  collaborationState: Uint8Array;
-  collaborationSchemaVersion: number;
-  actorUserId: string;
-};
-
-export type UpdateWikiDocumentMetadataPersistenceInput = {
-  organizationId: string;
-  documentId: string;
-  parentDocumentId: string | null;
-  title: string;
-  position: number;
-  actorUserId: string;
-};
 
 export type DeleteWikiDocumentResult = 'deleted' | 'not_empty' | 'not_found';
 
@@ -37,17 +19,6 @@ export type WikiSearchMatch = {
   parentDocumentId: string | null;
   title: string;
   matchedIn: Array<'title' | 'content'>;
-};
-
-export type PersistWikiCollaborationSnapshotInput = {
-  organizationId: string;
-  documentId: string;
-  encodedState: Uint8Array;
-  contentMarkdown: string;
-  lastEditorUserId: string;
-  collaboratorUserIds: readonly string[];
-  schemaVersion: number;
-  createCheckpoint: boolean;
 };
 
 export type PersistWikiCollaborationSnapshotResult = {
@@ -74,11 +45,18 @@ export abstract class WikiRepository {
   ): Promise<WikiDocumentCollaborationState | null>;
 
   abstract createDocument(
-    input: CreateWikiDocumentPersistenceInput,
+    organizationId: WikiDocument['organizationId'],
+    actorUserId: WikiDocument['createdByUserId'],
+    input: CreateWikiDocumentInput,
+    collaboration: WikiCollaborationSnapshot,
+    collaborationSchemaVersion: WikiDocumentCollaborationState['collaborationSchemaVersion'],
   ): Promise<WikiDocument>;
 
   abstract updateDocumentMetadata(
-    input: UpdateWikiDocumentMetadataPersistenceInput,
+    organizationId: WikiDocument['organizationId'],
+    documentId: WikiDocument['id'],
+    actorUserId: WikiDocument['updatedByUserId'],
+    metadata: Pick<WikiDocument, 'parentDocumentId' | 'title' | 'position'>,
   ): Promise<WikiDocument | null>;
 
   abstract deleteDocument(
@@ -87,7 +65,13 @@ export abstract class WikiRepository {
   ): Promise<DeleteWikiDocumentResult>;
 
   abstract persistCollaborationSnapshot(
-    input: PersistWikiCollaborationSnapshotInput,
+    organizationId: WikiDocument['organizationId'],
+    documentId: WikiDocument['id'],
+    snapshot: WikiCollaborationSnapshot,
+    lastEditorUserId: WikiDocument['updatedByUserId'],
+    collaboratorUserIds: readonly WikiDocumentRevision['editorUserId'][],
+    collaborationSchemaVersion: WikiDocumentCollaborationState['collaborationSchemaVersion'],
+    createCheckpoint: boolean,
   ): Promise<PersistWikiCollaborationSnapshotResult>;
 
   abstract listDocumentRevisions(

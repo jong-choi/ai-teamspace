@@ -1,8 +1,9 @@
-export type TicketMutationScope = {
-  organizationId: string;
-  projectId: string;
-  ticketId: string;
-};
+import type { ProjectsControllerUpdateTicketMutationVariables } from '@repo/client/api-client';
+
+export type TicketMutationScope = Omit<
+  ProjectsControllerUpdateTicketMutationVariables,
+  'data'
+>;
 
 export type MutationDone = () => void;
 

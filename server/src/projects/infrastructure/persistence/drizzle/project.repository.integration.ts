@@ -4,6 +4,10 @@ import { user } from '@/auth/infrastructure/persistence/drizzle/generated/auth.s
 import { DatabaseModule } from '@/database/database.module';
 import { DatabaseService } from '@/database/database.service';
 import { ProjectKeyConflictError } from '@/projects/domain/project.error';
+import type { CreateProjectInput } from '@/projects/dto/create-project.dto';
+import type { CreateTicketInput } from '@/projects/dto/create-ticket.dto';
+import type { QueryTicketsInput } from '@/projects/dto/query-tickets.dto';
+import type { UpdateTicketInput } from '@/projects/dto/update-ticket.dto';
 import { ProjectDrizzlePersistenceModule } from '@/projects/infrastructure/persistence/drizzle/drizzle-persistence.module';
 import { project } from '@/projects/infrastructure/persistence/drizzle/schema/project.schema';
 import { projectColumn } from '@/projects/infrastructure/persistence/drizzle/schema/project-column.schema';
@@ -20,13 +24,11 @@ const assigneeUserId = 'project-repository-assignee';
 const userIds = [actorUserId, assigneeUserId] as const;
 
 const createProjectInput = {
-  organizationId,
   key: 'OS',
   name: '운영 시스템',
   description: '프로젝트 저장소 통합 테스트',
   leadUserId: assigneeUserId,
-  createdByUserId: actorUserId,
-} as const;
+} satisfies CreateProjectInput;
 
 describe('프로젝트 Drizzle 저장소 통합', () => {
   let moduleRef: TestingModule;
@@ -80,8 +82,7 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
   });
 
   it('프로젝트 생성은 기본 컬럼을 같은 트랜잭션에서 순서대로 만든다', async () => {
-    const created =
-      await projects.createProjectWithDefaultColumns(createProjectInput);
+    const created = await createProject();
 
     const createdColumns = await columns.listColumns(
       organizationId,
@@ -104,27 +105,28 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
   });
 
   it('프로젝트 키는 조직 안에서만 유일하고 충돌을 도메인 오류로 변환한다', async () => {
-    await projects.createProjectWithDefaultColumns(createProjectInput);
+    await createProject();
 
     await expect(
-      projects.createProjectWithDefaultColumns({
+      createProject({
         ...createProjectInput,
         name: '중복 키 프로젝트',
       }),
     ).rejects.toBeInstanceOf(ProjectKeyConflictError);
 
     await expect(
-      projects.createProjectWithDefaultColumns({
-        ...createProjectInput,
-        organizationId: otherOrganizationId,
-        name: '다른 조직의 같은 키',
-      }),
+      createProject(
+        {
+          ...createProjectInput,
+          name: '다른 조직의 같은 키',
+        },
+        otherOrganizationId,
+      ),
     ).resolves.toMatchObject({ key: 'OS' });
   });
 
   it('동시에 생성한 티켓도 프로젝트 번호를 중복 없이 원자적으로 배정한다', async () => {
-    const createdProject =
-      await projects.createProjectWithDefaultColumns(createProjectInput);
+    const createdProject = await createProject();
     const [column] = await columns.listColumns(
       organizationId,
       createdProject.id,
@@ -135,15 +137,12 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
 
     const results = await Promise.all(
       Array.from({ length: 8 }, (_, index) =>
-        tickets.createTicketWithNumber({
-          organizationId,
-          projectId: createdProject.id,
+        createTicket(createdProject.id, {
           columnId: column.id,
           title: `동시 생성 티켓 ${index + 1}`,
           descriptionMarkdown: '',
           priority: 'medium',
           assigneeUserId,
-          reporterUserId: actorUserId,
           dueAt: null,
         }),
       ),
@@ -165,8 +164,7 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
   });
 
   it('티켓 조회는 조직·프로젝트 범위를 지키며 검색과 필터를 함께 적용한다', async () => {
-    const createdProject =
-      await projects.createProjectWithDefaultColumns(createProjectInput);
+    const createdProject = await createProject();
     const projectColumns = await columns.listColumns(
       organizationId,
       createdProject.id,
@@ -177,26 +175,20 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
       throw new Error('필요한 기본 컬럼을 조회하지 못했습니다.');
     }
 
-    const first = await tickets.createTicketWithNumber({
-      organizationId,
-      projectId: createdProject.id,
+    const first = await createTicket(createdProject.id, {
       columnId: todoColumn.id,
       title: '로그인 API 개선',
       descriptionMarkdown: '인증 흐름을 정리한다.',
       priority: 'high',
       assigneeUserId,
-      reporterUserId: actorUserId,
       dueAt: null,
     });
-    const second = await tickets.createTicketWithNumber({
-      organizationId,
-      projectId: createdProject.id,
+    const second = await createTicket(createdProject.id, {
       columnId: doneColumn.id,
       title: '문서 정리',
       descriptionMarkdown: '로그인 가이드를 갱신한다.',
       priority: 'low',
       assigneeUserId: null,
-      reporterUserId: actorUserId,
       dueAt: null,
     });
     if (first.kind !== 'created' || second.kind !== 'created') {
@@ -204,9 +196,7 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
     }
 
     await expect(
-      tickets.listTickets({
-        organizationId,
-        projectId: createdProject.id,
+      listTickets(createdProject.id, {
         search: '로그인',
         columnId: todoColumn.id,
         assigneeUserId,
@@ -215,10 +205,7 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
     ).resolves.toEqual([expect.objectContaining({ id: first.ticket.id })]);
 
     await expect(
-      tickets.listTickets({
-        organizationId: otherOrganizationId,
-        projectId: createdProject.id,
-      }),
+      listTickets(createdProject.id, {}, otherOrganizationId),
     ).resolves.toEqual([]);
 
     const summary = await projects.findProjectById(
@@ -238,8 +225,7 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
   });
 
   it('티켓의 여러 변경을 단일 capability로 원자적으로 적용한다', async () => {
-    const createdProject =
-      await projects.createProjectWithDefaultColumns(createProjectInput);
+    const createdProject = await createProject();
     const [column] = await columns.listColumns(
       organizationId,
       createdProject.id,
@@ -247,15 +233,12 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
     if (!column) {
       throw new Error('기본 프로젝트 컬럼을 조회하지 못했습니다.');
     }
-    const ticketResult = await tickets.createTicketWithNumber({
-      organizationId,
-      projectId: createdProject.id,
+    const ticketResult = await createTicket(createdProject.id, {
       columnId: column.id,
       title: '초기 제목',
       descriptionMarkdown: '초기 설명',
       priority: 'low',
       assigneeUserId: null,
-      reporterUserId: actorUserId,
       dueAt: null,
     });
     if (ticketResult.kind !== 'created') {
@@ -264,17 +247,12 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
     const dueAt = new Date('2026-10-10T03:00:00.000Z');
 
     await expect(
-      tickets.updateTicket({
-        organizationId,
-        projectId: createdProject.id,
-        ticketId: ticketResult.ticket.id,
-        changes: {
-          title: '변경된 제목',
-          descriptionMarkdown: '변경된 설명',
-          priority: 'urgent',
-          assigneeUserId,
-          dueAt,
-        },
+      updateTicket(createdProject.id, ticketResult.ticket.id, {
+        title: '변경된 제목',
+        descriptionMarkdown: '변경된 설명',
+        priority: 'urgent',
+        assigneeUserId,
+        dueAt: dueAt.toISOString(),
       }),
     ).resolves.toMatchObject({
       title: '변경된 제목',
@@ -286,8 +264,7 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
   });
 
   it('보관된 티켓은 일반 변경을 거부하고 복원 후 다시 변경할 수 있다', async () => {
-    const createdProject =
-      await projects.createProjectWithDefaultColumns(createProjectInput);
+    const createdProject = await createProject();
     const [column] = await columns.listColumns(
       organizationId,
       createdProject.id,
@@ -295,59 +272,43 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
     if (!column) {
       throw new Error('기본 프로젝트 컬럼을 조회하지 못했습니다.');
     }
-    const ticketResult = await tickets.createTicketWithNumber({
-      organizationId,
-      projectId: createdProject.id,
+    const ticketResult = await createTicket(createdProject.id, {
       columnId: column.id,
       title: '보관 대상 티켓',
       descriptionMarkdown: '',
       priority: 'medium',
       assigneeUserId: null,
-      reporterUserId: actorUserId,
       dueAt: null,
     });
     if (ticketResult.kind !== 'created') {
       throw new Error('보관 테스트 티켓 생성에 실패했습니다.');
     }
 
-    await tickets.updateTicket({
-      organizationId,
-      projectId: createdProject.id,
-      ticketId: ticketResult.ticket.id,
-      changes: { archivedAt: new Date('2026-10-06T01:30:00.000Z') },
+    await updateTicket(createdProject.id, ticketResult.ticket.id, {
+      archived: true,
     });
 
     await expect(
-      tickets.updateTicket({
-        organizationId,
-        projectId: createdProject.id,
-        ticketId: ticketResult.ticket.id,
-        changes: { priority: 'urgent' },
+      updateTicket(createdProject.id, ticketResult.ticket.id, {
+        priority: 'urgent',
       }),
     ).resolves.toBeNull();
 
     await expect(
-      tickets.updateTicket({
-        organizationId,
-        projectId: createdProject.id,
-        ticketId: ticketResult.ticket.id,
-        changes: { archivedAt: null },
+      updateTicket(createdProject.id, ticketResult.ticket.id, {
+        archived: false,
       }),
     ).resolves.toMatchObject({ archivedAt: null });
 
     await expect(
-      tickets.updateTicket({
-        organizationId,
-        projectId: createdProject.id,
-        ticketId: ticketResult.ticket.id,
-        changes: { priority: 'urgent' },
+      updateTicket(createdProject.id, ticketResult.ticket.id, {
+        priority: 'urgent',
       }),
     ).resolves.toMatchObject({ priority: 'urgent' });
   });
 
   it('티켓 보관은 활성 순서를 압축하고 복원은 컬럼 끝에 배치한다', async () => {
-    const createdProject =
-      await projects.createProjectWithDefaultColumns(createProjectInput);
+    const createdProject = await createProject();
     const [column] = await columns.listColumns(
       organizationId,
       createdProject.id,
@@ -358,15 +319,12 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
 
     const createdTickets = [];
     for (const title of ['첫 번째', '두 번째', '세 번째']) {
-      const result = await tickets.createTicketWithNumber({
-        organizationId,
-        projectId: createdProject.id,
+      const result = await createTicket(createdProject.id, {
         columnId: column.id,
         title,
         descriptionMarkdown: '',
         priority: 'medium',
         assigneeUserId: null,
-        reporterUserId: actorUserId,
         dueAt: null,
       });
       if (result.kind !== 'created') {
@@ -379,17 +337,10 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
       throw new Error('보관 순서 테스트 티켓을 준비하지 못했습니다.');
     }
 
-    await tickets.updateTicket({
-      organizationId,
-      projectId: createdProject.id,
-      ticketId: second.id,
-      changes: { archivedAt: new Date('2026-10-06T03:00:00.000Z') },
-    });
+    await updateTicket(createdProject.id, second.id, { archived: true });
 
     await expect(
-      tickets.listTickets({
-        organizationId,
-        projectId: createdProject.id,
+      listTickets(createdProject.id, {
         columnId: column.id,
       }),
     ).resolves.toEqual([
@@ -397,17 +348,10 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
       expect.objectContaining({ id: third.id, position: 1 }),
     ]);
 
-    await tickets.updateTicket({
-      organizationId,
-      projectId: createdProject.id,
-      ticketId: second.id,
-      changes: { archivedAt: null },
-    });
+    await updateTicket(createdProject.id, second.id, { archived: false });
 
     await expect(
-      tickets.listTickets({
-        organizationId,
-        projectId: createdProject.id,
+      listTickets(createdProject.id, {
         columnId: column.id,
       }),
     ).resolves.toEqual([
@@ -418,8 +362,7 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
   });
 
   it('보관된 프로젝트에는 repository write도 적용하지 않는다', async () => {
-    const createdProject =
-      await projects.createProjectWithDefaultColumns(createProjectInput);
+    const createdProject = await createProject();
     const [column] = await columns.listColumns(
       organizationId,
       createdProject.id,
@@ -427,32 +370,25 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
     if (!column) {
       throw new Error('기본 프로젝트 컬럼을 조회하지 못했습니다.');
     }
-    const ticketResult = await tickets.createTicketWithNumber({
-      organizationId,
-      projectId: createdProject.id,
+    const ticketResult = await createTicket(createdProject.id, {
       columnId: column.id,
       title: '보관 전 티켓',
       descriptionMarkdown: '',
       priority: 'medium',
       assigneeUserId: null,
-      reporterUserId: actorUserId,
       dueAt: null,
     });
     if (ticketResult.kind !== 'created') {
       throw new Error('보관 테스트 티켓 생성에 실패했습니다.');
     }
 
-    await projects.updateProject({
-      organizationId,
-      projectId: createdProject.id,
-      changes: { archivedAt: new Date('2026-10-06T02:00:00.000Z') },
+    await projects.updateProject(organizationId, createdProject.id, {
+      archived: true,
     });
 
     await expect(
-      projects.updateProject({
-        organizationId,
-        projectId: createdProject.id,
-        changes: { name: '변경 금지' },
+      projects.updateProject(organizationId, createdProject.id, {
+        name: '변경 금지',
       }),
     ).resolves.toBeNull();
     await expect(
@@ -464,12 +400,45 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
       ),
     ).resolves.toBeNull();
     await expect(
-      tickets.updateTicket({
-        organizationId,
-        projectId: createdProject.id,
-        ticketId: ticketResult.ticket.id,
-        changes: { priority: 'urgent' },
+      updateTicket(createdProject.id, ticketResult.ticket.id, {
+        priority: 'urgent',
       }),
     ).resolves.toBeNull();
   });
+
+  function createProject(
+    input: CreateProjectInput = createProjectInput,
+    targetOrganizationId = organizationId,
+  ) {
+    return projects.createProjectWithDefaultColumns(
+      targetOrganizationId,
+      actorUserId,
+      input,
+    );
+  }
+
+  function createTicket(projectId: string, input: CreateTicketInput) {
+    return tickets.createTicketWithNumber(
+      organizationId,
+      projectId,
+      actorUserId,
+      input,
+    );
+  }
+
+  function listTickets(
+    projectId: string,
+    input: QueryTicketsInput,
+    targetOrganizationId = organizationId,
+  ) {
+    return tickets.listTickets(targetOrganizationId, projectId, input);
+  }
+
+  function updateTicket(
+    projectId: string,
+    ticketId: string,
+    input: UpdateTicketInput,
+  ) {
+    return tickets.updateTicket(organizationId, projectId, ticketId, input);
+  }
 });

@@ -95,13 +95,14 @@ describe('위키 서비스', () => {
   });
 
   it('문서를 만들 때 Markdown과 동일한 Yjs 상태를 원자적으로 저장한다', async () => {
-    repository.createDocument.mockImplementation(async (input) =>
-      document({
-        parentDocumentId: input.parentDocumentId,
-        title: input.title,
-        position: input.position,
-        contentMarkdown: input.contentMarkdown,
-      }),
+    repository.createDocument.mockImplementation(
+      async (_organizationId, _actorUserId, input) =>
+        document({
+          parentDocumentId: input.parentDocumentId ?? null,
+          title: input.title,
+          position: input.position ?? 0,
+          contentMarkdown: input.contentMarkdown,
+        }),
     );
 
     await service.createDocument(context, organizationId, {
@@ -109,22 +110,23 @@ describe('위키 서비스', () => {
       contentMarkdown: '# 안녕하세요',
     });
 
-    const input = repository.createDocument.mock.calls[0]?.[0];
+    const call = repository.createDocument.mock.calls[0];
+    const input = call?.[2];
+    const collaboration = call?.[3];
     expect(input).toBeDefined();
-    if (!input) {
+    expect(collaboration).toBeDefined();
+    if (!input || !collaboration) {
       throw new Error('문서 생성 입력이 없습니다.');
     }
     expect(input).toMatchObject({
-      organizationId,
-      parentDocumentId: null,
       title: '공동편집 문서',
-      position: 0,
       contentMarkdown: '# 안녕하세요',
-      actorUserId,
-      collaborationSchemaVersion: 1,
     });
+    expect(call?.[0]).toBe(organizationId);
+    expect(call?.[1]).toBe(actorUserId);
+    expect(call?.[4]).toBe(1);
     expect(
-      collaborationState.decode(input.collaborationState).contentMarkdown,
+      collaborationState.decode(collaboration.encodedState).contentMarkdown,
     ).toBe('# 안녕하세요');
   });
 
@@ -158,27 +160,30 @@ describe('위키 서비스', () => {
       position: 7,
     });
     repository.findDocumentById.mockResolvedValue(current);
-    repository.updateDocumentMetadata.mockImplementation(async (input) =>
-      document({
-        ...current,
-        parentDocumentId: input.parentDocumentId,
-        title: input.title,
-        position: input.position,
-      }),
+    repository.updateDocumentMetadata.mockImplementation(
+      async (_organizationId, _documentId, _actorUserId, metadata) =>
+        document({
+          ...current,
+          parentDocumentId: metadata.parentDocumentId,
+          title: metadata.title,
+          position: metadata.position,
+        }),
     );
 
     await service.updateDocument(context, organizationId, rootDocumentId, {
       title: '수정된 제목',
     });
 
-    expect(repository.updateDocumentMetadata).toHaveBeenCalledWith({
+    expect(repository.updateDocumentMetadata).toHaveBeenCalledWith(
       organizationId,
-      documentId: rootDocumentId,
-      parentDocumentId: childDocumentId,
-      title: '수정된 제목',
-      position: 7,
+      rootDocumentId,
       actorUserId,
-    });
+      {
+        parentDocumentId: childDocumentId,
+        title: '수정된 제목',
+        position: 7,
+      },
+    );
   });
 
   it('하위 문서가 있는 문서는 삭제하지 않는다', async () => {

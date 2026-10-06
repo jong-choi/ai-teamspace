@@ -11,13 +11,13 @@ import {
   type MoveTicketInput,
   type MoveTicketResponse,
 } from '@/projects/dto/move-ticket.dto';
-import { TicketWorkflowRepository } from '@/projects/infrastructure/persistence/ticket-workflow.repository';
+import { TicketOrderingRepository } from '@/projects/infrastructure/persistence/ticket-ordering.repository';
 import { TicketWorkflowAccessPolicy } from '@/projects/ticket-workflow-access.policy';
 
 @Injectable()
 export class TicketOrderingService {
   constructor(
-    private readonly workflowRepository: TicketWorkflowRepository,
+    private readonly orderingRepository: TicketOrderingRepository,
     private readonly accessPolicy: TicketWorkflowAccessPolicy,
   ) {}
 
@@ -34,14 +34,12 @@ export class TicketOrderingService {
       projectId,
       ticketId,
     );
-    const result = await this.workflowRepository.moveTicket({
+    const result = await this.orderingRepository.moveTicket(
       organizationId,
       projectId,
       ticketId,
-      targetColumnId: input.targetColumnId,
-      beforeTicketId: input.beforeTicketId ?? null,
-      afterTicketId: input.afterTicketId ?? null,
-    });
+      input,
+    );
 
     switch (result.kind) {
       case 'project_not_found':

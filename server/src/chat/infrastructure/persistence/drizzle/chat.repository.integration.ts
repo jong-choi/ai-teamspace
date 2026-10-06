@@ -1,6 +1,7 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 
 import { user } from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
+import { encodeChatMessageCursor } from '@/chat/domain/chat-message-cursor';
 import { ChatRepository } from '@/chat/infrastructure/persistence/chat.repository';
 import { ChatDrizzlePersistenceModule } from '@/chat/infrastructure/persistence/drizzle/drizzle-persistence.module';
 import { chatConversation } from '@/chat/infrastructure/persistence/drizzle/schema/chat-conversation.schema';
@@ -66,14 +67,14 @@ describe('채팅 Drizzle 저장소 통합', () => {
 
   it('동일한 일대일 대화 키는 하나의 대화만 만들고 기존 대화를 조회할 수 있다', async () => {
     const directKey = 'direct-integration-key';
-    const first = await repository.createDirectConversation({
-      directKey,
-      participantUserIds: [actorUserId, recipientUserId],
-    });
-    const duplicate = await repository.createDirectConversation({
-      directKey,
-      participantUserIds: [actorUserId, recipientUserId],
-    });
+    const first = await repository.createDirectConversation(directKey, [
+      actorUserId,
+      recipientUserId,
+    ]);
+    const duplicate = await repository.createDirectConversation(directKey, [
+      actorUserId,
+      recipientUserId,
+    ]);
 
     expect(first).not.toBeNull();
     expect(duplicate).toBeNull();
@@ -86,11 +87,10 @@ describe('채팅 Drizzle 저장소 통합', () => {
   });
 
   it('메시지 커서는 생성 시각과 식별자 순서를 함께 사용하고 참가자 범위를 지킨다', async () => {
-    const conversation = await repository.createChannelConversation({
-      name: '통합 채널',
-      topic: null,
-      participantUserIds: [actorUserId, recipientUserId],
-    });
+    const conversation = await repository.createChannelConversation(
+      { name: '통합 채널', topic: null },
+      [actorUserId, recipientUserId],
+    );
     const sharedCreatedAt = new Date('2026-10-04T00:00:00.000Z');
     const newestCreatedAt = new Date('2026-10-04T00:01:00.000Z');
 
@@ -127,11 +127,11 @@ describe('채팅 Drizzle 저장소 통합', () => {
       },
     ]);
 
-    const firstPage = await repository.listMessages({
-      conversationId: conversation.id,
-      userId: actorUserId,
-      limit: 2,
-    });
+    const firstPage = await repository.listMessages(
+      conversation.id,
+      actorUserId,
+      { limit: 2 },
+    );
     if (!firstPage) {
       throw new Error('참가자의 첫 메시지 페이지를 조회하지 못했습니다.');
     }
@@ -141,15 +141,17 @@ describe('채팅 Drizzle 저장소 통합', () => {
       thirdMessageId,
     ]);
 
-    const olderPage = await repository.listMessages({
-      conversationId: conversation.id,
-      userId: actorUserId,
-      before: {
-        createdAt: sharedCreatedAt,
-        id: secondMessageId,
+    const olderPage = await repository.listMessages(
+      conversation.id,
+      actorUserId,
+      {
+        before: encodeChatMessageCursor({
+          createdAt: sharedCreatedAt,
+          id: secondMessageId,
+        }),
+        limit: 2,
       },
-      limit: 2,
-    });
+    );
     if (!olderPage) {
       throw new Error('참가자의 이전 메시지 페이지를 조회하지 못했습니다.');
     }
@@ -157,31 +159,24 @@ describe('채팅 Drizzle 저장소 통합', () => {
     expect(olderPage.items.map(({ id }) => id)).toEqual([firstMessageId]);
 
     await expect(
-      repository.listMessages({
-        conversationId: conversation.id,
-        userId: outsiderUserId,
-        limit: 2,
-      }),
+      repository.listMessages(conversation.id, outsiderUserId, { limit: 2 }),
     ).resolves.toBeNull();
   });
 
   it('읽지 않은 메시지 수는 다른 사용자의 새 메시지만 세고 읽음 처리 뒤에는 0이 된다', async () => {
-    const conversation = await repository.createChannelConversation({
-      name: '읽음 상태 채널',
-      topic: null,
-      participantUserIds: [actorUserId, recipientUserId],
-    });
+    const conversation = await repository.createChannelConversation(
+      { name: '읽음 상태 채널', topic: null },
+      [actorUserId, recipientUserId],
+    );
 
-    await repository.createTextMessage({
-      conversationId: conversation.id,
-      senderUserId: actorUserId,
+    await repository.createTextMessage(conversation.id, actorUserId, {
       text: '내 메시지',
     });
-    await repository.createTextMessage({
-      conversationId: conversation.id,
-      senderUserId: recipientUserId,
-      text: '상대 메시지',
-    });
+    const recipientMessage = await repository.createTextMessage(
+      conversation.id,
+      recipientUserId,
+      { text: '상대 메시지' },
+    );
 
     const beforeRead = await repository.findConversationState(
       conversation.id,
@@ -190,12 +185,10 @@ describe('채팅 Drizzle 저장소 통합', () => {
     expect(beforeRead?.unreadCount).toBe(1);
 
     await expect(
-      repository.markRead({
-        conversationId: conversation.id,
-        userId: actorUserId,
-        readAt: new Date(),
+      repository.markRead(conversation.id, actorUserId, {
+        messageId: recipientMessage.id,
       }),
-    ).resolves.toBe('advanced');
+    ).resolves.toMatchObject({ status: 'advanced' });
 
     const afterRead = await repository.findConversationState(
       conversation.id,

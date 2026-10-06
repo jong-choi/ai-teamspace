@@ -4,6 +4,8 @@ import { DatabaseService } from '@/database/database.service';
 import type { Project } from '@/projects/domain/project';
 import { ProjectKeyConflictError } from '@/projects/domain/project.error';
 import { defaultProjectColumns } from '@/projects/domain/project-default-columns';
+import type { CreateProjectInput } from '@/projects/dto/create-project.dto';
+import type { UpdateProjectInput } from '@/projects/dto/update-project.dto';
 import { toProjectColumnInsert } from '@/projects/infrastructure/persistence/drizzle/mappers/project-column.mapper';
 import {
   toProjectDomain,
@@ -14,8 +16,6 @@ import { projectColumn } from '@/projects/infrastructure/persistence/drizzle/sch
 import { project } from '@/projects/infrastructure/persistence/drizzle/schema/project.schema';
 import { ticket } from '@/projects/infrastructure/persistence/drizzle/schema/ticket.schema';
 import {
-  type CreateProjectPersistenceInput,
-  type ProjectChanges,
   ProjectRepository,
   type ProjectSummaryReadModel,
 } from '@/projects/infrastructure/persistence/project.repository';
@@ -96,7 +96,9 @@ export class ProjectDrizzleRepository extends ProjectRepository {
   }
 
   async createProjectWithDefaultColumns(
-    input: CreateProjectPersistenceInput,
+    organizationId: string,
+    createdByUserId: string,
+    input: CreateProjectInput,
   ): Promise<Project> {
     try {
       return await this.database.db.transaction(async (transaction) => {
@@ -104,12 +106,12 @@ export class ProjectDrizzleRepository extends ProjectRepository {
           .insert(project)
           .values(
             toProjectInsert({
-              organizationId: input.organizationId,
+              organizationId,
               key: input.key,
               name: input.name,
-              description: input.description,
-              leadUserId: input.leadUserId,
-              createdByUserId: input.createdByUserId,
+              description: input.description ?? '',
+              leadUserId: input.leadUserId ?? null,
+              createdByUserId,
               nextTicketNumber: 1,
             }),
           )
@@ -140,19 +142,19 @@ export class ProjectDrizzleRepository extends ProjectRepository {
     }
   }
 
-  async updateProject(input: {
-    organizationId: string;
-    projectId: string;
-    changes: ProjectChanges;
-  }): Promise<Project | null> {
+  async updateProject(
+    organizationId: string,
+    projectId: string,
+    input: UpdateProjectInput,
+  ): Promise<Project | null> {
     return this.database.db.transaction(async (transaction) => {
       const [current] = await transaction
         .select()
         .from(project)
         .where(
           and(
-            eq(project.id, input.projectId),
-            eq(project.organizationId, input.organizationId),
+            eq(project.id, projectId),
+            eq(project.organizationId, organizationId),
           ),
         )
         .for('update')
@@ -163,20 +165,34 @@ export class ProjectDrizzleRepository extends ProjectRepository {
 
       const restoring =
         current.archivedAt !== null &&
-        input.changes.archivedAt === null &&
-        Object.entries(input.changes).filter(([, value]) => value !== undefined)
-          .length === 1;
+        input.archived === false &&
+        input.name === undefined &&
+        input.description === undefined &&
+        input.leadUserId === undefined;
       if (current.archivedAt !== null && !restoring) {
         return null;
       }
 
       const [row] = await transaction
         .update(project)
-        .set(toProjectUpdate({ ...input.changes, updatedAt: new Date() }))
+        .set(
+          toProjectUpdate({
+            name: input.name,
+            description: input.description,
+            leadUserId: input.leadUserId,
+            archivedAt:
+              input.archived === undefined
+                ? undefined
+                : input.archived
+                  ? new Date()
+                  : null,
+            updatedAt: new Date(),
+          }),
+        )
         .where(
           and(
-            eq(project.id, input.projectId),
-            eq(project.organizationId, input.organizationId),
+            eq(project.id, projectId),
+            eq(project.organizationId, organizationId),
           ),
         )
         .returning();

@@ -12,13 +12,13 @@ import {
   toTicketLabelResponse,
 } from '@/projects/dto/ticket-label.dto';
 import type { UpdateTicketLabelInput } from '@/projects/dto/update-ticket-label.dto';
-import { TicketWorkflowRepository } from '@/projects/infrastructure/persistence/ticket-workflow.repository';
+import { TicketLabelRepository } from '@/projects/infrastructure/persistence/ticket-label.repository';
 import { TicketWorkflowAccessPolicy } from '@/projects/ticket-workflow-access.policy';
 
 @Injectable()
 export class TicketLabelsService {
   constructor(
-    private readonly workflowRepository: TicketWorkflowRepository,
+    private readonly labelRepository: TicketLabelRepository,
     private readonly accessPolicy: TicketWorkflowAccessPolicy,
   ) {}
 
@@ -32,7 +32,7 @@ export class TicketLabelsService {
       organizationId,
       projectId,
     );
-    const labels = await this.workflowRepository.listLabels(
+    const labels = await this.labelRepository.listLabels(
       organizationId,
       projectId,
     );
@@ -50,12 +50,11 @@ export class TicketLabelsService {
       organizationId,
       projectId,
     );
-    const label = await this.workflowRepository.createLabel({
+    const label = await this.labelRepository.createLabel(
       organizationId,
       projectId,
-      name: input.name,
-      color: input.color ?? 'neutral',
-    });
+      input,
+    );
     if (!label) throw new ProjectNotFoundError();
     return toTicketLabelResponse(label);
   }
@@ -72,12 +71,12 @@ export class TicketLabelsService {
       organizationId,
       projectId,
     );
-    const label = await this.workflowRepository.updateLabel({
+    const label = await this.labelRepository.updateLabel(
       organizationId,
       projectId,
       labelId,
-      ...input,
-    });
+      input,
+    );
     if (!label) throw new TicketLabelNotFoundError();
     return toTicketLabelResponse(label);
   }
@@ -95,12 +94,12 @@ export class TicketLabelsService {
       projectId,
       ticketId,
     );
-    const label = await this.workflowRepository.attachLabel({
+    const label = await this.labelRepository.attachLabel(
       organizationId,
       projectId,
       ticketId,
       labelId,
-    });
+    );
     if (!label) throw new TicketLabelNotFoundError();
     return toTicketLabelResponse(label);
   }
@@ -118,12 +117,12 @@ export class TicketLabelsService {
       projectId,
       ticketId,
     );
-    const detached = await this.workflowRepository.detachLabel({
+    const detached = await this.labelRepository.detachLabel(
       organizationId,
       projectId,
       ticketId,
       labelId,
-    });
+    );
     if (!detached) throw new TicketLabelNotFoundError();
   }
 }

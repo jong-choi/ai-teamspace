@@ -11,12 +11,17 @@ import type {
   WikiDocument,
   WikiDocumentSummary,
 } from '@/wiki/domain/wiki-document';
-import { WikiDocumentCollaborationStateSchema } from '@/wiki/domain/wiki-document-collaboration-state';
+import {
+  type WikiDocumentCollaborationState,
+  WikiDocumentCollaborationStateSchema,
+} from '@/wiki/domain/wiki-document-collaboration-state';
 import type {
   WikiDocumentRevision,
   WikiDocumentRevisionSummary,
 } from '@/wiki/domain/wiki-document-revision';
 import { allocateWikiDocumentTitle } from '@/wiki/domain/wiki-document-title';
+import type { CreateWikiDocumentInput } from '@/wiki/dto/create-wiki-document.dto';
+import type { WikiCollaborationSnapshot } from '@/wiki/infrastructure/collaboration/wiki-collaboration-state.provider';
 import { toWikiDocumentDomain } from '@/wiki/infrastructure/persistence/drizzle/mappers/wiki-document.mapper';
 import {
   toWikiDocumentRevisionDomain,
@@ -31,11 +36,8 @@ import {
 import { wikiDocumentRevision } from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-document-revision.schema';
 import { wikiDocumentRevisionCollaborator } from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-document-revision-collaborator.schema';
 import type {
-  CreateWikiDocumentPersistenceInput,
   DeleteWikiDocumentResult,
-  PersistWikiCollaborationSnapshotInput,
   PersistWikiCollaborationSnapshotResult,
-  UpdateWikiDocumentMetadataPersistenceInput,
   WikiSearchMatch,
   WikiTree,
 } from '@/wiki/infrastructure/persistence/wiki.repository';
@@ -130,26 +132,33 @@ export class WikiDrizzleRepository extends WikiRepository {
     return row ? WikiDocumentCollaborationStateSchema.parse(row) : null;
   }
 
-  async createDocument(input: CreateWikiDocumentPersistenceInput) {
-    const initialDocument = decodeWikiDocument(input.collaborationState);
+  async createDocument(
+    organizationId: WikiDocument['organizationId'],
+    actorUserId: WikiDocument['createdByUserId'],
+    input: CreateWikiDocumentInput,
+    collaboration: WikiCollaborationSnapshot,
+    collaborationSchemaVersion: WikiDocumentCollaborationState['collaborationSchemaVersion'],
+  ) {
+    const initialDocument = decodeWikiDocument(collaboration.encodedState);
     if (
-      initialDocument.getText('markdown').toJSON() !== input.contentMarkdown
+      initialDocument.getText('markdown').toJSON() !==
+      collaboration.contentMarkdown
     ) {
       throw new WikiCollaborationStateCorruptedError();
     }
     return this.database.db.transaction(async (transaction) => {
       const collection = await ensureAndLockCollection(
         transaction,
-        input.organizationId,
+        organizationId,
       );
       await assertParentExists(transaction, {
         collectionId: collection.id,
-        organizationId: input.organizationId,
-        parentDocumentId: input.parentDocumentId,
+        organizationId,
+        parentDocumentId: input.parentDocumentId ?? null,
       });
       const title = await allocateSiblingTitle(transaction, {
         collectionId: collection.id,
-        parentDocumentId: input.parentDocumentId,
+        parentDocumentId: input.parentDocumentId ?? null,
         requestedTitle: input.title,
       });
       const now = new Date();
@@ -158,17 +167,17 @@ export class WikiDrizzleRepository extends WikiRepository {
         .values(
           wikiDocumentInsertSchema.parse({
             collectionId: collection.id,
-            organizationId: input.organizationId,
-            parentDocumentId: input.parentDocumentId,
+            organizationId,
+            parentDocumentId: input.parentDocumentId ?? null,
             title,
-            position: input.position,
-            contentMarkdown: input.contentMarkdown,
-            collaborationState: input.collaborationState,
-            collaborationSchemaVersion: input.collaborationSchemaVersion,
+            position: input.position ?? 0,
+            contentMarkdown: collaboration.contentMarkdown,
+            collaborationState: collaboration.encodedState,
+            collaborationSchemaVersion,
             collaborationPersistedAt: now,
             revision: 1,
-            createdByUserId: input.actorUserId,
-            updatedByUserId: input.actorUserId,
+            createdByUserId: actorUserId,
+            updatedByUserId: actorUserId,
             createdAt: now,
             updatedAt: now,
           }),
@@ -182,17 +191,17 @@ export class WikiDrizzleRepository extends WikiRepository {
       await transaction.insert(wikiDocumentRevision).values(
         toWikiDocumentRevisionInsert({
           documentId: row.id,
-          organizationId: input.organizationId,
+          organizationId,
           revision: 1,
-          editorUserId: input.actorUserId,
-          contentMarkdown: input.contentMarkdown,
+          editorUserId: actorUserId,
+          contentMarkdown: collaboration.contentMarkdown,
           createdAt: now,
         }),
       );
       await transaction.insert(wikiDocumentRevisionCollaborator).values({
         documentId: row.id,
         revision: 1,
-        userId: input.actorUserId,
+        userId: actorUserId,
         ordinal: 0,
       });
 
@@ -201,51 +210,54 @@ export class WikiDrizzleRepository extends WikiRepository {
   }
 
   async updateDocumentMetadata(
-    input: UpdateWikiDocumentMetadataPersistenceInput,
+    organizationId: WikiDocument['organizationId'],
+    documentId: WikiDocument['id'],
+    actorUserId: WikiDocument['updatedByUserId'],
+    metadata: Pick<WikiDocument, 'parentDocumentId' | 'title' | 'position'>,
   ) {
     return this.database.db.transaction(async (transaction) => {
       const collection = await lockCollectionForOrganization(
         transaction,
-        input.organizationId,
+        organizationId,
       );
       if (!collection) {
         return null;
       }
       const current = await findDocumentForUpdate(transaction, {
         collectionId: collection.id,
-        organizationId: input.organizationId,
-        documentId: input.documentId,
+        organizationId,
+        documentId,
       });
       if (!current) {
         return null;
       }
       await assertDocumentMoveAllowed(transaction, {
         collectionId: collection.id,
-        organizationId: input.organizationId,
-        documentId: input.documentId,
-        parentDocumentId: input.parentDocumentId,
+        organizationId,
+        documentId,
+        parentDocumentId: metadata.parentDocumentId,
       });
       const title = await allocateSiblingTitle(transaction, {
         collectionId: collection.id,
-        parentDocumentId: input.parentDocumentId,
-        requestedTitle: input.title,
-        excludedDocumentId: input.documentId,
+        parentDocumentId: metadata.parentDocumentId,
+        requestedTitle: metadata.title,
+        excludedDocumentId: documentId,
       });
       const [row] = await transaction
         .update(wikiDocument)
         .set(
           wikiDocumentUpdateSchema.parse({
-            parentDocumentId: input.parentDocumentId,
+            parentDocumentId: metadata.parentDocumentId,
             title,
-            position: input.position,
-            updatedByUserId: input.actorUserId,
+            position: metadata.position,
+            updatedByUserId: actorUserId,
             updatedAt: new Date(),
           }),
         )
         .where(
           and(
-            eq(wikiDocument.organizationId, input.organizationId),
-            eq(wikiDocument.id, input.documentId),
+            eq(wikiDocument.organizationId, organizationId),
+            eq(wikiDocument.id, documentId),
           ),
         )
         .returning();
@@ -302,7 +314,13 @@ export class WikiDrizzleRepository extends WikiRepository {
   }
 
   async persistCollaborationSnapshot(
-    input: PersistWikiCollaborationSnapshotInput,
+    organizationId: WikiDocument['organizationId'],
+    documentId: WikiDocument['id'],
+    snapshot: WikiCollaborationSnapshot,
+    lastEditorUserId: WikiDocument['updatedByUserId'],
+    collaboratorUserIds: readonly WikiDocumentRevision['editorUserId'][],
+    collaborationSchemaVersion: WikiDocumentCollaborationState['collaborationSchemaVersion'],
+    createCheckpoint: boolean,
   ): Promise<PersistWikiCollaborationSnapshotResult> {
     return this.database.db.transaction(async (transaction) => {
       const [current] = await transaction
@@ -310,8 +328,8 @@ export class WikiDrizzleRepository extends WikiRepository {
         .from(wikiDocument)
         .where(
           and(
-            eq(wikiDocument.organizationId, input.organizationId),
-            eq(wikiDocument.id, input.documentId),
+            eq(wikiDocument.organizationId, organizationId),
+            eq(wikiDocument.id, documentId),
           ),
         )
         .limit(1)
@@ -320,12 +338,12 @@ export class WikiDrizzleRepository extends WikiRepository {
         throw new WikiDocumentNotFoundError();
       }
 
-      const incoming = decodeWikiDocument(input.encodedState);
-      if (incoming.getText('markdown').toJSON() !== input.contentMarkdown) {
+      const incoming = decodeWikiDocument(snapshot.encodedState);
+      if (incoming.getText('markdown').toJSON() !== snapshot.contentMarkdown) {
         throw new WikiCollaborationStateCorruptedError();
       }
       const merged = decodeWikiDocument(current.collaborationState);
-      Y.applyUpdate(merged, input.encodedState);
+      Y.applyUpdate(merged, snapshot.encodedState);
       const mergedState = Y.encodeStateAsUpdate(merged);
       const mergedMarkdown = merged.getText('markdown').toJSON();
       const stateChanged = !buffersEqual(
@@ -337,13 +355,13 @@ export class WikiDrizzleRepository extends WikiRepository {
 
       let nextRevision = current.revision;
       let checkpointCreated = false;
-      if (input.createCheckpoint) {
+      if (createCheckpoint) {
         const [latestCheckpoint] = await transaction
           .select({ contentMarkdown: wikiDocumentRevision.contentMarkdown })
           .from(wikiDocumentRevision)
           .where(
             and(
-              eq(wikiDocumentRevision.documentId, input.documentId),
+              eq(wikiDocumentRevision.documentId, documentId),
               eq(wikiDocumentRevision.revision, current.revision),
             ),
           )
@@ -362,35 +380,35 @@ export class WikiDrizzleRepository extends WikiRepository {
         .set(
           wikiDocumentUpdateSchema.parse({
             collaborationState: mergedState,
-            collaborationSchemaVersion: input.schemaVersion,
+            collaborationSchemaVersion,
             collaborationPersistedAt: now,
             contentMarkdown: mergedMarkdown,
             revision: nextRevision,
-            updatedByUserId: input.lastEditorUserId,
+            updatedByUserId: lastEditorUserId,
             updatedAt: contentChanged ? now : current.updatedAt,
           }),
         )
-        .where(eq(wikiDocument.id, input.documentId));
+        .where(eq(wikiDocument.id, documentId));
 
       if (checkpointCreated) {
         await transaction.insert(wikiDocumentRevision).values(
           toWikiDocumentRevisionInsert({
-            documentId: input.documentId,
-            organizationId: input.organizationId,
+            documentId,
+            organizationId,
             revision: nextRevision,
-            editorUserId: input.lastEditorUserId,
+            editorUserId: lastEditorUserId,
             contentMarkdown: mergedMarkdown,
             createdAt: now,
           }),
         );
         const collaborators = uniqueCollaborators(
-          input.collaboratorUserIds,
-          input.lastEditorUserId,
+          collaboratorUserIds,
+          lastEditorUserId,
         );
         if (collaborators.length > 0) {
           await transaction.insert(wikiDocumentRevisionCollaborator).values(
             collaborators.map((userId, ordinal) => ({
-              documentId: input.documentId,
+              documentId,
               revision: nextRevision,
               userId,
               ordinal,

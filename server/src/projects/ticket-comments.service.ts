@@ -14,14 +14,14 @@ import {
   toTicketCommentResponse,
 } from '@/projects/dto/ticket-comment.dto';
 import type { UpdateTicketCommentInput } from '@/projects/dto/update-ticket-comment.dto';
-import { TicketWorkflowRepository } from '@/projects/infrastructure/persistence/ticket-workflow.repository';
+import { TicketCommentRepository } from '@/projects/infrastructure/persistence/ticket-comment.repository';
 import { ProjectUserResolver } from '@/projects/project-user.resolver';
 import { TicketWorkflowAccessPolicy } from '@/projects/ticket-workflow-access.policy';
 
 @Injectable()
 export class TicketCommentsService {
   constructor(
-    private readonly workflowRepository: TicketWorkflowRepository,
+    private readonly commentRepository: TicketCommentRepository,
     private readonly accessPolicy: TicketWorkflowAccessPolicy,
     private readonly userResolver: ProjectUserResolver,
   ) {}
@@ -38,7 +38,7 @@ export class TicketCommentsService {
       projectId,
       ticketId,
     );
-    const comments = await this.workflowRepository.listComments(
+    const comments = await this.commentRepository.listComments(
       organizationId,
       projectId,
       ticketId,
@@ -60,13 +60,13 @@ export class TicketCommentsService {
       projectId,
       ticketId,
     );
-    const comment = await this.workflowRepository.createComment({
+    const comment = await this.commentRepository.createComment(
       organizationId,
       projectId,
       ticketId,
-      authorUserId: context.userId,
-      contentMarkdown: input.contentMarkdown,
-    });
+      context.userId,
+      input,
+    );
     if (!comment) throw new TicketNotFoundError();
     return this.toSingleCommentResponse(comment);
   }
@@ -92,13 +92,13 @@ export class TicketCommentsService {
       ticketId,
       commentId,
     );
-    const comment = await this.workflowRepository.updateComment({
+    const comment = await this.commentRepository.updateComment(
       organizationId,
       projectId,
       ticketId,
       commentId,
-      contentMarkdown: input.contentMarkdown,
-    });
+      input,
+    );
     if (!comment) throw new TicketCommentNotFoundError();
     return this.toSingleCommentResponse(comment);
   }
@@ -123,12 +123,12 @@ export class TicketCommentsService {
       ticketId,
       commentId,
     );
-    const removed = await this.workflowRepository.removeComment({
+    const removed = await this.commentRepository.removeComment(
       organizationId,
       projectId,
       ticketId,
       commentId,
-    });
+    );
     if (!removed) throw new TicketCommentNotFoundError();
   }
 
@@ -139,7 +139,7 @@ export class TicketCommentsService {
     ticketId: string,
     commentId: string,
   ): Promise<void> {
-    const comment = await this.workflowRepository.findComment(
+    const comment = await this.commentRepository.findComment(
       organizationId,
       projectId,
       ticketId,

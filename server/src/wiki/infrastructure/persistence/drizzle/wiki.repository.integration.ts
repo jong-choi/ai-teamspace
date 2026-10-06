@@ -7,6 +7,7 @@ import {
 import { DatabaseModule } from '@/database/database.module';
 import { DatabaseService } from '@/database/database.service';
 import { WikiInvalidDocumentMoveError } from '@/wiki/domain/wiki.error';
+import type { CreateWikiDocumentInput } from '@/wiki/dto/create-wiki-document.dto';
 import { WikiDrizzlePersistenceModule } from '@/wiki/infrastructure/persistence/drizzle/drizzle-persistence.module';
 import { wikiCollection } from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-collection.schema';
 import { wikiDocumentRevisionCollaborator } from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-document-revision-collaborator.schema';
@@ -32,6 +33,26 @@ function markdownFromState(state: Uint8Array): string {
   const document = new Y.Doc();
   Y.applyUpdate(document, state);
   return document.getText('markdown').toJSON();
+}
+
+function createDocument(
+  repository: WikiRepository,
+  organizationId: string,
+  actorUserId: string,
+  input: CreateWikiDocumentInput,
+  encodedState = collaborationState(input.contentMarkdown ?? ''),
+) {
+  const contentMarkdown = input.contentMarkdown ?? '';
+  return repository.createDocument(
+    organizationId,
+    actorUserId,
+    input,
+    {
+      encodedState,
+      contentMarkdown,
+    },
+    1,
+  );
 }
 
 describe('위키 Drizzle 저장소 통합', () => {
@@ -93,37 +114,30 @@ describe('위키 Drizzle 저장소 통합', () => {
   });
 
   it('organization당 collection 하나에서 중첩 문서를 만들고 sibling 제목을 직렬화한다', async () => {
-    const root = await repository.createDocument({
-      organizationId: organizationAId,
-      parentDocumentId: null,
-      title: '제품',
-      position: 0,
-      contentMarkdown: '',
-      collaborationState: collaborationState(''),
-      collaborationSchemaVersion: 1,
+    const root = await createDocument(
+      repository,
+      organizationAId,
       actorUserId,
-    });
+      {
+        parentDocumentId: null,
+        title: '제품',
+        position: 0,
+        contentMarkdown: '',
+      },
+    );
 
     const [first, second] = await Promise.all([
-      repository.createDocument({
-        organizationId: organizationAId,
+      createDocument(repository, organizationAId, actorUserId, {
         parentDocumentId: root.id,
         title: '설계 문서',
         position: 0,
         contentMarkdown: '# 첫 문서',
-        collaborationState: collaborationState('# 첫 문서'),
-        collaborationSchemaVersion: 1,
-        actorUserId,
       }),
-      repository.createDocument({
-        organizationId: organizationAId,
+      createDocument(repository, organizationAId, actorUserId, {
         parentDocumentId: root.id,
         title: '설계 문서',
         position: 1,
         contentMarkdown: '# 둘째 문서',
-        collaborationState: collaborationState('# 둘째 문서'),
-        collaborationSchemaVersion: 1,
-        actorUserId,
       }),
     ]);
 
@@ -143,59 +157,55 @@ describe('위키 Drizzle 저장소 통합', () => {
   });
 
   it('문서를 자기 하위 문서로 이동해 cycle을 만들지 못하게 한다', async () => {
-    const root = await repository.createDocument({
-      organizationId: organizationAId,
-      parentDocumentId: null,
-      title: '상위',
-      position: 0,
-      contentMarkdown: '',
-      collaborationState: collaborationState(''),
-      collaborationSchemaVersion: 1,
+    const root = await createDocument(
+      repository,
+      organizationAId,
       actorUserId,
-    });
-    const child = await repository.createDocument({
-      organizationId: organizationAId,
-      parentDocumentId: root.id,
-      title: '하위',
-      position: 0,
-      contentMarkdown: '',
-      collaborationState: collaborationState(''),
-      collaborationSchemaVersion: 1,
+      {
+        parentDocumentId: null,
+        title: '상위',
+        position: 0,
+        contentMarkdown: '',
+      },
+    );
+    const child = await createDocument(
+      repository,
+      organizationAId,
       actorUserId,
-    });
+      {
+        parentDocumentId: root.id,
+        title: '하위',
+        position: 0,
+        contentMarkdown: '',
+      },
+    );
 
     await expect(
-      repository.updateDocumentMetadata({
-        organizationId: organizationAId,
-        documentId: root.id,
+      repository.updateDocumentMetadata(organizationAId, root.id, actorUserId, {
         parentDocumentId: child.id,
         title: root.title,
         position: root.position,
-        actorUserId,
       }),
     ).rejects.toBeInstanceOf(WikiInvalidDocumentMoveError);
   });
 
   it('하위 문서가 있으면 부모 문서를 삭제하지 않는다', async () => {
-    const root = await repository.createDocument({
-      organizationId: organizationAId,
-      parentDocumentId: null,
-      title: '상위',
-      position: 0,
-      contentMarkdown: '',
-      collaborationState: collaborationState(''),
-      collaborationSchemaVersion: 1,
+    const root = await createDocument(
+      repository,
+      organizationAId,
       actorUserId,
-    });
-    await repository.createDocument({
-      organizationId: organizationAId,
+      {
+        parentDocumentId: null,
+        title: '상위',
+        position: 0,
+        contentMarkdown: '',
+      },
+    );
+    await createDocument(repository, organizationAId, actorUserId, {
       parentDocumentId: root.id,
       title: '하위',
       position: 0,
       contentMarkdown: '',
-      collaborationState: collaborationState(''),
-      collaborationSchemaVersion: 1,
-      actorUserId,
     });
 
     await expect(
@@ -206,16 +216,18 @@ describe('위키 Drizzle 저장소 통합', () => {
   it('stale Yjs snapshot을 현재 DB state와 merge해 기존 struct를 잃지 않는다', async () => {
     const initialMarkdown = '# 시작';
     const initialState = collaborationState(initialMarkdown);
-    const created = await repository.createDocument({
-      organizationId: organizationAId,
-      parentDocumentId: null,
-      title: '공동편집',
-      position: 0,
-      contentMarkdown: initialMarkdown,
-      collaborationState: initialState,
-      collaborationSchemaVersion: 1,
+    const created = await createDocument(
+      repository,
+      organizationAId,
       actorUserId,
-    });
+      {
+        parentDocumentId: null,
+        title: '공동편집',
+        position: 0,
+        contentMarkdown: initialMarkdown,
+      },
+      initialState,
+    );
 
     const clientA = new Y.Doc();
     const clientB = new Y.Doc();
@@ -226,26 +238,30 @@ describe('위키 Drizzle 저장소 통합', () => {
     const stateA = Y.encodeStateAsUpdate(clientA);
     const stateB = Y.encodeStateAsUpdate(clientB);
 
-    await repository.persistCollaborationSnapshot({
-      organizationId: organizationAId,
-      documentId: created.id,
-      encodedState: stateA,
-      contentMarkdown: clientA.getText('markdown').toJSON(),
-      lastEditorUserId: actorUserId,
-      collaboratorUserIds: [actorUserId],
-      schemaVersion: 1,
-      createCheckpoint: false,
-    });
-    const mergedResult = await repository.persistCollaborationSnapshot({
-      organizationId: organizationAId,
-      documentId: created.id,
-      encodedState: stateB,
-      contentMarkdown: clientB.getText('markdown').toJSON(),
-      lastEditorUserId: otherActorUserId,
-      collaboratorUserIds: [actorUserId, otherActorUserId],
-      schemaVersion: 1,
-      createCheckpoint: true,
-    });
+    await repository.persistCollaborationSnapshot(
+      organizationAId,
+      created.id,
+      {
+        encodedState: stateA,
+        contentMarkdown: clientA.getText('markdown').toJSON(),
+      },
+      actorUserId,
+      [actorUserId],
+      1,
+      false,
+    );
+    const mergedResult = await repository.persistCollaborationSnapshot(
+      organizationAId,
+      created.id,
+      {
+        encodedState: stateB,
+        contentMarkdown: clientB.getText('markdown').toJSON(),
+      },
+      otherActorUserId,
+      [actorUserId, otherActorUserId],
+      1,
+      true,
+    );
 
     const expected = new Y.Doc();
     Y.applyUpdate(expected, stateA);
@@ -303,16 +319,17 @@ describe('위키 Drizzle 저장소 통합', () => {
   });
 
   it('같은 stale snapshot 재시도는 이미 merge된 Yjs state를 되돌리지 않는다', async () => {
-    const created = await repository.createDocument({
-      organizationId: organizationAId,
-      parentDocumentId: null,
-      title: '재시도',
-      position: 0,
-      contentMarkdown: '초기',
-      collaborationState: collaborationState('초기'),
-      collaborationSchemaVersion: 1,
+    const created = await createDocument(
+      repository,
+      organizationAId,
       actorUserId,
-    });
+      {
+        parentDocumentId: null,
+        title: '재시도',
+        position: 0,
+        contentMarkdown: '초기',
+      },
+    );
     const base = await repository.loadCollaborationState(
       organizationAId,
       created.id,
@@ -324,19 +341,29 @@ describe('위키 Drizzle 저장소 통합', () => {
     Y.applyUpdate(stale, base.collaborationState);
     stale.getText('markdown').insert(2, ' 변경');
     const staleState = Y.encodeStateAsUpdate(stale);
-    const input = {
-      organizationId: organizationAId,
-      documentId: created.id,
+    const snapshot = {
       encodedState: staleState,
       contentMarkdown: stale.getText('markdown').toJSON(),
-      lastEditorUserId: actorUserId,
-      collaboratorUserIds: [actorUserId],
-      schemaVersion: 1,
-      createCheckpoint: true,
     } as const;
 
-    const first = await repository.persistCollaborationSnapshot(input);
-    const retried = await repository.persistCollaborationSnapshot(input);
+    const first = await repository.persistCollaborationSnapshot(
+      organizationAId,
+      created.id,
+      snapshot,
+      actorUserId,
+      [actorUserId],
+      1,
+      true,
+    );
+    const retried = await repository.persistCollaborationSnapshot(
+      organizationAId,
+      created.id,
+      snapshot,
+      actorUserId,
+      [actorUserId],
+      1,
+      true,
+    );
 
     expect(first).toMatchObject({
       changed: true,

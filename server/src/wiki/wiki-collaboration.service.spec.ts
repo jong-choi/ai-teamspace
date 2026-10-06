@@ -323,9 +323,13 @@ describe('위키 공동편집 서비스', () => {
 
     expect(repository.persistCollaborationSnapshot).toHaveBeenCalledTimes(2);
     expect(repository.persistCollaborationSnapshot).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        schemaVersion: WIKI_COLLABORATION_SCHEMA_VERSION,
-      }),
+      organizationId,
+      documentId,
+      expect.objectContaining({ contentMarkdown: '# 재시도' }),
+      userId,
+      [userId],
+      WIKI_COLLABORATION_SCHEMA_VERSION,
+      false,
     );
   });
 

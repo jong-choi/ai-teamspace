@@ -2,6 +2,9 @@ import { Injectable } from '@nestjs/common';
 
 import { DatabaseService } from '@/database/database.service';
 import type { Ticket } from '@/projects/domain/ticket';
+import type { CreateTicketInput } from '@/projects/dto/create-ticket.dto';
+import type { QueryTicketsInput } from '@/projects/dto/query-tickets.dto';
+import type { UpdateTicketInput } from '@/projects/dto/update-ticket.dto';
 import { toProjectUpdate } from '@/projects/infrastructure/persistence/drizzle/mappers/project.mapper';
 import {
   toTicketDomain,
@@ -12,10 +15,7 @@ import { projectColumn } from '@/projects/infrastructure/persistence/drizzle/sch
 import { project } from '@/projects/infrastructure/persistence/drizzle/schema/project.schema';
 import { ticket } from '@/projects/infrastructure/persistence/drizzle/schema/ticket.schema';
 import {
-  type CreateTicketPersistenceInput,
   type CreateTicketResult,
-  type ListTicketsPersistenceInput,
-  type TicketChanges,
   TicketRepository,
 } from '@/projects/infrastructure/persistence/ticket.repository';
 
@@ -31,7 +31,11 @@ export class TicketDrizzleRepository extends TicketRepository {
     super();
   }
 
-  async listTickets(input: ListTicketsPersistenceInput): Promise<Ticket[]> {
+  async listTickets(
+    organizationId: string,
+    projectId: string,
+    input: QueryTicketsInput,
+  ): Promise<Ticket[]> {
     const search = input.search?.trim();
     const searchCondition = search
       ? or(
@@ -44,8 +48,8 @@ export class TicketDrizzleRepository extends TicketRepository {
       .from(ticket)
       .where(
         and(
-          eq(ticket.organizationId, input.organizationId),
-          eq(ticket.projectId, input.projectId),
+          eq(ticket.organizationId, organizationId),
+          eq(ticket.projectId, projectId),
           isNull(ticket.archivedAt),
           input.columnId ? eq(ticket.columnId, input.columnId) : undefined,
           input.assigneeUserId
@@ -79,7 +83,10 @@ export class TicketDrizzleRepository extends TicketRepository {
   }
 
   async createTicketWithNumber(
-    input: CreateTicketPersistenceInput,
+    organizationId: string,
+    projectId: string,
+    reporterUserId: string,
+    input: CreateTicketInput,
   ): Promise<CreateTicketResult> {
     return this.database.db.transaction(async (transaction) => {
       const [projectRow] = await transaction
@@ -87,8 +94,8 @@ export class TicketDrizzleRepository extends TicketRepository {
         .from(project)
         .where(
           and(
-            eq(project.id, input.projectId),
-            eq(project.organizationId, input.organizationId),
+            eq(project.id, projectId),
+            eq(project.organizationId, organizationId),
             isNull(project.archivedAt),
           ),
         )
@@ -102,7 +109,7 @@ export class TicketDrizzleRepository extends TicketRepository {
         .where(
           and(
             eq(projectColumn.id, input.columnId),
-            eq(projectColumn.projectId, input.projectId),
+            eq(projectColumn.projectId, projectId),
           ),
         )
         .limit(1);
@@ -113,7 +120,7 @@ export class TicketDrizzleRepository extends TicketRepository {
         .from(ticket)
         .where(
           and(
-            eq(ticket.projectId, input.projectId),
+            eq(ticket.projectId, projectId),
             eq(ticket.columnId, input.columnId),
             isNull(ticket.archivedAt),
           ),
@@ -127,23 +134,23 @@ export class TicketDrizzleRepository extends TicketRepository {
             updatedAt: now,
           }),
         )
-        .where(eq(project.id, input.projectId));
+        .where(eq(project.id, projectId));
 
       const [row] = await transaction
         .insert(ticket)
         .values(
           toTicketInsert({
-            organizationId: input.organizationId,
-            projectId: input.projectId,
+            organizationId,
+            projectId,
             columnId: input.columnId,
             number: projectRow.nextTicketNumber,
             title: input.title,
-            descriptionMarkdown: input.descriptionMarkdown,
-            priority: input.priority,
-            assigneeUserId: input.assigneeUserId,
-            reporterUserId: input.reporterUserId,
+            descriptionMarkdown: input.descriptionMarkdown ?? '',
+            priority: input.priority ?? 'medium',
+            assigneeUserId: input.assigneeUserId ?? null,
+            reporterUserId,
             position: (positionRow?.position ?? -1) + 1,
-            dueAt: input.dueAt,
+            dueAt: input.dueAt ? new Date(input.dueAt) : null,
             updatedAt: now,
           }),
         )
@@ -153,20 +160,20 @@ export class TicketDrizzleRepository extends TicketRepository {
     });
   }
 
-  async updateTicket(input: {
-    organizationId: string;
-    projectId: string;
-    ticketId: string;
-    changes: TicketChanges;
-  }): Promise<Ticket | null> {
+  async updateTicket(
+    organizationId: string,
+    projectId: string,
+    ticketId: string,
+    input: UpdateTicketInput,
+  ): Promise<Ticket | null> {
     return this.database.db.transaction(async (transaction) => {
       const [projectRow] = await transaction
         .select({ id: project.id })
         .from(project)
         .where(
           and(
-            eq(project.id, input.projectId),
-            eq(project.organizationId, input.organizationId),
+            eq(project.id, projectId),
+            eq(project.organizationId, organizationId),
             isNull(project.archivedAt),
           ),
         )
@@ -179,9 +186,9 @@ export class TicketDrizzleRepository extends TicketRepository {
         .from(ticket)
         .where(
           and(
-            eq(ticket.id, input.ticketId),
-            eq(ticket.organizationId, input.organizationId),
-            eq(ticket.projectId, input.projectId),
+            eq(ticket.id, ticketId),
+            eq(ticket.organizationId, organizationId),
+            eq(ticket.projectId, projectId),
           ),
         )
         .for('update')
@@ -189,12 +196,20 @@ export class TicketDrizzleRepository extends TicketRepository {
       if (!current) return null;
 
       const now = new Date();
-      const archivedAt = input.changes.archivedAt;
+      const archivedAt =
+        input.archived === undefined
+          ? undefined
+          : input.archived
+            ? new Date()
+            : null;
       const restoring =
         archivedAt === null &&
         current.archivedAt !== null &&
-        Object.entries(input.changes).filter(([, value]) => value !== undefined)
-          .length === 1;
+        input.title === undefined &&
+        input.descriptionMarkdown === undefined &&
+        input.priority === undefined &&
+        input.assigneeUserId === undefined &&
+        input.dueAt === undefined;
       if (current.archivedAt !== null && !restoring) return null;
 
       let position = current.position;
@@ -204,8 +219,8 @@ export class TicketDrizzleRepository extends TicketRepository {
           .from(ticket)
           .where(
             and(
-              eq(ticket.organizationId, input.organizationId),
-              eq(ticket.projectId, input.projectId),
+              eq(ticket.organizationId, organizationId),
+              eq(ticket.projectId, projectId),
               eq(ticket.columnId, current.columnId),
               isNull(ticket.archivedAt),
             ),
@@ -215,8 +230,24 @@ export class TicketDrizzleRepository extends TicketRepository {
 
       const [row] = await transaction
         .update(ticket)
-        .set(toTicketUpdate({ ...input.changes, position, updatedAt: now }))
-        .where(eq(ticket.id, input.ticketId))
+        .set(
+          toTicketUpdate({
+            title: input.title,
+            descriptionMarkdown: input.descriptionMarkdown,
+            priority: input.priority,
+            assigneeUserId: input.assigneeUserId,
+            dueAt:
+              input.dueAt === undefined
+                ? undefined
+                : input.dueAt
+                  ? new Date(input.dueAt)
+                  : null,
+            archivedAt,
+            position,
+            updatedAt: now,
+          }),
+        )
+        .where(eq(ticket.id, ticketId))
         .returning();
       if (!row) throw new Error('티켓 보관 상태 변경 결과가 없습니다.');
 
@@ -227,8 +258,8 @@ export class TicketDrizzleRepository extends TicketRepository {
       ) {
         await normalizeActiveTicketOrder(
           transaction,
-          input.organizationId,
-          input.projectId,
+          organizationId,
+          projectId,
           current.columnId,
           now,
         );
@@ -238,8 +269,8 @@ export class TicketDrizzleRepository extends TicketRepository {
         .set(toProjectUpdate({ updatedAt: now }))
         .where(
           and(
-            eq(project.id, input.projectId),
-            eq(project.organizationId, input.organizationId),
+            eq(project.id, projectId),
+            eq(project.organizationId, organizationId),
           ),
         );
       return toTicketDomain(row);

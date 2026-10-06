@@ -9,6 +9,7 @@ import {
   WikiCollaborationCutoverRepository,
   type WikiCollaborationCutoverRepository as WikiCollaborationCutoverRepositoryPort,
   type WikiCutoverDocumentInput,
+  type WikiCutoverFinalDocument,
   type WikiCutoverFinalSnapshot,
   type WikiCutoverSnapshot,
 } from '@/wiki/cutover/wiki-collaboration-cutover.repository';
@@ -258,20 +259,21 @@ export class WikiCollaborationCutoverDrizzleRepository
 }
 
 function assertInitializedDocumentMatches(
-  current: {
-    collectionId: string | null;
-    organizationId: string | null;
-    parentDocumentId: string | null;
-    title: string | null;
-    position: number | null;
-    contentMarkdown: string;
-    collaborationSchemaVersion: number | null;
-    revision: number;
-    createdByUserId: string | null;
-    updatedByUserId: string;
-    createdAt: Date | null;
-    updatedAt: Date | null;
-  },
+  current: Pick<
+    WikiCutoverFinalDocument,
+    | 'collectionId'
+    | 'organizationId'
+    | 'parentDocumentId'
+    | 'title'
+    | 'position'
+    | 'contentMarkdown'
+    | 'collaborationSchemaVersion'
+    | 'revision'
+    | 'createdByUserId'
+    | 'updatedByUserId'
+    | 'createdAt'
+    | 'updatedAt'
+  >,
   expected: {
     collectionId: string;
     organizationId: string;

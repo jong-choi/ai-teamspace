@@ -1,9 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import {
-  AuthUserDirectoryService,
-  type AuthUserIdentity,
-} from '@/auth/auth-user-directory.service';
+import type { AuthUserIdentity } from '@/auth/auth-user-directory.service';
 import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
 import { OrganizationMembershipService } from '@/organizations/organization-membership.service';
 import {
@@ -54,8 +51,8 @@ import {
   TicketWorkflowRepository,
 } from '@/projects/infrastructure/persistence/ticket-workflow.repository';
 import { ProjectResourceLoader } from '@/projects/project-resource.loader';
+import { ProjectUserResolver } from '@/projects/project-user.resolver';
 
-type ProjectUserDirectory = Pick<AuthUserDirectoryService, 'findByIds'>;
 type ProjectOrganizationMembership = Pick<
   OrganizationMembershipService,
   'requireAccess' | 'hasMemberUser'
@@ -69,8 +66,7 @@ export class ProjectsService {
     private readonly resourceLoader: ProjectResourceLoader,
     @Inject(OrganizationMembershipService)
     private readonly organizationMembership: ProjectOrganizationMembership,
-    @Inject(AuthUserDirectoryService)
-    private readonly userDirectory: ProjectUserDirectory,
+    private readonly userResolver: ProjectUserResolver,
   ) {}
 
   async listProjects(
@@ -79,7 +75,7 @@ export class ProjectsService {
   ): Promise<ProjectListResponse> {
     await this.organizationMembership.requireAccess(context, organizationId);
     const projects = await this.projectRepository.listProjects(organizationId);
-    const usersById = await this.loadUsersById(
+    const usersById = await this.userResolver.findByIds(
       projects.flatMap(({ project }) =>
         project.leadUserId ? [project.leadUserId] : [],
       ),
@@ -266,7 +262,7 @@ export class ProjectsService {
       ...query,
     });
     const [usersById, metadata] = await Promise.all([
-      this.loadUsersById(
+      this.userResolver.findByIds(
         tickets.flatMap(({ assigneeUserId }) =>
           assigneeUserId ? [assigneeUserId] : [],
         ),
@@ -418,7 +414,7 @@ export class ProjectsService {
   private async toProjectDetail(
     model: ProjectSummaryReadModel,
   ): Promise<ProjectDetailResponse> {
-    const usersById = await this.loadUsersById(
+    const usersById = await this.userResolver.findByIds(
       model.project.leadUserId ? [model.project.leadUserId] : [],
     );
     return toProjectDetailResponse(
@@ -441,7 +437,7 @@ export class ProjectsService {
     if (!children) {
       throw new TicketNotFoundError();
     }
-    const usersById = await this.loadUsersById([
+    const usersById = await this.userResolver.findByIds([
       ticket.reporterUserId,
       ...(ticket.assigneeUserId ? [ticket.assigneeUserId] : []),
       ...children.comments.map(({ authorUserId }) => authorUserId),
@@ -489,17 +485,6 @@ export class ProjectsService {
     ) {
       throw new ProjectUserNotMemberError();
     }
-  }
-
-  private async loadUsersById(
-    userIds: readonly string[],
-  ): Promise<Map<string, AuthUserIdentity>> {
-    const uniqueUserIds = [...new Set(userIds)];
-    if (uniqueUserIds.length === 0) {
-      return new Map();
-    }
-    const users = await this.userDirectory.findByIds(uniqueUserIds);
-    return new Map(users.map((user) => [user.id, user]));
   }
 
   private async requireProjectMutation<T>(

@@ -16,6 +16,7 @@ import {
 import { TicketWorkflowRepository } from '@/projects/infrastructure/persistence/ticket-workflow.repository';
 import { ProjectsService } from '@/projects/projects.service';
 import { ProjectResourceLoader } from '@/projects/project-resource.loader';
+import { ProjectUserResolver } from '@/projects/project-user.resolver';
 
 import { jest } from '@jest/globals';
 
@@ -175,7 +176,7 @@ describe('프로젝트 서비스', () => {
       workflowRepository,
       new ProjectResourceLoader(repository),
       membership,
-      userDirectory,
+      new ProjectUserResolver(userDirectory),
     );
   });
 

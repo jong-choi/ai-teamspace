@@ -1,9 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import {
-  AuthUserDirectoryService,
-  type AuthUserIdentity,
-} from '@/auth/auth-user-directory.service';
 import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
 import { OrganizationMembershipService } from '@/organizations/organization-membership.service';
 import {
@@ -55,8 +51,8 @@ import type { UpdateTicketCommentInput } from '@/projects/dto/update-ticket-comm
 import type { UpdateTicketLabelInput } from '@/projects/dto/update-ticket-label.dto';
 import { TicketWorkflowRepository } from '@/projects/infrastructure/persistence/ticket-workflow.repository';
 import { ProjectResourceLoader } from '@/projects/project-resource.loader';
+import { ProjectUserResolver } from '@/projects/project-user.resolver';
 
-type WorkflowUserDirectory = Pick<AuthUserDirectoryService, 'findByIds'>;
 type WorkflowOrganizationMembership = Pick<
   OrganizationMembershipService,
   'requireAccess'
@@ -69,8 +65,7 @@ export class TicketWorkflowService {
     private readonly resourceLoader: ProjectResourceLoader,
     @Inject(OrganizationMembershipService)
     private readonly organizationMembership: WorkflowOrganizationMembership,
-    @Inject(AuthUserDirectoryService)
-    private readonly userDirectory: WorkflowUserDirectory,
+    private readonly userResolver: ProjectUserResolver,
   ) {}
 
   async moveTicket(
@@ -629,7 +624,7 @@ export class TicketWorkflowService {
   private async toCommentResponses(
     comments: readonly TicketComment[],
   ): Promise<TicketCommentResponse[]> {
-    const usersById = await this.loadUsersById(
+    const usersById = await this.userResolver.findByIds(
       comments.map(({ authorUserId }) => authorUserId),
     );
     return comments.map((comment) => {
@@ -639,16 +634,5 @@ export class TicketWorkflowService {
       }
       return toTicketCommentResponse(comment, author);
     });
-  }
-
-  private async loadUsersById(
-    userIds: readonly string[],
-  ): Promise<Map<string, AuthUserIdentity>> {
-    const uniqueUserIds = [...new Set(userIds)];
-    if (uniqueUserIds.length === 0) {
-      return new Map();
-    }
-    const users = await this.userDirectory.findByIds(uniqueUserIds);
-    return new Map(users.map((user) => [user.id, user]));
   }
 }

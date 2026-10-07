@@ -13,6 +13,8 @@ dist/
 coverage/
 **/coverage/
 
+/.temp/
+
 .env
 .env.*
 !.env.example

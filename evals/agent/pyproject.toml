@@ -1,0 +1,55 @@
+[project]
+name = "work-os-agent-evals"
+version = "0.1.0"
+description = "Black-box Agent Protocol/MCP evaluation harness for Work OS"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "deepeval==4.2.8",
+  "httpx==0.28.1",
+  "httpx2==2.13.1",
+  "langfuse==4.17.0",
+  "langgraph-sdk==0.4.6",
+  "mcp==2.3.0",
+  "pydantic==2.13.5",
+  "pydantic-settings==2.15.0",
+]
+
+[dependency-groups]
+dev = [
+  "pyright==1.1.414",
+  "pytest==9.1.1",
+  "pytest-asyncio==1.4.0",
+  "ruff==0.16.10",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+addopts = "-q"
+asyncio_mode = "auto"
+pythonpath = ["."]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "S"]
+ignore = ["S101"]
+
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "strict"
+include = [
+  "clients",
+  "config",
+  "datasets",
+  "fixtures",
+  "metrics",
+  "reports",
+  "runner",
+  "scorers",
+  "tests",
+]
+exclude = [".venv"]

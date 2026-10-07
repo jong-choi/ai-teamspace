@@ -1,0 +1,27 @@
+{
+  "id": "smoke",
+  "version": "1.0.0",
+  "cases": [
+    {
+      "id": "schema-smoke",
+      "version": "1.0.0",
+      "tags": ["pr", "schema-only"],
+      "input": ["Return a concise acknowledgement without performing a write action."],
+      "persona": "read-only-member",
+      "preconditions": [],
+      "forbidden_tools": [],
+      "argument_assertions": [],
+      "expected_interrupts": [],
+      "outcome_assertions": [],
+      "answer_rubric": [],
+      "budget": {
+        "max_turns": 2,
+        "max_tool_calls": 0,
+        "max_subagents": 0,
+        "timeout_seconds": 30,
+        "max_cost": 0.25
+      },
+      "cleanup": "ephemeral_run"
+    }
+  ]
+}

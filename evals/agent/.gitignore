@@ -1,0 +1,7 @@
+.venv/
+.pytest_cache/
+.ruff_cache/
+.deepeval/
+.pyright/
+__pycache__/
+*.py[cod]

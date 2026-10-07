@@ -1,0 +1,270 @@
+name: Agent evaluations
+
+on:
+  pull_request:
+    paths:
+      - 'evals/agent/**'
+      - 'server/src/agent/**'
+      - 'server/src/mcp/**'
+      - 'packages/agent-runtime/**'
+      - 'package-lock.json'
+      - '.github/workflows/agent-evals.yml'
+  schedule:
+    - cron: '17 18 * * *'
+  workflow_dispatch:
+    inputs:
+      live_tier:
+        description: 'Live evaluation tier'
+        type: choice
+        required: true
+        default: none
+        options:
+          - none
+          - nightly
+          - release
+      dataset_path:
+        description: 'Dataset path relative to evals/agent'
+        type: string
+        required: false
+        default: 'datasets/security/security.json'
+      dataset_id:
+        description: 'Dataset id expected by the settings contract'
+        type: string
+        required: false
+        default: security
+      baseline_id:
+        description: 'Baseline identifier recorded in the report'
+        type: string
+        required: false
+        default: security-v1
+      server_url:
+        description: 'Ephemeral Agent Protocol server URL'
+        type: string
+        required: false
+      mcp_resource_url:
+        description: 'Ephemeral MCP resource URL'
+        type: string
+        required: false
+      trusted_origin:
+        description: 'Ephemeral Better Auth trusted origin'
+        type: string
+        required: false
+      ephemeral_target_origin:
+        description: 'Exact remote origin confirmation'
+        type: string
+        required: false
+      baseline_run_id:
+        description: 'Prior workflow run id containing agent-eval-report (release only)'
+        type: string
+        required: false
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  harness:
+    name: Harness contract gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: evals/agent
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Install pinned uv
+        run: python -m pip install 'uv==0.12.22'
+
+      - name: Sync frozen evaluator environment
+        run: uv sync --frozen
+
+      - name: Check lockfile
+        run: uv lock --check
+
+      - name: Run evaluator tests
+        run: uv run pytest
+
+      - name: Run evaluator lint
+        run: uv run ruff check .
+
+      - name: Run evaluator typecheck
+        run: uv run pyright
+
+      - name: Validate tracked datasets
+        run: |
+          uv run python -m runner.main validate-dataset datasets/smoke/smoke.json
+          uv run python -m runner.main validate-dataset datasets/security/security.json
+
+      - name: Validate loopback settings contract
+        env:
+          EVAL_SERVER_URL: http://127.0.0.1:3100
+          EVAL_MCP_RESOURCE_URL: http://127.0.0.1:3100/mcp
+          EVAL_TRUSTED_ORIGIN: http://localhost:3100
+          EVAL_TARGET_ENVIRONMENT: ephemeral
+          EVAL_RUN_NAMESPACE: github-pr-contract
+          EVAL_DATASET: smoke
+          EVAL_BASELINE: smoke-v1
+          EVAL_OUTPUT_DIR: .temp/evals/agent/github-pr-contract
+        run: uv run python -m runner.main settings
+
+      - name: Run PR fast smoke evaluation
+        env:
+          EVAL_SERVER_URL: http://127.0.0.1:3100
+          EVAL_MCP_RESOURCE_URL: http://127.0.0.1:3100/mcp
+          EVAL_TRUSTED_ORIGIN: http://localhost:3100
+          EVAL_TARGET_ENVIRONMENT: ephemeral
+          EVAL_TARGET_ADAPTER: deterministic-fixture
+          EVAL_RUN_NAMESPACE: github-pr-fast-smoke
+          EVAL_DATASET: smoke
+          EVAL_BASELINE: smoke-v1
+          EVAL_OUTPUT_DIR: .temp/evals/agent/github-pr-fast-smoke
+          EVAL_TIER: pr
+          EVAL_TRIALS: '1'
+          EVAL_RANDOM_SEED: '20261008'
+        run: uv run python -m runner.main run datasets/smoke/smoke.json
+
+      - name: Run PR fast security evaluation
+        env:
+          EVAL_SERVER_URL: http://127.0.0.1:3100
+          EVAL_MCP_RESOURCE_URL: http://127.0.0.1:3100/mcp
+          EVAL_TRUSTED_ORIGIN: http://localhost:3100
+          EVAL_TARGET_ENVIRONMENT: ephemeral
+          EVAL_TARGET_ADAPTER: deterministic-fixture
+          EVAL_RUN_NAMESPACE: github-pr-fast-security
+          EVAL_DATASET: security
+          EVAL_BASELINE: security-v1
+          EVAL_OUTPUT_DIR: .temp/evals/agent/github-pr-fast-security
+          EVAL_TIER: pr
+          EVAL_TRIALS: '1'
+          EVAL_RANDOM_SEED: '20261008'
+        run: uv run python -m runner.main run datasets/security/security.json
+
+      - name: Upload PR fast reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: agent-eval-pr-fast-report
+          path: |
+            .temp/evals/agent/github-pr-fast-smoke/report.json
+            .temp/evals/agent/github-pr-fast-smoke/report.md
+            .temp/evals/agent/github-pr-fast-security/report.json
+            .temp/evals/agent/github-pr-fast-security/report.md
+          if-no-files-found: error
+          retention-days: 14
+
+  live:
+    name: Live ephemeral evaluation
+    needs: harness
+    if: >-
+      (github.event_name == 'schedule' && vars.AGENT_EVAL_SERVER_URL != '') ||
+      (github.event_name == 'workflow_dispatch' && inputs.live_tier != 'none')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: evals/agent
+    env:
+      EVAL_SERVER_URL: >-
+        ${{ github.event_name == 'workflow_dispatch' && inputs.server_url ||
+            vars.AGENT_EVAL_SERVER_URL }}
+      EVAL_MCP_RESOURCE_URL: >-
+        ${{ github.event_name == 'workflow_dispatch' && inputs.mcp_resource_url ||
+            vars.AGENT_EVAL_MCP_RESOURCE_URL }}
+      EVAL_TRUSTED_ORIGIN: >-
+        ${{ github.event_name == 'workflow_dispatch' && inputs.trusted_origin ||
+            vars.AGENT_EVAL_TRUSTED_ORIGIN }}
+      EVAL_EPHEMERAL_TARGET_ORIGIN: >-
+        ${{ github.event_name == 'workflow_dispatch' && inputs.ephemeral_target_origin ||
+            vars.AGENT_EVAL_EPHEMERAL_TARGET_ORIGIN }}
+      EVAL_TARGET_ENVIRONMENT: ephemeral
+      EVAL_TARGET_ADAPTER: public-http
+      EVAL_RUN_NAMESPACE: github-${{ github.run_id }}-${{ github.run_attempt }}
+      EVAL_DATASET: >-
+        ${{ github.event_name == 'workflow_dispatch' && inputs.dataset_id ||
+            vars.AGENT_EVAL_NIGHTLY_DATASET_ID || 'security' }}
+      EVAL_BASELINE: >-
+        ${{ github.event_name == 'workflow_dispatch' && inputs.baseline_id ||
+            vars.AGENT_EVAL_NIGHTLY_BASELINE_ID || 'security-v1' }}
+      EVAL_OUTPUT_DIR: .temp/evals/agent/github-${{ github.run_id }}
+      EVAL_TIER: >-
+        ${{ github.event_name == 'schedule' && 'nightly' || inputs.live_tier }}
+      EVAL_TRIALS: >-
+        ${{ github.event_name == 'schedule' && '3' ||
+            (inputs.live_tier == 'release' && '5' || '3') }}
+      EVAL_RANDOM_SEED: '20261008'
+      EVAL_LANGFUSE_ENABLED: ${{ vars.AGENT_EVAL_LANGFUSE_ENABLED || 'false' }}
+      EVAL_LANGFUSE_BASE_URL: ${{ vars.AGENT_EVAL_LANGFUSE_BASE_URL }}
+      EVAL_LANGFUSE_PUBLIC_KEY: ${{ vars.AGENT_EVAL_LANGFUSE_PUBLIC_KEY }}
+      EVAL_LANGFUSE_SECRET_KEY: ${{ secrets.AGENT_EVAL_LANGFUSE_SECRET_KEY }}
+      EVAL_LANGFUSE_PROJECT_ALIAS: ${{ vars.AGENT_EVAL_LANGFUSE_PROJECT_ALIAS }}
+      EVAL_LANGFUSE_UI_TRACE_URL_TEMPLATE: >-
+        ${{ vars.AGENT_EVAL_LANGFUSE_UI_TRACE_URL_TEMPLATE }}
+      EVAL_DATASET_PATH: >-
+        ${{ github.event_name == 'workflow_dispatch' && inputs.dataset_path ||
+            vars.AGENT_EVAL_NIGHTLY_DATASET_PATH || 'datasets/security/security.json' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Install pinned uv
+        run: python -m pip install 'uv==0.12.22'
+
+      - name: Sync frozen evaluator environment
+        run: uv sync --frozen
+
+      - name: Validate live settings and dataset
+        run: |
+          uv run python -m runner.main settings
+          uv run python -m runner.main validate-dataset "$EVAL_DATASET_PATH"
+
+      - name: Validate release baseline input
+        if: ${{ env.EVAL_TIER == 'release' }}
+        env:
+          BASELINE_RUN_ID: ${{ inputs.baseline_run_id }}
+        run: |
+          if [ -z "$BASELINE_RUN_ID" ]; then
+            echo 'release live eval requires baseline_run_id' >&2
+            exit 2
+          fi
+
+      - name: Download reviewed baseline report
+        if: ${{ env.EVAL_TIER == 'release' }}
+        uses: actions/download-artifact@v8
+        with:
+          name: agent-eval-report
+          path: .temp/evals/agent/baseline
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.baseline_run_id }}
+
+      - name: Run nightly live evaluation
+        if: ${{ env.EVAL_TIER == 'nightly' }}
+        run: uv run python -m runner.main run "$EVAL_DATASET_PATH"
+
+      - name: Run release live evaluation
+        if: ${{ env.EVAL_TIER == 'release' }}
+        run: >-
+          uv run python -m runner.main run "$EVAL_DATASET_PATH"
+          --baseline-report ../../.temp/evals/agent/baseline/report.json
+
+      - name: Upload redacted evaluation report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: agent-eval-report
+          path: |
+            .temp/evals/agent/github-${{ github.run_id }}/report.json
+            .temp/evals/agent/github-${{ github.run_id }}/report.md
+          if-no-files-found: warn
+          retention-days: 30

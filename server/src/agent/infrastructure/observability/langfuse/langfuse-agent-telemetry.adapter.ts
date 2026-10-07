@@ -3,7 +3,7 @@ import type {
   RunTelemetryContext,
   RunTelemetryEvent,
   TelemetrySink,
-} from '@repo/agent-runtime/core';
+} from '@repo/agent-runtime';
 import type { AgentConfig } from '@/agent/config/agent-config.type';
 import {
   pseudonymizeLangfuseId,

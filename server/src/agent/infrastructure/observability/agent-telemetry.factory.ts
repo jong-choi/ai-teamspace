@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import type { TelemetrySink } from '@repo/agent-runtime/core';
+import type { TelemetrySink } from '@repo/agent-runtime';
 import { AgentConfiguration } from '@/agent/config/agent-configuration';
 import { LangfuseAgentTelemetryAdapter } from '@/agent/infrastructure/observability/langfuse/langfuse-agent-telemetry.adapter';
 

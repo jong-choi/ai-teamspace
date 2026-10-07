@@ -1,4 +1,4 @@
-import type { RunTelemetryContext } from '@repo/agent-runtime/core';
+import type { RunTelemetryContext } from '@repo/agent-runtime';
 import type { AgentConfig } from '@/agent/config/agent-config.type';
 import { LangfuseAgentTelemetryAdapter } from '@/agent/infrastructure/observability/langfuse/langfuse-agent-telemetry.adapter';
 

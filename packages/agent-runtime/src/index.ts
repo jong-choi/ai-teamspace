@@ -13,6 +13,12 @@ export {
   type ProtocolDeps,
 } from '@repo/agent-runtime/server-kit';
 export { adaptAgentAuth } from '#agent-runtime/auth/adapt-agent-auth.js';
+export type {
+  RunFinishedEvent,
+  RunTelemetryContext,
+  RunTelemetryEvent,
+  TelemetrySink,
+} from '#agent-runtime/core/index.js';
 export {
   createDurableAgentRuntime,
   type DurableAgentRuntime,

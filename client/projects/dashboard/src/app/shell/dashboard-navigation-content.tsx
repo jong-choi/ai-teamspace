@@ -86,7 +86,9 @@ export function DashboardNavigationContent({
                   ? '/wiki'
                   : item.id === 'calendar'
                     ? '/calendar'
-                    : null;
+                    : item.id === 'ai'
+                      ? '/ai'
+                      : null;
 
             return (
               <Pressable

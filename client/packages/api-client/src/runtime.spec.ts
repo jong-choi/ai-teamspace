@@ -1,6 +1,7 @@
 import {
   type ApiFetch,
   configureApiRuntime,
+  getApiBaseUrl,
   getProblemDetails,
   workOsFetcher,
 } from '@repo/client/api-client/runtime';
@@ -17,6 +18,16 @@ afterEach(() => {
 });
 
 describe('API 런타임', () => {
+  it('구성된 API base URL만 Agent 같은 절대 URL 소비자에게 노출한다', () => {
+    configureApiRuntime({ baseUrl: 'https://api.example.com/' });
+
+    expect(getApiBaseUrl()).toBe('https://api.example.com');
+  });
+
+  it('API runtime이 구성되지 않았으면 base URL 조회를 fail-fast한다', () => {
+    expect(() => getApiBaseUrl()).toThrow('API runtime base URL이 구성되지 않았습니다.');
+  });
+
   it('네이티브 요청에 쿠키와 Expo 출처 헤더를 함께 전달한다', async () => {
     const fetcher = jest.fn<ApiFetch>(async () => Response.json({ ok: true }));
     configureApiRuntime({

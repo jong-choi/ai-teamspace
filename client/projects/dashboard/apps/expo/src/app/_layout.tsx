@@ -8,6 +8,7 @@ import { Stack } from 'expo-router';
 import { DashboardErrorBoundary } from '@core/app/error/dashboard-error-boundary';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 import { ChatRealtimeBoundary } from '@core/features/chat/chat-realtime-boundary';
+import { ExpoAgentChatPlatformProvider } from '@/lib/agent-chat-platform-provider';
 import { ExpoDashboardPlatformProvider } from '@/lib/dashboard-platform';
 import { ExpoWikiCollaborationPlatformProvider } from '@/lib/wiki-collaboration-platform';
 
@@ -37,15 +38,14 @@ export default function RootLayout() {
 
 function SessionQueryClientProvider({ children }: { children: ReactNode }) {
   const { currentUserId } = useDashboardPlatform();
+  const sessionKey = currentUserId
+    ? `session:user:${currentUserId}`
+    : 'session:anonymous';
 
   return (
-    <QueryClientBoundary
-      key={
-        currentUserId ? `session:user:${currentUserId}` : 'session:anonymous'
-      }
-    >
-      {children}
-    </QueryClientBoundary>
+    <ExpoAgentChatPlatformProvider key={sessionKey}>
+      <QueryClientBoundary key={sessionKey}>{children}</QueryClientBoundary>
+    </ExpoAgentChatPlatformProvider>
   );
 }
 

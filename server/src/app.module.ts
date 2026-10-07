@@ -8,6 +8,7 @@ import authConfig from '@/auth/config/auth.config';
 import cacheConfig from '@/chat/config/cache.config';
 import appConfig from '@/config/app.config';
 import databaseConfig from '@/database/config/database.config';
+import { McpAccessModule } from '@/mcp-access/mcp-access.module';
 import queueConfig from '@/queue/config/queue.config';
 import collaborationConfig from '@/wiki/infrastructure/collaboration/config/collaboration.config';
 
@@ -28,6 +29,7 @@ import collaborationConfig from '@/wiki/infrastructure/collaboration/config/coll
     }),
     AgentModule,
     AppCoreModule,
+    McpAccessModule,
   ],
 })
 export class AppModule {}

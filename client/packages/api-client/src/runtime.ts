@@ -33,6 +33,14 @@ export function configureApiRuntime(
   };
 }
 
+export function getApiBaseUrl(): string {
+  const baseUrl = runtimeConfiguration.baseUrl;
+  if (!baseUrl) {
+    throw new Error('API runtime base URL이 구성되지 않았습니다.');
+  }
+  return baseUrl;
+}
+
 export function getApiUrl(path: string): string {
   if (!path.startsWith('/')) {
     return path;

@@ -15,6 +15,7 @@
     "@expensify/react-native-live-markdown": "0.1.342",
     "@expo/ui": "~57.0.21",
     "@hocuspocus/provider": "^4.7.0",
+    "@langchain/langgraph-sdk": "1.12.1",
     "@legendapp/list": "^3.6.0",
     "@repo/api-client": "^0.0.0",
     "@repo/rnr": "^0.0.0",

@@ -14,4 +14,17 @@ export type AgentConfig = {
   replayClosedTtlSeconds: number;
   replayStreamMaxLength: number;
   replaySubscriberBufferFrames: number;
+  observability?: {
+    langfuse: {
+      enabled: boolean;
+      baseUrl?: string;
+      publicKey?: string;
+      secretKey?: string;
+      tracingEnvironment: string;
+      release?: string;
+      sampleRate: number;
+      captureLevel: 'metadata' | 'sanitized-content';
+      idHashSecret?: string;
+    };
+  };
 };

@@ -40,6 +40,10 @@ export class AgentConfiguration {
     };
   }
 
+  get observability(): AgentConfig['observability'] {
+    return this.config.observability;
+  }
+
   get durable(): AgentDurableConfiguration {
     return {
       postgresUri: this.config.databaseUrl,

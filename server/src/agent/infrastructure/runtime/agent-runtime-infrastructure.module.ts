@@ -5,6 +5,7 @@ import { WorkOsAgentFactory } from '@/agent/application/workos-agent.factory';
 import { AgentConfigurationModule } from '@/agent/config/agent-configuration.module';
 import { BetterAuthAgentIdentityModule } from '@/agent/infrastructure/auth/better-auth/better-auth-agent-identity.module';
 import { DeepAgentModule } from '@/agent/infrastructure/deep-agent/deep-agent.module';
+import { AgentTelemetryFactory } from '@/agent/infrastructure/observability/agent-telemetry.factory';
 import { AgentRuntimeOptionsFactory } from '@/agent/infrastructure/runtime/agent-runtime-options.factory';
 
 @Module({
@@ -16,6 +17,7 @@ import { AgentRuntimeOptionsFactory } from '@/agent/infrastructure/runtime/agent
   providers: [
     AgentAuthorizationPolicy,
     WorkOsAgentFactory,
+    AgentTelemetryFactory,
     AgentRuntimeOptionsFactory,
   ],
   exports: [AgentRuntimeOptionsFactory],

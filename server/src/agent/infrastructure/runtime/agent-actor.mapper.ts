@@ -10,11 +10,20 @@ export function resolveAgentActor(
   }
 
   const user = configurable?.['langgraph_auth_user'];
+  if (typeof user !== 'object' || user === null) {
+    throw new Error('인증된 Agent actor principal이 없습니다.');
+  }
+
+  const organizationId =
+    'organization_id' in user && typeof user.organization_id === 'string'
+      ? user.organization_id
+      : undefined;
+  if (!organizationId) {
+    throw new Error('인증된 Agent 조직 context가 없습니다.');
+  }
+
   const displayName =
-    typeof user === 'object' &&
-    user !== null &&
-    'display_name' in user &&
-    typeof user.display_name === 'string'
+    'display_name' in user && typeof user.display_name === 'string'
       ? user.display_name
       : undefined;
   const rawPermissions = configurable?.['langgraph_auth_permissions'];
@@ -26,6 +35,7 @@ export function resolveAgentActor(
 
   return {
     userId,
+    organizationId,
     ...(displayName ? { displayName } : {}),
     permissions,
   };

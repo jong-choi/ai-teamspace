@@ -7,6 +7,7 @@ describe('사용 불가능한 MCP credential 어댑터', () => {
     expect(() =>
       provider.getCredential({
         userId: 'user-a',
+        organizationId: 'organization-a',
         displayName: 'User A',
         permissions: [],
       }),

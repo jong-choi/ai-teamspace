@@ -2,8 +2,11 @@ export type AgentConfig = {
   databaseUrl: string;
   redisUrl: string;
   redisPrefix: string;
-  model: string;
-  workOsMcpUrl: string;
+  model: {
+    name: string;
+    baseUrl: string;
+    apiKey: string;
+  };
   mcpToolTimeoutMs: number;
   runQueueName: string;
   runConcurrency: number;

@@ -13,6 +13,7 @@ import type { AllConfigType } from '@/config/config.type';
       useFactory: (configService: ConfigService<AllConfigType>) =>
         new AgentConfiguration(
           configService.getOrThrow('agent', { infer: true }),
+          configService.getOrThrow('mcp', { infer: true }),
         ),
     },
   ],

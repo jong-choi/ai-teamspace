@@ -7,8 +7,11 @@ const baseConfig = {
   databaseUrl: 'postgresql://localhost/agent-test',
   redisUrl: 'redis://localhost:6379',
   redisPrefix: 'agent-test',
-  model: 'openai:gpt-5-mini',
-  workOsMcpUrl: 'http://127.0.0.1:3100/mcp',
+  model: {
+    name: 'gpt-oss:120b',
+    baseUrl: 'https://ollama.com',
+    apiKey: 'test-ollama-key',
+  },
   mcpToolTimeoutMs: 30_000,
   runQueueName: 'agent-test-runs',
   runConcurrency: 4,
@@ -22,7 +25,9 @@ const baseConfig = {
 } satisfies AgentConfig;
 
 function configuration(config: AgentConfig): AgentConfiguration {
-  return new AgentConfiguration(config);
+  return new AgentConfiguration(config, {
+    resourceUrl: 'http://127.0.0.1:3100/mcp',
+  });
 }
 
 describe('AgentTelemetryFactory', () => {

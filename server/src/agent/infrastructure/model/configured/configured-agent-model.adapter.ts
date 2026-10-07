@@ -6,6 +6,8 @@ import {
   type AgentModels,
 } from '@/agent/infrastructure/model/agent-model.provider';
 
+import { ChatOllama } from '@langchain/ollama';
+
 @Injectable()
 export class ConfiguredAgentModelAdapter extends AgentModelProvider {
   constructor(private readonly configuration: AgentConfiguration) {
@@ -13,11 +15,20 @@ export class ConfiguredAgentModelAdapter extends AgentModelProvider {
   }
 
   createModels(): AgentModels {
-    const model = this.configuration.modelSpec;
+    const configuration = this.configuration.model;
+    const createModel = () =>
+      new ChatOllama({
+        model: configuration.name,
+        baseUrl: configuration.baseUrl,
+        headers: {
+          Authorization: `Bearer ${configuration.apiKey}`,
+        },
+      });
+
     return {
-      root: model,
-      researcher: model,
-      operator: model,
+      root: createModel(),
+      researcher: createModel(),
+      operator: createModel(),
     };
   }
 }

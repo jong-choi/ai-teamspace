@@ -9,7 +9,7 @@
 - `config/`: Agent 전용 environment schema와 parsed configuration
 - `infrastructure/auth/`: Better Auth session을 Agent identity로 바꾸는 capability adapter
 - `infrastructure/model/`: model set capability port와 configured adapter
-- `infrastructure/mcp/`: delegation credential, MCP transport/session, approval policy
+- `infrastructure/mcp/`: actor-bound OAuth auth provider, MCP transport/session, approval policy
 - `infrastructure/deep-agent/`: DeepAgents construction, protocol adaptation, session lifecycle
 - `infrastructure/runtime/`: runtime actor mapping과 durable runtime options assembly
 - `agent.module.ts`: composition root만 담당
@@ -24,7 +24,7 @@ Agent runtime이 검증 뒤 넣은 `langgraph_auth_*` configurable만 `agent-act
 
 WorkOS business capability는 MCP `tools/list` 결과만 사용한다. organization/wiki/chat 등 WorkOS domain service나 Drizzle persistence를 Agent feature가 직접 import하거나 tool schema를 복제하지 않는다.
 
-`McpCredentialProvider`는 actor별 delegation credential seam이다. 현재 기본 wiring은 `UnavailableMcpCredentialAdapter`이며 실제 delegation provider가 연결되지 않으면 fail-closed 한다. 전역 superuser token, anonymous fallback, inbound Better Auth credential 재사용은 하지 않는다.
+production MCP 인증 경계는 `WorkOsMcpAuthProviderFactory`다. `LangChainWorkOsMcpAdapter`는 server-verified `AgentActor`마다 `AuthProvider | OAuthClientProvider`를 새로 받아 MCP SDK의 `authProvider`에 직접 전달한다. 현재 composition은 mcp-03의 durable provider가 연결되기 전까지 `PendingFirstPartyWorkOsMcpAuthProviderFactory`가 실제 `OAuthClientProvider` shape를 제공하되 token/redirect/PKCE 사용을 fail-closed로 거부한다. `McpCredentialProvider`는 deterministic integration fixture의 legacy/test-only bearer seam으로만 남고 production default wiring에는 참여하지 않는다. 전역 superuser token, anonymous fallback, inbound Better Auth credential 재사용은 하지 않는다.
 
 `LangChainWorkOsMcpAdapter`는 MCP transport, credential refresh, tool discovery와 session lifecycle을 소유한다. `McpToolApprovalPolicy`는 tool annotation의 `readOnlyHint: true`만 read-only로 인정하고 나머지 tool을 human approval interrupt 대상으로 분류한다.
 
@@ -44,7 +44,7 @@ Runtime shutdown은 worker stop과 durable resource dispose를 모두 시도하�
 
 ## HITL and SDK compatibility
 
-Consequential MCP tool은 persisted interrupt로 멈추고 승인/거절/수정은 같은 thread의 새 run에서 `command.resume.decisions`로 이어간다. side effect는 승인된 resume run에서만 실행한다.
+Consequential MCP tool은 persisted interrupt로 멈추고 승인/거절/수정은 같은 thread의 새 run에서 `command.resume.decisions`로 이어간다. `DeepAgentProtocolAdapter`는 resume 직전 current checkpoint의 pending `actionRequests`와 decision 개수를 다시 binding하고, edit가 원래 interrupted tool name을 다른 tool identity로 바꾸지 못하게 검증한다. side effect는 이 검증을 통과한 resume run에서만 실행한다.
 
 Pending HITL을 일반 turn이 덮어쓰지 않도록 run-create의 thread status precondition을 사용한다. React `useStream` remount/reconnect는 durable checkpoint와 resumable stream을 기준으로 최신 state/history를 다시 읽는다. Cancel은 Redis abort channel을 통해 실행 중 DeepAgent와 MCP HTTP `AbortSignal`까지 전달되어야 한다.
 

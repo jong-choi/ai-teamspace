@@ -26,20 +26,43 @@ export const testAgentCredentials: McpCredentialProvider = {
   getCredential: ({ userId }) => ({ token: async () => `fixture:${userId}` }),
 };
 
-export const testAgentAuth = adaptAgentAuth(
-  new AgentAuth()
-    .authenticate((request) => {
-      const identity = request.headers.get('x-test-user');
-      if (!identity) {
-        throw new AgentHttpException(401, { message: '인증이 필요합니다.' });
-      }
-      return { identity, display_name: identity, permissions: [] };
-    })
-    .on('threads', ({ user }) => ({ owner_user_id: user.identity }))
-    .on('store', ({ user, value }) => {
-      value.namespace = [user.identity, ...(value.namespace ?? []).slice(1)];
-    }),
-);
+export function createFixtureAgentAuth(
+  validateActor?: (identity: string, organizationId: string) => void,
+) {
+  return adaptAgentAuth(
+    new AgentAuth()
+      .authenticate((request) => {
+        const identity = request.headers.get('x-test-user');
+        if (!identity) {
+          throw new AgentHttpException(401, { message: '인증이 필요합니다.' });
+        }
+        const organizationId =
+          request.headers.get('x-test-organization') ?? 'organization-a';
+        validateActor?.(identity, organizationId);
+        return {
+          identity,
+          display_name: identity,
+          permissions: [],
+          organization_id: organizationId,
+        };
+      })
+      .on('threads', ({ user }) => ({
+        owner_user_id: user.identity,
+        organization_id: requireFixtureOrganizationId(user),
+      }))
+      .on('store', ({ user, value }) => {
+        value.namespace = [
+          fixtureTenantNamespace(
+            user.identity,
+            requireFixtureOrganizationId(user),
+          ),
+          ...(value.namespace ?? []).slice(1),
+        ];
+      }),
+  );
+}
+
+export const testAgentAuth = createFixtureAgentAuth();
 
 export class FixtureModelProvider extends AgentModelProvider {
   constructor(private readonly models: AgentModels) {
@@ -54,23 +77,25 @@ export class FixtureModelProvider extends AgentModelProvider {
 export interface StartedAgentApp {
   app: INestApplication;
   apiUrl: string;
-  client(userId: string): Client;
+  client(userId: string, organizationId?: string): Client;
   close(): Promise<void>;
 }
 
 export async function startAgentApp(input: {
   mcpUrl: string;
   modelProvider: AgentModelProvider;
+  credentialProvider?: McpCredentialProvider;
+  auth?: typeof testAgentAuth;
 }): Promise<StartedAgentApp> {
   const graph = createTestWorkOsAgentGraphFactory({
     modelProvider: input.modelProvider,
-    credentialProvider: testAgentCredentials,
+    credentialProvider: input.credentialProvider ?? testAgentCredentials,
     mcpUrl: input.mcpUrl,
     mcpToolTimeoutMs: 5_000,
   });
   const deps = createInMemoryAgentRuntimeDeps(
     { workos: graph },
-    { auth: testAgentAuth },
+    { auth: input.auth ?? testAgentAuth },
   );
 
   @Module({
@@ -90,13 +115,37 @@ export async function startAgentApp(input: {
   return {
     app,
     apiUrl,
-    client: (userId) =>
+    client: (userId, organizationId = 'organization-a') =>
       new Client({
         apiUrl,
-        defaultHeaders: { 'x-test-user': userId },
+        defaultHeaders: {
+          'x-test-user': userId,
+          'x-test-organization': organizationId,
+        },
       }),
     close: () => app.close(),
   };
+}
+
+function requireFixtureOrganizationId(user: {
+  organization_id?: unknown;
+}): string {
+  const organizationId = user.organization_id;
+  if (typeof organizationId !== 'string' || organizationId.length === 0) {
+    throw new AgentHttpException(403, {
+      message: '테스트 Agent 조직 context가 필요합니다.',
+    });
+  }
+  return organizationId;
+}
+
+function fixtureTenantNamespace(
+  identity: string,
+  organizationId: string,
+): string {
+  return encodeURIComponent(`${organizationId}:${identity}`)
+    .replace(/\./g, '%2E')
+    .replace(/\*/g, '%2A');
 }
 
 export function unusedModel(): FakeBuiltModel {

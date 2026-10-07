@@ -1,8 +1,15 @@
 import type { AgentConfig } from '@/agent/config/agent-config.type';
+import type { McpConfig } from '@/mcp/config/mcp-config.type';
 
 export interface AgentMcpConfiguration {
   url: string;
   toolTimeoutMs: number;
+}
+
+export interface AgentModelConfiguration {
+  name: string;
+  baseUrl: string;
+  apiKey: string;
 }
 
 export interface AgentDurableConfiguration {
@@ -27,15 +34,18 @@ export interface AgentWorkerConfiguration {
 }
 
 export class AgentConfiguration {
-  constructor(private readonly config: AgentConfig) {}
+  constructor(
+    private readonly config: AgentConfig,
+    private readonly mcpConfig: Pick<McpConfig, 'resourceUrl'>,
+  ) {}
 
-  get modelSpec(): string {
+  get model(): AgentModelConfiguration {
     return this.config.model;
   }
 
   get mcp(): AgentMcpConfiguration {
     return {
-      url: this.config.workOsMcpUrl,
+      url: this.mcpConfig.resourceUrl,
       toolTimeoutMs: this.config.mcpToolTimeoutMs,
     };
   }

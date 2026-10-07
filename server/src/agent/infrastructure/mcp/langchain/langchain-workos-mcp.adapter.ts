@@ -3,10 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { AgentConfiguration } from '@/agent/config/agent-configuration';
 import type { AgentActor } from '@/agent/domain/agent-actor';
 import { McpToolApprovalPolicy } from '@/agent/infrastructure/mcp/langchain/mcp-tool-approval.policy';
-import {
-  type McpCredential,
-  McpCredentialProvider,
-} from '@/agent/infrastructure/mcp/mcp-credential.provider';
+import { WorkOsMcpAuthProviderFactory } from '@/agent/infrastructure/mcp/workos-mcp-auth-provider.factory';
 import {
   type McpToolIdentity,
   type WorkOsToolSession,
@@ -18,7 +15,7 @@ import { MCPAdapter } from '@langchain/mcp-adapters';
 @Injectable()
 export class LangChainWorkOsMcpAdapter extends WorkOsToolSessionProvider {
   constructor(
-    private readonly credentials: McpCredentialProvider,
+    private readonly authProviders: WorkOsMcpAuthProviderFactory,
     private readonly configuration: AgentConfiguration,
     private readonly approvalPolicy: McpToolApprovalPolicy,
   ) {
@@ -26,7 +23,7 @@ export class LangChainWorkOsMcpAdapter extends WorkOsToolSessionProvider {
   }
 
   async open(actor: AgentActor): Promise<WorkOsToolSession> {
-    const credential = await this.credentials.getCredential(actor);
+    const authProvider = await this.authProviders.create(actor);
     const mcp = this.configuration.mcp;
     const adapter = new MCPAdapter({
       prefixToolNameWithServerName: false,
@@ -36,7 +33,7 @@ export class LangChainWorkOsMcpAdapter extends WorkOsToolSessionProvider {
           transport: 'http',
           mode: 'modern',
           url: mcp.url,
-          authProvider: toAuthProvider(credential),
+          authProvider,
         },
       },
     });
@@ -70,20 +67,4 @@ export class LangChainWorkOsMcpAdapter extends WorkOsToolSessionProvider {
       throw error;
     }
   }
-}
-
-function toAuthProvider(credential: McpCredential): McpCredential {
-  const onUnauthorized = credential.onUnauthorized;
-  return {
-    token: async () => {
-      const value = await credential.token();
-      if (value.trim() === '') {
-        throw new Error(
-          'WorkOS MCP delegation credential token이 비어 있습니다.',
-        );
-      }
-      return value;
-    },
-    ...(onUnauthorized ? { onUnauthorized: () => onUnauthorized() } : {}),
-  };
 }

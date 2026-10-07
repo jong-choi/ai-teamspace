@@ -9,8 +9,9 @@ describe('Agent 설정', () => {
       AGENT_DATABASE_URL: 'postgresql://localhost/agent-test',
       AGENT_REDIS_URL: 'redis://localhost:6379',
       AGENT_REDIS_PREFIX: 'agent-test',
-      AGENT_MODEL: 'openai:gpt-5-mini',
-      WORKOS_MCP_URL: 'http://127.0.0.1:3100/mcp',
+      AGENT_MODEL: 'gpt-oss:120b',
+      OLLAMA_API_KEY: 'test-ollama-key',
+      OLLAMA_BASE_URL: 'https://ollama.com/',
       AGENT_RUN_QUEUE_NAME: 'agent-test-runs',
       LANGFUSE_ENABLED: 'false',
     };
@@ -26,6 +27,38 @@ describe('Agent 설정', () => {
 
   afterAll(() => {
     process.env = originalEnvironment;
+  });
+
+  it('Ollama production model 설정을 정규화한다', async () => {
+    const config = await loadAgentConfig();
+
+    expect(config.model).toEqual({
+      name: 'gpt-oss:120b',
+      baseUrl: 'https://ollama.com',
+      apiKey: 'test-ollama-key',
+    });
+  });
+
+  it('공개 HTTP Ollama endpoint를 거부한다', async () => {
+    process.env.OLLAMA_BASE_URL = 'http://ollama.example.com';
+
+    await expect(loadAgentConfig()).rejects.toThrow(
+      'OLLAMA_BASE_URL은 HTTPS여야 하며 로컬 개발에서는 loopback HTTP만 허용됩니다.',
+    );
+  });
+
+  it('Ollama API key가 비어 있으면 시작 단계에서 거부한다', async () => {
+    process.env.OLLAMA_API_KEY = '   ';
+
+    await expect(loadAgentConfig()).rejects.toThrow();
+  });
+
+  it('path가 포함된 Ollama base URL을 거부한다', async () => {
+    process.env.OLLAMA_BASE_URL = 'https://ollama.com/api';
+
+    await expect(loadAgentConfig()).rejects.toThrow(
+      'OLLAMA_BASE_URL은 origin URL이어야 합니다.',
+    );
   });
 
   it('Langfuse가 꺼져 있으면 credential 없이 metadata-only 기본값을 사용한다', async () => {

@@ -43,9 +43,10 @@ export class DeepAgentProtocolAdapter implements AgentGraph {
   stream(input: unknown, config?: unknown): AsyncIterable<unknown> {
     const agentInput = toDeepAgentInput(input);
     const agentConfig = toStreamConfig(config);
-    return this.lifecycle.iterable(() =>
-      this.agent.stream(agentInput, agentConfig),
-    );
+    return this.lifecycle.iterable(async () => {
+      await assertHitlResumeIntegrity(this.agent, agentInput, agentConfig);
+      return this.agent.stream(agentInput, agentConfig);
+    });
   }
 
   getState(config: {
@@ -86,17 +87,19 @@ export class DeepAgentProtocolAdapter implements AgentGraph {
   invoke(input: unknown, config?: unknown): Promise<unknown> {
     const agentInput = toDeepAgentInput(input);
     const agentConfig = toInvokeConfig(config);
-    return this.lifecycle.value(() =>
-      this.agent.invoke(agentInput, agentConfig),
-    );
+    return this.lifecycle.value(async () => {
+      await assertHitlResumeIntegrity(this.agent, agentInput, agentConfig);
+      return this.agent.invoke(agentInput, agentConfig);
+    });
   }
 
   streamEvents(input: unknown, config?: unknown): AsyncIterable<unknown> {
     const agentInput = toDeepAgentInput(input);
     const agentConfig = toEventConfig(config);
-    return this.lifecycle.iterable(() =>
-      this.agent.streamEvents(agentInput, agentConfig),
-    );
+    return this.lifecycle.iterable(async () => {
+      await assertHitlResumeIntegrity(this.agent, agentInput, agentConfig);
+      return this.agent.streamEvents(agentInput, agentConfig);
+    });
   }
 
   getGraphAsync(config?: unknown) {
@@ -130,6 +133,78 @@ export class DeepAgentProtocolAdapter implements AgentGraph {
       this.agent.store = resources.store;
     }
   }
+}
+
+async function assertHitlResumeIntegrity(
+  agent: WorkOsDeepAgent,
+  input: DeepAgentInput,
+  config: unknown,
+): Promise<void> {
+  if (!(input instanceof Command)) return;
+
+  const decisions = hitlDecisions(input.resume);
+  if (!decisions) return;
+
+  const state = await agent.graph.getState(toStateConfig(config));
+  const actionNames = pendingHitlActionNames(state);
+  if (actionNames.length === 0 || actionNames.length !== decisions.length) {
+    throw new Error(
+      'HITL resume 대상과 현재 interrupted action이 일치하지 않습니다.',
+    );
+  }
+
+  decisions.forEach((decision, index) => {
+    if (!isEditDecision(decision)) return;
+
+    const editedAction = decision['editedAction'];
+    const editedName =
+      isRecord(editedAction) && typeof editedAction['name'] === 'string'
+        ? editedAction['name']
+        : undefined;
+    if (!editedName || editedName !== actionNames[index]) {
+      throw new Error(
+        'HITL edit는 interrupted tool identity를 변경할 수 없습니다.',
+      );
+    }
+  });
+}
+
+function hitlDecisions(resume: unknown): unknown[] | undefined {
+  if (!isRecord(resume)) return undefined;
+  const decisions = resume['decisions'];
+  return Array.isArray(decisions) ? decisions : undefined;
+}
+
+function isEditDecision(value: unknown): value is Record<string, unknown> {
+  return isRecord(value) && value['type'] === 'edit';
+}
+
+function pendingHitlActionNames(state: unknown): string[] {
+  if (!isRecord(state) || !Array.isArray(state['tasks'])) return [];
+
+  const names: string[] = [];
+  for (const task of state['tasks']) {
+    if (!isRecord(task) || !Array.isArray(task['interrupts'])) continue;
+    for (const interrupt of task['interrupts']) {
+      if (!isRecord(interrupt) || !isRecord(interrupt['value'])) continue;
+      const requests = interrupt['value']['actionRequests'];
+      if (!Array.isArray(requests)) continue;
+      for (const request of requests) {
+        if (!isRecord(request) || typeof request['name'] !== 'string') {
+          return [];
+        }
+        names.push(request['name']);
+      }
+    }
+  }
+  return names;
+}
+
+function toStateConfig(config: unknown): {
+  configurable?: Record<string, unknown>;
+} {
+  if (!isRecord(config) || !isRecord(config['configurable'])) return {};
+  return { configurable: config['configurable'] };
 }
 
 function toDeepAgentInput(input: unknown): DeepAgentInput {

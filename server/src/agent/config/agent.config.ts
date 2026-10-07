@@ -27,7 +27,43 @@ const agentConfigSchema = z
     AGENT_REDIS_URL: redisUrlSchema,
     AGENT_REDIS_PREFIX: z.string().trim().min(1),
     AGENT_MODEL: z.string().trim().min(1),
-    WORKOS_MCP_URL: httpUrlSchema,
+    OLLAMA_API_KEY: z.string().trim().min(1),
+    OLLAMA_BASE_URL: z
+      .url()
+      .transform((value) => new URL(value))
+      .superRefine((url, context) => {
+        const isLoopback =
+          url.hostname === 'localhost' ||
+          url.hostname === '127.0.0.1' ||
+          url.hostname === '[::1]';
+
+        if (
+          url.protocol !== 'https:' &&
+          !(url.protocol === 'http:' && isLoopback)
+        ) {
+          context.addIssue({
+            code: 'custom',
+            message:
+              'OLLAMA_BASE_URL은 HTTPS여야 하며 로컬 개발에서는 loopback HTTP만 허용됩니다.',
+          });
+        }
+
+        if (url.username || url.password || url.search || url.hash) {
+          context.addIssue({
+            code: 'custom',
+            message:
+              'OLLAMA_BASE_URL에는 credential, query 또는 fragment를 포함할 수 없습니다.',
+          });
+        }
+
+        if (url.pathname !== '/' && url.pathname !== '') {
+          context.addIssue({
+            code: 'custom',
+            message: 'OLLAMA_BASE_URL은 origin URL이어야 합니다.',
+          });
+        }
+      })
+      .transform((url) => url.origin),
     AGENT_MCP_TOOL_TIMEOUT_MS: z.coerce.number().int().min(1).default(30_000),
     AGENT_RUN_QUEUE_NAME: z
       .string()
@@ -117,8 +153,11 @@ export default registerAs<AgentConfig>('agent', () => {
     databaseUrl: environment.AGENT_DATABASE_URL,
     redisUrl: environment.AGENT_REDIS_URL,
     redisPrefix: environment.AGENT_REDIS_PREFIX,
-    model: environment.AGENT_MODEL,
-    workOsMcpUrl: environment.WORKOS_MCP_URL,
+    model: {
+      name: environment.AGENT_MODEL,
+      baseUrl: environment.OLLAMA_BASE_URL,
+      apiKey: environment.OLLAMA_API_KEY,
+    },
     mcpToolTimeoutMs: environment.AGENT_MCP_TOOL_TIMEOUT_MS,
     runQueueName: environment.AGENT_RUN_QUEUE_NAME,
     runConcurrency: environment.AGENT_RUN_CONCURRENCY,

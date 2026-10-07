@@ -9,6 +9,8 @@ import { McpToolApprovalPolicy } from '@/agent/infrastructure/mcp/langchain/mcp-
 import type { McpCredentialProvider } from '@/agent/infrastructure/mcp/mcp-credential.provider';
 import type { AgentModelProvider } from '@/agent/infrastructure/model/agent-model.provider';
 
+import { CredentialBackedWorkOsMcpAuthProviderFactory } from '@test/agent/support/credential-backed-workos-mcp-auth-provider.factory';
+
 export function createTestWorkOsAgentGraphFactory(input: {
   mcpUrl: string;
   modelProvider: AgentModelProvider;
@@ -19,8 +21,11 @@ export function createTestWorkOsAgentGraphFactory(input: {
     databaseUrl: 'postgresql://localhost/agent-test',
     redisUrl: 'redis://localhost:6379',
     redisPrefix: 'agent-test',
-    model: 'test:model',
-    workOsMcpUrl: input.mcpUrl,
+    model: {
+      name: 'test:model',
+      baseUrl: 'http://127.0.0.1:11434',
+      apiKey: 'fixture-key',
+    },
     mcpToolTimeoutMs: input.mcpToolTimeoutMs ?? 5_000,
     runQueueName: 'agent-test-runs',
     runConcurrency: 4,
@@ -32,9 +37,11 @@ export function createTestWorkOsAgentGraphFactory(input: {
     replayStreamMaxLength: 10_000,
     replaySubscriberBufferFrames: 512,
   } satisfies AgentConfig;
-  const configuration = new AgentConfiguration(config);
+  const configuration = new AgentConfiguration(config, {
+    resourceUrl: input.mcpUrl,
+  });
   const sessions = new LangChainWorkOsMcpAdapter(
-    input.credentialProvider,
+    new CredentialBackedWorkOsMcpAuthProviderFactory(input.credentialProvider),
     configuration,
     new McpToolApprovalPolicy(),
   );

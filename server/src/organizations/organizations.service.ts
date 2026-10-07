@@ -76,12 +76,11 @@ export class OrganizationsService {
     input: SetActiveOrganizationInput,
   ): Promise<ActiveOrganization> {
     if (input.organizationId === null) {
-      await this.organizationProvider.setActive(context, null);
       return { activeOrganization: null };
     }
 
     return {
-      activeOrganization: await this.organizationProvider.setActive(
+      activeOrganization: await this.organizationProvider.getAccess(
         context,
         input.organizationId,
       ),

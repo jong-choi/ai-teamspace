@@ -1,6 +1,7 @@
 import 'dotenv/config';
 
-import { authOptions } from '@/auth/auth-options';
+import { createAuthOptions } from '@/auth/auth-options';
+import { createMcpConfig } from '@/mcp/config/mcp.config';
 
 import { betterAuth } from 'better-auth';
 
@@ -10,6 +11,6 @@ if (!baseUrl) {
 }
 
 export const auth = betterAuth({
-  ...authOptions,
+  ...createAuthOptions(createMcpConfig()),
   baseURL: baseUrl,
 });

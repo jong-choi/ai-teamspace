@@ -16,6 +16,7 @@ import type { Auth } from '@/auth/auth';
 import { TrustedOriginGuard } from '@/common/http/trusted-origin.guard';
 import { OrganizationInvitationDto } from '@/organizations/dto/organization-invitation.dto';
 import { OrganizationInvitationDetailDto } from '@/organizations/dto/organization-invitation-detail.dto';
+import { OrganizationActiveSessionProvider } from '@/organizations/infrastructure/active-organization-session/organization-active-session.provider';
 import { toOrganizationActorContext } from '@/organizations/organization-actor-context';
 import { OrganizationInvitationsService } from '@/organizations/organization-invitations.service';
 
@@ -37,17 +38,17 @@ const problemDetailsSchema = { $ref: '#/components/schemas/ProblemDetails' };
 export class InvitationsController {
   constructor(
     private readonly organizationInvitationsService: OrganizationInvitationsService,
+    private readonly activeSessionProvider: OrganizationActiveSessionProvider,
   ) {}
 
   @Get(':invitationId')
   @ApiOkResponse({ standardSchema: OrganizationInvitationDetailDto.schema })
   getDetail(
     @Session() session: UserSession<Auth>,
-    @Headers() headers: IncomingHttpHeaders,
     @Param('invitationId') invitationId: string,
   ): Promise<OrganizationInvitationDetailDto> {
     return this.organizationInvitationsService.get(
-      toOrganizationActorContext(session, headers),
+      toOrganizationActorContext(session),
       invitationId,
     );
   }
@@ -55,15 +56,22 @@ export class InvitationsController {
   @Post(':invitationId/accept')
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ standardSchema: OrganizationInvitationDto.schema })
-  accept(
+  async accept(
     @Session() session: UserSession<Auth>,
     @Headers() headers: IncomingHttpHeaders,
     @Param('invitationId') invitationId: string,
   ): Promise<OrganizationInvitationDto> {
-    return this.organizationInvitationsService.accept(
-      toOrganizationActorContext(session, headers),
+    const actor = toOrganizationActorContext(session);
+    const detail = await this.organizationInvitationsService.get(
+      actor,
       invitationId,
     );
+    const invitation = await this.organizationInvitationsService.accept(
+      actor,
+      invitationId,
+    );
+    await this.activeSessionProvider.setActive(headers, detail.organization.id);
+    return invitation;
   }
 
   @Post(':invitationId/reject')
@@ -71,11 +79,10 @@ export class InvitationsController {
   @ApiOkResponse({ standardSchema: OrganizationInvitationDto.schema })
   reject(
     @Session() session: UserSession<Auth>,
-    @Headers() headers: IncomingHttpHeaders,
     @Param('invitationId') invitationId: string,
   ): Promise<OrganizationInvitationDto> {
     return this.organizationInvitationsService.reject(
-      toOrganizationActorContext(session, headers),
+      toOrganizationActorContext(session),
       invitationId,
     );
   }

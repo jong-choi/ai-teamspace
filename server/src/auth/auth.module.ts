@@ -23,6 +23,7 @@ import { AuthModule as NestBetterAuthModule } from '@thallesp/nestjs-better-auth
         auth: createAuth(
           databaseService.db,
           configService.getOrThrow('auth', { infer: true }),
+          configService.getOrThrow('mcp', { infer: true }),
         ),
       }),
     }),

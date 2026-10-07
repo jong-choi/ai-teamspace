@@ -92,7 +92,6 @@ class FakePresenter {
 const context: OrganizationActorContext = {
   userId: 'organizer-user',
   activeOrganizationIdCandidate: 'organization-a',
-  providerCredential: {},
 };
 
 function member(userId: OrganizationMember['userId']): OrganizationMember {

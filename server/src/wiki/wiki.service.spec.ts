@@ -40,7 +40,6 @@ const childDocumentId = '33333333-3333-4333-8333-333333333333';
 const context: OrganizationActorContext = {
   userId: actorUserId,
   activeOrganizationIdCandidate: organizationId,
-  providerCredential: {},
 };
 
 function document(input: Partial<WikiDocument> = {}): WikiDocument {

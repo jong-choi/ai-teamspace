@@ -29,7 +29,6 @@ class FakeOrganizationProvider extends OrganizationProvider {
     jest.fn<OrganizationProvider['listMembersByUserIds']>();
   changeMemberRole = jest.fn<OrganizationProvider['changeMemberRole']>();
   removeMember = jest.fn<OrganizationProvider['removeMember']>();
-  setActive = jest.fn<OrganizationProvider['setActive']>();
 }
 
 class FakeOrganizationInvitationProvider extends OrganizationInvitationProvider {
@@ -59,7 +58,6 @@ class FakeInvitationDelivery {
 const context: OrganizationActorContext = {
   userId: 'actor-user',
   activeOrganizationIdCandidate: 'organization-a',
-  providerCredential: {},
 };
 
 function invitation(

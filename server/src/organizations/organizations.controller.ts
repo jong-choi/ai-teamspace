@@ -45,6 +45,7 @@ import {
   UpdateOrganizationMemberRoleDto,
   type UpdateOrganizationMemberRoleInput,
 } from '@/organizations/dto/update-organization-member-role.dto';
+import { OrganizationActiveSessionProvider } from '@/organizations/infrastructure/active-organization-session/organization-active-session.provider';
 import { toOrganizationActorContext } from '@/organizations/organization-actor-context';
 import { OrganizationsService } from '@/organizations/organizations.service';
 
@@ -64,17 +65,15 @@ const problemDetailsSchema = { $ref: '#/components/schemas/ProblemDetails' };
 @Controller('organizations')
 @UseGuards(TrustedOriginGuard)
 export class OrganizationsController {
-  constructor(private readonly organizationsService: OrganizationsService) {}
+  constructor(
+    private readonly organizationsService: OrganizationsService,
+    private readonly activeSessionProvider: OrganizationActiveSessionProvider,
+  ) {}
 
   @Get()
   @ApiOkResponse({ standardSchema: OrganizationListDto.schema })
-  list(
-    @Session() session: UserSession<Auth>,
-    @Headers() headers: IncomingHttpHeaders,
-  ): Promise<OrganizationListDto> {
-    return this.organizationsService.list(
-      toOrganizationActorContext(session, headers),
-    );
+  list(@Session() session: UserSession<Auth>): Promise<OrganizationListDto> {
+    return this.organizationsService.list(toOrganizationActorContext(session));
   }
 
   @Post()
@@ -82,12 +81,11 @@ export class OrganizationsController {
   @ApiCreatedResponse({ standardSchema: OrganizationAccessDto.schema })
   create(
     @Session() session: UserSession<Auth>,
-    @Headers() headers: IncomingHttpHeaders,
     @Body({ schema: CreateOrganizationDto.schema })
     input: CreateOrganizationInput,
   ): Promise<OrganizationAccessDto> {
     return this.organizationsService.create(
-      toOrganizationActorContext(session, headers),
+      toOrganizationActorContext(session),
       input,
     );
   }
@@ -96,36 +94,36 @@ export class OrganizationsController {
   @ApiOkResponse({ standardSchema: ActiveOrganizationDto.schema })
   getActive(
     @Session() session: UserSession<Auth>,
-    @Headers() headers: IncomingHttpHeaders,
   ): Promise<ActiveOrganizationDto> {
     return this.organizationsService.getActive(
-      toOrganizationActorContext(session, headers),
+      toOrganizationActorContext(session),
     );
   }
 
   @Put('active')
   @ApiOkResponse({ standardSchema: ActiveOrganizationDto.schema })
-  setActive(
+  async setActive(
     @Session() session: UserSession<Auth>,
     @Headers() headers: IncomingHttpHeaders,
     @Body({ schema: SetActiveOrganizationDto.schema })
     input: SetActiveOrganizationInput,
   ): Promise<ActiveOrganizationDto> {
-    return this.organizationsService.setActive(
-      toOrganizationActorContext(session, headers),
+    const result = await this.organizationsService.setActive(
+      toOrganizationActorContext(session),
       input,
     );
+    await this.activeSessionProvider.setActive(headers, input.organizationId);
+    return result;
   }
 
   @Get(':organizationId')
   @ApiOkResponse({ standardSchema: OrganizationAccessDto.schema })
   getDetail(
     @Session() session: UserSession<Auth>,
-    @Headers() headers: IncomingHttpHeaders,
     @Param('organizationId') organizationId: string,
   ): Promise<OrganizationAccessDto> {
     return this.organizationsService.getDetail(
-      toOrganizationActorContext(session, headers),
+      toOrganizationActorContext(session),
       organizationId,
     );
   }
@@ -134,13 +132,12 @@ export class OrganizationsController {
   @ApiOkResponse({ standardSchema: OrganizationMemberListDto.schema })
   listMembers(
     @Session() session: UserSession<Auth>,
-    @Headers() headers: IncomingHttpHeaders,
     @Param('organizationId') organizationId: string,
     @Query({ schema: QueryOrganizationMembersDto.schema })
     query: QueryOrganizationMembersInput,
   ): Promise<OrganizationMemberListDto> {
     return this.organizationsService.listMembers(
-      toOrganizationActorContext(session, headers),
+      toOrganizationActorContext(session),
       organizationId,
       query,
     );
@@ -150,14 +147,13 @@ export class OrganizationsController {
   @ApiOkResponse({ standardSchema: OrganizationMemberDto.schema })
   changeMemberRole(
     @Session() session: UserSession<Auth>,
-    @Headers() headers: IncomingHttpHeaders,
     @Param('organizationId') organizationId: string,
     @Param('memberId') memberId: string,
     @Body({ schema: UpdateOrganizationMemberRoleDto.schema })
     input: UpdateOrganizationMemberRoleInput,
   ): Promise<OrganizationMemberDto> {
     return this.organizationsService.changeMemberRole(
-      toOrganizationActorContext(session, headers),
+      toOrganizationActorContext(session),
       organizationId,
       memberId,
       input,
@@ -169,12 +165,11 @@ export class OrganizationsController {
   @ApiNoContentResponse()
   async removeMember(
     @Session() session: UserSession<Auth>,
-    @Headers() headers: IncomingHttpHeaders,
     @Param('organizationId') organizationId: string,
     @Param('memberId') memberId: string,
   ): Promise<void> {
     await this.organizationsService.removeMember(
-      toOrganizationActorContext(session, headers),
+      toOrganizationActorContext(session),
       organizationId,
       memberId,
     );

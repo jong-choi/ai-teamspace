@@ -7,17 +7,15 @@ import type { UserSession } from '@thallesp/nestjs-better-auth';
 export interface OrganizationActorContext {
   userId: string;
   activeOrganizationIdCandidate?: string;
-  providerCredential: unknown;
 }
 
 export function toOrganizationActorContext(
   session: UserSession<Auth>,
-  requestHeaders: IncomingHttpHeaders,
+  _legacyRequestHeaders?: IncomingHttpHeaders,
 ): OrganizationActorContext {
   return {
     userId: session.user.id,
     activeOrganizationIdCandidate:
       session.session.activeOrganizationId ?? undefined,
-    providerCredential: requestHeaders,
   };
 }

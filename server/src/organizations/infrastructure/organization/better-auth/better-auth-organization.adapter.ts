@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 
 import { ApplicationError } from '@/application.error';
 import type { Auth } from '@/auth/auth';
-import { organizationPlugin } from '@/auth/auth-options';
 import {
   InvalidOrganizationRoleError,
   OrganizationAccessDeniedError,
@@ -23,22 +22,19 @@ import type { CreateOrganizationInput } from '@/organizations/dto/create-organiz
 import type { OrganizationMemberList } from '@/organizations/dto/organization-member-list.dto';
 import type { QueryOrganizationMembersInput } from '@/organizations/dto/query-organization-members.dto';
 import {
+  getWorkOsOrganizationAdapter,
+  type WorkOsOrganizationAuth,
+} from '@/organizations/infrastructure/better-auth/work-os-organization.adapter';
+import {
   type OrganizationActorContext,
   OrganizationProvider,
 } from '@/organizations/infrastructure/organization/organization.provider';
 
 import { AuthService } from '@thallesp/nestjs-better-auth';
 import { APIError } from 'better-auth';
-import { fromNodeHeaders } from 'better-auth/node';
-import { z } from 'zod';
-
-const credentialSchema = z.record(
-  z.string(),
-  z.union([z.string(), z.array(z.string()), z.undefined()]),
-);
 
 type AuthApi = Auth['api'];
-type AuthContext = Awaited<Auth['$context']>;
+type AuthContext = Awaited<WorkOsOrganizationAuth['$context']>;
 type AuthOrganization = Awaited<
   ReturnType<AuthApi['listOrganizations']>
 >[number];
@@ -50,9 +46,6 @@ type AuthUpdatedMember = Awaited<ReturnType<AuthApi['updateMemberRole']>>;
 type AuthWhere = NonNullable<
   Parameters<AuthContext['adapter']['findMany']>[0]['where']
 >[number];
-type ListMembersContext = NonNullable<Parameters<AuthApi['listMembers']>[0]>;
-type ListMembersQuery = NonNullable<ListMembersContext['query']>;
-
 const memberSearchUserFields = [
   'name',
   'email',
@@ -60,15 +53,6 @@ const memberSearchUserFields = [
   'displayUsername',
 ] as const;
 const memberLookupBatchSize = 100;
-
-const memberIdFilter = {
-  filterField: 'id',
-  filterOperator: 'eq',
-  limit: 1,
-} as const satisfies Pick<
-  ListMembersQuery,
-  'filterField' | 'filterOperator' | 'limit'
->;
 
 function escapeLikeSearchValue(value: string): string {
   return value
@@ -79,17 +63,18 @@ function escapeLikeSearchValue(value: string): string {
 
 @Injectable()
 export class BetterAuthOrganizationAdapter extends OrganizationProvider {
-  constructor(private readonly authService: AuthService<Auth>) {
+  constructor(
+    private readonly authService: AuthService<WorkOsOrganizationAuth>,
+  ) {
     super();
   }
 
   async listForActor(
     context: OrganizationActorContext,
   ): Promise<Organization[]> {
+    const adapter = await this.organizationAdapter();
     const organizations = await this.call(() =>
-      this.authService.api.listOrganizations({
-        headers: this.headers(context),
-      }),
+      adapter.listOrganizations(context.userId),
     );
 
     return organizations.map((organization) =>
@@ -103,8 +88,10 @@ export class BetterAuthOrganizationAdapter extends OrganizationProvider {
   ) {
     const organization = await this.call(() =>
       this.authService.api.createOrganization({
-        body: input,
-        headers: this.headers(context),
+        body: {
+          ...input,
+          userId: context.userId,
+        },
       }),
     );
 
@@ -116,25 +103,24 @@ export class BetterAuthOrganizationAdapter extends OrganizationProvider {
   }
 
   async getAccess(context: OrganizationActorContext, organizationId: string) {
-    const organizations = await this.listForActor(context);
-    const organization = organizations.find(
-      (candidate) => candidate.id === organizationId,
-    );
+    const adapter = await this.organizationAdapter();
+    const [organization, member] = await Promise.all([
+      this.call(() => adapter.findOrganizationById(organizationId)),
+      this.call(() =>
+        adapter.checkMembership({
+          userId: context.userId,
+          organizationId,
+        }),
+      ),
+    ]);
 
-    if (!organization) {
+    if (!organization || !member) {
       throw new OrganizationNotFoundError();
     }
 
-    const access = await this.call(() =>
-      this.authService.api.getActiveMemberRole({
-        headers: this.headers(context),
-        query: { organizationId },
-      }),
-    );
-
     return OrganizationAccessSchema.parse({
-      organization,
-      role: access.role,
+      organization: this.mapOrganization(organization),
+      role: member.role,
     });
   }
 
@@ -145,70 +131,49 @@ export class BetterAuthOrganizationAdapter extends OrganizationProvider {
   ): Promise<OrganizationMemberList> {
     const search = query.search?.trim();
     if (!search) {
-      return this.listMemberPage(context, organizationId, query);
+      return this.listMemberPage(organizationId, query);
     }
 
     const authContext = await this.call(
       () => this.authService.instance.$context,
     );
-    return this.searchMemberPage(
-      authContext,
-      context,
-      organizationId,
-      query,
-      search,
-    );
+    return this.searchMemberPage(authContext, organizationId, query, search);
   }
 
   async getMember(
-    context: OrganizationActorContext,
+    _context: OrganizationActorContext,
     organizationId: string,
     memberId: string,
   ): Promise<OrganizationMember | null> {
-    const result = await this.call(() =>
-      this.authService.api.listMembers({
-        headers: this.headers(context),
-        query: {
-          ...memberIdFilter,
-          filterValue: memberId,
-          organizationId,
-        },
-      }),
-    );
-    const member = result.members[0];
+    const adapter = await this.organizationAdapter();
+    const member = await this.call(() => adapter.findMemberById(memberId));
 
-    return member ? this.mapMember(member) : null;
+    return member?.organizationId === organizationId
+      ? this.mapMember(member)
+      : null;
   }
 
   async hasMemberUser(
     organizationId: string,
     userId: string,
   ): Promise<boolean> {
-    const authContext = await this.call(
-      () => this.authService.instance.$context,
-    );
+    const adapter = await this.organizationAdapter();
     const member = await this.call(() =>
-      authContext.adapter.findOne<AuthMemberIdentity>({
-        model: 'member',
-        where: [
-          { field: 'organizationId', value: organizationId },
-          { field: 'userId', value: userId },
-        ],
-        select: ['id', 'userId'],
-      }),
+      adapter.checkMembership({ userId, organizationId }),
     );
 
     return member !== null;
   }
 
   async listMembersByUserIds(
-    context: OrganizationActorContext,
+    _context: OrganizationActorContext,
     organizationId: string,
     userIds: readonly string[],
   ): Promise<OrganizationMember[]> {
     const uniqueUserIds = [...new Set(userIds)];
     if (uniqueUserIds.length === 0) return [];
 
+    const adapter = await this.organizationAdapter();
     const membersByUserId = new Map<string, AuthListedMember>();
     for (
       let offset = 0;
@@ -217,14 +182,13 @@ export class BetterAuthOrganizationAdapter extends OrganizationProvider {
     ) {
       const batch = uniqueUserIds.slice(offset, offset + memberLookupBatchSize);
       const result = await this.call(() =>
-        this.authService.api.listMembers({
-          headers: this.headers(context),
-          query: {
-            organizationId,
-            limit: batch.length,
-            filterField: 'userId',
-            filterOperator: 'in',
-            filterValue: batch,
+        adapter.listMembers({
+          organizationId,
+          limit: batch.length,
+          filter: {
+            field: 'userId',
+            operator: 'in',
+            value: batch,
           },
         }),
       );
@@ -245,16 +209,30 @@ export class BetterAuthOrganizationAdapter extends OrganizationProvider {
     member: OrganizationMember,
     role: OrganizationRole,
   ): Promise<OrganizationMember> {
-    const updatedMember = await this.call(() =>
-      this.authService.api.updateMemberRole({
-        body: {
-          memberId: member.id,
-          organizationId,
-          role,
-        },
-        headers: this.headers(context),
+    const adapter = await this.organizationAdapter();
+    const actorMember = await this.call(() =>
+      adapter.findMemberByOrgId({
+        userId: context.userId,
+        organizationId,
       }),
     );
+
+    if (!actorMember || actorMember.role === 'member') {
+      throw new OrganizationAccessDeniedError();
+    }
+    if (
+      actorMember.role !== 'owner' &&
+      (member.role === 'owner' || role === 'owner')
+    ) {
+      throw new OrganizationAccessDeniedError();
+    }
+
+    const updatedMember = await this.call(() =>
+      adapter.updateMember(member.id, role),
+    );
+    if (!updatedMember || updatedMember.organizationId !== organizationId) {
+      throw new OrganizationMemberNotFoundError();
+    }
 
     return this.mapUpdatedMember(updatedMember, member);
   }
@@ -264,57 +242,57 @@ export class BetterAuthOrganizationAdapter extends OrganizationProvider {
     organizationId: string,
     memberId: string,
   ): Promise<void> {
-    await this.call(() =>
-      this.authService.api.removeMember({
-        body: {
-          memberIdOrEmail: memberId,
+    const adapter = await this.organizationAdapter();
+    const [actorMember, targetMember] = await Promise.all([
+      this.call(() =>
+        adapter.findMemberByOrgId({
+          userId: context.userId,
           organizationId,
-        },
-        headers: this.headers(context),
-      }),
-    );
-  }
+        }),
+      ),
+      this.call(() => adapter.findMemberById(memberId)),
+    ]);
 
-  async setActive(
-    context: OrganizationActorContext,
-    organizationId: string | null,
-  ) {
+    if (!actorMember || actorMember.role === 'member') {
+      throw new OrganizationAccessDeniedError();
+    }
+    if (!targetMember || targetMember.organizationId !== organizationId) {
+      throw new OrganizationMemberNotFoundError();
+    }
+    if (targetMember.role === 'owner') {
+      throw new OwnerTransferRequiredError();
+    }
+
     await this.call(() =>
-      this.authService.api.setActiveOrganization({
-        body: { organizationId },
-        headers: this.headers(context),
+      adapter.deleteMember({
+        memberId,
+        organizationId,
+        userId: targetMember.userId,
       }),
     );
-
-    return organizationId ? this.getAccess(context, organizationId) : null;
   }
 
   private async listMemberPage(
-    context: OrganizationActorContext,
     organizationId: string,
     query: QueryOrganizationMembersInput,
   ): Promise<OrganizationMemberList> {
-    const roleFilter = query.role
-      ? ({
-          filterField: 'role',
-          filterOperator: 'eq',
-          filterValue: query.role,
-        } satisfies Pick<
-          ListMembersQuery,
-          'filterField' | 'filterOperator' | 'filterValue'
-        >)
-      : {};
+    const adapter = await this.organizationAdapter();
     const result = await this.call(() =>
-      this.authService.api.listMembers({
-        headers: this.headers(context),
-        query: {
-          organizationId,
-          limit: query.limit,
-          offset: query.offset,
-          sortBy: 'id',
-          sortDirection: 'asc',
-          ...roleFilter,
-        },
+      adapter.listMembers({
+        organizationId,
+        limit: query.limit,
+        offset: query.offset,
+        sortBy: 'id',
+        sortOrder: 'asc',
+        ...(query.role
+          ? {
+              filter: {
+                field: 'role',
+                operator: 'eq' as const,
+                value: query.role,
+              },
+            }
+          : {}),
       }),
     );
 
@@ -323,7 +301,6 @@ export class BetterAuthOrganizationAdapter extends OrganizationProvider {
 
   private async searchMemberPage(
     authContext: AuthContext,
-    context: OrganizationActorContext,
     organizationId: string,
     query: QueryOrganizationMembersInput,
     search: string,
@@ -376,17 +353,10 @@ export class BetterAuthOrganizationAdapter extends OrganizationProvider {
       .slice(query.offset, query.offset + query.limit)
       .map((member) => member.id);
 
-    return this.hydrateMemberPage(
-      context,
-      organizationId,
-      pageMemberIds,
-      total,
-      query,
-    );
+    return this.hydrateMemberPage(organizationId, pageMemberIds, total, query);
   }
 
   private async hydrateMemberPage(
-    context: OrganizationActorContext,
     organizationId: string,
     memberIds: string[],
     total: number,
@@ -396,15 +366,15 @@ export class BetterAuthOrganizationAdapter extends OrganizationProvider {
       return this.toMemberList([], total, query);
     }
 
+    const adapter = await this.organizationAdapter();
     const result = await this.call(() =>
-      this.authService.api.listMembers({
-        headers: this.headers(context),
-        query: {
-          organizationId,
-          limit: memberIds.length,
-          filterField: 'id',
-          filterOperator: 'in',
-          filterValue: memberIds,
+      adapter.listMembers({
+        organizationId,
+        limit: memberIds.length,
+        filter: {
+          field: 'id',
+          operator: 'in',
+          value: memberIds,
         },
       }),
     );
@@ -432,8 +402,11 @@ export class BetterAuthOrganizationAdapter extends OrganizationProvider {
     };
   }
 
-  private headers(context: OrganizationActorContext) {
-    return fromNodeHeaders(credentialSchema.parse(context.providerCredential));
+  private async organizationAdapter() {
+    const authContext = await this.call(
+      () => this.authService.instance.$context,
+    );
+    return getWorkOsOrganizationAdapter(authContext);
   }
 
   private mapOrganization(organization: AuthOrganization): Organization {
@@ -490,7 +463,7 @@ export class BetterAuthOrganizationAdapter extends OrganizationProvider {
 
   private mapApiError(error: APIError): Error {
     const code = error.body?.code;
-    const errors = organizationPlugin.$ERROR_CODES;
+    const errors = this.authService.instance.$ERROR_CODES;
 
     if (
       code === errors.ORGANIZATION_NOT_FOUND.code ||

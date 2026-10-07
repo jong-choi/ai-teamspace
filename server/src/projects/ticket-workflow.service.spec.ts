@@ -99,7 +99,6 @@ const checklistId = '66666666-6666-4666-8666-666666666666';
 const commentId = '77777777-7777-4777-8777-777777777777';
 const context: OrganizationActorContext = {
   userId: 'actor-user',
-  providerCredential: {},
 };
 
 function project(): ProjectSummaryReadModel {

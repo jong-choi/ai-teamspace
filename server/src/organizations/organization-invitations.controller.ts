@@ -1,11 +1,8 @@
-import type { IncomingHttpHeaders } from 'node:http';
-
 import {
   Body,
   Controller,
   Delete,
   Get,
-  Headers,
   HttpCode,
   HttpStatus,
   Param,
@@ -59,13 +56,12 @@ export class OrganizationInvitationsController {
   @ApiOkResponse({ standardSchema: OrganizationInvitationListDto.schema })
   list(
     @Session() session: UserSession<Auth>,
-    @Headers() headers: IncomingHttpHeaders,
     @Param('organizationId') organizationId: string,
     @Query({ schema: QueryOrganizationInvitationsDto.schema })
     query: QueryOrganizationInvitationsInput,
   ): Promise<OrganizationInvitationListDto> {
     return this.organizationInvitationsService.list(
-      toOrganizationActorContext(session, headers),
+      toOrganizationActorContext(session),
       organizationId,
       query,
     );
@@ -76,13 +72,12 @@ export class OrganizationInvitationsController {
   @ApiCreatedResponse({ standardSchema: OrganizationInvitationDto.schema })
   create(
     @Session() session: UserSession<Auth>,
-    @Headers() headers: IncomingHttpHeaders,
     @Param('organizationId') organizationId: string,
     @Body({ schema: CreateOrganizationInvitationDto.schema })
     input: CreateOrganizationInvitationInput,
   ): Promise<OrganizationInvitationDto> {
     return this.organizationInvitationsService.create(
-      toOrganizationActorContext(session, headers),
+      toOrganizationActorContext(session),
       organizationId,
       input,
     );
@@ -93,12 +88,11 @@ export class OrganizationInvitationsController {
   @ApiNoContentResponse()
   async cancel(
     @Session() session: UserSession<Auth>,
-    @Headers() headers: IncomingHttpHeaders,
     @Param('organizationId') organizationId: string,
     @Param('invitationId') invitationId: string,
   ): Promise<void> {
     await this.organizationInvitationsService.cancel(
-      toOrganizationActorContext(session, headers),
+      toOrganizationActorContext(session),
       organizationId,
       invitationId,
     );
@@ -109,12 +103,11 @@ export class OrganizationInvitationsController {
   @ApiOkResponse({ standardSchema: OrganizationInvitationDto.schema })
   resend(
     @Session() session: UserSession<Auth>,
-    @Headers() headers: IncomingHttpHeaders,
     @Param('organizationId') organizationId: string,
     @Param('invitationId') invitationId: string,
   ): Promise<OrganizationInvitationDto> {
     return this.organizationInvitationsService.resend(
-      toOrganizationActorContext(session, headers),
+      toOrganizationActorContext(session),
       organizationId,
       invitationId,
     );

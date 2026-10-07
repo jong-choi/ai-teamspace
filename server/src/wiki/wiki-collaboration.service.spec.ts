@@ -162,7 +162,6 @@ describe('위키 공동편집 서비스', () => {
       {
         userId,
         activeOrganizationIdCandidate: organizationId,
-        providerCredential: {},
       },
       organizationId,
       documentId,

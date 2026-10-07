@@ -4,6 +4,7 @@ import { AuthModule } from '@/auth/auth.module';
 import { ChatModule } from '@/chat/chat.module';
 import { TrustedOriginGuard } from '@/common/http/trusted-origin.guard';
 import { BullMqOrganizationPublicEventModule } from '@/organizations/infrastructure/events/bullmq/bullmq-organization-public-event.module';
+import { BetterAuthOrganizationActiveSessionModule } from '@/organizations/infrastructure/active-organization-session/better-auth/better-auth-organization-active-session.module';
 import { BetterAuthOrganizationInvitationModule } from '@/organizations/infrastructure/invitation/better-auth/better-auth-organization-invitation.module';
 import { BetterAuthOrganizationModule } from '@/organizations/infrastructure/organization/better-auth/better-auth-organization.module';
 import { InvitationsController } from '@/organizations/invitations.controller';
@@ -17,6 +18,7 @@ import { OrganizationsService } from '@/organizations/organizations.service';
   imports: [
     AuthModule,
     BullMqOrganizationPublicEventModule,
+    BetterAuthOrganizationActiveSessionModule,
     BetterAuthOrganizationModule,
     BetterAuthOrganizationInvitationModule,
     ChatModule,
@@ -32,6 +34,10 @@ import { OrganizationsService } from '@/organizations/organizations.service';
     OrganizationMembershipService,
     TrustedOriginGuard,
   ],
-  exports: [OrganizationsService, OrganizationMembershipService],
+  exports: [
+    OrganizationsService,
+    OrganizationInvitationsService,
+    OrganizationMembershipService,
+  ],
 })
 export class OrganizationsModule {}

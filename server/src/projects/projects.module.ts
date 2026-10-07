@@ -44,6 +44,11 @@ import { TicketsService } from '@/projects/tickets.service';
     TicketCommentsService,
     TrustedOriginGuard,
   ],
-  exports: [ProjectReferenceQueryService],
+  exports: [
+    ProjectReferenceQueryService,
+    ProjectsService,
+    TicketsService,
+    TicketOrderingService,
+  ],
 })
 export class ProjectsModule {}

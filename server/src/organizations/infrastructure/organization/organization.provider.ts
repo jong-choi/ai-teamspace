@@ -59,9 +59,4 @@ export abstract class OrganizationProvider {
     organizationId: string,
     memberId: string,
   ): Promise<void>;
-
-  abstract setActive(
-    context: OrganizationActorContext,
-    organizationId: string | null,
-  ): Promise<OrganizationAccess | null>;
 }

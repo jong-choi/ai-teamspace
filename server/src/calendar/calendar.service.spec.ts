@@ -55,7 +55,6 @@ class FakeReminderScheduler extends CalendarReminderScheduler {
 const context: OrganizationActorContext = {
   userId: 'organizer-user',
   activeOrganizationIdCandidate: 'organization-a',
-  providerCredential: {},
 };
 
 function meeting(overrides: Partial<Meeting> = {}): Meeting {

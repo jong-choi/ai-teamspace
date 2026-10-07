@@ -30,7 +30,6 @@ class FakeOrganizationProvider extends OrganizationProvider {
     jest.fn<OrganizationProvider['listMembersByUserIds']>();
   changeMemberRole = jest.fn<OrganizationProvider['changeMemberRole']>();
   removeMember = jest.fn<OrganizationProvider['removeMember']>();
-  setActive = jest.fn<OrganizationProvider['setActive']>();
 }
 
 class FakeOrganizationPublicEventPublisher extends OrganizationPublicEventPublisher {
@@ -41,7 +40,6 @@ class FakeOrganizationPublicEventPublisher extends OrganizationPublicEventPublis
 const context: OrganizationActorContext = {
   userId: 'actor-user',
   activeOrganizationIdCandidate: 'organization-a',
-  providerCredential: {},
 };
 
 function member(
@@ -101,7 +99,6 @@ describe('조직 서비스', () => {
     await expect(service.getActive(context)).resolves.toEqual({
       activeOrganization: null,
     });
-    expect(provider.setActive).not.toHaveBeenCalled();
   });
 
   it('동일 role 요청도 provider에 위임해 Better Auth permission 검사를 유지한다', async () => {

@@ -170,7 +170,6 @@ describe('캘린더 ICS 서비스', () => {
       {
         userId: 'organizer-user',
         activeOrganizationIdCandidate: 'organization-a',
-        providerCredential: {},
       },
       'organization-a',
       selected.meeting.id,
@@ -234,7 +233,6 @@ describe('캘린더 ICS 서비스', () => {
       {
         userId: 'organizer-user',
         activeOrganizationIdCandidate: 'organization-a',
-        providerCredential: {},
       },
       'organization-a',
       records[0]!.meeting.id,
@@ -282,7 +280,6 @@ describe('캘린더 ICS 서비스', () => {
       {
         userId: 'organizer-user',
         activeOrganizationIdCandidate: 'organization-a',
-        providerCredential: {},
       },
       'organization-a',
       records[0]!.meeting.id,
@@ -309,7 +306,6 @@ describe('캘린더 ICS 서비스', () => {
       {
         userId: 'organizer-user',
         activeOrganizationIdCandidate: 'organization-a',
-        providerCredential: {},
       },
       'organization-a',
       selected.meeting.id,
@@ -335,7 +331,6 @@ describe('캘린더 ICS 서비스', () => {
       {
         userId: 'organizer-user',
         activeOrganizationIdCandidate: 'organization-a',
-        providerCredential: {},
       },
       'organization-a',
       selected.meeting.id,

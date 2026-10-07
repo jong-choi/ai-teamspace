@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 
 import { ApplicationError } from '@/application.error';
 import type { Auth } from '@/auth/auth';
-import { organizationPlugin } from '@/auth/auth-options';
 import {
   OrganizationAccessDeniedError,
   OrganizationInvitationAccessDeniedError,
@@ -26,26 +25,26 @@ import {
   type ResendOrganizationInvitationProviderInput,
 } from '@/organizations/infrastructure/invitation/organization-invitation.provider';
 import type { OrganizationActorContext } from '@/organizations/infrastructure/organization/organization.provider';
+import {
+  getWorkOsOrganizationAdapter,
+  type WorkOsOrganizationAuth,
+} from '@/organizations/infrastructure/better-auth/work-os-organization.adapter';
 
 import { AuthService } from '@thallesp/nestjs-better-auth';
-import { APIError } from 'better-auth';
-import { fromNodeHeaders } from 'better-auth/node';
-import { z } from 'zod';
 
-const credentialSchema = z.record(
-  z.string(),
-  z.union([z.string(), z.array(z.string()), z.undefined()]),
-);
+const defaultInvitationLimit = 100;
+const defaultMembershipLimit = 100;
+const defaultInvitationExpiresInSeconds = 60 * 60 * 48;
 
 type AuthApi = Auth['api'];
+type AuthContext = Awaited<WorkOsOrganizationAuth['$context']>;
 type AuthInvitation = Awaited<ReturnType<AuthApi['createInvitation']>>;
-type AuthInvitationDetail = Awaited<ReturnType<AuthApi['getInvitation']>>;
-type InvitationOperation =
-  'create' | 'get' | 'list' | 'accept' | 'reject' | 'cancel' | 'resend';
 
 @Injectable()
 export class BetterAuthOrganizationInvitationAdapter extends OrganizationInvitationProvider {
-  constructor(private readonly authService: AuthService<Auth>) {
+  constructor(
+    private readonly authService: AuthService<WorkOsOrganizationAuth>,
+  ) {
     super();
   }
 
@@ -53,119 +52,315 @@ export class BetterAuthOrganizationInvitationAdapter extends OrganizationInvitat
     context: OrganizationActorContext,
     input: CreateOrganizationInvitationProviderInput,
   ): Promise<OrganizationInvitation> {
-    const invitation = await this.callBetterAuth('create', () =>
-      this.authService.api.createInvitation({
-        body: {
-          email: input.email,
+    return this.call(async () => {
+      const { authContext, adapter } = await this.organizationAdapter();
+      const email = input.email.toLowerCase();
+      const [inviter, actorMember, organization, recipientMember, pending] =
+        await Promise.all([
+          authContext.internalAdapter.findUserById(context.userId),
+          adapter.findMemberByOrgId({
+            userId: context.userId,
+            organizationId: input.organizationId,
+          }),
+          adapter.findOrganizationById(input.organizationId),
+          adapter.findMemberByEmail({
+            email,
+            organizationId: input.organizationId,
+          }),
+          adapter.findPendingInvitation({
+            email,
+            organizationId: input.organizationId,
+          }),
+        ]);
+
+      if (!inviter) {
+        throw new OrganizationProviderFailureError();
+      }
+      if (!actorMember || !organization) {
+        throw new OrganizationNotFoundError();
+      }
+      if (actorMember.role === 'member') {
+        throw new OrganizationAccessDeniedError();
+      }
+      if (recipientMember || pending.length > 0) {
+        throw new OrganizationInvitationUnavailableError();
+      }
+
+      const pendingInvitations = await adapter.findPendingInvitations({
+        organizationId: input.organizationId,
+      });
+      if (pendingInvitations.length >= defaultInvitationLimit) {
+        throw new OrganizationInvitationUnavailableError();
+      }
+
+      const invitation = await adapter.createInvitation({
+        invitation: {
+          email,
           role: input.role,
           organizationId: input.organizationId,
+          teamIds: [],
         },
-        headers: this.headers(context),
-      }),
-    );
+        user: inviter,
+      });
 
-    return this.mapInvitation(invitation);
+      return this.mapInvitation(invitation);
+    });
   }
 
   async getForRecipient(
     context: OrganizationActorContext,
     invitationId: string,
   ): Promise<OrganizationInvitationDetail> {
-    const invitation = await this.callBetterAuth('get', () =>
-      this.authService.api.getInvitation({
-        query: { id: invitationId },
-        headers: this.headers(context),
-      }),
-    );
+    return this.call(async () => {
+      const { authContext, adapter } = await this.organizationAdapter();
+      const [recipient, invitation] = await Promise.all([
+        authContext.internalAdapter.findUserById(context.userId),
+        adapter.findInvitationById(invitationId),
+      ]);
 
-    return this.mapInvitationDetail(invitation);
+      if (
+        !recipient ||
+        !invitation ||
+        invitation.status !== 'pending' ||
+        invitation.expiresAt < new Date()
+      ) {
+        throw new OrganizationInvitationNotFoundError();
+      }
+      if (invitation.email.toLowerCase() !== recipient.email.toLowerCase()) {
+        throw new OrganizationInvitationAccessDeniedError();
+      }
+
+      const [organization, inviterMember] = await Promise.all([
+        adapter.findOrganizationById(invitation.organizationId),
+        adapter.findMemberByOrgId({
+          userId: invitation.inviterId,
+          organizationId: invitation.organizationId,
+        }),
+      ]);
+      if (!organization) {
+        throw new OrganizationNotFoundError();
+      }
+      if (!inviterMember) {
+        throw new OrganizationInvitationInvalidStateError();
+      }
+
+      return OrganizationInvitationDetailSchema.parse({
+        ...this.mapInvitation(invitation),
+        organizationName: organization.name,
+        organizationSlug: organization.slug,
+        inviterEmail: inviterMember.user.email,
+      });
+    });
   }
 
   async listForOrganization(
     context: OrganizationActorContext,
     organizationId: string,
   ): Promise<OrganizationInvitation[]> {
-    const invitations = await this.callBetterAuth('list', () =>
-      this.authService.api.listInvitations({
-        query: { organizationId },
-        headers: this.headers(context),
-      }),
-    );
+    return this.call(async () => {
+      const { adapter } = await this.organizationAdapter();
+      const member = await adapter.findMemberByOrgId({
+        userId: context.userId,
+        organizationId,
+      });
+      if (!member) {
+        throw new OrganizationAccessDeniedError();
+      }
 
-    return invitations.map((invitation) => this.mapInvitation(invitation));
+      const invitations = await adapter.listInvitations({ organizationId });
+      return invitations.map((invitation) => this.mapInvitation(invitation));
+    });
   }
 
   async accept(
     context: OrganizationActorContext,
     invitationId: string,
   ): Promise<OrganizationInvitation> {
-    const result = await this.callBetterAuth('accept', () =>
-      this.authService.api.acceptInvitation({
-        body: { invitationId },
-        headers: this.headers(context),
-      }),
-    );
+    return this.call(async () => {
+      const { authContext, adapter } = await this.organizationAdapter();
+      const [recipient, invitation] = await Promise.all([
+        authContext.internalAdapter.findUserById(context.userId),
+        adapter.findInvitationById(invitationId),
+      ]);
 
-    return this.mapInvitation(result.invitation);
+      if (
+        !recipient ||
+        !invitation ||
+        invitation.status !== 'pending' ||
+        invitation.expiresAt < new Date()
+      ) {
+        throw new OrganizationInvitationNotFoundError();
+      }
+      if (invitation.email.toLowerCase() !== recipient.email.toLowerCase()) {
+        throw new OrganizationInvitationAccessDeniedError();
+      }
+
+      const [organization, membersCount, existingMember] = await Promise.all([
+        adapter.findOrganizationById(invitation.organizationId),
+        adapter.countMembers({ organizationId: invitation.organizationId }),
+        adapter.findMemberByOrgId({
+          userId: context.userId,
+          organizationId: invitation.organizationId,
+        }),
+      ]);
+      if (!organization) {
+        throw new OrganizationNotFoundError();
+      }
+      if (existingMember || membersCount >= defaultMembershipLimit) {
+        throw new OrganizationInvitationInvalidStateError();
+      }
+
+      const accepted = await adapter.updateInvitation({
+        invitationId,
+        status: 'accepted',
+        fromStatus: 'pending',
+      });
+      if (!accepted) {
+        throw new OrganizationInvitationNotFoundError();
+      }
+
+      try {
+        await adapter.createMember({
+          organizationId: accepted.organizationId,
+          userId: context.userId,
+          role: accepted.role,
+          createdAt: new Date(),
+        });
+      } catch (error) {
+        await adapter.updateInvitation({
+          invitationId,
+          status: 'pending',
+          fromStatus: 'accepted',
+        });
+        throw error;
+      }
+
+      return this.mapInvitation(accepted);
+    });
   }
 
   async reject(
     context: OrganizationActorContext,
     invitationId: string,
   ): Promise<OrganizationInvitation> {
-    const result = await this.callBetterAuth('reject', () =>
-      this.authService.api.rejectInvitation({
-        body: { invitationId },
-        headers: this.headers(context),
-      }),
-    );
+    return this.call(async () => {
+      const { authContext, adapter } = await this.organizationAdapter();
+      const [recipient, invitation] = await Promise.all([
+        authContext.internalAdapter.findUserById(context.userId),
+        adapter.findInvitationById(invitationId),
+      ]);
 
-    if (!result.invitation) {
-      throw new OrganizationInvitationInvalidStateError();
-    }
-    return this.mapInvitation(result.invitation);
+      if (!recipient || !invitation || invitation.status !== 'pending') {
+        throw new OrganizationInvitationNotFoundError();
+      }
+      if (invitation.email.toLowerCase() !== recipient.email.toLowerCase()) {
+        throw new OrganizationInvitationAccessDeniedError();
+      }
+
+      const rejected = await adapter.updateInvitation({
+        invitationId,
+        status: 'rejected',
+        fromStatus: 'pending',
+      });
+      if (!rejected) {
+        throw new OrganizationInvitationInvalidStateError();
+      }
+
+      return this.mapInvitation(rejected);
+    });
   }
 
   async cancel(
     context: OrganizationActorContext,
     invitationId: string,
   ): Promise<void> {
-    const canceled = await this.callBetterAuth('cancel', () =>
-      this.authService.api.cancelInvitation({
-        body: { invitationId },
-        headers: this.headers(context),
-      }),
-    );
+    await this.call(async () => {
+      const { adapter } = await this.organizationAdapter();
+      const invitation = await adapter.findInvitationById(invitationId);
+      if (!invitation) {
+        throw new OrganizationInvitationNotFoundError();
+      }
 
-    if (!canceled) {
-      throw new OrganizationInvitationNotFoundError();
-    }
+      const actorMember = await adapter.findMemberByOrgId({
+        userId: context.userId,
+        organizationId: invitation.organizationId,
+      });
+      if (!actorMember || actorMember.role === 'member') {
+        throw new OrganizationAccessDeniedError();
+      }
+
+      const canceled = await adapter.updateInvitation({
+        invitationId,
+        status: 'canceled',
+        fromStatus: 'pending',
+      });
+      if (!canceled) {
+        throw new OrganizationInvitationInvalidStateError();
+      }
+    });
   }
 
   async resend(
     context: OrganizationActorContext,
     input: ResendOrganizationInvitationProviderInput,
   ): Promise<OrganizationInvitation> {
-    const invitation = await this.callBetterAuth('resend', () =>
-      this.authService.api.createInvitation({
-        body: {
-          email: input.email,
-          role: input.role,
-          organizationId: input.organizationId,
-          resend: true,
-        },
-        headers: this.headers(context),
-      }),
-    );
+    return this.call(async () => {
+      const { authContext, adapter } = await this.organizationAdapter();
+      const invitation = await adapter.findInvitationById(
+        input.expectedInvitationId,
+      );
+      if (
+        !invitation ||
+        invitation.status !== 'pending' ||
+        invitation.organizationId !== input.organizationId ||
+        invitation.email.toLowerCase() !== input.email.toLowerCase() ||
+        invitation.role !== input.role
+      ) {
+        throw new OrganizationInvitationInvalidStateError();
+      }
 
-    if (invitation.id !== input.expectedInvitationId) {
-      throw new OrganizationProviderFailureError();
-    }
-    return this.mapInvitation(invitation);
+      const actorMember = await adapter.findMemberByOrgId({
+        userId: context.userId,
+        organizationId: input.organizationId,
+      });
+      if (!actorMember || actorMember.role === 'member') {
+        throw new OrganizationAccessDeniedError();
+      }
+
+      const expiresAt = new Date(
+        Date.now() + defaultInvitationExpiresInSeconds * 1000,
+      );
+      const updated = await authContext.adapter.update({
+        model: 'invitation',
+        where: [
+          { field: 'id', value: input.expectedInvitationId },
+          { field: 'status', value: 'pending' },
+        ],
+        update: { expiresAt },
+      });
+      if (!updated) {
+        throw new OrganizationInvitationInvalidStateError();
+      }
+
+      const refreshed = await adapter.findInvitationById(
+        input.expectedInvitationId,
+      );
+      if (!refreshed) {
+        throw new OrganizationProviderFailureError();
+      }
+      return this.mapInvitation(refreshed);
+    });
   }
 
-  private headers(context: OrganizationActorContext) {
-    return fromNodeHeaders(credentialSchema.parse(context.providerCredential));
+  private async organizationAdapter(): Promise<{
+    authContext: AuthContext;
+    adapter: ReturnType<typeof getWorkOsOrganizationAdapter>;
+  }> {
+    const authContext = await this.authService.instance.$context;
+    return {
+      authContext,
+      adapter: getWorkOsOrganizationAdapter(authContext),
+    };
   }
 
   private mapInvitation(invitation: AuthInvitation): OrganizationInvitation {
@@ -181,95 +376,12 @@ export class BetterAuthOrganizationInvitationAdapter extends OrganizationInvitat
     });
   }
 
-  private mapInvitationDetail(
-    invitation: AuthInvitationDetail,
-  ): OrganizationInvitationDetail {
-    return OrganizationInvitationDetailSchema.parse({
-      ...this.mapInvitation(invitation),
-      organizationName: invitation.organizationName,
-      organizationSlug: invitation.organizationSlug,
-      inviterEmail: invitation.inviterEmail,
-    });
-  }
-
-  private async callBetterAuth<T>(
-    operation: InvitationOperation,
-    execute: () => Promise<T>,
-  ): Promise<T> {
+  private async call<T>(execute: () => Promise<T>): Promise<T> {
     try {
       return await execute();
     } catch (error) {
       if (error instanceof ApplicationError) throw error;
-      if (error instanceof APIError) {
-        throw this.mapApiError(operation, error);
-      }
       throw new OrganizationProviderFailureError({ cause: error });
     }
-  }
-
-  private mapApiError(
-    operation: InvitationOperation,
-    error: APIError,
-  ): ApplicationError {
-    const code = error.body?.code;
-    const errors = organizationPlugin.$ERROR_CODES;
-
-    if (
-      code === errors.USER_IS_ALREADY_A_MEMBER_OF_THIS_ORGANIZATION.code ||
-      code === errors.USER_IS_ALREADY_INVITED_TO_THIS_ORGANIZATION.code ||
-      code === errors.INVITATION_LIMIT_REACHED.code
-    ) {
-      return new OrganizationInvitationUnavailableError({ cause: error });
-    }
-
-    if (code === errors.INVITATION_NOT_FOUND.code) {
-      return new OrganizationInvitationNotFoundError({ cause: error });
-    }
-
-    if (
-      code === errors.YOU_ARE_NOT_THE_RECIPIENT_OF_THE_INVITATION.code ||
-      code ===
-        errors
-          .EMAIL_VERIFICATION_REQUIRED_BEFORE_ACCEPTING_OR_REJECTING_INVITATION
-          .code ||
-      code === errors.EMAIL_VERIFICATION_REQUIRED_FOR_INVITATION.code
-    ) {
-      return new OrganizationInvitationAccessDeniedError({ cause: error });
-    }
-
-    if (
-      code === errors.INVITER_IS_NO_LONGER_A_MEMBER_OF_THE_ORGANIZATION.code ||
-      code === errors.ORGANIZATION_MEMBERSHIP_LIMIT_REACHED.code
-    ) {
-      return new OrganizationInvitationInvalidStateError({ cause: error });
-    }
-
-    if (
-      code === errors.ORGANIZATION_NOT_FOUND.code ||
-      code === errors.USER_IS_NOT_A_MEMBER_OF_THE_ORGANIZATION.code ||
-      code === errors.YOU_ARE_NOT_A_MEMBER_OF_THIS_ORGANIZATION.code
-    ) {
-      return new OrganizationNotFoundError({ cause: error });
-    }
-
-    if (
-      code === errors.MEMBER_NOT_FOUND.code ||
-      code ===
-        errors.YOU_ARE_NOT_ALLOWED_TO_INVITE_USERS_TO_THIS_ORGANIZATION.code ||
-      code === errors.YOU_ARE_NOT_ALLOWED_TO_INVITE_USER_WITH_THIS_ROLE.code ||
-      code === errors.YOU_ARE_NOT_ALLOWED_TO_CANCEL_THIS_INVITATION.code
-    ) {
-      return new OrganizationAccessDeniedError({ cause: error });
-    }
-
-    if (operation === 'get' && error.status === 'BAD_REQUEST' && !code) {
-      return new OrganizationInvitationNotFoundError({ cause: error });
-    }
-
-    if (operation === 'list' && error.status === 'FORBIDDEN' && !code) {
-      return new OrganizationAccessDeniedError({ cause: error });
-    }
-
-    return new OrganizationProviderFailureError({ cause: error });
   }
 }

@@ -64,7 +64,6 @@ type UserDirectory = {
 
 const context: OrganizationActorContext = {
   userId: 'actor-user',
-  providerCredential: {},
 };
 const organizationId = 'organization-a';
 const projectId = '11111111-1111-4111-8111-111111111111';

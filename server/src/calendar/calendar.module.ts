@@ -58,6 +58,11 @@ import { OrganizationsModule } from '@/organizations/organizations.module';
     CalendarIcsService,
     TrustedOriginGuard,
   ],
-  exports: [CalendarSchedulingService],
+  exports: [
+    CalendarAvailabilityService,
+    CalendarMeetingQueryService,
+    CalendarParticipationService,
+    CalendarSchedulingService,
+  ],
 })
 export class CalendarModule {}

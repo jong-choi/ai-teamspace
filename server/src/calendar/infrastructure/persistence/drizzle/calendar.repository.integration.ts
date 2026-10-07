@@ -37,15 +37,7 @@ const endAt = new Date('2026-10-07T01:00:00.000Z');
 function scheduleInput(
   organizerUserId: Meeting['organizerUserId'],
   input: Partial<CreateMeetingInput> = {},
-  occurrences: Parameters<
-    CalendarSchedulingRepository['scheduleMeeting']
-  >[4] = [
-    {
-      startAt,
-      endAt,
-      recurrenceOriginalStartAt: null,
-    },
-  ],
+  occurrences?: Parameters<CalendarSchedulingRepository['scheduleMeeting']>[4],
   recurrence: Parameters<
     CalendarSchedulingRepository['scheduleMeeting']
   >[5] = null,
@@ -72,7 +64,13 @@ function scheduleInput(
     organizerUserId,
     createInput,
     createInput.attendeeUserIds,
-    occurrences,
+    occurrences ?? [
+      {
+        startAt: new Date(createInput.startAt),
+        endAt: new Date(createInput.endAt),
+        recurrenceOriginalStartAt: null,
+      },
+    ],
     recurrence,
     randomUUID(),
   ];
@@ -277,10 +275,10 @@ describe('캘린더 Drizzle scheduling 저장소 통합', () => {
       ),
     ]);
 
-    expect([rescheduled.status, created.status].sort()).toEqual([
-      'conflict',
-      'scheduled',
-    ]);
+    expect(
+      (rescheduled.status === 'updated' && created.status === 'conflict') ||
+        (rescheduled.status === 'conflict' && created.status === 'scheduled'),
+    ).toBe(true);
   });
 
   it('transaction 안에서 이미 취소된 Meeting은 reschedule하지 않는다', async () => {

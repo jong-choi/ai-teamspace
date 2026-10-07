@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import hashlib
 from collections.abc import Mapping
-from typing import Any, cast
+from typing import Any, TypeGuard, cast
 
 from datasets.schema import (
     EvalCase,
@@ -20,6 +20,10 @@ _HELPER_KEYS = frozenset({"organizationAlias", "projectAlias", "columnName"})
 def _fixture_id(owner: str, kind: str, alias: str) -> str:
     digest = hashlib.sha256(f"{owner}\x00{kind}\x00{alias}".encode()).hexdigest()[:16]
     return f"fixture-{kind}-{digest}"
+
+
+def _is_json_object(value: object) -> TypeGuard[dict[str, Any]]:
+    return isinstance(value, dict)
 
 
 def _payload_for(
@@ -82,26 +86,28 @@ def _delete_path(payload: dict[str, Any], path: str) -> None:
     current: object = payload
 
     for segment in segments[:-1]:
-        if isinstance(current, dict):
+        if _is_json_object(current):
             current = current.get(segment)
             if current is None:
                 return
             continue
         if isinstance(current, list) and segment.isdigit():
+            current_list = cast(list[Any], current)
             position = int(segment)
-            if position >= len(current):
+            if position >= len(current_list):
                 return
-            current = current[position]
+            current = current_list[position]
             continue
         return
 
     leaf = segments[-1]
     if isinstance(current, dict):
-        current.pop(leaf, None)
+        cast(dict[str, Any], current).pop(leaf, None)
     elif isinstance(current, list) and leaf.isdigit():
+        current_list = cast(list[Any], current)
         position = int(leaf)
-        if position < len(current):
-            current[position] = None
+        if position < len(current_list):
+            current_list[position] = None
 
 
 def _outcome_value(assertion: OutcomeAssertion) -> object:
@@ -113,8 +119,8 @@ def _outcome_value(assertion: OutcomeAssertion) -> object:
     if assertion.operator == OutcomeOperator.CONTAINS:
         if isinstance(assertion.value, str):
             return assertion.value
-        if isinstance(assertion.value, Mapping):
-            return dict(cast(Mapping[str, Any], assertion.value))
+        if _is_json_object(assertion.value):
+            return dict(assertion.value)
         return [assertion.value]
     if assertion.operator == OutcomeOperator.EXISTS:
         return "fixture-present"

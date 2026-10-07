@@ -28,7 +28,8 @@ const keyRingSchema = z
       if (separatorIndex <= 0) {
         context.addIssue({
           code: 'custom',
-          message: 'CREDENTIAL_ENCRYPTION_KEYS 항목은 keyId=base64-key 형식이어야 합니다.',
+          message:
+            'CREDENTIAL_ENCRYPTION_KEYS 항목은 keyId=base64-key 형식이어야 합니다.',
         });
         return z.NEVER;
       }
@@ -52,10 +53,7 @@ const keyRingSchema = z
 
       const keyBase64 = entry.slice(separatorIndex + 1).trim();
       const decoded = Buffer.from(keyBase64, 'base64');
-      if (
-        decoded.length !== 32 ||
-        decoded.toString('base64') !== keyBase64
-      ) {
+      if (decoded.length !== 32 || decoded.toString('base64') !== keyBase64) {
         context.addIssue({
           code: 'custom',
           message:
@@ -91,10 +89,7 @@ const credentialCryptoConfigSchema = z
   });
 
 export default registerAs<CredentialCryptoConfig>('credentialCrypto', () => {
-  const environment = validateConfig(
-    process.env,
-    credentialCryptoConfigSchema,
-  );
+  const environment = validateConfig(process.env, credentialCryptoConfigSchema);
 
   return {
     currentKeyId: environment.CREDENTIAL_ENCRYPTION_CURRENT_KEY_ID,

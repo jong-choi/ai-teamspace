@@ -1,12 +1,15 @@
 import { z } from 'zod';
 
-const canonicalBase64Schema = z.string().min(1).refine((value) => {
-  try {
-    return Buffer.from(value, 'base64').toString('base64') === value;
-  } catch {
-    return false;
-  }
-}, 'canonical base64 형식이어야 합니다.');
+const canonicalBase64Schema = z
+  .string()
+  .min(1)
+  .refine((value) => {
+    try {
+      return Buffer.from(value, 'base64').toString('base64') === value;
+    } catch {
+      return false;
+    }
+  }, 'canonical base64 형식이어야 합니다.');
 
 export const CredentialCryptoAssociatedDataSchema = z.object({
   recordKind: z.string().trim().min(1).max(64),

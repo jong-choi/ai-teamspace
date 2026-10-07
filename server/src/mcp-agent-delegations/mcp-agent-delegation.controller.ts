@@ -124,7 +124,8 @@ function completionUrl(
   headers: Record<string, string | string[] | undefined>,
   returnTo: string,
 ): string {
-  const source = firstHeader(headers.origin) ??
+  const source =
+    firstHeader(headers.origin) ??
     firstHeader(headers.referer) ??
     firstHeader(headers['expo-origin']);
   if (!source) {
@@ -136,8 +137,6 @@ function completionUrl(
   return target.toString();
 }
 
-function firstHeader(
-  value: string | string[] | undefined,
-): string | undefined {
+function firstHeader(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }

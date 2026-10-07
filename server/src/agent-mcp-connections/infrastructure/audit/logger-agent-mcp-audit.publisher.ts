@@ -35,7 +35,9 @@ export class LoggerAgentMcpAuditPublisher extends AgentMcpAuditPublisher {
         ...(event.canonicalToolName === undefined
           ? {}
           : { canonicalToolName: event.canonicalToolName }),
-        ...(event.latencyMs === undefined ? {} : { latencyMs: event.latencyMs }),
+        ...(event.latencyMs === undefined
+          ? {}
+          : { latencyMs: event.latencyMs }),
         ...(event.errorCategory === undefined
           ? {}
           : { errorCategory: event.errorCategory }),

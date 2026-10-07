@@ -150,7 +150,9 @@ describe('외부 MCP aggregate tool session', () => {
     );
 
     const session = await adapter.open(actor);
-    const result = await session.tools[0]!.invoke({ secretInput: 'do-not-log' });
+    const result = await session.tools[0]!.invoke({
+      secretInput: 'do-not-log',
+    });
 
     expect(result).toEqual({ secretResult: 'do-not-log' });
     expect(publish).toHaveBeenCalledWith(
@@ -171,7 +173,9 @@ describe('외부 MCP aggregate tool session', () => {
 
   test('설정된 user별 connection bound까지만 연다', async () => {
     const repository = {
-      listEnabledForActor: jest.fn().mockResolvedValue([connection(1), connection(2)]),
+      listEnabledForActor: jest
+        .fn()
+        .mockResolvedValue([connection(1), connection(2)]),
     } as unknown as AgentMcpConnectionRepository;
     const connections = {
       open: jest.fn().mockResolvedValue({

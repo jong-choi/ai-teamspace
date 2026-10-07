@@ -26,8 +26,11 @@ export class ChatMcpRegistrar {
         this.chatService.listConversations(auth.userId),
       ),
       bindMcpTool(chatMessagesListTool, async (input, auth) => {
-        const { organizationId: _organizationId, conversationId, ...query } =
-          input;
+        const {
+          organizationId: _organizationId,
+          conversationId,
+          ...query
+        } = input;
         return this.chatService.listMessages(
           auth.userId,
           conversationId,
@@ -35,13 +38,12 @@ export class ChatMcpRegistrar {
         );
       }),
       bindMcpTool(chatMessageSendTool, async (input, auth) => {
-        const { organizationId: _organizationId, conversationId, ...body } =
-          input;
-        return this.chatService.sendMessage(
-          auth.userId,
+        const {
+          organizationId: _organizationId,
           conversationId,
-          body,
-        );
+          ...body
+        } = input;
+        return this.chatService.sendMessage(auth.userId, conversationId, body);
       }),
     ];
   }

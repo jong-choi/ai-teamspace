@@ -85,9 +85,7 @@ describe('외부 MCP tool identity 계약', () => {
       deep = { nested: deep };
     }
 
-    expect(() => createAgentMcpToolSchemaFingerprint(deep)).toThrow(
-      'depth',
-    );
+    expect(() => createAgentMcpToolSchemaFingerprint(deep)).toThrow('depth');
     expect(() =>
       createAgentMcpToolSchemaFingerprint({
         type: 'object',

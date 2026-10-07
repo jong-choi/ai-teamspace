@@ -50,9 +50,13 @@ export class ExternalMcpToolPolicy {
         Buffer.byteLength(tool.description ?? '', 'utf8') >
         TOOL_DESCRIPTION_MAX_BYTES
       ) {
-        throw new Error('외부 MCP tool description이 허용 크기를 초과했습니다.');
+        throw new Error(
+          '외부 MCP tool description이 허용 크기를 초과했습니다.',
+        );
       }
-      const schemaFingerprint = createAgentMcpToolSchemaFingerprint(tool.schema);
+      const schemaFingerprint = createAgentMcpToolSchemaFingerprint(
+        tool.schema,
+      );
 
       if (connection.toolPolicyMode === 'selected') {
         const selected = selectedByName.get(originalToolName);

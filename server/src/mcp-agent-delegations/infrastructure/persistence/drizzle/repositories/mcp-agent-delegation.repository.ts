@@ -52,10 +52,7 @@ export class McpAgentDelegationDrizzleRepository extends McpAgentDelegationRepos
         and(
           eq(mcpAgentDelegation.userId, userId),
           eq(mcpAgentDelegation.organizationId, organizationId),
-          eq(
-            mcpAgentDelegation.oauthClientIdentity,
-            oauthClientIdentity,
-          ),
+          eq(mcpAgentDelegation.oauthClientIdentity, oauthClientIdentity),
           isNull(mcpAgentDelegation.revokedAt),
         ),
       )

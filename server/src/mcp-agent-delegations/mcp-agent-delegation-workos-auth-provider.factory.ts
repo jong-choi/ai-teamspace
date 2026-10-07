@@ -79,8 +79,7 @@ export class McpAgentDelegationWorkOsAuthProviderFactory extends WorkOsMcpAuthPr
       row.id,
       leaseOwner,
       new Date(
-        now.getTime() +
-          config.agentDelegation.refreshLeaseTtlSeconds * 1_000,
+        now.getTime() + config.agentDelegation.refreshLeaseTtlSeconds * 1_000,
       ),
       now,
     );

@@ -8,7 +8,9 @@ export function withBoundedResponseBody(
   response: Response,
   maximumBytes: number,
 ): Response {
-  const contentLength = parseContentLength(response.headers.get('content-length'));
+  const contentLength = parseContentLength(
+    response.headers.get('content-length'),
+  );
   if (contentLength !== null && contentLength > maximumBytes) {
     void response.body?.cancel();
     throw responseTooLarge();

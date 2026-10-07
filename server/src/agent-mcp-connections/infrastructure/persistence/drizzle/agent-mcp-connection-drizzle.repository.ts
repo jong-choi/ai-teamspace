@@ -26,17 +26,7 @@ import {
 } from '@/agent-mcp-connections/infrastructure/persistence/drizzle/schema/agent-mcp-oauth-state.zod';
 import { DatabaseService } from '@/database/database.service';
 
-import {
-  and,
-  asc,
-  desc,
-  eq,
-  gt,
-  isNull,
-  lte,
-  or,
-  sql,
-} from 'drizzle-orm';
+import { and, asc, desc, eq, gt, isNull, lte, or, sql } from 'drizzle-orm';
 import type { z } from 'zod';
 
 @Injectable()
@@ -436,9 +426,7 @@ export class AgentMcpConnectionDrizzleRepository extends AgentMcpConnectionRepos
     connectionId: string,
     expectedRevision: number,
     mode: AgentMcpConnection['toolPolicyMode'],
-    tools: readonly z.input<
-      typeof agentMcpConnectionToolPolicyInputSchema
-    >[],
+    tools: readonly z.input<typeof agentMcpConnectionToolPolicyInputSchema>[],
   ) {
     const parsedTools = tools.map((tool) =>
       agentMcpConnectionToolPolicyInputSchema.parse(tool),

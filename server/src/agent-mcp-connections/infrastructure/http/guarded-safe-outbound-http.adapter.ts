@@ -2,10 +2,7 @@ import type { AgentMcpConnectionsConfig } from '@/agent-mcp-connections/config/a
 import { withBoundedResponseBody } from '@/agent-mcp-connections/infrastructure/http/bounded-response';
 import { SafeOutboundHttp } from '@/agent-mcp-connections/infrastructure/http/safe-outbound-http';
 
-import {
-  assertUrlIsSafeToFetch,
-  guardedFetch,
-} from 'guarded-fetch';
+import { assertUrlIsSafeToFetch, guardedFetch } from 'guarded-fetch';
 
 export class GuardedSafeOutboundHttpAdapter extends SafeOutboundHttp {
   constructor(private readonly config: AgentMcpConnectionsConfig) {
@@ -14,10 +11,7 @@ export class GuardedSafeOutboundHttpAdapter extends SafeOutboundHttp {
 
   async assertSafe(input: string | URL): Promise<URL> {
     const url = this.toUrl(input);
-    const result = await assertUrlIsSafeToFetch(
-      url,
-      this.securityOptions(url),
-    );
+    const result = await assertUrlIsSafeToFetch(url, this.securityOptions(url));
     return result.url;
   }
 

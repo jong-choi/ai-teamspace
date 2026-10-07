@@ -3,7 +3,9 @@ import { AgentMcpEndpointSchema } from '@/agent-mcp-connections/domain/agent-mcp
 describe('외부 MCP endpoint 계약', () => {
   test('HTTPS endpoint를 canonical URL로 정규화한다', () => {
     expect(
-      AgentMcpEndpointSchema.parse(' HTTPS://Example.COM:443/custom/mcp?mode=1 '),
+      AgentMcpEndpointSchema.parse(
+        ' HTTPS://Example.COM:443/custom/mcp?mode=1 ',
+      ),
     ).toBe('https://example.com/custom/mcp?mode=1');
   });
 

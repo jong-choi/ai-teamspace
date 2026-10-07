@@ -21,8 +21,7 @@ const fieldRefinements = {
     CredentialCryptoEnvelopeSchema.shape.ciphertext.nullable(),
   verifierAuthTag: CredentialCryptoEnvelopeSchema.shape.authTag.nullable(),
   discoveryFormatVersion: z.number().int().positive().nullable(),
-  discoveryAlgorithm:
-    CredentialCryptoEnvelopeSchema.shape.algorithm.nullable(),
+  discoveryAlgorithm: CredentialCryptoEnvelopeSchema.shape.algorithm.nullable(),
   discoveryKeyId: CredentialCryptoEnvelopeSchema.shape.keyId.nullable(),
   discoveryNonce: CredentialCryptoEnvelopeSchema.shape.nonce.nullable(),
   discoveryCiphertext:
@@ -40,20 +39,17 @@ export const agentMcpOauthStateInsertSchema = createInsertSchema(
   {
     ...fieldRefinements,
     authorizationServer: fieldRefinements.authorizationServer.optional(),
-    verifierFormatVersion:
-      fieldRefinements.verifierFormatVersion.optional(),
+    verifierFormatVersion: fieldRefinements.verifierFormatVersion.optional(),
     verifierAlgorithm: fieldRefinements.verifierAlgorithm.optional(),
     verifierKeyId: fieldRefinements.verifierKeyId.optional(),
     verifierNonce: fieldRefinements.verifierNonce.optional(),
     verifierCiphertext: fieldRefinements.verifierCiphertext.optional(),
     verifierAuthTag: fieldRefinements.verifierAuthTag.optional(),
-    discoveryFormatVersion:
-      fieldRefinements.discoveryFormatVersion.optional(),
+    discoveryFormatVersion: fieldRefinements.discoveryFormatVersion.optional(),
     discoveryAlgorithm: fieldRefinements.discoveryAlgorithm.optional(),
     discoveryKeyId: fieldRefinements.discoveryKeyId.optional(),
     discoveryNonce: fieldRefinements.discoveryNonce.optional(),
-    discoveryCiphertext:
-      fieldRefinements.discoveryCiphertext.optional(),
+    discoveryCiphertext: fieldRefinements.discoveryCiphertext.optional(),
     discoveryAuthTag: fieldRefinements.discoveryAuthTag.optional(),
   },
 );

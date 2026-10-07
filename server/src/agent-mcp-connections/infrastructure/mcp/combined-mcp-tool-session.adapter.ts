@@ -33,10 +33,7 @@ export class CombinedMcpToolSessionAdapter extends WorkOsToolSessionProvider {
       });
     }
 
-    const tools = [
-      ...workOsSession.tools,
-      ...(externalSession?.tools ?? []),
-    ];
+    const tools = [...workOsSession.tools, ...(externalSession?.tools ?? [])];
     this.assertUniqueToolNames(tools.map((tool) => tool.name));
     const toolIdentities = new Map([
       ...workOsSession.toolIdentities.entries(),

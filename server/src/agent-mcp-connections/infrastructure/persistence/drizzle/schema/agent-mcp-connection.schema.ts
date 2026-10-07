@@ -24,10 +24,10 @@ export const agentMcpAuthKindEnum = pgEnum('agent_mcp_auth_kind', [
   'oauth',
 ]);
 
-export const agentMcpToolPolicyModeEnum = pgEnum(
-  'agent_mcp_tool_policy_mode',
-  ['selected', 'all'],
-);
+export const agentMcpToolPolicyModeEnum = pgEnum('agent_mcp_tool_policy_mode', [
+  'selected',
+  'all',
+]);
 
 export const agentMcpLastErrorCategoryEnum = pgEnum(
   'agent_mcp_last_error_category',

@@ -57,9 +57,7 @@ export function createAgentMcpToolSchemaFingerprint(
   inputSchema: unknown,
 ): string {
   const parsedSchema = parseBoundedToolSchema(inputSchema);
-  return createHash('sha256')
-    .update(canonicalJson(parsedSchema))
-    .digest('hex');
+  return createHash('sha256').update(canonicalJson(parsedSchema)).digest('hex');
 }
 
 function parseBoundedToolSchema(
@@ -92,7 +90,9 @@ function parseBoundedToolSchema(
     }
     elements += 1;
     if (elements > TOOL_SCHEMA_MAX_ELEMENTS) {
-      throw new Error('외부 MCP tool schema element가 허용 한도를 초과했습니다.');
+      throw new Error(
+        '외부 MCP tool schema element가 허용 한도를 초과했습니다.',
+      );
     }
     if (current.depth > TOOL_SCHEMA_MAX_DEPTH) {
       throw new Error('외부 MCP tool schema depth가 허용 한도를 초과했습니다.');
@@ -122,10 +122,7 @@ function canonicalJson(value: z.infer<ReturnType<typeof z.json>>): string {
       left.localeCompare(right),
     );
     return `{${entries
-      .map(
-        ([key, item]) =>
-          `${JSON.stringify(key)}:${canonicalJson(item)}`,
-      )
+      .map(([key, item]) => `${JSON.stringify(key)}:${canonicalJson(item)}`)
       .join(',')}}`;
   }
 

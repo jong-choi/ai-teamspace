@@ -49,8 +49,7 @@ export const mcpAccessKeyFacadeDisabledPaths = [
   '/api-key/list',
 ] as const;
 
-const FIRST_PARTY_AGENT_CLIENT_DISCOVERY_ID =
-  'work-os-first-party-agent';
+const FIRST_PARTY_AGENT_CLIENT_DISCOVERY_ID = 'work-os-first-party-agent';
 
 function createFirstPartyAgentClientDiscovery(
   mcpConfig: McpConfig,
@@ -105,8 +104,7 @@ export function createAuthOptions(mcpConfig: McpConfig) {
         scopes: [...MCP_SCOPES, 'offline_access'],
         extensions: [
           {
-            clientDiscovery:
-              createFirstPartyAgentClientDiscovery(mcpConfig),
+            clientDiscovery: createFirstPartyAgentClientDiscovery(mcpConfig),
           },
         ],
       }),

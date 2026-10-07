@@ -108,9 +108,7 @@ export abstract class AgentMcpConnectionRepository {
     connectionId: string,
     expectedRevision: number,
     mode: AgentMcpConnection['toolPolicyMode'],
-    tools: readonly z.input<
-      typeof agentMcpConnectionToolPolicyInputSchema
-    >[],
+    tools: readonly z.input<typeof agentMcpConnectionToolPolicyInputSchema>[],
   ): Promise<AgentMcpConnection | null>;
 
   abstract listEnabledTools(

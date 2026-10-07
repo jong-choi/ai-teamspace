@@ -1,8 +1,4 @@
-import {
-  createCipheriv,
-  createDecipheriv,
-  randomBytes,
-} from 'node:crypto';
+import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
 
 import type { CredentialCryptoConfig } from '@/credential-crypto/config/credential-crypto-config.type';
 import { CredentialDecryptError } from '@/credential-crypto/credential-crypto.error';
@@ -28,7 +24,9 @@ export class NodeAesGcmCredentialCryptoAdapter extends CredentialCryptoProvider 
     }
 
     if (!this.keys.has(config.currentKeyId)) {
-      throw new Error('current credential encryption key가 key ring에 없습니다.');
+      throw new Error(
+        'current credential encryption key가 key ring에 없습니다.',
+      );
     }
   }
 

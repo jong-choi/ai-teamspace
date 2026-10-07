@@ -11,7 +11,8 @@ const callbackUrlSchema = z
     if (url.protocol !== 'http:' && url.protocol !== 'https:') {
       context.addIssue({
         code: 'custom',
-        message: 'external MCP OAuth callback URL은 http 또는 https URL이어야 합니다.',
+        message:
+          'external MCP OAuth callback URL은 http 또는 https URL이어야 합니다.',
       });
     }
     if (url.username || url.password || url.search || url.hash) {

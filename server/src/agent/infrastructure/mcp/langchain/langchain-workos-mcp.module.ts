@@ -10,11 +10,12 @@ import { WorkOsToolSessionProvider } from '@/agent/infrastructure/mcp/workos-too
   imports: [AgentConfigurationModule, UnavailableMcpCredentialModule],
   providers: [
     McpToolApprovalPolicy,
+    LangChainWorkOsMcpAdapter,
     {
       provide: WorkOsToolSessionProvider,
-      useClass: LangChainWorkOsMcpAdapter,
+      useExisting: LangChainWorkOsMcpAdapter,
     },
   ],
-  exports: [WorkOsToolSessionProvider],
+  exports: [LangChainWorkOsMcpAdapter, WorkOsToolSessionProvider],
 })
 export class LangChainWorkOsMcpModule {}

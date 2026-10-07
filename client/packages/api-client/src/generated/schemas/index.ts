@@ -5,7 +5,16 @@
  * OpenAPI spec version: 1.0
  */
 
+export * from './_schema0.zod';
 export * from './activeOrganization.zod';
+export * from './agentMcpConnection.zod';
+export * from './agentMcpConnectionList.zod';
+export * from './agentMcpConnectionTest.zod';
+export * from './agentMcpConnectionsControllerRemoveParams.zod';
+export * from './agentMcpDiscoveredTool.zod';
+export * from './agentMcpOauthAuthorization.zod';
+export * from './agentMcpToolCatalog.zod';
+export * from './agentMcpToolPolicySummary.zod';
 export * from './calendarAvailabilityRequest.zod';
 export * from './calendarAvailabilityResponse.zod';
 export * from './calendarControllerListMeetingsParams.zod';
@@ -26,6 +35,7 @@ export * from './chatMessage.zod';
 export * from './chatMessagePage.zod';
 export * from './chatParticipant.zod';
 export * from './chatRealtimeEvent.zod';
+export * from './createAgentMcpConnection.zod';
 export * from './createMeeting.zod';
 export * from './createMeetingRoom.zod';
 export * from './createProject.zod';
@@ -36,6 +46,7 @@ export * from './createTicketChecklistItem.zod';
 export * from './createTicketComment.zod';
 export * from './createTicketLabel.zod';
 export * from './createWikiDocument.zod';
+export * from './deleteAgentMcpConnectionQuery.zod';
 export * from './meetingAttendee.zod';
 export * from './meetingDetail.zod';
 export * from './meetingList.zod';
@@ -84,6 +95,8 @@ export * from './ticketLabel.zod';
 export * from './ticketLabelList.zod';
 export * from './ticketList.zod';
 export * from './ticketSummary.zod';
+export * from './updateAgentMcpConnection.zod';
+export * from './updateAgentMcpToolPolicy.zod';
 export * from './updateMeeting.zod';
 export * from './updateMeetingAgenda.zod';
 export * from './updateMeetingAttendees.zod';

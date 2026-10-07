@@ -8,6 +8,7 @@ import {
   McpCredentialProvider,
 } from '@/agent/infrastructure/mcp/mcp-credential.provider';
 import {
+  type McpToolIdentity,
   type WorkOsToolSession,
   WorkOsToolSessionProvider,
 } from '@/agent/infrastructure/mcp/workos-tool-session.provider';
@@ -48,10 +49,20 @@ export class LangChainWorkOsMcpAdapter extends WorkOsToolSessionProvider {
 
     try {
       const tools = await adapter.listTools('workos');
+      const toolIdentities = new Map<string, McpToolIdentity>();
+      for (const tool of tools) {
+        toolIdentities.set(tool.name, {
+          source: 'workos',
+          namespace: 'workos',
+          originalToolName: tool.name,
+        });
+      }
+
       return {
         tools,
         readOnlyTools: this.approvalPolicy.readOnlyTools(tools),
         interruptOn: this.approvalPolicy.interruptOn(tools),
+        toolIdentities,
         close,
       };
     } catch (error) {

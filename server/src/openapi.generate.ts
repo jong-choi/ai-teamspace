@@ -5,6 +5,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 
+import { AgentMcpConnectionsModule } from '@/agent-mcp-connections/agent-mcp-connections.module';
+import agentMcpConnectionsConfig from '@/agent-mcp-connections/config/agent-mcp-connections.config';
 import { AppCoreModule } from '@/app-core.module';
 import authConfig from '@/auth/config/auth.config';
 import cacheConfig from '@/chat/config/cache.config';
@@ -19,6 +21,7 @@ import collaborationConfig from '@/wiki/infrastructure/collaboration/config/coll
     ConfigModule.forRoot({
       isGlobal: true,
       load: [
+        agentMcpConnectionsConfig,
         appConfig,
         authConfig,
         cacheConfig,
@@ -29,6 +32,7 @@ import collaborationConfig from '@/wiki/infrastructure/collaboration/config/coll
       envFilePath: ['.env'],
     }),
     AppCoreModule,
+    AgentMcpConnectionsModule,
   ],
 })
 class OpenApiModule {}

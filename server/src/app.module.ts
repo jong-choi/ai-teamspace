@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
+import { AgentMcpConnectionsModule } from '@/agent-mcp-connections/agent-mcp-connections.module';
+import agentMcpConnectionsConfig from '@/agent-mcp-connections/config/agent-mcp-connections.config';
 import { AgentModule } from '@/agent/agent.module';
 import agentConfig from '@/agent/config/agent.config';
 import { AppCoreModule } from '@/app-core.module';
@@ -18,6 +20,7 @@ import collaborationConfig from '@/wiki/infrastructure/collaboration/config/coll
       isGlobal: true,
       load: [
         agentConfig,
+        agentMcpConnectionsConfig,
         appConfig,
         authConfig,
         cacheConfig,
@@ -28,6 +31,7 @@ import collaborationConfig from '@/wiki/infrastructure/collaboration/config/coll
       envFilePath: ['.env'],
     }),
     AgentModule,
+    AgentMcpConnectionsModule,
     AppCoreModule,
     McpAccessModule,
   ],

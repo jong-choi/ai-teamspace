@@ -1,3 +1,7 @@
+import * as agentMcpConnectionSchema from '@/agent-mcp-connections/infrastructure/persistence/drizzle/schema/agent-mcp-connection.schema';
+import * as agentMcpConnectionToolSchema from '@/agent-mcp-connections/infrastructure/persistence/drizzle/schema/agent-mcp-connection-tool.schema';
+import * as agentMcpCredentialSchema from '@/agent-mcp-connections/infrastructure/persistence/drizzle/schema/agent-mcp-credential.schema';
+import * as agentMcpOauthStateSchema from '@/agent-mcp-connections/infrastructure/persistence/drizzle/schema/agent-mcp-oauth-state.schema';
 import * as authSchema from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
 import * as meetingSchema from '@/calendar/infrastructure/persistence/drizzle/schema/meeting.schema';
 import * as meetingAttendeeSchema from '@/calendar/infrastructure/persistence/drizzle/schema/meeting-attendee.schema';
@@ -22,6 +26,10 @@ import * as wikiDocumentRevisionSchema from '@/wiki/infrastructure/persistence/d
 import * as wikiDocumentRevisionCollaboratorSchema from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-document-revision-collaborator.schema';
 
 export const databaseSchema = {
+  ...agentMcpConnectionSchema,
+  ...agentMcpConnectionToolSchema,
+  ...agentMcpCredentialSchema,
+  ...agentMcpOauthStateSchema,
   ...authSchema,
   ...meetingAttendeeSchema,
   ...meetingRecurrenceSeriesSchema,

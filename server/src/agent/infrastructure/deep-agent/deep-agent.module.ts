@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 
+import { CombinedMcpToolSessionModule } from '@/agent-mcp-connections/infrastructure/mcp/combined-mcp-tool-session.module';
 import { WorkOsAgentGraphProvider } from '@/agent/application/workos-agent-graph.provider';
 import { DeepAgentBuilder } from '@/agent/infrastructure/deep-agent/deep-agent.builder';
 import { DeepAgentWorkOsGraphAdapter } from '@/agent/infrastructure/deep-agent/deep-agent-workos-graph.adapter';
-import { LangChainWorkOsMcpModule } from '@/agent/infrastructure/mcp/langchain/langchain-workos-mcp.module';
 import { ConfiguredAgentModelModule } from '@/agent/infrastructure/model/configured/configured-agent-model.module';
 
 @Module({
-  imports: [ConfiguredAgentModelModule, LangChainWorkOsMcpModule],
+  imports: [ConfiguredAgentModelModule, CombinedMcpToolSessionModule],
   providers: [
     DeepAgentBuilder,
     {

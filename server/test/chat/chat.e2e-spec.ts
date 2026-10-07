@@ -69,11 +69,13 @@ describe('채팅 E2E', () => {
     });
 
     expect(response.status).toBe(200);
+    const cookie = toCookieHeader(response.headers['set-cookie']);
+    agent.set('Cookie', cookie);
     return {
       agent,
       userId: response.body.user.id as string,
       username,
-      cookie: toCookieHeader(response.headers['set-cookie']),
+      cookie,
     };
   }
 

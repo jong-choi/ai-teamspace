@@ -76,6 +76,7 @@ describe('조직과 멤버 E2E', () => {
     });
 
     expect(response.status).toBe(200);
+    agent.set('Cookie', toCookieHeader(response.headers['set-cookie']));
     return {
       agent,
       userId: response.body.user.id as string,
@@ -654,3 +655,11 @@ describe('조직과 멤버 E2E', () => {
     },
   );
 });
+
+function toCookieHeader(value: string | string[] | undefined): string {
+  if (!value) {
+    throw new Error('테스트 로그인 응답에 세션 쿠키가 없습니다.');
+  }
+  const values = Array.isArray(value) ? value : [value];
+  return values.map((cookie) => cookie.split(';', 1)[0]).join('; ');
+}

@@ -79,15 +79,18 @@ export class OrganizationsController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiCreatedResponse({ standardSchema: OrganizationAccessDto.schema })
-  create(
+  async create(
     @Session() session: UserSession<Auth>,
+    @Headers() headers: IncomingHttpHeaders,
     @Body({ schema: CreateOrganizationDto.schema })
     input: CreateOrganizationInput,
   ): Promise<OrganizationAccessDto> {
-    return this.organizationsService.create(
+    const result = await this.organizationsService.create(
       toOrganizationActorContext(session),
       input,
     );
+    await this.activeSessionProvider.setActive(headers, result.organization.id);
+    return result;
   }
 
   @Get('active')

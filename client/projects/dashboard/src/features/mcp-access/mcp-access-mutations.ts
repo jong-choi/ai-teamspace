@@ -1,12 +1,12 @@
+import {
+  useMcpAccessControllerUpdateMyPolicy,
+  useMcpAccessControllerUpdateOrganizationPolicy,
+} from '@repo/client/api-client';
 import { getProblemDetails } from '@repo/client/api-client/runtime';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
-import {
-  getMcpAccessTransport,
-  type McpAccessPolicyUpdate,
-} from '@core/features/mcp-access/mcp-access-client';
 import { getMcpAccessQueryKey } from '@core/features/mcp-access/mcp-access-query';
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 
 export function isMcpPolicyRevisionConflict(error: unknown): boolean {
   return getProblemDetails(error)?.errorCode === 'MCP_POLICY_REVISION_CONFLICT';
@@ -17,23 +17,24 @@ export function useMcpAccessMutations(organizationId: string) {
   const { notifyError, notifySuccess } = useDashboardPlatform();
   const queryKey = getMcpAccessQueryKey(organizationId);
 
-  const updateMyPolicy = useMutation({
-    mutationFn: (input: McpAccessPolicyUpdate) =>
-      getMcpAccessTransport().updateMyPolicy(organizationId, input),
-    onSuccess: (result) => {
-      queryClient.setQueryData(queryKey, result);
-      notifySuccess({ title: '내 MCP 권한 요청을 저장했습니다.' });
+  const updateMyPolicy = useMcpAccessControllerUpdateMyPolicy({
+    mutation: {
+      onSuccess: (result) => {
+        queryClient.setQueryData(queryKey, result);
+        notifySuccess({ title: '내 MCP 권한 요청을 저장했습니다.' });
+      },
     },
   });
 
-  const updateOrganizationPolicy = useMutation({
-    mutationFn: (input: McpAccessPolicyUpdate) =>
-      getMcpAccessTransport().updateOrganizationPolicy(organizationId, input),
-    onSuccess: (result) => {
-      queryClient.setQueryData(queryKey, result);
-      notifySuccess({ title: '조직 MCP 정책을 저장했습니다.' });
-    },
-  });
+  const updateOrganizationPolicy =
+    useMcpAccessControllerUpdateOrganizationPolicy({
+      mutation: {
+        onSuccess: (result) => {
+          queryClient.setQueryData(queryKey, result);
+          notifySuccess({ title: '조직 MCP 정책을 저장했습니다.' });
+        },
+      },
+    });
 
   const handleError = async (
     error: unknown,

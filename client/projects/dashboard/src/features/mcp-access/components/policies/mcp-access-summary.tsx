@@ -1,7 +1,7 @@
 import { View } from 'react-native';
 
+import type { McpAccessComposite } from '@repo/client/api-client/schemas';
 import { Text } from '@repo/client/rnr/components/ui/text';
-import type { McpAccessComposite } from '@core/features/mcp-access/mcp-access-contract';
 
 export function McpAccessSummary({ access }: { access: McpAccessComposite }) {
   const readCount = access.effectiveScopes.filter((scope) =>

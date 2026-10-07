@@ -1,25 +1,29 @@
 import {
-  type AgentDelegationState,
-  getAgentDelegationGateway,
-} from '@core/features/agent-chat/lib/agent-delegation-gateway';
+  getMcpAgentDelegationControllerStatusQueryKey,
+  useMcpAgentDelegationControllerRevoke,
+  useMcpAgentDelegationControllerStart,
+  useMcpAgentDelegationControllerStatusSuspense,
+} from '@repo/client/api-client';
+import type { McpAgentDelegationStatus } from '@repo/client/api-client/schemas';
 
-import {
-  useMutation,
-  useQueryClient,
-  useSuspenseQuery,
-} from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 
 export function getAgentDelegationQueryKey(
   userId: string,
   organizationId: string,
 ) {
-  return ['agent-delegation', userId, organizationId] as const;
+  return [
+    ...getMcpAgentDelegationControllerStatusQueryKey(),
+    userId,
+    organizationId,
+  ] as const;
 }
 
 export function useAgentDelegation(userId: string, organizationId: string) {
-  return useSuspenseQuery({
-    queryKey: getAgentDelegationQueryKey(userId, organizationId),
-    queryFn: () => getAgentDelegationGateway().get(),
+  return useMcpAgentDelegationControllerStatusSuspense({
+    query: {
+      queryKey: getAgentDelegationQueryKey(userId, organizationId),
+    },
   });
 }
 
@@ -30,23 +34,21 @@ export function useAgentDelegationMutations(
   const queryClient = useQueryClient();
   const queryKey = getAgentDelegationQueryKey(userId, organizationId);
 
-  const start = useMutation({
-    mutationFn: (returnTo: string) =>
-      getAgentDelegationGateway().start(returnTo),
-  });
+  const start = useMcpAgentDelegationControllerStart();
 
-  const revoke = useMutation({
-    mutationFn: () => getAgentDelegationGateway().revoke(),
-    onSuccess: () => {
-      queryClient.setQueryData<AgentDelegationState>(queryKey, {
-        status: 'revoked',
-        grantedScopes: [],
-        expiresAt: null,
-      });
+  const revoke = useMcpAgentDelegationControllerRevoke({
+    mutation: {
+      onSuccess: () => {
+        queryClient.setQueryData<McpAgentDelegationStatus>(queryKey, {
+          status: 'revoked',
+          grantedScopes: [],
+          expiresAt: null,
+        });
+      },
     },
   });
 
-  const setState = (state: AgentDelegationState) => {
+  const setState = (state: McpAgentDelegationStatus) => {
     queryClient.setQueryData(queryKey, state);
   };
 

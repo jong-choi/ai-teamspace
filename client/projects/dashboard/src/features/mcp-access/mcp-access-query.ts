@@ -1,18 +1,16 @@
-import { useOrganizationsControllerGetActiveSuspense } from '@repo/client/api-client';
+import {
+  getMcpAccessControllerGetCompositeQueryKey,
+  useMcpAccessControllerGetCompositeSuspense,
+  useOrganizationsControllerGetActiveSuspense,
+} from '@repo/client/api-client';
 import type { OrganizationAccess } from '@repo/client/api-client/schemas';
-import { getMcpAccessTransport } from '@core/features/mcp-access/mcp-access-client';
-
-import { useSuspenseQuery } from '@tanstack/react-query';
 
 export function getMcpAccessQueryKey(organizationId: string) {
-  return ['mcp-access', organizationId] as const;
+  return getMcpAccessControllerGetCompositeQueryKey(organizationId);
 }
 
 export function useMcpAccess(organizationId: string) {
-  return useSuspenseQuery({
-    queryKey: getMcpAccessQueryKey(organizationId),
-    queryFn: () => getMcpAccessTransport().getComposite(organizationId),
-  });
+  return useMcpAccessControllerGetCompositeSuspense(organizationId);
 }
 
 export function useMcpAccessActiveOrganization() {

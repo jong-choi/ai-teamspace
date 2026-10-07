@@ -1,6 +1,10 @@
 import type { ReactNode } from 'react';
 import { View } from 'react-native';
 
+import type {
+  McpAgentDelegationStatus,
+  StartMcpAgentDelegationResponse,
+} from '@repo/client/api-client/schemas';
 import { Button } from '@repo/client/rnr/components/ui/button';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
@@ -9,11 +13,9 @@ import {
   useAgentDelegation,
   useAgentDelegationMutations,
 } from '@core/features/agent-chat/agent-delegation-query';
-import type {
-  AgentDelegationState,
-  AgentDelegationStatus,
-} from '@core/features/agent-chat/lib/agent-delegation-gateway';
 import { getAgentReturnTo } from '@core/features/agent-chat/lib/agent-return-to';
+
+type AgentDelegationStatus = McpAgentDelegationStatus['status'];
 
 export function AgentDelegationGate({
   children,
@@ -80,7 +82,7 @@ export function AgentDelegationGate({
   const connect = async () => {
     const returnTo = getAgentReturnTo(threadId);
     try {
-      const result = await start.mutateAsync(returnTo);
+      const result = await start.mutateAsync({ data: { returnTo } });
 
       if (!result.authorizationUrl) {
         setState(toState(result));
@@ -142,11 +144,9 @@ export function AgentDelegationGate({
   );
 }
 
-function toState(input: {
-  status: AgentDelegationStatus;
-  grantedScopes: string[];
-  expiresAt: string | null;
-}): AgentDelegationState {
+function toState(
+  input: StartMcpAgentDelegationResponse,
+): McpAgentDelegationStatus {
   return {
     status: input.status,
     grantedScopes: input.grantedScopes,

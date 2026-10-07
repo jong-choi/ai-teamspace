@@ -1,13 +1,13 @@
 import { Pressable, View } from 'react-native';
 
+import type { McpAccessComposite } from '@repo/client/api-client/schemas';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
 import {
   MCP_SCOPE_PRESENTATION,
-  type McpAccessComposite,
   type McpAccessScope,
-} from '@core/features/mcp-access/mcp-access-contract';
+} from '@core/features/mcp-access/mcp-access-presentation';
 
 import { Check, LockKeyhole } from 'lucide-react-native';
 

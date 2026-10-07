@@ -2,13 +2,11 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { View } from 'react-native';
 
+import type { McpAccessComposite } from '@repo/client/api-client/schemas';
 import { Button } from '@repo/client/rnr/components/ui/button';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { McpPermissionList } from '@core/features/mcp-access/components/policies/mcp-permission-list';
-import type {
-  McpAccessComposite,
-  McpAccessScope,
-} from '@core/features/mcp-access/mcp-access-contract';
+import type { McpAccessScope } from '@core/features/mcp-access/mcp-access-presentation';
 import { useMcpAccessMutations } from '@core/features/mcp-access/mcp-access-mutations';
 
 type PersonalPolicyForm = {
@@ -54,8 +52,11 @@ export function McpPersonalPermissions({
   const submit = form.handleSubmit(async (values) => {
     try {
       const result = await updateMyPolicy.mutateAsync({
-        scopes: values.requestedScopes,
-        expectedRevision: access.myPolicy.revision,
+        organizationId: access.organizationId,
+        data: {
+          requestedScopes: values.requestedScopes,
+          expectedRevision: access.myPolicy.revision,
+        },
       });
       form.reset({ requestedScopes: result.myPolicy.requestedScopes });
     } catch (error) {

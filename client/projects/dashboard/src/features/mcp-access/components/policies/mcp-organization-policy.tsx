@@ -2,13 +2,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { View } from 'react-native';
 
+import type { McpAccessComposite } from '@repo/client/api-client/schemas';
 import { Button } from '@repo/client/rnr/components/ui/button';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { McpPermissionList } from '@core/features/mcp-access/components/policies/mcp-permission-list';
-import type {
-  McpAccessComposite,
-  McpAccessScope,
-} from '@core/features/mcp-access/mcp-access-contract';
+import type { McpAccessScope } from '@core/features/mcp-access/mcp-access-presentation';
 import { useMcpAccessMutations } from '@core/features/mcp-access/mcp-access-mutations';
 
 type OrganizationPolicyForm = {
@@ -79,8 +77,11 @@ export function McpOrganizationPolicy({
   const save = async (values: OrganizationPolicyForm) => {
     try {
       const result = await updateOrganizationPolicy.mutateAsync({
-        scopes: values.allowedScopes,
-        expectedRevision: access.organizationPolicy.revision,
+        organizationId: access.organizationId,
+        data: {
+          allowedScopes: values.allowedScopes,
+          expectedRevision: access.organizationPolicy.revision,
+        },
       });
       form.reset({
         allowedScopes: result.organizationPolicy.allowedScopes,

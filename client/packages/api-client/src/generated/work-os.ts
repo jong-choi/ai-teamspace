@@ -38,6 +38,13 @@ import {
   ChatMessage,
   ChatMessagePage,
   ChatRealtimeEvent,
+  McpAccessComposite,
+  McpAccessKey,
+  McpAccessKeyList,
+  McpAccessKeySecret,
+  McpAgentDelegationStatus,
+  McpConnectionInfo,
+  McpOAuthConnectionList,
   MeetingDetail,
   MeetingList,
   MeetingRoom,
@@ -55,6 +62,7 @@ import {
   ProjectColumnList,
   ProjectDetail,
   ProjectList,
+  StartMcpAgentDelegationResponse,
   TicketChecklist,
   TicketChecklistItem,
   TicketComment,
@@ -93,6 +101,10 @@ import type {
   CreateTicketComment,
   CreateTicketLabel,
   CreateWikiDocument,
+  McpAccessKeysControllerCreateBody,
+  McpAccessKeysControllerListParams,
+  McpAccessKeysControllerUpdateBody,
+  McpAgentDelegationControllerStartBody,
   MoveTicket,
   MoveTicketChecklistItem,
   OrganizationInvitationsControllerCreateBody,
@@ -107,6 +119,8 @@ import type {
   RsvpMeeting,
   UpdateAgentMcpConnection,
   UpdateAgentMcpToolPolicy,
+  UpdateMcpOrganizationPolicy,
+  UpdateMcpUserPolicy,
   UpdateMeeting,
   UpdateMeetingAgenda,
   UpdateMeetingAttendees,
@@ -6179,6 +6193,1291 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getTicketWorkflowControllerRemoveTicketCommentMutationOptions(options), queryClient);
+    }
+
+export const getMcpAgentDelegationControllerStatusUrl = () => {
+
+
+
+
+  return `/mcp/agent-delegation`
+}
+
+export const mcpAgentDelegationControllerStatus = async ( options?: Parameters<typeof workOsFetcher>[1]): Promise<McpAgentDelegationStatus> => {
+
+  return workOsFetcher<McpAgentDelegationStatus>(getMcpAgentDelegationControllerStatusUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+    ,
+    schema: McpAgentDelegationStatus
+  }
+);}
+
+
+
+
+
+export const getMcpAgentDelegationControllerStatusQueryKey = () => {
+    return [
+    `/mcp/agent-delegation`
+    ] as const;
+    }
+
+
+export const getMcpAgentDelegationControllerStatusSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof mcpAgentDelegationControllerStatus>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAgentDelegationControllerStatus>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getMcpAgentDelegationControllerStatusQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof mcpAgentDelegationControllerStatus>>> = ({ signal }) => mcpAgentDelegationControllerStatus({ signal, ...requestOptions });
+
+
+
+
+
+   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAgentDelegationControllerStatus>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
+}
+
+export type McpAgentDelegationControllerStatusSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof mcpAgentDelegationControllerStatus>>>
+export type McpAgentDelegationControllerStatusSuspenseQueryError = ErrorType<ProblemDetails>
+
+
+export function useMcpAgentDelegationControllerStatusSuspense<TData = Awaited<ReturnType<typeof mcpAgentDelegationControllerStatus>>, TError = ErrorType<ProblemDetails>>(
+  options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAgentDelegationControllerStatus>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMcpAgentDelegationControllerStatusSuspense<TData = Awaited<ReturnType<typeof mcpAgentDelegationControllerStatus>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAgentDelegationControllerStatus>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMcpAgentDelegationControllerStatusSuspense<TData = Awaited<ReturnType<typeof mcpAgentDelegationControllerStatus>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAgentDelegationControllerStatus>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useMcpAgentDelegationControllerStatusSuspense<TData = Awaited<ReturnType<typeof mcpAgentDelegationControllerStatus>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAgentDelegationControllerStatus>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getMcpAgentDelegationControllerStatusSuspenseQueryOptions(options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getMcpAgentDelegationControllerRevokeUrl = () => {
+
+
+
+
+  return `/mcp/agent-delegation`
+}
+
+export const mcpAgentDelegationControllerRevoke = async ( options?: Parameters<typeof workOsFetcher>[1]): Promise<void> => {
+
+  return workOsFetcher<void>(getMcpAgentDelegationControllerRevokeUrl(),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getMcpAgentDelegationControllerRevokeMutationKey = () => ['mcpAgentDelegationControllerRevoke'] as const;
+
+export const getMcpAgentDelegationControllerRevokeMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mcpAgentDelegationControllerRevoke>>, TError,void, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof mcpAgentDelegationControllerRevoke>>, TError,void, TContext> => {
+
+const mutationKey = getMcpAgentDelegationControllerRevokeMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mcpAgentDelegationControllerRevoke>>, void> = () => {
+
+
+          return  mcpAgentDelegationControllerRevoke(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type McpAgentDelegationControllerRevokeMutationResult = NonNullable<Awaited<ReturnType<typeof mcpAgentDelegationControllerRevoke>>>
+
+    export type McpAgentDelegationControllerRevokeMutationError = ErrorType<ProblemDetails>
+
+
+    export const useMcpAgentDelegationControllerRevoke = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mcpAgentDelegationControllerRevoke>>, TError,void, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof mcpAgentDelegationControllerRevoke>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getMcpAgentDelegationControllerRevokeMutationOptions(options), queryClient);
+    }
+
+export const getMcpAgentDelegationControllerStartUrl = () => {
+
+
+
+
+  return `/mcp/agent-delegation/start`
+}
+
+export const mcpAgentDelegationControllerStart = async (mcpAgentDelegationControllerStartBody: McpAgentDelegationControllerStartBody, options?: Parameters<typeof workOsFetcher>[1]): Promise<StartMcpAgentDelegationResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<StartMcpAgentDelegationResponse>(getMcpAgentDelegationControllerStartUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(mcpAgentDelegationControllerStartBody),
+    schema: StartMcpAgentDelegationResponse
+  }
+);}
+
+
+
+
+
+export const getMcpAgentDelegationControllerStartMutationKey = () => ['mcpAgentDelegationControllerStart'] as const;
+
+export const getMcpAgentDelegationControllerStartMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mcpAgentDelegationControllerStart>>, TError,McpAgentDelegationControllerStartMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof mcpAgentDelegationControllerStart>>, TError,McpAgentDelegationControllerStartMutationVariables, TContext> => {
+
+const mutationKey = getMcpAgentDelegationControllerStartMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mcpAgentDelegationControllerStart>>, McpAgentDelegationControllerStartMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  mcpAgentDelegationControllerStart(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type McpAgentDelegationControllerStartMutationResult = NonNullable<Awaited<ReturnType<typeof mcpAgentDelegationControllerStart>>>
+    export type McpAgentDelegationControllerStartMutationBody = McpAgentDelegationControllerStartBody
+    export type McpAgentDelegationControllerStartMutationError = ErrorType<ProblemDetails>
+    export type McpAgentDelegationControllerStartMutationVariables = {data: McpAgentDelegationControllerStartBody}
+
+    export const useMcpAgentDelegationControllerStart = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mcpAgentDelegationControllerStart>>, TError,McpAgentDelegationControllerStartMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof mcpAgentDelegationControllerStart>>,
+        TError,
+        McpAgentDelegationControllerStartMutationVariables,
+        TContext
+      > => {
+      return useMutation(getMcpAgentDelegationControllerStartMutationOptions(options), queryClient);
+    }
+
+export const getMcpAgentDelegationControllerCallbackUrl = () => {
+
+
+
+
+  return `/mcp/agent-delegation/callback`
+}
+
+export const mcpAgentDelegationControllerCallback = async ( options?: Parameters<typeof workOsFetcher>[1]): Promise<void> => {
+
+  return workOsFetcher<void>(getMcpAgentDelegationControllerCallbackUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getMcpAgentDelegationControllerCallbackQueryKey = () => {
+    return [
+    `/mcp/agent-delegation/callback`
+    ] as const;
+    }
+
+
+export const getMcpAgentDelegationControllerCallbackSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof mcpAgentDelegationControllerCallback>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAgentDelegationControllerCallback>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getMcpAgentDelegationControllerCallbackQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof mcpAgentDelegationControllerCallback>>> = ({ signal }) => mcpAgentDelegationControllerCallback({ signal, ...requestOptions });
+
+
+
+
+
+   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAgentDelegationControllerCallback>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
+}
+
+export type McpAgentDelegationControllerCallbackSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof mcpAgentDelegationControllerCallback>>>
+export type McpAgentDelegationControllerCallbackSuspenseQueryError = ErrorType<ProblemDetails>
+
+
+export function useMcpAgentDelegationControllerCallbackSuspense<TData = Awaited<ReturnType<typeof mcpAgentDelegationControllerCallback>>, TError = ErrorType<ProblemDetails>>(
+  options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAgentDelegationControllerCallback>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMcpAgentDelegationControllerCallbackSuspense<TData = Awaited<ReturnType<typeof mcpAgentDelegationControllerCallback>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAgentDelegationControllerCallback>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMcpAgentDelegationControllerCallbackSuspense<TData = Awaited<ReturnType<typeof mcpAgentDelegationControllerCallback>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAgentDelegationControllerCallback>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useMcpAgentDelegationControllerCallbackSuspense<TData = Awaited<ReturnType<typeof mcpAgentDelegationControllerCallback>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAgentDelegationControllerCallback>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getMcpAgentDelegationControllerCallbackSuspenseQueryOptions(options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getMcpAccessKeysControllerGetConnectionInfoUrl = () => {
+
+
+
+
+  return `/mcp/connection-info`
+}
+
+export const mcpAccessKeysControllerGetConnectionInfo = async ( options?: Parameters<typeof workOsFetcher>[1]): Promise<McpConnectionInfo> => {
+
+  return workOsFetcher<McpConnectionInfo>(getMcpAccessKeysControllerGetConnectionInfoUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+    ,
+    schema: McpConnectionInfo
+  }
+);}
+
+
+
+
+
+export const getMcpAccessKeysControllerGetConnectionInfoQueryKey = () => {
+    return [
+    `/mcp/connection-info`
+    ] as const;
+    }
+
+
+export const getMcpAccessKeysControllerGetConnectionInfoSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof mcpAccessKeysControllerGetConnectionInfo>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerGetConnectionInfo>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getMcpAccessKeysControllerGetConnectionInfoQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof mcpAccessKeysControllerGetConnectionInfo>>> = ({ signal }) => mcpAccessKeysControllerGetConnectionInfo({ signal, ...requestOptions });
+
+
+
+
+
+   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerGetConnectionInfo>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
+}
+
+export type McpAccessKeysControllerGetConnectionInfoSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof mcpAccessKeysControllerGetConnectionInfo>>>
+export type McpAccessKeysControllerGetConnectionInfoSuspenseQueryError = ErrorType<ProblemDetails>
+
+
+export function useMcpAccessKeysControllerGetConnectionInfoSuspense<TData = Awaited<ReturnType<typeof mcpAccessKeysControllerGetConnectionInfo>>, TError = ErrorType<ProblemDetails>>(
+  options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerGetConnectionInfo>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMcpAccessKeysControllerGetConnectionInfoSuspense<TData = Awaited<ReturnType<typeof mcpAccessKeysControllerGetConnectionInfo>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerGetConnectionInfo>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMcpAccessKeysControllerGetConnectionInfoSuspense<TData = Awaited<ReturnType<typeof mcpAccessKeysControllerGetConnectionInfo>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerGetConnectionInfo>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useMcpAccessKeysControllerGetConnectionInfoSuspense<TData = Awaited<ReturnType<typeof mcpAccessKeysControllerGetConnectionInfo>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerGetConnectionInfo>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getMcpAccessKeysControllerGetConnectionInfoSuspenseQueryOptions(options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getMcpAccessKeysControllerListUrl = (params?: McpAccessKeysControllerListParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/mcp/access-keys?${stringifiedParams}` : `/mcp/access-keys`
+}
+
+export const mcpAccessKeysControllerList = async (params?: McpAccessKeysControllerListParams, options?: Parameters<typeof workOsFetcher>[1]): Promise<McpAccessKeyList> => {
+
+  return workOsFetcher<McpAccessKeyList>(getMcpAccessKeysControllerListUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+    ,
+    schema: McpAccessKeyList
+  }
+);}
+
+
+
+
+
+export const getMcpAccessKeysControllerListQueryKey = (params?: McpAccessKeysControllerListParams,) => {
+    return [
+    `/mcp/access-keys`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getMcpAccessKeysControllerListSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof mcpAccessKeysControllerList>>, TError = ErrorType<ProblemDetails>>(params?: McpAccessKeysControllerListParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerList>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getMcpAccessKeysControllerListQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof mcpAccessKeysControllerList>>> = ({ signal }) => mcpAccessKeysControllerList(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerList>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
+}
+
+export type McpAccessKeysControllerListSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof mcpAccessKeysControllerList>>>
+export type McpAccessKeysControllerListSuspenseQueryError = ErrorType<ProblemDetails>
+
+
+export function useMcpAccessKeysControllerListSuspense<TData = Awaited<ReturnType<typeof mcpAccessKeysControllerList>>, TError = ErrorType<ProblemDetails>>(
+ params: undefined |  McpAccessKeysControllerListParams, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerList>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMcpAccessKeysControllerListSuspense<TData = Awaited<ReturnType<typeof mcpAccessKeysControllerList>>, TError = ErrorType<ProblemDetails>>(
+ params?: McpAccessKeysControllerListParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerList>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMcpAccessKeysControllerListSuspense<TData = Awaited<ReturnType<typeof mcpAccessKeysControllerList>>, TError = ErrorType<ProblemDetails>>(
+ params?: McpAccessKeysControllerListParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerList>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useMcpAccessKeysControllerListSuspense<TData = Awaited<ReturnType<typeof mcpAccessKeysControllerList>>, TError = ErrorType<ProblemDetails>>(
+ params?: McpAccessKeysControllerListParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerList>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getMcpAccessKeysControllerListSuspenseQueryOptions(params,options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getMcpAccessKeysControllerCreateUrl = () => {
+
+
+
+
+  return `/mcp/access-keys`
+}
+
+export const mcpAccessKeysControllerCreate = async (mcpAccessKeysControllerCreateBody: McpAccessKeysControllerCreateBody, options?: Parameters<typeof workOsFetcher>[1]): Promise<McpAccessKeySecret> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<McpAccessKeySecret>(getMcpAccessKeysControllerCreateUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(mcpAccessKeysControllerCreateBody),
+    schema: McpAccessKeySecret
+  }
+);}
+
+
+
+
+
+export const getMcpAccessKeysControllerCreateMutationKey = () => ['mcpAccessKeysControllerCreate'] as const;
+
+export const getMcpAccessKeysControllerCreateMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerCreate>>, TError,McpAccessKeysControllerCreateMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerCreate>>, TError,McpAccessKeysControllerCreateMutationVariables, TContext> => {
+
+const mutationKey = getMcpAccessKeysControllerCreateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mcpAccessKeysControllerCreate>>, McpAccessKeysControllerCreateMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  mcpAccessKeysControllerCreate(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type McpAccessKeysControllerCreateMutationResult = NonNullable<Awaited<ReturnType<typeof mcpAccessKeysControllerCreate>>>
+    export type McpAccessKeysControllerCreateMutationBody = McpAccessKeysControllerCreateBody
+    export type McpAccessKeysControllerCreateMutationError = ErrorType<ProblemDetails>
+    export type McpAccessKeysControllerCreateMutationVariables = {data: McpAccessKeysControllerCreateBody}
+
+    export const useMcpAccessKeysControllerCreate = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerCreate>>, TError,McpAccessKeysControllerCreateMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof mcpAccessKeysControllerCreate>>,
+        TError,
+        McpAccessKeysControllerCreateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getMcpAccessKeysControllerCreateMutationOptions(options), queryClient);
+    }
+
+export const getMcpAccessKeysControllerGetUrl = (keyId: string,) => {
+
+
+
+
+  return `/mcp/access-keys/${keyId}`
+}
+
+export const mcpAccessKeysControllerGet = async (keyId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<McpAccessKey> => {
+
+  return workOsFetcher<McpAccessKey>(getMcpAccessKeysControllerGetUrl(keyId),
+  {
+    ...options,
+    method: 'GET'
+
+    ,
+    schema: McpAccessKey
+  }
+);}
+
+
+
+
+
+export const getMcpAccessKeysControllerGetQueryKey = (keyId: string,) => {
+    return [
+    `/mcp/access-keys/${keyId}`
+    ] as const;
+    }
+
+
+export const getMcpAccessKeysControllerGetSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof mcpAccessKeysControllerGet>>, TError = ErrorType<ProblemDetails>>(keyId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerGet>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getMcpAccessKeysControllerGetQueryKey(keyId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof mcpAccessKeysControllerGet>>> = ({ signal }) => mcpAccessKeysControllerGet(keyId, { signal, ...requestOptions });
+
+
+
+
+
+   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
+}
+
+export type McpAccessKeysControllerGetSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof mcpAccessKeysControllerGet>>>
+export type McpAccessKeysControllerGetSuspenseQueryError = ErrorType<ProblemDetails>
+
+
+export function useMcpAccessKeysControllerGetSuspense<TData = Awaited<ReturnType<typeof mcpAccessKeysControllerGet>>, TError = ErrorType<ProblemDetails>>(
+ keyId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerGet>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMcpAccessKeysControllerGetSuspense<TData = Awaited<ReturnType<typeof mcpAccessKeysControllerGet>>, TError = ErrorType<ProblemDetails>>(
+ keyId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerGet>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMcpAccessKeysControllerGetSuspense<TData = Awaited<ReturnType<typeof mcpAccessKeysControllerGet>>, TError = ErrorType<ProblemDetails>>(
+ keyId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerGet>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useMcpAccessKeysControllerGetSuspense<TData = Awaited<ReturnType<typeof mcpAccessKeysControllerGet>>, TError = ErrorType<ProblemDetails>>(
+ keyId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerGet>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getMcpAccessKeysControllerGetSuspenseQueryOptions(keyId,options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getMcpAccessKeysControllerUpdateUrl = (keyId: string,) => {
+
+
+
+
+  return `/mcp/access-keys/${keyId}`
+}
+
+export const mcpAccessKeysControllerUpdate = async (keyId: string,
+    mcpAccessKeysControllerUpdateBody: McpAccessKeysControllerUpdateBody, options?: Parameters<typeof workOsFetcher>[1]): Promise<McpAccessKey> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<McpAccessKey>(getMcpAccessKeysControllerUpdateUrl(keyId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(mcpAccessKeysControllerUpdateBody),
+    schema: McpAccessKey
+  }
+);}
+
+
+
+
+
+export const getMcpAccessKeysControllerUpdateMutationKey = () => ['mcpAccessKeysControllerUpdate'] as const;
+
+export const getMcpAccessKeysControllerUpdateMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerUpdate>>, TError,McpAccessKeysControllerUpdateMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerUpdate>>, TError,McpAccessKeysControllerUpdateMutationVariables, TContext> => {
+
+const mutationKey = getMcpAccessKeysControllerUpdateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mcpAccessKeysControllerUpdate>>, McpAccessKeysControllerUpdateMutationVariables> = (props) => {
+          const {keyId,data} = props ?? {};
+
+          return  mcpAccessKeysControllerUpdate(keyId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type McpAccessKeysControllerUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof mcpAccessKeysControllerUpdate>>>
+    export type McpAccessKeysControllerUpdateMutationBody = McpAccessKeysControllerUpdateBody
+    export type McpAccessKeysControllerUpdateMutationError = ErrorType<ProblemDetails>
+    export type McpAccessKeysControllerUpdateMutationVariables = {keyId: string;data: McpAccessKeysControllerUpdateBody}
+
+    export const useMcpAccessKeysControllerUpdate = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerUpdate>>, TError,McpAccessKeysControllerUpdateMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof mcpAccessKeysControllerUpdate>>,
+        TError,
+        McpAccessKeysControllerUpdateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getMcpAccessKeysControllerUpdateMutationOptions(options), queryClient);
+    }
+
+export const getMcpAccessKeysControllerRevokeUrl = (keyId: string,) => {
+
+
+
+
+  return `/mcp/access-keys/${keyId}`
+}
+
+export const mcpAccessKeysControllerRevoke = async (keyId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<void> => {
+
+  return workOsFetcher<void>(getMcpAccessKeysControllerRevokeUrl(keyId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getMcpAccessKeysControllerRevokeMutationKey = () => ['mcpAccessKeysControllerRevoke'] as const;
+
+export const getMcpAccessKeysControllerRevokeMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerRevoke>>, TError,McpAccessKeysControllerRevokeMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerRevoke>>, TError,McpAccessKeysControllerRevokeMutationVariables, TContext> => {
+
+const mutationKey = getMcpAccessKeysControllerRevokeMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mcpAccessKeysControllerRevoke>>, McpAccessKeysControllerRevokeMutationVariables> = (props) => {
+          const {keyId} = props ?? {};
+
+          return  mcpAccessKeysControllerRevoke(keyId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type McpAccessKeysControllerRevokeMutationResult = NonNullable<Awaited<ReturnType<typeof mcpAccessKeysControllerRevoke>>>
+
+    export type McpAccessKeysControllerRevokeMutationError = ErrorType<ProblemDetails>
+    export type McpAccessKeysControllerRevokeMutationVariables = {keyId: string}
+
+    export const useMcpAccessKeysControllerRevoke = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerRevoke>>, TError,McpAccessKeysControllerRevokeMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof mcpAccessKeysControllerRevoke>>,
+        TError,
+        McpAccessKeysControllerRevokeMutationVariables,
+        TContext
+      > => {
+      return useMutation(getMcpAccessKeysControllerRevokeMutationOptions(options), queryClient);
+    }
+
+export const getMcpAccessKeysControllerRotateUrl = (keyId: string,) => {
+
+
+
+
+  return `/mcp/access-keys/${keyId}/rotate`
+}
+
+export const mcpAccessKeysControllerRotate = async (keyId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<McpAccessKeySecret> => {
+
+  return workOsFetcher<McpAccessKeySecret>(getMcpAccessKeysControllerRotateUrl(keyId),
+  {
+    ...options,
+    method: 'POST'
+
+    ,
+    schema: McpAccessKeySecret
+  }
+);}
+
+
+
+
+
+export const getMcpAccessKeysControllerRotateMutationKey = () => ['mcpAccessKeysControllerRotate'] as const;
+
+export const getMcpAccessKeysControllerRotateMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerRotate>>, TError,McpAccessKeysControllerRotateMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerRotate>>, TError,McpAccessKeysControllerRotateMutationVariables, TContext> => {
+
+const mutationKey = getMcpAccessKeysControllerRotateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mcpAccessKeysControllerRotate>>, McpAccessKeysControllerRotateMutationVariables> = (props) => {
+          const {keyId} = props ?? {};
+
+          return  mcpAccessKeysControllerRotate(keyId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type McpAccessKeysControllerRotateMutationResult = NonNullable<Awaited<ReturnType<typeof mcpAccessKeysControllerRotate>>>
+
+    export type McpAccessKeysControllerRotateMutationError = ErrorType<ProblemDetails>
+    export type McpAccessKeysControllerRotateMutationVariables = {keyId: string}
+
+    export const useMcpAccessKeysControllerRotate = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mcpAccessKeysControllerRotate>>, TError,McpAccessKeysControllerRotateMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof mcpAccessKeysControllerRotate>>,
+        TError,
+        McpAccessKeysControllerRotateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getMcpAccessKeysControllerRotateMutationOptions(options), queryClient);
+    }
+
+export const getMcpOAuthConnectionsControllerListUrl = () => {
+
+
+
+
+  return `/mcp/oauth-connections`
+}
+
+export const mcpOAuthConnectionsControllerList = async ( options?: Parameters<typeof workOsFetcher>[1]): Promise<McpOAuthConnectionList> => {
+
+  return workOsFetcher<McpOAuthConnectionList>(getMcpOAuthConnectionsControllerListUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+    ,
+    schema: McpOAuthConnectionList
+  }
+);}
+
+
+
+
+
+export const getMcpOAuthConnectionsControllerListQueryKey = () => {
+    return [
+    `/mcp/oauth-connections`
+    ] as const;
+    }
+
+
+export const getMcpOAuthConnectionsControllerListSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof mcpOAuthConnectionsControllerList>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpOAuthConnectionsControllerList>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getMcpOAuthConnectionsControllerListQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof mcpOAuthConnectionsControllerList>>> = ({ signal }) => mcpOAuthConnectionsControllerList({ signal, ...requestOptions });
+
+
+
+
+
+   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpOAuthConnectionsControllerList>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
+}
+
+export type McpOAuthConnectionsControllerListSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof mcpOAuthConnectionsControllerList>>>
+export type McpOAuthConnectionsControllerListSuspenseQueryError = ErrorType<ProblemDetails>
+
+
+export function useMcpOAuthConnectionsControllerListSuspense<TData = Awaited<ReturnType<typeof mcpOAuthConnectionsControllerList>>, TError = ErrorType<ProblemDetails>>(
+  options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpOAuthConnectionsControllerList>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMcpOAuthConnectionsControllerListSuspense<TData = Awaited<ReturnType<typeof mcpOAuthConnectionsControllerList>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpOAuthConnectionsControllerList>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMcpOAuthConnectionsControllerListSuspense<TData = Awaited<ReturnType<typeof mcpOAuthConnectionsControllerList>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpOAuthConnectionsControllerList>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useMcpOAuthConnectionsControllerListSuspense<TData = Awaited<ReturnType<typeof mcpOAuthConnectionsControllerList>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpOAuthConnectionsControllerList>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getMcpOAuthConnectionsControllerListSuspenseQueryOptions(options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getMcpOAuthConnectionsControllerRevokeUrl = (consentId: string,) => {
+
+
+
+
+  return `/mcp/oauth-connections/${consentId}`
+}
+
+export const mcpOAuthConnectionsControllerRevoke = async (consentId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<void> => {
+
+  return workOsFetcher<void>(getMcpOAuthConnectionsControllerRevokeUrl(consentId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getMcpOAuthConnectionsControllerRevokeMutationKey = () => ['mcpOAuthConnectionsControllerRevoke'] as const;
+
+export const getMcpOAuthConnectionsControllerRevokeMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mcpOAuthConnectionsControllerRevoke>>, TError,McpOAuthConnectionsControllerRevokeMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof mcpOAuthConnectionsControllerRevoke>>, TError,McpOAuthConnectionsControllerRevokeMutationVariables, TContext> => {
+
+const mutationKey = getMcpOAuthConnectionsControllerRevokeMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mcpOAuthConnectionsControllerRevoke>>, McpOAuthConnectionsControllerRevokeMutationVariables> = (props) => {
+          const {consentId} = props ?? {};
+
+          return  mcpOAuthConnectionsControllerRevoke(consentId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type McpOAuthConnectionsControllerRevokeMutationResult = NonNullable<Awaited<ReturnType<typeof mcpOAuthConnectionsControllerRevoke>>>
+
+    export type McpOAuthConnectionsControllerRevokeMutationError = ErrorType<ProblemDetails>
+    export type McpOAuthConnectionsControllerRevokeMutationVariables = {consentId: string}
+
+    export const useMcpOAuthConnectionsControllerRevoke = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mcpOAuthConnectionsControllerRevoke>>, TError,McpOAuthConnectionsControllerRevokeMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof mcpOAuthConnectionsControllerRevoke>>,
+        TError,
+        McpOAuthConnectionsControllerRevokeMutationVariables,
+        TContext
+      > => {
+      return useMutation(getMcpOAuthConnectionsControllerRevokeMutationOptions(options), queryClient);
+    }
+
+export const getMcpAccessControllerGetCompositeUrl = (organizationId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/mcp-access`
+}
+
+export const mcpAccessControllerGetComposite = async (organizationId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<McpAccessComposite> => {
+
+  return workOsFetcher<McpAccessComposite>(getMcpAccessControllerGetCompositeUrl(organizationId),
+  {
+    ...options,
+    method: 'GET'
+
+    ,
+    schema: McpAccessComposite
+  }
+);}
+
+
+
+
+
+export const getMcpAccessControllerGetCompositeQueryKey = (organizationId: string,) => {
+    return [
+    `/organizations/${organizationId}/mcp-access`
+    ] as const;
+    }
+
+
+export const getMcpAccessControllerGetCompositeSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof mcpAccessControllerGetComposite>>, TError = ErrorType<ProblemDetails>>(organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAccessControllerGetComposite>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getMcpAccessControllerGetCompositeQueryKey(organizationId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof mcpAccessControllerGetComposite>>> = ({ signal }) => mcpAccessControllerGetComposite(organizationId, { signal, ...requestOptions });
+
+
+
+
+
+   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAccessControllerGetComposite>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
+}
+
+export type McpAccessControllerGetCompositeSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof mcpAccessControllerGetComposite>>>
+export type McpAccessControllerGetCompositeSuspenseQueryError = ErrorType<ProblemDetails>
+
+
+export function useMcpAccessControllerGetCompositeSuspense<TData = Awaited<ReturnType<typeof mcpAccessControllerGetComposite>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAccessControllerGetComposite>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMcpAccessControllerGetCompositeSuspense<TData = Awaited<ReturnType<typeof mcpAccessControllerGetComposite>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAccessControllerGetComposite>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMcpAccessControllerGetCompositeSuspense<TData = Awaited<ReturnType<typeof mcpAccessControllerGetComposite>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAccessControllerGetComposite>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useMcpAccessControllerGetCompositeSuspense<TData = Awaited<ReturnType<typeof mcpAccessControllerGetComposite>>, TError = ErrorType<ProblemDetails>>(
+ organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof mcpAccessControllerGetComposite>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getMcpAccessControllerGetCompositeSuspenseQueryOptions(organizationId,options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getMcpAccessControllerUpdateMyPolicyUrl = (organizationId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/mcp-access/me`
+}
+
+export const mcpAccessControllerUpdateMyPolicy = async (organizationId: string,
+    updateMcpUserPolicy: UpdateMcpUserPolicy, options?: Parameters<typeof workOsFetcher>[1]): Promise<McpAccessComposite> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<McpAccessComposite>(getMcpAccessControllerUpdateMyPolicyUrl(organizationId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateMcpUserPolicy),
+    schema: McpAccessComposite
+  }
+);}
+
+
+
+
+
+export const getMcpAccessControllerUpdateMyPolicyMutationKey = () => ['mcpAccessControllerUpdateMyPolicy'] as const;
+
+export const getMcpAccessControllerUpdateMyPolicyMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mcpAccessControllerUpdateMyPolicy>>, TError,McpAccessControllerUpdateMyPolicyMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof mcpAccessControllerUpdateMyPolicy>>, TError,McpAccessControllerUpdateMyPolicyMutationVariables, TContext> => {
+
+const mutationKey = getMcpAccessControllerUpdateMyPolicyMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mcpAccessControllerUpdateMyPolicy>>, McpAccessControllerUpdateMyPolicyMutationVariables> = (props) => {
+          const {organizationId,data} = props ?? {};
+
+          return  mcpAccessControllerUpdateMyPolicy(organizationId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type McpAccessControllerUpdateMyPolicyMutationResult = NonNullable<Awaited<ReturnType<typeof mcpAccessControllerUpdateMyPolicy>>>
+    export type McpAccessControllerUpdateMyPolicyMutationBody = UpdateMcpUserPolicy
+    export type McpAccessControllerUpdateMyPolicyMutationError = ErrorType<ProblemDetails>
+    export type McpAccessControllerUpdateMyPolicyMutationVariables = {organizationId: string;data: UpdateMcpUserPolicy}
+
+    export const useMcpAccessControllerUpdateMyPolicy = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mcpAccessControllerUpdateMyPolicy>>, TError,McpAccessControllerUpdateMyPolicyMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof mcpAccessControllerUpdateMyPolicy>>,
+        TError,
+        McpAccessControllerUpdateMyPolicyMutationVariables,
+        TContext
+      > => {
+      return useMutation(getMcpAccessControllerUpdateMyPolicyMutationOptions(options), queryClient);
+    }
+
+export const getMcpAccessControllerUpdateOrganizationPolicyUrl = (organizationId: string,) => {
+
+
+
+
+  return `/organizations/${organizationId}/mcp-access/organization-policy`
+}
+
+export const mcpAccessControllerUpdateOrganizationPolicy = async (organizationId: string,
+    updateMcpOrganizationPolicy: UpdateMcpOrganizationPolicy, options?: Parameters<typeof workOsFetcher>[1]): Promise<McpAccessComposite> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<McpAccessComposite>(getMcpAccessControllerUpdateOrganizationPolicyUrl(organizationId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateMcpOrganizationPolicy),
+    schema: McpAccessComposite
+  }
+);}
+
+
+
+
+
+export const getMcpAccessControllerUpdateOrganizationPolicyMutationKey = () => ['mcpAccessControllerUpdateOrganizationPolicy'] as const;
+
+export const getMcpAccessControllerUpdateOrganizationPolicyMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mcpAccessControllerUpdateOrganizationPolicy>>, TError,McpAccessControllerUpdateOrganizationPolicyMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof mcpAccessControllerUpdateOrganizationPolicy>>, TError,McpAccessControllerUpdateOrganizationPolicyMutationVariables, TContext> => {
+
+const mutationKey = getMcpAccessControllerUpdateOrganizationPolicyMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mcpAccessControllerUpdateOrganizationPolicy>>, McpAccessControllerUpdateOrganizationPolicyMutationVariables> = (props) => {
+          const {organizationId,data} = props ?? {};
+
+          return  mcpAccessControllerUpdateOrganizationPolicy(organizationId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type McpAccessControllerUpdateOrganizationPolicyMutationResult = NonNullable<Awaited<ReturnType<typeof mcpAccessControllerUpdateOrganizationPolicy>>>
+    export type McpAccessControllerUpdateOrganizationPolicyMutationBody = UpdateMcpOrganizationPolicy
+    export type McpAccessControllerUpdateOrganizationPolicyMutationError = ErrorType<ProblemDetails>
+    export type McpAccessControllerUpdateOrganizationPolicyMutationVariables = {organizationId: string;data: UpdateMcpOrganizationPolicy}
+
+    export const useMcpAccessControllerUpdateOrganizationPolicy = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mcpAccessControllerUpdateOrganizationPolicy>>, TError,McpAccessControllerUpdateOrganizationPolicyMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof mcpAccessControllerUpdateOrganizationPolicy>>,
+        TError,
+        McpAccessControllerUpdateOrganizationPolicyMutationVariables,
+        TContext
+      > => {
+      return useMutation(getMcpAccessControllerUpdateOrganizationPolicyMutationOptions(options), queryClient);
     }
 
 export const getWikiControllerGetTreeUrl = (organizationId: string,) => {

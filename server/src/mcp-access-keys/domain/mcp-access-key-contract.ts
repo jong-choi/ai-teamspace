@@ -6,6 +6,8 @@ import {
 
 import { z } from 'zod';
 
+export const MCP_ACCESS_KEY_PREFIX = 'wos_mcp_';
+
 const selectedOrganizationGrantSchema = z.object({
   mode: z.literal('selected'),
   organizationIds: z

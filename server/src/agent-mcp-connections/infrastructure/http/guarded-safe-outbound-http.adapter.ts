@@ -17,11 +17,14 @@ export class GuardedSafeOutboundHttpAdapter extends SafeOutboundHttp {
 
   async fetch(input: string | URL, init?: RequestInit): Promise<Response> {
     const url = this.toUrl(input);
-    const { redirect: _redirect, signal, ...requestInit } = init ?? {};
+    const requestInit = { ...init };
+    const signal = requestInit.signal ?? undefined;
+    delete requestInit.redirect;
+    delete requestInit.signal;
 
     const response = await guardedFetch(url, {
       ...requestInit,
-      ...(signal ? { signal } : {}),
+      signal,
       ...this.securityOptions(url),
       timeoutMs: this.config.toolTimeoutMs,
       followRedirects: false,

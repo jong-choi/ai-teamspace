@@ -98,6 +98,41 @@ export default tseslint.config(
       // 세부 경계를 먼저 분류하고 feature 이름을 의존성 비교에 사용한다.
       'boundaries/elements': [
         {
+          type: 'server-contract',
+          pattern: 'server/src/config/config.type.ts',
+          mode: 'full',
+        },
+        {
+          type: 'server-contract',
+          pattern: 'server/src/mcp/contracts/**',
+          mode: 'full',
+        },
+        {
+          type: 'server-contract',
+          pattern:
+            'server/src/agent/infrastructure/mcp/{workos-tool-session.provider,workos-mcp-auth-provider.factory}.ts',
+          mode: 'full',
+        },
+        {
+          type: 'server-composition',
+          pattern:
+            'server/src/agent-mcp-connections/infrastructure/mcp/combined-mcp-tool-session.{adapter,module}.ts',
+          mode: 'full',
+        },
+        {
+          type: 'server-composition',
+          pattern:
+            'server/src/agent/infrastructure/deep-agent/deep-agent.module.ts',
+          mode: 'full',
+        },
+        {
+          type: 'port',
+          pattern:
+            'server/src/mcp-access/infrastructure/audit/mcp-policy-audit.publisher.ts',
+          mode: 'full',
+          capture: ['feature'],
+        },
+        {
           type: 'auth-generated',
           pattern:
             'server/src/auth/infrastructure/persistence/drizzle/generated/**',

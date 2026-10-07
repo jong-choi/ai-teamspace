@@ -53,7 +53,9 @@ class LangfusePrivacySpanProcessor implements SpanProcessor {
     private readonly captureLevel: LangfuseConfiguration['captureLevel'],
   ) {}
 
-  onStart(_span: Span): void {}
+  onStart(span: Span): void {
+    void span;
+  }
 
   onEnd(span: ReadableSpan): void {
     const attributes = span.attributes as Record<string, unknown>;

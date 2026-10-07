@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 
 import type { McpConfig } from '@/mcp/config/mcp-config.type';
 import { MCP_SCOPES } from '@/mcp/contracts/mcp-scope';
+import { MCP_ACCESS_KEY_PREFIX } from '@/mcp-access-keys/domain/mcp-access-key-contract';
 
 import { apiKey } from '@better-auth/api-key';
 import { cimd } from '@better-auth/cimd';
@@ -39,7 +40,6 @@ export const authOptions = {
 export const MCP_LOGIN_PAGE = '/login';
 export const MCP_CONSENT_PAGE = '/settings/mcp/consent';
 export const MCP_ACCESS_KEY_CONFIG_ID = 'workos-mcp-user';
-export const MCP_ACCESS_KEY_PREFIX = 'wos_mcp_';
 
 export const mcpAccessKeyFacadeDisabledPaths = [
   '/api-key/create',

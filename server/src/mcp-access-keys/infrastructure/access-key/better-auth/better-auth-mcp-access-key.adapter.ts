@@ -2,10 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import type { Auth } from '@/auth/auth';
-import {
-  MCP_ACCESS_KEY_CONFIG_ID,
-  MCP_ACCESS_KEY_PREFIX,
-} from '@/auth/auth-options';
+import { MCP_ACCESS_KEY_CONFIG_ID } from '@/auth/auth-options';
 import type { AllConfigType } from '@/config/config.type';
 import type {
   CreateMcpAccessKeyProviderInput,
@@ -14,6 +11,7 @@ import type {
   UpdateMcpAccessKeyProviderInput,
 } from '@/mcp-access-keys/domain/mcp-access-key';
 import {
+  MCP_ACCESS_KEY_PREFIX,
   McpAccessKeyMetadataSchema,
   permissionMapToScopes,
   scopesToPermissionMap,
@@ -196,7 +194,7 @@ export class BetterAuthMcpAccessKeyAdapter extends McpAccessKeyProvider {
     return {
       id: row.id,
       name: row.name,
-      prefix: row.prefix,
+      prefix: MCP_ACCESS_KEY_PREFIX,
       start: row.start,
       enabled: row.enabled,
       expired: row.expiresAt ? row.expiresAt.getTime() <= Date.now() : false,

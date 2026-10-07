@@ -182,7 +182,8 @@ export class AgentMcpOauthCredentialService {
         return { bundle: { ...current, clients: [] } };
       }
       if (scope === 'tokens') {
-        const { tokens: _tokens, ...withoutTokens } = current;
+        const withoutTokens = { ...current };
+        delete withoutTokens.tokens;
         return {
           bundle: withoutTokens,
           expiresAt: null,

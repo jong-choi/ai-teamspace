@@ -1,4 +1,4 @@
-import { MCP_ACCESS_KEY_PREFIX } from '@/auth/auth-options';
+import { MCP_ACCESS_KEY_PREFIX } from '@/mcp-access-keys/domain/mcp-access-key-contract';
 
 export type ExtractedMcpCredential =
   | { method: 'none' }

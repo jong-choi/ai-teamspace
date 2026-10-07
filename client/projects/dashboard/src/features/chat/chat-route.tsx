@@ -14,11 +14,7 @@ import { ChatConversationPanel } from '@core/features/chat/chat-conversation-pan
 import { ChatConversationSidebar } from '@core/features/chat/chat-conversation-sidebar';
 import { ChatCreateConversationDialog } from '@core/features/chat/chat-create-conversation-dialog';
 import { useChatConversations } from '@core/features/chat/chat-query';
-import {
-  ChatLoading,
-  ChatQueryBoundary,
-  ChatState,
-} from '@core/features/chat/chat-state';
+import { ChatLoading, ChatQueryBoundary } from '@core/features/chat/chat-state';
 
 import { useQueryClient } from '@tanstack/react-query';
 import { List, MessageSquare, Plus } from 'lucide-react-native';

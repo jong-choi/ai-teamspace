@@ -16,11 +16,7 @@ import {
   useChatConversationParticipants,
   useChatMessage,
 } from '@core/features/chat/chat-query';
-import {
-  ChatLoading,
-  ChatQueryBoundary,
-  ChatState,
-} from '@core/features/chat/chat-state';
+import { ChatLoading, ChatQueryBoundary } from '@core/features/chat/chat-state';
 import { OrganizationInvitationMessage } from '@core/features/invitations/organization-invitation-message';
 
 import { Link2, MessageSquareText, Pencil } from 'lucide-react-native';

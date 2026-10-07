@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { MCP_ACCESS_KEY_PREFIX } from '@/auth/auth-options';
 import type { AllConfigType } from '@/config/config.type';
 import { MCP_SCOPES } from '@/mcp/contracts/mcp-scope';
+import { MCP_ACCESS_KEY_PREFIX } from '@/mcp-access-keys/domain/mcp-access-key-contract';
 import type { McpConnectionInfo } from '@/mcp-access-keys/dto/mcp-connection-info.dto';
 import { McpConnectionInfoSchema } from '@/mcp-access-keys/dto/mcp-connection-info.dto';
 

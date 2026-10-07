@@ -11,8 +11,9 @@ export interface OrganizationActorContext {
 
 export function toOrganizationActorContext(
   session: UserSession<Auth>,
-  _legacyRequestHeaders?: IncomingHttpHeaders,
+  legacyRequestHeaders?: IncomingHttpHeaders,
 ): OrganizationActorContext {
+  void legacyRequestHeaders;
   return {
     userId: session.user.id,
     activeOrganizationIdCandidate:

@@ -1,11 +1,11 @@
 import {
   createAuthOptions,
   MCP_ACCESS_KEY_CONFIG_ID,
-  MCP_ACCESS_KEY_PREFIX,
   MCP_CONSENT_PAGE,
   MCP_LOGIN_PAGE,
 } from '@/auth/auth-options';
 import type { McpConfig } from '@/mcp/config/mcp-config.type';
+import { MCP_ACCESS_KEY_PREFIX } from '@/mcp-access-keys/domain/mcp-access-key-contract';
 
 const mcpConfig: McpConfig = {
   resourceUrl: 'https://workos.example/mcp',

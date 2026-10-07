@@ -61,8 +61,9 @@ export class McpAccessKeysController {
   @Get('connection-info')
   @ApiOkResponse({ standardSchema: McpConnectionInfoDto.schema })
   getConnectionInfo(
-    @Session() _session: UserSession<Auth>,
+    @Session() session: UserSession<Auth>,
   ): McpConnectionInfoDto {
+    void session;
     return this.service.getConnectionInfo();
   }
 

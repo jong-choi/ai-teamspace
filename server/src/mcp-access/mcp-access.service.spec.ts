@@ -6,6 +6,7 @@ import {
 } from '@/mcp-access/domain/mcp-access.error';
 import type { McpOrganizationPolicy } from '@/mcp-access/domain/mcp-organization-policy';
 import type { McpUserPolicy } from '@/mcp-access/domain/mcp-user-policy';
+import { McpPolicyAuditPublisher } from '@/mcp-access/infrastructure/audit/mcp-policy-audit.publisher';
 import { McpAccessRepository } from '@/mcp-access/infrastructure/persistence/mcp-access.repository';
 import { McpAccessService } from '@/mcp-access/mcp-access.service';
 import { OrganizationAccessDeniedError } from '@/organizations/domain/organization.error';
@@ -17,6 +18,9 @@ import { jest } from '@jest/globals';
 
 class FakeMcpAccessRepository extends McpAccessRepository {
   findComposite = jest.fn<McpAccessRepository['findComposite']>();
+  findOrganizationPolicy =
+    jest.fn<McpAccessRepository['findOrganizationPolicy']>();
+  findUserPolicy = jest.fn<McpAccessRepository['findUserPolicy']>();
   ensureOrganizationPolicy =
     jest.fn<McpAccessRepository['ensureOrganizationPolicy']>();
   ensureUserPolicy = jest.fn<McpAccessRepository['ensureUserPolicy']>();
@@ -88,6 +92,8 @@ describe('McpAccessService', () => {
   let hasMemberUserMock: ReturnType<
     typeof jest.fn<OrganizationMembershipService['hasMemberUser']>
   >;
+  let auditPublisher: McpPolicyAuditPublisher;
+  let auditPublishMock: jest.MockedFunction<McpPolicyAuditPublisher['publish']>;
   let service: McpAccessService;
 
   beforeEach(() => {
@@ -106,22 +112,41 @@ describe('McpAccessService', () => {
       requireAccess: requireAccessMock,
       hasMemberUser: hasMemberUserMock,
     };
+    auditPublishMock = jest.fn<McpPolicyAuditPublisher['publish']>();
+    auditPublisher = { publish: auditPublishMock };
     service = new McpAccessService(
       repository,
       organizationsService,
       membershipService,
+      auditPublisher,
     );
 
     requireAccessMock.mockResolvedValue(organizationAccess);
     hasMemberUserMock.mockResolvedValue(true);
-    repository.ensureOrganizationPolicy.mockResolvedValue(organizationPolicy());
-    repository.ensureUserPolicy.mockResolvedValue(userPolicy());
+    repository.findOrganizationPolicy.mockResolvedValue(organizationPolicy());
+    repository.findUserPolicy.mockResolvedValue(userPolicy());
+    repository.ensureOrganizationPolicy.mockResolvedValue({
+      value: organizationPolicy(),
+      created: false,
+    });
+    repository.ensureUserPolicy.mockResolvedValue({
+      value: userPolicy(),
+      created: false,
+    });
   });
 
   it('일반 멤버에게 정책 composite를 conservative defaults로 materialize한다', async () => {
     assertAdministrativeAccessMock.mockRejectedValue(
       new OrganizationAccessDeniedError(),
     );
+    repository.ensureOrganizationPolicy.mockResolvedValue({
+      value: organizationPolicy(),
+      created: true,
+    });
+    repository.ensureUserPolicy.mockResolvedValue({
+      value: userPolicy(),
+      created: true,
+    });
 
     await expect(service.getComposite(actor, 'org-a')).resolves.toMatchObject({
       organizationId: 'org-a',
@@ -136,6 +161,15 @@ describe('McpAccessService', () => {
       effectiveScopes: ['organizations:read', 'wiki:read'],
       canManageOrganizationPolicy: false,
     });
+    expect(auditPublishMock).toHaveBeenCalledTimes(2);
+    expect(auditPublishMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'mcp.policy.provisioned',
+        reason: 'system_provisioned',
+        actorUserId: null,
+        organizationId: 'org-a',
+      }),
+    );
   });
 
   it('organization ceiling 밖 개인 scope 요청을 repository update 전에 거부한다', async () => {
@@ -220,6 +254,41 @@ describe('McpAccessService', () => {
       expectedRevision: 0,
       updatedByUserId: 'user-a',
     });
+    expect(auditPublishMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'mcp.policy.organization.updated',
+        reason: 'human_update',
+        actorUserId: 'user-a',
+        organizationId: 'org-a',
+        priorRevision: 0,
+        nextRevision: 1,
+        removedScopes: ['wiki:read'],
+        affectedUserCount: 1,
+      }),
+    );
+    expect(auditPublishMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'mcp.policy.user.pruned',
+        removedScopes: ['wiki:read'],
+        affectedUserCount: 1,
+      }),
+    );
+  });
+
+  it('semantic no-op user update에는 changed audit event를 남기지 않는다', async () => {
+    repository.updateUserPolicyIfRevision.mockResolvedValue({
+      status: 'updated',
+      value: userPolicy(),
+    });
+
+    await service.updateMyPolicy(actor, 'org-a', {
+      requestedScopes: ['organizations:read', 'wiki:read'],
+      expectedRevision: 0,
+    });
+
+    expect(auditPublishMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'mcp.policy.user.updated' }),
+    );
   });
 
   it('live evaluator는 current membership을 매 호출 다시 확인한다', async () => {
@@ -268,6 +337,14 @@ describe('McpAccessService', () => {
     expect(repository.deleteUserPolicy).toHaveBeenCalledWith('org-a', 'user-a');
     expect(repository.ensureOrganizationPolicy).not.toHaveBeenCalled();
     expect(repository.ensureUserPolicy).not.toHaveBeenCalled();
+    expect(auditPublishMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'mcp.policy.user.pruned',
+        reason: 'membership_removed',
+        subjectUserId: 'user-a',
+        removedScopes: ['organizations:read', 'wiki:read'],
+      }),
+    );
   });
 
   it('제거 후 재가입 reconciliation은 과거 policy를 복원하지 않고 conservative default를 다시 ensure한다', async () => {

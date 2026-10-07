@@ -25,23 +25,37 @@ export type McpOrganizationPolicyUpdateValue = {
   affectedUserCount: number;
 };
 
+export type McpPolicyEnsureResult<T> = {
+  value: T;
+  created: boolean;
+};
+
 export abstract class McpAccessRepository {
   abstract findComposite(
     organizationId: string,
     userId: string,
   ): Promise<McpAccessComposite>;
 
+  abstract findOrganizationPolicy(
+    organizationId: string,
+  ): Promise<McpOrganizationPolicy | null>;
+
+  abstract findUserPolicy(
+    organizationId: string,
+    userId: string,
+  ): Promise<McpUserPolicy | null>;
+
   abstract ensureOrganizationPolicy(input: {
     organizationId: string;
     allowedScopes: readonly McpScope[];
     updatedByUserId: string | null;
-  }): Promise<McpOrganizationPolicy>;
+  }): Promise<McpPolicyEnsureResult<McpOrganizationPolicy>>;
 
   abstract ensureUserPolicy(input: {
     organizationId: string;
     userId: string;
     requestedScopes: readonly McpScope[];
-  }): Promise<McpUserPolicy>;
+  }): Promise<McpPolicyEnsureResult<McpUserPolicy>>;
 
   abstract updateUserPolicyIfRevision(input: {
     organizationId: string;

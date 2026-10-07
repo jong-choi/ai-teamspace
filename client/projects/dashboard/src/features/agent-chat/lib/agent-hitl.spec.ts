@@ -31,6 +31,7 @@ describe('Agent HITL projection', () => {
       actions: [
         {
           name: 'send_message',
+          label: '외부 도구 작업',
           description: '메시지를 전송합니다.',
           arguments: [
             { key: 'channel', value: 'general' },

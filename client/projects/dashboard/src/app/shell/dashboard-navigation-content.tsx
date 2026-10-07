@@ -1,5 +1,5 @@
 import { Pressable, ScrollView, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 
 import {
   DropdownMenu,
@@ -88,14 +88,16 @@ export function DashboardNavigationContent({
                     ? '/calendar'
                     : item.id === 'ai'
                       ? '/ai'
-                      : null;
+                      : item.id === 'settings'
+                        ? '/settings/mcp'
+                        : null;
 
             return (
               <Pressable
                 accessibilityRole={route ? 'link' : undefined}
                 disabled={!route}
                 key={item.id}
-                onPress={route ? () => router.push(route) : undefined}
+                onPress={route ? () => router.push(route as Href) : undefined}
                 className={cn(
                   'flex-row items-center justify-between rounded-md px-3 py-2 lg:px-2.5 lg:py-1.5',
                   active && 'bg-accent',

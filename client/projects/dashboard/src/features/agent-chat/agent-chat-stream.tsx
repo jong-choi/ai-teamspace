@@ -17,6 +17,7 @@ import {
   agentAssistantId,
   agentMessagesKey,
 } from '@core/features/agent-chat/lib/agent-protocol-client';
+import { projectAgentToolDisplay } from '@core/features/agent-chat/lib/agent-tool-display';
 
 import {
   type DeepAgentTypeConfigLike,
@@ -68,6 +69,7 @@ export function AgentChatStream({
   });
   const starterStartedRef = useRef(false);
   const [resumePending, setResumePending] = useState(false);
+  const [stopPending, setStopPending] = useState(false);
 
   const hitl =
     stream.interrupts.length === 1
@@ -76,8 +78,12 @@ export function AgentChatStream({
   const hitlUnsupported = stream.interrupts.length > 0 && !hitl;
   const toolActivities = stream.toolCalls.map((tool) => ({
     id: tool.id,
-    name: tool.call.name,
     state: tool.state,
+    ...projectAgentToolDisplay({
+      name: tool.call.name,
+      args: tool.call.args,
+      result: tool.result?.content,
+    }),
   }));
   const subagentActivities = Array.from(stream.subagents.values()).map(
     (subagent) => ({
@@ -180,15 +186,23 @@ export function AgentChatStream({
     }
   };
 
-  const stop = () => {
-    void stream.stop().catch((error) => {
+  const stop = async () => {
+    if (stopPending) return;
+
+    setStopPending(true);
+    try {
+      await stream.stop();
+      onRunFinished?.();
+    } catch (error) {
       const presentation = mapAgentChatError(error, 'cancel');
       notifyError({
         id: `agent-stop:${threadId}`,
         title: presentation.title,
         description: presentation.description,
       });
-    });
+    } finally {
+      setStopPending(false);
+    }
   };
 
   return (
@@ -213,10 +227,11 @@ export function AgentChatStream({
         tools={toolActivities}
       />
       <AgentChatComposer
-        busy={stream.isLoading}
-        disabled={stream.interrupts.length > 0 || resumePending}
-        onStop={stop}
+        busy={stream.isLoading || stopPending}
+        disabled={stream.interrupts.length > 0 || resumePending || stopPending}
+        onStop={() => void stop()}
         onSubmit={submit}
+        stopping={stopPending}
       />
     </View>
   );

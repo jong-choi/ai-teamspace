@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { DatabaseService } from '@/database/database.service';
-import { type McpScope,normalizeMcpScopes } from '@/mcp/contracts/mcp-scope';
+import { type McpScope, normalizeMcpScopes } from '@/mcp/contracts/mcp-scope';
 import type { McpOrganizationPolicy } from '@/mcp-access/domain/mcp-organization-policy';
 import type { McpUserPolicy } from '@/mcp-access/domain/mcp-user-policy';
 import {
@@ -61,12 +61,40 @@ export class McpAccessDrizzleRepository extends McpAccessRepository {
     };
   }
 
+  async findOrganizationPolicy(
+    organizationId: string,
+  ): Promise<McpOrganizationPolicy | null> {
+    const [row] = await this.database.db
+      .select()
+      .from(mcpOrganizationPolicy)
+      .where(eq(mcpOrganizationPolicy.organizationId, organizationId))
+      .limit(1);
+    return row ? toMcpOrganizationPolicyDomain(row) : null;
+  }
+
+  async findUserPolicy(
+    organizationId: string,
+    userId: string,
+  ): Promise<McpUserPolicy | null> {
+    const [row] = await this.database.db
+      .select()
+      .from(mcpUserPolicy)
+      .where(
+        and(
+          eq(mcpUserPolicy.organizationId, organizationId),
+          eq(mcpUserPolicy.userId, userId),
+        ),
+      )
+      .limit(1);
+    return row ? toMcpUserPolicyDomain(row) : null;
+  }
+
   async ensureOrganizationPolicy(input: {
     organizationId: string;
     allowedScopes: readonly McpScope[];
     updatedByUserId: string | null;
-  }): Promise<McpOrganizationPolicy> {
-    await this.database.db
+  }) {
+    const [insertedRow] = await this.database.db
       .insert(mcpOrganizationPolicy)
       .values(
         toMcpOrganizationPolicyInsert({
@@ -75,7 +103,15 @@ export class McpAccessDrizzleRepository extends McpAccessRepository {
           updatedByUserId: input.updatedByUserId,
         }),
       )
-      .onConflictDoNothing();
+      .onConflictDoNothing()
+      .returning();
+
+    if (insertedRow) {
+      return {
+        value: toMcpOrganizationPolicyDomain(insertedRow),
+        created: true,
+      };
+    }
 
     const [row] = await this.database.db
       .select()
@@ -86,15 +122,18 @@ export class McpAccessDrizzleRepository extends McpAccessRepository {
     if (!row) {
       throw new Error('MCP organization policy provisioning 결과가 없습니다.');
     }
-    return toMcpOrganizationPolicyDomain(row);
+    return {
+      value: toMcpOrganizationPolicyDomain(row),
+      created: false,
+    };
   }
 
   async ensureUserPolicy(input: {
     organizationId: string;
     userId: string;
     requestedScopes: readonly McpScope[];
-  }): Promise<McpUserPolicy> {
-    await this.database.db
+  }) {
+    const [insertedRow] = await this.database.db
       .insert(mcpUserPolicy)
       .values(
         toMcpUserPolicyInsert({
@@ -103,7 +142,15 @@ export class McpAccessDrizzleRepository extends McpAccessRepository {
           requestedScopes: [...input.requestedScopes],
         }),
       )
-      .onConflictDoNothing();
+      .onConflictDoNothing()
+      .returning();
+
+    if (insertedRow) {
+      return {
+        value: toMcpUserPolicyDomain(insertedRow),
+        created: true,
+      };
+    }
 
     const [row] = await this.database.db
       .select()
@@ -119,7 +166,10 @@ export class McpAccessDrizzleRepository extends McpAccessRepository {
     if (!row) {
       throw new Error('MCP user policy provisioning 결과가 없습니다.');
     }
-    return toMcpUserPolicyDomain(row);
+    return {
+      value: toMcpUserPolicyDomain(row),
+      created: false,
+    };
   }
 
   async updateUserPolicyIfRevision(input: {

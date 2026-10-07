@@ -1,3 +1,5 @@
+import { getAgentToolLabel } from '@core/features/agent-chat/lib/agent-tool-display';
+
 import { z } from 'zod';
 
 const decisionSchema = z.enum(['approve', 'edit', 'reject']);
@@ -27,6 +29,7 @@ export type AgentHitlDecision = 'approve' | 'reject';
 export type AgentHitlPresentation = {
   actions: Array<{
     name: string;
+    label: string;
     description: string | null;
     arguments: Array<{ key: string; value: string }>;
     allowedDecisions: Array<'approve' | 'edit' | 'reject'>;
@@ -50,6 +53,7 @@ export function parseAgentHitlPresentation(
 
     return {
       name: action.name,
+      label: getAgentToolLabel(action.name),
       description: action.description
         ? truncate(action.description.trim(), 180)
         : null,

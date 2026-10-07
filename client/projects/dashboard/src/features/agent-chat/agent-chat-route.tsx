@@ -13,6 +13,7 @@ import {
 } from '@core/app/state/dashboard-query-state';
 import { AgentChatWorkspace } from '@core/features/agent-chat/agent-chat-workspace';
 import { useAgentActiveOrganization } from '@core/features/agent-chat/agent-thread-query';
+import { AgentDelegationGate } from '@core/features/agent-chat/components/agent-delegation-gate';
 import { AuthenticationRequiredState } from '@core/features/auth/authentication-required-state';
 
 export function AgentChatRoute({
@@ -102,11 +103,17 @@ function AuthenticatedAgentChatRoute({
           resetKeys={[activeOrganization.organization.id, currentUserId]}
           title="Agent 대화 목록을 불러오지 못했습니다"
         >
-          <AgentChatWorkspace
+          <AgentDelegationGate
             organizationId={activeOrganization.organization.id}
             threadId={threadId}
             userId={currentUserId}
-          />
+          >
+            <AgentChatWorkspace
+              organizationId={activeOrganization.organization.id}
+              threadId={threadId}
+              userId={currentUserId}
+            />
+          </AgentDelegationGate>
         </DashboardQueryBoundary>
       )}
     </DashboardShell>

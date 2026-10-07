@@ -99,6 +99,13 @@
       "when": 1791274276652,
       "tag": "0013_old_the_renegades",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1791389015942,
+      "tag": "0014_curved_rogue",
+      "breakpoints": true
     }
   ]
 }

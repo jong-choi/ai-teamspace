@@ -14,11 +14,13 @@ export function AgentChatComposer({
   disabled = false,
   onStop,
   onSubmit,
+  stopping = false,
 }: {
   busy: boolean;
   disabled?: boolean;
   onStop?: () => void;
   onSubmit: (message: string) => Promise<boolean>;
+  stopping?: boolean;
 }) {
   const [draft, setDraft] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -59,14 +61,23 @@ export function AgentChatComposer({
             {busy ? (
               onStop ? (
                 <Button
-                  accessibilityLabel="Agent 실행 중지"
+                  accessibilityLabel={
+                    stopping ? 'Agent 실행 중지 중' : 'Agent 실행 중지'
+                  }
                   className="h-8 gap-1.5 px-3"
+                  disabled={stopping}
                   onPress={onStop}
                   size="sm"
                   variant="outline"
                 >
-                  <Icon as={Square} className="size-3" />
-                  <Text className="text-xs">중지</Text>
+                  {stopping ? (
+                    <ActivityIndicator size="small" />
+                  ) : (
+                    <Icon as={Square} className="size-3" />
+                  )}
+                  <Text className="text-xs">
+                    {stopping ? '중지 중...' : '중지'}
+                  </Text>
                 </Button>
               ) : (
                 <Button

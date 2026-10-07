@@ -1,4 +1,5 @@
-import { View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, View } from 'react-native';
 
 import { Button } from '@repo/client/rnr/components/ui/button';
 import { Text } from '@repo/client/rnr/components/ui/text';
@@ -6,11 +7,14 @@ import type {
   AgentHitlDecision,
   AgentHitlPresentation,
 } from '@core/features/agent-chat/lib/agent-hitl';
+import type { AgentToolDisplayField } from '@core/features/agent-chat/lib/agent-tool-display';
 
 export type AgentToolActivity = {
   id: string;
-  name: string;
+  label: string;
   state: 'pending' | 'completed' | 'error';
+  fields: AgentToolDisplayField[];
+  resultSummary: string | null;
 };
 
 export type AgentSubagentActivity = {
@@ -34,6 +38,8 @@ export function AgentRunActivity({
   subagents: AgentSubagentActivity[];
   tools: AgentToolActivity[];
 }) {
+  const [expandedToolId, setExpandedToolId] = useState<string | null>(null);
+
   if (
     tools.length === 0 &&
     subagents.length === 0 &&
@@ -45,19 +51,62 @@ export function AgentRunActivity({
 
   return (
     <View className="mx-auto w-full max-w-3xl gap-2 px-4 pb-3 sm:px-6">
-      {tools.slice(-4).map((tool) => (
-        <View
-          className="flex-row items-center justify-between rounded-lg border border-border bg-muted/20 px-3 py-2"
-          key={tool.id}
-        >
-          <Text className="text-xs text-muted-foreground">
-            도구 작업 · {safeTechnicalLabel(tool.name)}
-          </Text>
-          <Text className="text-[10px] font-medium text-muted-foreground">
-            {toolStateLabel(tool.state)}
-          </Text>
-        </View>
-      ))}
+      {tools.slice(-4).map((tool) => {
+        const hasDetails =
+          tool.fields.length > 0 || tool.resultSummary !== null;
+        const expanded = hasDetails && expandedToolId === tool.id;
+
+        return (
+          <View
+            className="rounded-lg border border-border bg-muted/20"
+            key={tool.id}
+          >
+            <Pressable
+              accessibilityRole={hasDetails ? 'button' : undefined}
+              accessibilityState={hasDetails ? { expanded } : undefined}
+              disabled={!hasDetails}
+              onPress={() =>
+                setExpandedToolId((current) =>
+                  current === tool.id ? null : tool.id,
+                )
+              }
+              className="flex-row items-center justify-between gap-3 px-3 py-2"
+            >
+              <Text className="min-w-0 flex-1 text-xs text-muted-foreground">
+                {tool.label}
+              </Text>
+              <View className="flex-row items-center gap-2">
+                {hasDetails ? (
+                  <Text className="text-[10px] text-muted-foreground">
+                    {expanded ? '접기' : '자세히'}
+                  </Text>
+                ) : null}
+                <Text className="text-[10px] font-medium text-muted-foreground">
+                  {toolStateLabel(tool.state)}
+                </Text>
+              </View>
+            </Pressable>
+
+            {expanded ? (
+              <View className="gap-1 border-t border-border/70 px-3 py-2">
+                {tool.fields.map((field, index) => (
+                  <Text
+                    className="text-[10px] leading-4 text-muted-foreground"
+                    key={field.label + ':' + index}
+                  >
+                    {field.label}: {field.value}
+                  </Text>
+                ))}
+                {tool.resultSummary ? (
+                  <Text className="text-[10px] leading-4 text-muted-foreground">
+                    결과: {tool.resultSummary}
+                  </Text>
+                ) : null}
+              </View>
+            ) : null}
+          </View>
+        );
+      })}
 
       {subagents.slice(-3).map((subagent) => (
         <View
@@ -87,13 +136,13 @@ export function AgentRunActivity({
           {hitl.actions.map((action, index) => (
             <View
               className="gap-1.5 rounded-lg border border-border bg-background/70 p-3"
-              key={`${action.name}:${index}`}
+              key={action.name + ':' + index}
             >
               <Text className="text-xs font-medium">
                 {action.description ?? '이 작업을 실행합니다.'}
               </Text>
               <Text className="text-[10px] text-muted-foreground">
-                작업 유형: {safeTechnicalLabel(action.name)}
+                작업 유형: {action.label}
               </Text>
               {action.arguments.map((argument) => (
                 <Text
@@ -159,5 +208,5 @@ function toolStateLabel(state: AgentToolActivity['state']): string {
 }
 
 function safeTechnicalLabel(value: string): string {
-  return value.length <= 48 ? value : `${value.slice(0, 47)}…`;
+  return value.length <= 48 ? value : value.slice(0, 47) + '…';
 }

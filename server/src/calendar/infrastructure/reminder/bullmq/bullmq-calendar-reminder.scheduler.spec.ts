@@ -4,6 +4,7 @@ import {
 } from '@/calendar/domain/calendar-reminder';
 import type { Meeting } from '@/calendar/domain/meeting';
 import { BullMqCalendarReminderScheduler } from '@/calendar/infrastructure/reminder/bullmq/bullmq-calendar-reminder.scheduler';
+
 import { jest } from '@jest/globals';
 
 function meeting(overrides: Partial<Meeting> = {}): Meeting {

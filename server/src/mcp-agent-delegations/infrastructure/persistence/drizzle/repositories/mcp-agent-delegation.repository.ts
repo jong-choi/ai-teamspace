@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 
 import { DatabaseService } from '@/database/database.service';
-import { McpAgentDelegationRepository } from '@/mcp-agent-delegations/infrastructure/persistence/mcp-agent-delegation.repository';
 import { mcpAgentDelegation } from '@/mcp-agent-delegations/infrastructure/persistence/drizzle/schema/mcp-agent-delegation.schema';
 import {
   mcpAgentDelegationInsertSchema,
   mcpAgentDelegationSelectSchema,
   mcpAgentDelegationTokenUpdateSchema,
 } from '@/mcp-agent-delegations/infrastructure/persistence/drizzle/schema/mcp-agent-delegation.zod';
+import { McpAgentDelegationRepository } from '@/mcp-agent-delegations/infrastructure/persistence/mcp-agent-delegation.repository';
 
 import { and, desc, eq, gt, isNull, lte, or, sql } from 'drizzle-orm';
 

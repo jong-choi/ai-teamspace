@@ -20,11 +20,10 @@ import { OrganizationRoleSchema } from '@/organizations/domain/organization-role
 import { OrganizationProvider } from '@/organizations/infrastructure/organization/organization.provider';
 
 import { jest } from '@jest/globals';
+import { createAppTestingModule } from '@test/support/app-testing-module';
 import { AuthService } from '@thallesp/nestjs-better-auth';
 import { and, eq } from 'drizzle-orm';
 import request from 'supertest';
-
-import { createAppTestingModule } from '@test/support/app-testing-module';
 
 type TestAgent = ReturnType<typeof request.agent>;
 

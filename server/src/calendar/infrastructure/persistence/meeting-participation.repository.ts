@@ -2,8 +2,8 @@ import type { Meeting } from '@/calendar/domain/meeting';
 import type { MeetingAttendee } from '@/calendar/domain/meeting-attendee';
 import type { RsvpMeetingInput } from '@/calendar/dto/rsvp-meeting.dto';
 import type { UpdateMeetingAttendeesInput } from '@/calendar/dto/update-meeting-attendees.dto';
-import type { CalendarMeetingDetailRecord } from '@/calendar/infrastructure/persistence/calendar-meeting-query.repository';
 import type { CalendarSchedulingConflict } from '@/calendar/infrastructure/persistence/calendar-availability.repository';
+import type { CalendarMeetingDetailRecord } from '@/calendar/infrastructure/persistence/calendar-meeting-query.repository';
 
 export type ReplaceMeetingAttendeesResult =
   | ({ status: 'conflict' } & CalendarSchedulingConflict)

@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 
 import { ApplicationError } from '@/application.error';
 import type { Auth } from '@/auth/auth';
+import type { Organization } from '@/organizations/domain/organization';
+import { OrganizationSchema } from '@/organizations/domain/organization';
 import {
   InvalidOrganizationRoleError,
   OrganizationAccessDeniedError,
@@ -12,8 +14,6 @@ import {
   OrganizationSlugConflictError,
   OwnerTransferRequiredError,
 } from '@/organizations/domain/organization.error';
-import type { Organization } from '@/organizations/domain/organization';
-import { OrganizationSchema } from '@/organizations/domain/organization';
 import { OrganizationAccessSchema } from '@/organizations/domain/organization-access';
 import type { OrganizationMember } from '@/organizations/domain/organization-member';
 import { OrganizationMemberSchema } from '@/organizations/domain/organization-member';

@@ -1,9 +1,9 @@
-import type { z } from 'zod';
-
 import {
   mcpAccessKeyAllocationSelectSchema,
   mcpAccessKeyOperationSelectSchema,
 } from '@/mcp-access-keys/infrastructure/persistence/drizzle/schema/mcp-access-key-coordination.zod';
+
+import type { z } from 'zod';
 
 export type McpAccessKeyAllocation = z.infer<
   typeof mcpAccessKeyAllocationSelectSchema

@@ -1,9 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { AuthService } from '@thallesp/nestjs-better-auth';
-import { z } from 'zod';
-
 import type { Auth } from '@/auth/auth';
 import {
   MCP_ACCESS_KEY_CONFIG_ID,
@@ -26,6 +23,9 @@ import {
   McpAccessKeyNotFoundError,
   McpAccessKeyProviderFailureError,
 } from '@/mcp-access-keys/mcp-access-key.error';
+
+import { AuthService } from '@thallesp/nestjs-better-auth';
+import { z } from 'zod';
 
 const storedApiKeySchema = z.object({
   id: z.string().min(1),

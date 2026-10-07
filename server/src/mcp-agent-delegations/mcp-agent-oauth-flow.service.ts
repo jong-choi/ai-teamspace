@@ -10,8 +10,8 @@ import {
 } from '@/credential-crypto/credential-crypto.provider';
 import { MCP_SCOPES } from '@/mcp/contracts/mcp-scope';
 import type { McpAgentOauthFlow } from '@/mcp-agent-delegations/domain/mcp-agent-oauth-flow';
-import { McpAgentDelegationFlowInvalidError } from '@/mcp-agent-delegations/mcp-agent-delegation.error';
 import { McpAgentOauthFlowRepository } from '@/mcp-agent-delegations/infrastructure/persistence/mcp-agent-oauth-flow.repository';
+import { McpAgentDelegationFlowInvalidError } from '@/mcp-agent-delegations/mcp-agent-delegation.error';
 
 import type { OAuthDiscoveryState } from '@modelcontextprotocol/client';
 import { z } from 'zod';

@@ -1,7 +1,8 @@
+import { registerAs } from '@nestjs/config';
+
 import type { AgentMcpConnectionsConfig } from '@/agent-mcp-connections/config/agent-mcp-connections-config.type';
 import validateConfig from '@/utils/validate-config';
 
-import { registerAs } from '@nestjs/config';
 import { z } from 'zod';
 
 const callbackUrlSchema = z

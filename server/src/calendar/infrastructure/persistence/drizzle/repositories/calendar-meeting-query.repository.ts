@@ -7,10 +7,10 @@ import {
   type CalendarMeetingListRecord,
   CalendarMeetingQueryRepository,
 } from '@/calendar/infrastructure/persistence/calendar-meeting-query.repository';
-import { loadMeetingDetails } from '@/calendar/infrastructure/persistence/drizzle/repositories/calendar-persistence.helpers';
 import { toMeetingDomain } from '@/calendar/infrastructure/persistence/drizzle/mappers/meeting.mapper';
 import { toMeetingRecurrenceSeriesDomain } from '@/calendar/infrastructure/persistence/drizzle/mappers/meeting-recurrence-series.mapper';
 import { toMeetingRoomDomain } from '@/calendar/infrastructure/persistence/drizzle/mappers/meeting-room.mapper';
+import { loadMeetingDetails } from '@/calendar/infrastructure/persistence/drizzle/repositories/calendar-persistence.helpers';
 import { meeting } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting.schema';
 import { meetingAttendee } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting-attendee.schema';
 import { meetingRecurrenceSeries } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting-recurrence-series.schema';

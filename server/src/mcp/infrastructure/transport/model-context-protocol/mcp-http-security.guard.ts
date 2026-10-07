@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import type { AllConfigType } from '@/config/config.type';
+
 import {
   hostHeaderValidationResponse,
   originValidationResponse,
 } from '@modelcontextprotocol/server';
-
-import type { AllConfigType } from '@/config/config.type';
 
 @Injectable()
 export class McpHttpSecurityGuard {

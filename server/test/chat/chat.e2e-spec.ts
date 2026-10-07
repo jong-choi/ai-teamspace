@@ -13,9 +13,8 @@ import { chatConversation } from '@/chat/infrastructure/persistence/drizzle/sche
 import { DatabaseService } from '@/database/database.service';
 import { createOpenApiDocument, setupOpenApi } from '@/openapi';
 
-import request from 'supertest';
-
 import { createAppTestingModule } from '@test/support/app-testing-module';
+import request from 'supertest';
 
 type TestAgent = ReturnType<typeof request.agent>;
 

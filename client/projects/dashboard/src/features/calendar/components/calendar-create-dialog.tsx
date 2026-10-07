@@ -42,12 +42,12 @@ import {
   CALENDAR_CATEGORY_META,
   type CalendarCategory,
 } from '@core/features/calendar/lib/calendar-category';
-import { calendarLocalScheduleToInstants } from '@core/features/calendar/lib/calendar-time-zone';
 import {
   type CalendarRecurrenceDraft,
   createDefaultRecurrenceDraft,
   recurrenceDraftToContract,
 } from '@core/features/calendar/lib/calendar-recurrence';
+import { calendarLocalScheduleToInstants } from '@core/features/calendar/lib/calendar-time-zone';
 import { useCalendarAvailability } from '@core/features/calendar/use-calendar-availability';
 
 import { Bell, CalendarPlus } from 'lucide-react-native';

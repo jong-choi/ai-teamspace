@@ -1,24 +1,24 @@
 import type { AuthUserIdentity } from '@/auth/auth-user-directory.service';
 import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
 import type { OrganizationMembershipService } from '@/organizations/organization-membership.service';
+import type { Project } from '@/projects/domain/project';
 import {
   TicketChecklistNotFoundError,
   TicketCommentAuthorRequiredError,
   TicketLabelNotFoundError,
   TicketMoveReferenceInvalidError,
 } from '@/projects/domain/project.error';
-import type { Project } from '@/projects/domain/project';
 import type { Ticket } from '@/projects/domain/ticket';
-import { ProjectColumnRepository } from '@/projects/infrastructure/persistence/project-column.repository';
 import {
   ProjectRepository,
   type ProjectSummaryReadModel,
 } from '@/projects/infrastructure/persistence/project.repository';
+import { ProjectColumnRepository } from '@/projects/infrastructure/persistence/project-column.repository';
+import { TicketRepository } from '@/projects/infrastructure/persistence/ticket.repository';
 import { TicketChecklistRepository } from '@/projects/infrastructure/persistence/ticket-checklist.repository';
 import { TicketCommentRepository } from '@/projects/infrastructure/persistence/ticket-comment.repository';
 import { TicketLabelRepository } from '@/projects/infrastructure/persistence/ticket-label.repository';
 import { TicketOrderingRepository } from '@/projects/infrastructure/persistence/ticket-ordering.repository';
-import { TicketRepository } from '@/projects/infrastructure/persistence/ticket.repository';
 import { ProjectResourceLoader } from '@/projects/project-resource.loader';
 import { ProjectUserResolver } from '@/projects/project-user.resolver';
 import { TicketChecklistsService } from '@/projects/ticket-checklists.service';

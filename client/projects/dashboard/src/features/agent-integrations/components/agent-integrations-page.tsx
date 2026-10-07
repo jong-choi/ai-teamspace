@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { ActivityIndicator, View } from 'react-native';
 
 import type {
@@ -14,7 +15,6 @@ import {
   DashboardQueryBoundary,
   DashboardState,
 } from '@core/app/state/dashboard-query-state';
-import { CreateAgentIntegrationForm } from '@core/features/agent-integrations/components/create-agent-integration-form';
 import {
   agentIntegrationErrorMessage,
   useAgentIntegrationMutations,
@@ -24,8 +24,7 @@ import {
   useAgentMcpConnections,
   useAgentMcpTools,
 } from '@core/features/agent-integrations/agent-integrations-query';
-
-import { useForm } from 'react-hook-form';
+import { CreateAgentIntegrationForm } from '@core/features/agent-integrations/components/create-agent-integration-form';
 
 type AgentIntegrationsPageProps = {
   openAuthorization: (url: string) => Promise<void>;

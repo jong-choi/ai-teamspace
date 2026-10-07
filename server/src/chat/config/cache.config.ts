@@ -1,8 +1,9 @@
-import { redisUrlSchema } from '@/config/validation';
+import { registerAs } from '@nestjs/config';
+
 import type { CacheConfig } from '@/chat/config/cache-config.type';
+import { redisUrlSchema } from '@/config/validation';
 import validateConfig from '@/utils/validate-config';
 
-import { registerAs } from '@nestjs/config';
 import { z } from 'zod';
 
 const cacheConfigSchema = z.object({

@@ -9,12 +9,12 @@ import {
   toTicketCommentInsert,
   toTicketCommentUpdate,
 } from '@/projects/infrastructure/persistence/drizzle/mappers/ticket-comment.mapper';
-import { ticket } from '@/projects/infrastructure/persistence/drizzle/schema/ticket.schema';
-import { ticketComment } from '@/projects/infrastructure/persistence/drizzle/schema/ticket-comment.schema';
 import {
   lockActiveTicket,
   touchProject,
 } from '@/projects/infrastructure/persistence/drizzle/repositories/ticket-workflow.helpers';
+import { ticket } from '@/projects/infrastructure/persistence/drizzle/schema/ticket.schema';
+import { ticketComment } from '@/projects/infrastructure/persistence/drizzle/schema/ticket-comment.schema';
 import { TicketCommentRepository } from '@/projects/infrastructure/persistence/ticket-comment.repository';
 
 import { and, asc, eq } from 'drizzle-orm';

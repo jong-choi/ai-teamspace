@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { AuthService } from '@thallesp/nestjs-better-auth';
-import { z } from 'zod';
-
 import type { Auth } from '@/auth/auth';
 import type { AllConfigType } from '@/config/config.type';
 import { McpScopeSchema, normalizeMcpScopes } from '@/mcp/contracts/mcp-scope';
 import type { McpOAuthConnection } from '@/mcp-oauth-connections/domain/mcp-oauth-connection';
 import { McpOAuthConnectionProvider } from '@/mcp-oauth-connections/infrastructure/oauth-connection/mcp-oauth-connection.provider';
+
+import { AuthService } from '@thallesp/nestjs-better-auth';
+import { z } from 'zod';
 
 const consentSchema = z.object({
   id: z.string().min(1),

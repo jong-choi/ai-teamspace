@@ -20,15 +20,15 @@ import {
   OrganizationInvitationSchema,
 } from '@/organizations/domain/organization-invitation';
 import {
+  getWorkOsOrganizationAdapter,
+  type WorkOsOrganizationAuth,
+} from '@/organizations/infrastructure/better-auth/work-os-organization.adapter';
+import {
   type CreateOrganizationInvitationProviderInput,
   OrganizationInvitationProvider,
   type ResendOrganizationInvitationProviderInput,
 } from '@/organizations/infrastructure/invitation/organization-invitation.provider';
 import type { OrganizationActorContext } from '@/organizations/infrastructure/organization/organization.provider';
-import {
-  getWorkOsOrganizationAdapter,
-  type WorkOsOrganizationAuth,
-} from '@/organizations/infrastructure/better-auth/work-os-organization.adapter';
 
 import { AuthService } from '@thallesp/nestjs-better-auth';
 

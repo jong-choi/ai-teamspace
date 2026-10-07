@@ -1,3 +1,9 @@
+import type {
+  RunFinishedEvent,
+  RunTelemetryContext,
+  RunTelemetryEvent,
+  TelemetrySink,
+} from '@repo/agent-runtime/core';
 import type { AgentConfig } from '@/agent/config/agent-config.type';
 import {
   pseudonymizeLangfuseId,
@@ -26,12 +32,6 @@ import {
   type SpanProcessor,
   TraceIdRatioBasedSampler,
 } from '@opentelemetry/sdk-trace-node';
-import type {
-  RunFinishedEvent,
-  RunTelemetryContext,
-  RunTelemetryEvent,
-  TelemetrySink,
-} from '@repo/agent-runtime/core';
 
 type LangfuseConfiguration = NonNullable<
   AgentConfig['observability']

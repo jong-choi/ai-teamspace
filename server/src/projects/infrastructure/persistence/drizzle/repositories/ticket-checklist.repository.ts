@@ -17,8 +17,6 @@ import {
   toTicketChecklistItemInsert,
   toTicketChecklistItemUpdate,
 } from '@/projects/infrastructure/persistence/drizzle/mappers/ticket-checklist-item.mapper';
-import { ticketChecklist } from '@/projects/infrastructure/persistence/drizzle/schema/ticket-checklist.schema';
-import { ticketChecklistItem } from '@/projects/infrastructure/persistence/drizzle/schema/ticket-checklist-item.schema';
 import {
   activeTicketExists,
   checklistBelongsToTicket,
@@ -30,6 +28,8 @@ import {
   resolveInsertionIndex,
   touchProject,
 } from '@/projects/infrastructure/persistence/drizzle/repositories/ticket-workflow.helpers';
+import { ticketChecklist } from '@/projects/infrastructure/persistence/drizzle/schema/ticket-checklist.schema';
+import { ticketChecklistItem } from '@/projects/infrastructure/persistence/drizzle/schema/ticket-checklist-item.schema';
 import {
   type MoveChecklistItemResult,
   TicketChecklistRepository,

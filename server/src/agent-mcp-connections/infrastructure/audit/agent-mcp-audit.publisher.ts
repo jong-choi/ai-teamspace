@@ -1,5 +1,5 @@
-import type { AgentMcpLastErrorCategory } from '@/agent-mcp-connections/domain/agent-mcp-connection-health';
 import type { AgentMcpConnection } from '@/agent-mcp-connections/domain/agent-mcp-connection';
+import type { AgentMcpLastErrorCategory } from '@/agent-mcp-connections/domain/agent-mcp-connection-health';
 
 export type AgentMcpAuditEventName =
   | 'agent_mcp.connection.created'

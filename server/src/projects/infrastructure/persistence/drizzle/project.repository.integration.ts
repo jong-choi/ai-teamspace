@@ -1,5 +1,5 @@
-import { Test, type TestingModule } from '@nestjs/testing';
 import { ConfigModule } from '@nestjs/config';
+import { Test, type TestingModule } from '@nestjs/testing';
 
 import { user } from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
 import databaseConfig from '@/database/config/database.config';
@@ -13,8 +13,8 @@ import type { UpdateTicketInput } from '@/projects/dto/update-ticket.dto';
 import { ProjectDrizzlePersistenceModule } from '@/projects/infrastructure/persistence/drizzle/drizzle-persistence.module';
 import { project } from '@/projects/infrastructure/persistence/drizzle/schema/project.schema';
 import { projectColumn } from '@/projects/infrastructure/persistence/drizzle/schema/project-column.schema';
-import { ProjectColumnRepository } from '@/projects/infrastructure/persistence/project-column.repository';
 import { ProjectRepository } from '@/projects/infrastructure/persistence/project.repository';
+import { ProjectColumnRepository } from '@/projects/infrastructure/persistence/project-column.repository';
 import { TicketRepository } from '@/projects/infrastructure/persistence/ticket.repository';
 
 import { eq, inArray } from 'drizzle-orm';

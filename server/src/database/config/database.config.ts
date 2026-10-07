@@ -1,8 +1,9 @@
+import { registerAs } from '@nestjs/config';
+
 import { databaseUrlSchema } from '@/config/validation';
 import type { DatabaseConfig } from '@/database/config/database-config.type';
 import validateConfig from '@/utils/validate-config';
 
-import { registerAs } from '@nestjs/config';
 import { z } from 'zod';
 
 const databaseConfigSchema = z.object({

@@ -1,9 +1,9 @@
-import type { AuthInfo } from '@modelcontextprotocol/server';
-
 import { WorkOsMcpServerFactory } from '@/mcp/mcp-server.factory';
 import type { BoundMcpTool } from '@/mcp/tools/bound-mcp-tool';
-import { organizationsListTool } from '@/mcp/tools/organizations/organization-tool-definitions';
 import type { McpToolRegistryService } from '@/mcp/tools/mcp-tool-registry.service';
+import { organizationsListTool } from '@/mcp/tools/organizations/organization-tool-definitions';
+
+import type { AuthInfo } from '@modelcontextprotocol/server';
 
 const context = {
   authMethod: 'oauth' as const,

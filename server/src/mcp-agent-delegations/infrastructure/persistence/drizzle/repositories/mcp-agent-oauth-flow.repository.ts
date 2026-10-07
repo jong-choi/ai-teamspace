@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
 import { DatabaseService } from '@/database/database.service';
-import { McpAgentOauthFlowRepository } from '@/mcp-agent-delegations/infrastructure/persistence/mcp-agent-oauth-flow.repository';
 import { mcpAgentOauthFlow } from '@/mcp-agent-delegations/infrastructure/persistence/drizzle/schema/mcp-agent-oauth-flow.schema';
 import {
   mcpAgentOauthFlowDiscoveryUpdateSchema,
@@ -9,6 +8,7 @@ import {
   mcpAgentOauthFlowSelectSchema,
   mcpAgentOauthFlowVerifierUpdateSchema,
 } from '@/mcp-agent-delegations/infrastructure/persistence/drizzle/schema/mcp-agent-oauth-flow.zod';
+import { McpAgentOauthFlowRepository } from '@/mcp-agent-delegations/infrastructure/persistence/mcp-agent-oauth-flow.repository';
 
 import { and, desc, eq, gt, isNull } from 'drizzle-orm';
 

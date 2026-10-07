@@ -6,14 +6,14 @@ import { ConfigService } from '@nestjs/config';
 import type { AgentActor } from '@/agent/domain/agent-actor';
 import { WorkOsMcpAuthProviderFactory } from '@/agent/infrastructure/mcp/workos-mcp-auth-provider.factory';
 import type { AllConfigType } from '@/config/config.type';
-import { McpAgentDelegationCredentialService } from '@/mcp-agent-delegations/mcp-agent-delegation-credential.service';
+import { McpAgentDelegationRepository } from '@/mcp-agent-delegations/infrastructure/persistence/mcp-agent-delegation.repository';
 import {
   McpAgentDelegationRefreshConflictError,
   McpAgentDelegationRequiredError,
 } from '@/mcp-agent-delegations/mcp-agent-delegation.error';
+import { McpAgentDelegationCredentialService } from '@/mcp-agent-delegations/mcp-agent-delegation-credential.service';
 import { McpAgentDelegationOAuthClientProvider } from '@/mcp-agent-delegations/mcp-agent-delegation-oauth-client.provider';
 import { McpAgentOauthFlowService } from '@/mcp-agent-delegations/mcp-agent-oauth-flow.service';
-import { McpAgentDelegationRepository } from '@/mcp-agent-delegations/infrastructure/persistence/mcp-agent-delegation.repository';
 
 import {
   auth,

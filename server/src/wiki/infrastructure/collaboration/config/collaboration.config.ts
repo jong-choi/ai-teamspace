@@ -1,8 +1,9 @@
-import { redisUrlSchema, webSocketUrlSchema } from '@/config/validation';
-import type { CollaborationConfig } from '@/wiki/infrastructure/collaboration/config/collaboration-config.type';
-import validateConfig from '@/utils/validate-config';
-
 import { registerAs } from '@nestjs/config';
+
+import { redisUrlSchema, webSocketUrlSchema } from '@/config/validation';
+import validateConfig from '@/utils/validate-config';
+import type { CollaborationConfig } from '@/wiki/infrastructure/collaboration/config/collaboration-config.type';
+
 import { z } from 'zod';
 
 const collaborationConfigSchema = z.object({

@@ -1,10 +1,11 @@
+import { registerAs } from '@nestjs/config';
+
 import type {
   CredentialCryptoConfig,
   CredentialEncryptionKey,
 } from '@/credential-crypto/config/credential-crypto-config.type';
 import validateConfig from '@/utils/validate-config';
 
-import { registerAs } from '@nestjs/config';
 import { z } from 'zod';
 
 const keyIdSchema = z

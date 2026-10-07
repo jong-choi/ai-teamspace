@@ -14,12 +14,12 @@ import {
   normalizeMcpScopes,
 } from '@/mcp/contracts/mcp-scope';
 import type { McpAgentDelegation } from '@/mcp-agent-delegations/domain/mcp-agent-delegation';
+import { McpAgentDelegationRepository } from '@/mcp-agent-delegations/infrastructure/persistence/mcp-agent-delegation.repository';
 import { McpAgentDelegationCredentialInvalidError } from '@/mcp-agent-delegations/mcp-agent-delegation.error';
 import type { McpAgentDelegationActor } from '@/mcp-agent-delegations/mcp-agent-oauth-flow.service';
-import { McpAgentDelegationRepository } from '@/mcp-agent-delegations/infrastructure/persistence/mcp-agent-delegation.repository';
 
-import { OAuthTokensSchema } from '@modelcontextprotocol/core';
 import type { StoredOAuthTokens } from '@modelcontextprotocol/client';
+import { OAuthTokensSchema } from '@modelcontextprotocol/core';
 
 const TOKEN_FORMAT_VERSION = 1;
 

@@ -1,17 +1,17 @@
+import type { ConfigService } from '@nestjs/config';
+
+import type { AgentActor } from '@/agent/domain/agent-actor';
 import { AgentMcpOauthService } from '@/agent-mcp-connections/application/agent-mcp-oauth.service';
 import type { AgentMcpOauthCredentialService } from '@/agent-mcp-connections/application/agent-mcp-oauth-credential.service';
 import type { AgentMcpOauthStateService } from '@/agent-mcp-connections/application/agent-mcp-oauth-state.service';
+import { AgentMcpConnectionSchema } from '@/agent-mcp-connections/domain/agent-mcp-connection';
 import {
   AgentMcpOauthAuthorizationRequiredError,
   AgentMcpOauthCredentialInvalidError,
 } from '@/agent-mcp-connections/domain/agent-mcp-connection.error';
-import { AgentMcpConnectionSchema } from '@/agent-mcp-connections/domain/agent-mcp-connection';
 import type { SafeOutboundHttp } from '@/agent-mcp-connections/infrastructure/http/safe-outbound-http';
 import type { AgentMcpConnectionRepository } from '@/agent-mcp-connections/infrastructure/persistence/agent-mcp-connection.repository';
-import type { AgentActor } from '@/agent/domain/agent-actor';
 import type { AllConfigType } from '@/config/config.type';
-
-import type { ConfigService } from '@nestjs/config';
 
 describe('external MCP OAuth runtime refresh coordination', () => {
   const actor: AgentActor = {

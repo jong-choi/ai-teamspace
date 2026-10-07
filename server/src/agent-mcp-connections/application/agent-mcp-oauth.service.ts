@@ -3,21 +3,21 @@ import { randomUUID } from 'node:crypto';
 import { Injectable, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { classifyExternalMcpError } from '@/agent-mcp-connections/application/external-mcp-error-category';
+import type { AgentActor } from '@/agent/domain/agent-actor';
 import { AgentMcpOauthClientProvider } from '@/agent-mcp-connections/application/agent-mcp-oauth-client.provider';
 import { AgentMcpOauthCredentialService } from '@/agent-mcp-connections/application/agent-mcp-oauth-credential.service';
 import { AgentMcpOauthStateService } from '@/agent-mcp-connections/application/agent-mcp-oauth-state.service';
+import { classifyExternalMcpError } from '@/agent-mcp-connections/application/external-mcp-error-category';
+import type { AgentMcpConnection } from '@/agent-mcp-connections/domain/agent-mcp-connection';
 import {
   AgentMcpConnectionAuthKindMismatchError,
   AgentMcpConnectionNotFoundError,
   AgentMcpOauthAuthorizationRequiredError,
   AgentMcpOauthCredentialInvalidError,
 } from '@/agent-mcp-connections/domain/agent-mcp-connection.error';
-import type { AgentMcpConnection } from '@/agent-mcp-connections/domain/agent-mcp-connection';
 import { AgentMcpAuditPublisher } from '@/agent-mcp-connections/infrastructure/audit/agent-mcp-audit.publisher';
 import { SafeOutboundHttp } from '@/agent-mcp-connections/infrastructure/http/safe-outbound-http';
 import { AgentMcpConnectionRepository } from '@/agent-mcp-connections/infrastructure/persistence/agent-mcp-connection.repository';
-import type { AgentActor } from '@/agent/domain/agent-actor';
 import type { AllConfigType } from '@/config/config.type';
 
 import {

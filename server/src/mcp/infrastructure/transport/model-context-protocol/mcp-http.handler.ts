@@ -1,6 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import type { Auth } from '@/auth/auth';
+import type { AllConfigType } from '@/config/config.type';
+import {
+  mapApiKeyAuthInfo,
+  mapVerifiedOAuthRequest,
+} from '@/mcp/infrastructure/auth/better-auth/better-auth-mcp-auth.mapper';
+import {
+  extractMcpCredential,
+  McpCredentialExtractionError,
+} from '@/mcp/infrastructure/auth/mcp-credential.extractor';
+import { McpHttpSecurityGuard } from '@/mcp/infrastructure/transport/model-context-protocol/mcp-http-security.guard';
+import { WorkOsMcpServerFactory } from '@/mcp/mcp-server.factory';
+import {
+  McpAccessKeyAuthenticationError,
+  McpAccessKeyRateLimitedError,
+} from '@/mcp-access-keys/mcp-access-key.error';
+import { McpAccessKeyAuthenticator } from '@/mcp-access-keys/mcp-access-key-authenticator.provider';
+
 import { requireMcpAuth } from '@better-auth/mcp';
 import { createResourceServerChallenge } from '@better-auth/oauth-provider';
 import {
@@ -9,24 +27,6 @@ import {
 } from '@modelcontextprotocol/server';
 import { AuthService } from '@thallesp/nestjs-better-auth';
 import { APIError } from 'better-auth';
-
-import type { Auth } from '@/auth/auth';
-import type { AllConfigType } from '@/config/config.type';
-import {
-  McpAccessKeyAuthenticationError,
-  McpAccessKeyRateLimitedError,
-} from '@/mcp-access-keys/mcp-access-key.error';
-import { McpAccessKeyAuthenticator } from '@/mcp-access-keys/mcp-access-key-authenticator.provider';
-import {
-  mapApiKeyAuthInfo,
-  mapVerifiedOAuthRequest,
-} from '@/mcp/infrastructure/auth/better-auth/better-auth-mcp-auth.mapper';
-import {
-  McpCredentialExtractionError,
-  extractMcpCredential,
-} from '@/mcp/infrastructure/auth/mcp-credential.extractor';
-import { McpHttpSecurityGuard } from '@/mcp/infrastructure/transport/model-context-protocol/mcp-http-security.guard';
-import { WorkOsMcpServerFactory } from '@/mcp/mcp-server.factory';
 
 @Injectable()
 export class McpHttpHandler {

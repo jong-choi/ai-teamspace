@@ -1,10 +1,12 @@
 import { Injectable, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import type { AgentActor } from '@/agent/domain/agent-actor';
 import { AgentMcpCredentialService } from '@/agent-mcp-connections/application/agent-mcp-credential.service';
-import { AgentMcpOauthCredentialService } from '@/agent-mcp-connections/application/agent-mcp-oauth-credential.service';
 import { AgentMcpOauthService } from '@/agent-mcp-connections/application/agent-mcp-oauth.service';
+import { AgentMcpOauthCredentialService } from '@/agent-mcp-connections/application/agent-mcp-oauth-credential.service';
 import { classifyExternalMcpError } from '@/agent-mcp-connections/application/external-mcp-error-category';
+import type { AgentMcpConnection } from '@/agent-mcp-connections/domain/agent-mcp-connection';
 import {
   AgentMcpActiveOrganizationRequiredError,
   AgentMcpConnectionCredentialRequiredError,
@@ -13,25 +15,24 @@ import {
   AgentMcpConnectionRevisionConflictError,
   AgentMcpDiscoveryFailedError,
 } from '@/agent-mcp-connections/domain/agent-mcp-connection.error';
-import type { AgentMcpConnection } from '@/agent-mcp-connections/domain/agent-mcp-connection';
 import type { AgentMcpLastErrorCategory } from '@/agent-mcp-connections/domain/agent-mcp-connection-health';
 import {
   createAgentMcpNamespace,
   createAgentMcpToolSchemaFingerprint,
 } from '@/agent-mcp-connections/domain/agent-mcp-tool-identity';
-import type { CreateAgentMcpConnectionInput } from '@/agent-mcp-connections/dto/create-agent-mcp-connection.dto';
-import {
-  AgentMcpConnectionTestSchema,
-  type AgentMcpConnectionTestResponse,
-  AgentMcpToolCatalogSchema,
-  type AgentMcpToolCatalogResponse,
-} from '@/agent-mcp-connections/dto/agent-mcp-discovery.dto';
 import {
   type AgentMcpConnectionListResponse,
   type AgentMcpConnectionResponse,
   toAgentMcpConnectionResponse,
 } from '@/agent-mcp-connections/dto/agent-mcp-connection.dto';
+import {
+  type AgentMcpConnectionTestResponse,
+  AgentMcpConnectionTestSchema,
+  type AgentMcpToolCatalogResponse,
+  AgentMcpToolCatalogSchema,
+} from '@/agent-mcp-connections/dto/agent-mcp-discovery.dto';
 import type { AgentMcpOauthAuthorizationResponse } from '@/agent-mcp-connections/dto/agent-mcp-oauth.dto';
+import type { CreateAgentMcpConnectionInput } from '@/agent-mcp-connections/dto/create-agent-mcp-connection.dto';
 import type { UpdateAgentMcpConnectionInput } from '@/agent-mcp-connections/dto/update-agent-mcp-connection.dto';
 import type { UpdateAgentMcpToolPolicyInput } from '@/agent-mcp-connections/dto/update-agent-mcp-tool-policy.dto';
 import { AgentMcpAuditPublisher } from '@/agent-mcp-connections/infrastructure/audit/agent-mcp-audit.publisher';
@@ -40,7 +41,6 @@ import {
   ExternalMcpDiscoveryProvider,
 } from '@/agent-mcp-connections/infrastructure/mcp/external-mcp-discovery.provider';
 import { AgentMcpConnectionRepository } from '@/agent-mcp-connections/infrastructure/persistence/agent-mcp-connection.repository';
-import type { AgentActor } from '@/agent/domain/agent-actor';
 import type { AllConfigType } from '@/config/config.type';
 import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
 import { OrganizationsService } from '@/organizations/organizations.service';

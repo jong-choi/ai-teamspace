@@ -32,11 +32,11 @@ import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 import { useCalendarRescheduleAvailabilityPreview } from '@core/features/calendar/calendar-availability-mutations';
 import { useRescheduleCalendarMeeting } from '@core/features/calendar/calendar-scheduling-mutations';
 import { CalendarAvailabilityStatus } from '@core/features/calendar/components/calendar-availability-status';
+import { formatInstantTime } from '@core/features/calendar/lib/calendar-format';
 import {
   calendarLocalScheduleToInstants,
   dateKeyInTimeZone,
 } from '@core/features/calendar/lib/calendar-time-zone';
-import { formatInstantTime } from '@core/features/calendar/lib/calendar-format';
 import { useCalendarAvailability } from '@core/features/calendar/use-calendar-availability';
 
 const rescheduleScopes = RescheduleMeetingSchema.shape.scope.unwrap().options;

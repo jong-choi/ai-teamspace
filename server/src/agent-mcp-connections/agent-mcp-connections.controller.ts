@@ -25,13 +25,13 @@ import {
 
 import { AgentMcpConnectionsService } from '@/agent-mcp-connections/application/agent-mcp-connections.service';
 import {
-  AgentMcpConnectionTestDto,
-  AgentMcpToolCatalogDto,
-} from '@/agent-mcp-connections/dto/agent-mcp-discovery.dto';
-import {
   AgentMcpConnectionDto,
   AgentMcpConnectionListDto,
 } from '@/agent-mcp-connections/dto/agent-mcp-connection.dto';
+import {
+  AgentMcpConnectionTestDto,
+  AgentMcpToolCatalogDto,
+} from '@/agent-mcp-connections/dto/agent-mcp-discovery.dto';
 import { AgentMcpOauthAuthorizationDto } from '@/agent-mcp-connections/dto/agent-mcp-oauth.dto';
 import {
   CreateAgentMcpConnectionDto,
@@ -39,8 +39,8 @@ import {
 } from '@/agent-mcp-connections/dto/create-agent-mcp-connection.dto';
 import {
   DeleteAgentMcpConnectionQueryDto,
-  DeleteAgentMcpConnectionQuerySchema,
   type DeleteAgentMcpConnectionQueryInput,
+  DeleteAgentMcpConnectionQuerySchema,
 } from '@/agent-mcp-connections/dto/delete-agent-mcp-connection.dto';
 import {
   UpdateAgentMcpConnectionDto,

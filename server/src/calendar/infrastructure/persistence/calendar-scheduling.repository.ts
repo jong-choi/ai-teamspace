@@ -4,8 +4,8 @@ import type { MeetingRecurrenceSeries } from '@/calendar/domain/meeting-recurren
 import type { CancelMeetingInput } from '@/calendar/dto/cancel-meeting.dto';
 import type { CreateMeetingInput } from '@/calendar/dto/create-meeting.dto';
 import type { RescheduleMeetingInput } from '@/calendar/dto/reschedule-meeting.dto';
-import type { CalendarMeetingDetailRecord } from '@/calendar/infrastructure/persistence/calendar-meeting-query.repository';
 import type { CalendarSchedulingConflict } from '@/calendar/infrastructure/persistence/calendar-availability.repository';
+import type { CalendarMeetingDetailRecord } from '@/calendar/infrastructure/persistence/calendar-meeting-query.repository';
 
 export type ScheduleMeetingResult =
   | ({ status: 'conflict' } & CalendarSchedulingConflict)

@@ -5,8 +5,8 @@ import type { CalendarMeetingPresenterService } from '@/calendar/calendar-meetin
 import { CalendarParticipantPolicy } from '@/calendar/calendar-participant.policy';
 import { CalendarParticipationService } from '@/calendar/calendar-participation.service';
 import { CalendarRecurrenceService } from '@/calendar/calendar-recurrence.service';
-import { CalendarSchedulingConflictPolicy } from '@/calendar/calendar-scheduling-conflict.policy';
 import { CalendarSchedulingService } from '@/calendar/calendar-scheduling.service';
+import { CalendarSchedulingConflictPolicy } from '@/calendar/calendar-scheduling-conflict.policy';
 import {
   CalendarMeetingAlreadyCanceledError,
   CalendarParticipantConflictError,

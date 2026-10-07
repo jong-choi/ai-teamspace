@@ -1,10 +1,10 @@
-import { z } from 'zod';
-
 import {
+  type McpScope,
   McpScopeSchema,
   normalizeMcpScopes,
-  type McpScope,
 } from '@/mcp/contracts/mcp-scope';
+
+import { z } from 'zod';
 
 const selectedOrganizationGrantSchema = z.object({
   mode: z.literal('selected'),

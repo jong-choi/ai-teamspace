@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { AuthService } from '@thallesp/nestjs-better-auth';
-
 import type { Auth } from '@/auth/auth';
 import type { AllConfigType } from '@/config/config.type';
 import { McpAgentTokenRevocationProvider } from '@/mcp-agent-delegations/infrastructure/oauth-server/mcp-agent-token-revocation.provider';
+
+import { AuthService } from '@thallesp/nestjs-better-auth';
 
 @Injectable()
 export class BetterAuthMcpAgentTokenRevocationAdapter extends McpAgentTokenRevocationProvider {

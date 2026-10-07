@@ -4,14 +4,14 @@ import { DatabaseService } from '@/database/database.service';
 import type { Ticket } from '@/projects/domain/ticket';
 import type { MoveTicketInput } from '@/projects/dto/move-ticket.dto';
 import { toTicketDomain } from '@/projects/infrastructure/persistence/drizzle/mappers/ticket.mapper';
-import { projectColumn } from '@/projects/infrastructure/persistence/drizzle/schema/project-column.schema';
-import { ticket } from '@/projects/infrastructure/persistence/drizzle/schema/ticket.schema';
 import {
   lockActiveProject,
   persistTicketOrder,
   resolveInsertionIndex,
   touchProject,
 } from '@/projects/infrastructure/persistence/drizzle/repositories/ticket-workflow.helpers';
+import { projectColumn } from '@/projects/infrastructure/persistence/drizzle/schema/project-column.schema';
+import { ticket } from '@/projects/infrastructure/persistence/drizzle/schema/ticket.schema';
 import {
   type MoveTicketResult,
   TicketOrderingRepository,

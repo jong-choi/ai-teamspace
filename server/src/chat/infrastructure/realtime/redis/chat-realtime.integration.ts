@@ -1,7 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 
-import type { CacheConfig } from '@/chat/config/cache-config.type';
 import cacheConfig from '@/chat/config/cache.config';
+import type { CacheConfig } from '@/chat/config/cache-config.type';
 import { RedisChatRealtimeAdapter } from '@/chat/infrastructure/realtime/redis/chat-realtime.adapter';
 import type { AllConfigType } from '@/config/config.type';
 

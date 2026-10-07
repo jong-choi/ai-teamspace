@@ -1,21 +1,21 @@
 import { createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
 
-import { ExternalMcpToolPolicy } from '@/agent-mcp-connections/application/external-mcp-tool.policy';
+import type { ConfigService } from '@nestjs/config';
+
+import type { AgentActor } from '@/agent/domain/agent-actor';
 import type { AgentMcpCredentialService } from '@/agent-mcp-connections/application/agent-mcp-credential.service';
 import type { AgentMcpOauthService } from '@/agent-mcp-connections/application/agent-mcp-oauth.service';
+import { ExternalMcpToolPolicy } from '@/agent-mcp-connections/application/external-mcp-tool.policy';
 import { AgentMcpConnectionSchema } from '@/agent-mcp-connections/domain/agent-mcp-connection';
 import type { SafeOutboundHttp } from '@/agent-mcp-connections/infrastructure/http/safe-outbound-http';
 import { McpSdkExternalMcpConnectionAdapter } from '@/agent-mcp-connections/infrastructure/mcp/mcp-sdk-external-mcp-connection.adapter';
 import type { AgentMcpConnectionRepository } from '@/agent-mcp-connections/infrastructure/persistence/agent-mcp-connection.repository';
-import type { AgentActor } from '@/agent/domain/agent-actor';
 import type { AllConfigType } from '@/config/config.type';
 
+import { Client } from '@modelcontextprotocol/client';
 import { startWorkOsMcpFixture } from '@test/agent/fixtures/workos-mcp.fixture';
 import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
-
-import type { ConfigService } from '@nestjs/config';
-import { Client } from '@modelcontextprotocol/client';
 
 describe('external MCP SDK connection adapter', () => {
   const actor: AgentActor = {

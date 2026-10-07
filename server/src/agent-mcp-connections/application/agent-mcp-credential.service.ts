@@ -1,12 +1,12 @@
 import { Injectable, Optional } from '@nestjs/common';
 
+import type { AgentActor } from '@/agent/domain/agent-actor';
 import {
   AgentMcpConnectionAuthKindMismatchError,
   AgentMcpConnectionNotFoundError,
 } from '@/agent-mcp-connections/domain/agent-mcp-connection.error';
 import { AgentMcpAuditPublisher } from '@/agent-mcp-connections/infrastructure/audit/agent-mcp-audit.publisher';
 import { AgentMcpConnectionRepository } from '@/agent-mcp-connections/infrastructure/persistence/agent-mcp-connection.repository';
-import type { AgentActor } from '@/agent/domain/agent-actor';
 import {
   CredentialCryptoEnvelopeSchema,
   CredentialCryptoProvider,

@@ -1,7 +1,6 @@
 import { jest } from '@jest/globals';
 import { AIMessage } from '@langchain/core/messages';
 import { fakeModel } from '@langchain/core/testing';
-
 import { startWorkOsMcpFixture } from '@test/agent/fixtures/workos-mcp.fixture';
 import {
   FixtureModelProvider,

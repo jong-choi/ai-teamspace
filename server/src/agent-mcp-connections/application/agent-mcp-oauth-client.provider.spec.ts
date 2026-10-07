@@ -1,8 +1,8 @@
+import type { AgentActor } from '@/agent/domain/agent-actor';
 import { AgentMcpOauthClientProvider } from '@/agent-mcp-connections/application/agent-mcp-oauth-client.provider';
 import type { AgentMcpOauthCredentialService } from '@/agent-mcp-connections/application/agent-mcp-oauth-credential.service';
 import type { AgentMcpOauthStateService } from '@/agent-mcp-connections/application/agent-mcp-oauth-state.service';
 import { AgentMcpOauthAuthorizationRequiredError } from '@/agent-mcp-connections/domain/agent-mcp-connection.error';
-import type { AgentActor } from '@/agent/domain/agent-actor';
 
 describe('external MCP OAuth SDK provider bridge', () => {
   const actor: AgentActor = {

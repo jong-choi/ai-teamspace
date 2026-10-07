@@ -1,7 +1,7 @@
 import type { AgentGraphFactory } from '@repo/agent-runtime';
 import { WorkOsAgentFactory } from '@/agent/application/workos-agent.factory';
-import { AgentConfiguration } from '@/agent/config/agent-configuration';
 import type { AgentConfig } from '@/agent/config/agent-config.type';
+import { AgentConfiguration } from '@/agent/config/agent-configuration';
 import { DeepAgentBuilder } from '@/agent/infrastructure/deep-agent/deep-agent.builder';
 import { DeepAgentWorkOsGraphAdapter } from '@/agent/infrastructure/deep-agent/deep-agent-workos-graph.adapter';
 import { LangChainWorkOsMcpAdapter } from '@/agent/infrastructure/mcp/langchain/langchain-workos-mcp.adapter';

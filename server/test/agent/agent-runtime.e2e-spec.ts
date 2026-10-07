@@ -19,9 +19,8 @@ import {
 import { ProblemDetailsFilter } from '@/common/http/problem-details.filter';
 
 import { Client } from '@langchain/langgraph-sdk';
-import { NestProblemDetailsModule } from 'nest-problem-details-filter';
-
 import { deterministicAgentGraph } from '@test/agent/fixtures/deterministic-agent.fixture';
+import { NestProblemDetailsModule } from 'nest-problem-details-filter';
 
 const auth = adaptAgentAuth(
   new AgentAuth()

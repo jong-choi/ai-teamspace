@@ -6,9 +6,8 @@ import {
   organizationFacadeDisabledPaths,
 } from '@/auth/auth-options';
 
-import request from 'supertest';
-
 import { createAppTestingModule } from '@test/support/app-testing-module';
+import request from 'supertest';
 
 type App = Parameters<typeof request>[0];
 

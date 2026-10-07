@@ -1,7 +1,7 @@
+import { MeetingDetailSchema } from '@/calendar/dto/meeting.dto';
+import { meetingSelectSchema } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting.zod';
 import { meetingAttendeeSelectSchema } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting-attendee.zod';
 import { meetingRoomSelectSchema } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting-room.zod';
-import { meetingSelectSchema } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting.zod';
-import { MeetingDetailSchema } from '@/calendar/dto/meeting.dto';
 import { createZodDto } from '@/common/dto/create-zod-dto';
 
 import { z } from 'zod';

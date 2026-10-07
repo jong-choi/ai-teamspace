@@ -1,7 +1,8 @@
+import { registerAs } from '@nestjs/config';
+
 import type { McpConfig } from '@/mcp/config/mcp-config.type';
 import validateConfig from '@/utils/validate-config';
 
-import { registerAs } from '@nestjs/config';
 import { z } from 'zod';
 
 const commaSeparatedListSchema = z

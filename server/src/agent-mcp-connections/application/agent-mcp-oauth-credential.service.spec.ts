@@ -1,13 +1,13 @@
+import type { ConfigService } from '@nestjs/config';
+
+import type { AgentActor } from '@/agent/domain/agent-actor';
 import { AgentMcpOauthCredentialService } from '@/agent-mcp-connections/application/agent-mcp-oauth-credential.service';
 import { AgentMcpConnectionSchema } from '@/agent-mcp-connections/domain/agent-mcp-connection';
 import type { AgentMcpCredential } from '@/agent-mcp-connections/domain/agent-mcp-credential';
 import type { AgentMcpAuditPublisher } from '@/agent-mcp-connections/infrastructure/audit/agent-mcp-audit.publisher';
 import type { AgentMcpConnectionRepository } from '@/agent-mcp-connections/infrastructure/persistence/agent-mcp-connection.repository';
-import type { AgentActor } from '@/agent/domain/agent-actor';
 import type { AllConfigType } from '@/config/config.type';
 import type { CredentialCryptoProvider } from '@/credential-crypto/credential-crypto.provider';
-
-import type { ConfigService } from '@nestjs/config';
 
 describe('external MCP OAuth credential bundle', () => {
   const actor: AgentActor = {

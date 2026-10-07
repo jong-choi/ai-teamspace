@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 
-import {
-  McpServer,
-  requireScopes,
-  type AuthInfo,
-} from '@modelcontextprotocol/server';
-
 import { getMcpAuthContext } from '@/mcp/infrastructure/auth/better-auth/better-auth-mcp-auth.mapper';
 import { McpToolRegistryService } from '@/mcp/tools/mcp-tool-registry.service';
+
+import {
+  type AuthInfo,
+  McpServer,
+  requireScopes,
+} from '@modelcontextprotocol/server';
 
 export const WORK_OS_MCP_SERVER_INFO = {
   name: 'work-os',

@@ -1,5 +1,5 @@
-import { AgentConfiguration } from '@/agent/config/agent-configuration';
 import type { AgentConfig } from '@/agent/config/agent-config.type';
+import { AgentConfiguration } from '@/agent/config/agent-configuration';
 import { ConfiguredAgentModelAdapter } from '@/agent/infrastructure/model/configured/configured-agent-model.adapter';
 
 import { ChatOllama } from '@langchain/ollama';

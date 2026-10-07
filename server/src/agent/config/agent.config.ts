@@ -1,12 +1,13 @@
+import { registerAs } from '@nestjs/config';
+
+import type { AgentConfig } from '@/agent/config/agent-config.type';
 import {
   databaseUrlSchema,
   httpUrlSchema,
   redisUrlSchema,
 } from '@/config/validation';
-import type { AgentConfig } from '@/agent/config/agent-config.type';
 import validateConfig from '@/utils/validate-config';
 
-import { registerAs } from '@nestjs/config';
 import { z } from 'zod';
 
 const optionalTrimmedStringSchema = z.preprocess(

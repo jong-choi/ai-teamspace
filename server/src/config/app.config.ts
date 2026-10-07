@@ -1,8 +1,9 @@
+import { registerAs } from '@nestjs/config';
+
 import type { AppConfig } from '@/config/app-config.type';
 import { trustedOriginsSchema } from '@/config/validation';
 import validateConfig from '@/utils/validate-config';
 
-import { registerAs } from '@nestjs/config';
 import { z } from 'zod';
 
 const appConfigSchema = z.object({

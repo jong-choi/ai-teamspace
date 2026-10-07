@@ -1,8 +1,8 @@
 import { ConfigService } from '@nestjs/config';
 
 import type { AllConfigType } from '@/config/config.type';
-import type { CollaborationConfig } from '@/wiki/infrastructure/collaboration/config/collaboration-config.type';
 import collaborationConfig from '@/wiki/infrastructure/collaboration/config/collaboration.config';
+import type { CollaborationConfig } from '@/wiki/infrastructure/collaboration/config/collaboration-config.type';
 import { RedisWikiCollaborationInvalidationPublisher } from '@/wiki/infrastructure/collaboration/redis/redis-wiki-collaboration-invalidation.publisher';
 import { RedisWikiCollaborationInvalidationSubscriber } from '@/wiki/infrastructure/collaboration/redis/redis-wiki-collaboration-invalidation.subscriber';
 import type { WikiCollaborationInvalidationEvent } from '@/wiki/infrastructure/collaboration/wiki-collaboration-invalidation.provider';

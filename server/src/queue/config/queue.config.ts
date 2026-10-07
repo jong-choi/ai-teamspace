@@ -1,8 +1,9 @@
+import { registerAs } from '@nestjs/config';
+
 import { redisUrlSchema } from '@/config/validation';
 import type { QueueConfig } from '@/queue/config/queue-config.type';
 import validateConfig from '@/utils/validate-config';
 
-import { registerAs } from '@nestjs/config';
 import { z } from 'zod';
 
 const queueConfigSchema = z.object({

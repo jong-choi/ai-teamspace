@@ -6,7 +6,6 @@ import { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { AIMessage, type BaseMessage } from '@langchain/core/messages';
 import type { ChatResult } from '@langchain/core/outputs';
 import { fakeModel } from '@langchain/core/testing';
-
 import { startWorkOsMcpFixture } from '@test/agent/fixtures/workos-mcp.fixture';
 import {
   startWorkOsMcpSecretCanaryFixture,

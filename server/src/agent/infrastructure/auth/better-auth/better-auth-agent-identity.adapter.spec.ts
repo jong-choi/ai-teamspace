@@ -1,6 +1,6 @@
-import type { Auth } from '@/auth/auth';
 import { AgentOrganizationContextRequiredError } from '@/agent/infrastructure/auth/agent-identity.provider';
 import { BetterAuthAgentIdentityAdapter } from '@/agent/infrastructure/auth/better-auth/better-auth-agent-identity.adapter';
+import type { Auth } from '@/auth/auth';
 import type { OrganizationMembershipService } from '@/organizations/organization-membership.service';
 
 import { jest } from '@jest/globals';

@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
 
-import { AuthService } from '@thallesp/nestjs-better-auth';
-import { APIError } from 'better-auth';
-
 import type { Auth } from '@/auth/auth';
 import { MCP_ACCESS_KEY_CONFIG_ID } from '@/auth/auth-options';
 import {
-  McpAccessKeyMetadataSchema,
+  type McpAuthContext,
+  McpAuthContextSchema,
+} from '@/mcp/contracts/mcp-auth-context';
+import {
   grantToAllowedOrganizationIds,
+  McpAccessKeyMetadataSchema,
   permissionMapToScopes,
 } from '@/mcp-access-keys/domain/mcp-access-key-contract';
 import {
@@ -15,10 +16,9 @@ import {
   McpAccessKeyRateLimitedError,
 } from '@/mcp-access-keys/mcp-access-key.error';
 import { McpAccessKeyAuthenticator } from '@/mcp-access-keys/mcp-access-key-authenticator.provider';
-import {
-  McpAuthContextSchema,
-  type McpAuthContext,
-} from '@/mcp/contracts/mcp-auth-context';
+
+import { AuthService } from '@thallesp/nestjs-better-auth';
+import { APIError } from 'better-auth';
 
 @Injectable()
 export class BetterAuthMcpAccessKeyAuthenticatorAdapter extends McpAccessKeyAuthenticator {

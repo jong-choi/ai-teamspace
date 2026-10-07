@@ -1,5 +1,5 @@
-import type { AgentMcpConnection } from '@/agent-mcp-connections/domain/agent-mcp-connection';
 import type { AgentActor } from '@/agent/domain/agent-actor';
+import type { AgentMcpConnection } from '@/agent-mcp-connections/domain/agent-mcp-connection';
 
 export interface ExternalMcpDiscoveredTool {
   name: string;

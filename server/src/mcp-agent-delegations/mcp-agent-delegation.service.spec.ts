@@ -1,6 +1,8 @@
 import type { ConfigService } from '@nestjs/config';
 
 import type { AllConfigType } from '@/config/config.type';
+import type { McpAgentTokenRevocationProvider } from '@/mcp-agent-delegations/infrastructure/oauth-server/mcp-agent-token-revocation.provider';
+import type { McpAgentOauthFlowRepository } from '@/mcp-agent-delegations/infrastructure/persistence/mcp-agent-oauth-flow.repository';
 import {
   McpAgentDelegationFlowInvalidError,
   McpAgentDelegationRevocationError,
@@ -8,8 +10,6 @@ import {
 import { McpAgentDelegationService } from '@/mcp-agent-delegations/mcp-agent-delegation.service';
 import type { McpAgentDelegationCredentialService } from '@/mcp-agent-delegations/mcp-agent-delegation-credential.service';
 import type { McpAgentOauthFlowService } from '@/mcp-agent-delegations/mcp-agent-oauth-flow.service';
-import type { McpAgentTokenRevocationProvider } from '@/mcp-agent-delegations/infrastructure/oauth-server/mcp-agent-token-revocation.provider';
-import type { McpAgentOauthFlowRepository } from '@/mcp-agent-delegations/infrastructure/persistence/mcp-agent-oauth-flow.repository';
 import type { OrganizationMembershipService } from '@/organizations/organization-membership.service';
 
 import {

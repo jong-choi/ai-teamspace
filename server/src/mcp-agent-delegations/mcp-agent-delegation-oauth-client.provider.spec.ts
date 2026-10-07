@@ -1,10 +1,10 @@
 import type { McpConfig } from '@/mcp/config/mcp-config.type';
 import { MCP_SCOPES } from '@/mcp/contracts/mcp-scope';
-import type { McpAgentDelegationCredentialService } from '@/mcp-agent-delegations/mcp-agent-delegation-credential.service';
 import {
   McpAgentDelegationCredentialInvalidError,
   McpAgentDelegationRequiredError,
 } from '@/mcp-agent-delegations/mcp-agent-delegation.error';
+import type { McpAgentDelegationCredentialService } from '@/mcp-agent-delegations/mcp-agent-delegation-credential.service';
 import { McpAgentDelegationOAuthClientProvider } from '@/mcp-agent-delegations/mcp-agent-delegation-oauth-client.provider';
 import type { McpAgentOauthFlowService } from '@/mcp-agent-delegations/mcp-agent-oauth-flow.service';
 

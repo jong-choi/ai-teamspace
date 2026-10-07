@@ -1,6 +1,7 @@
 import { Injectable, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import type { AgentActor } from '@/agent/domain/agent-actor';
 import {
   AgentMcpConnectionAuthKindMismatchError,
   AgentMcpConnectionNotFoundError,
@@ -10,22 +11,21 @@ import {
 import type { AgentMcpCredential } from '@/agent-mcp-connections/domain/agent-mcp-credential';
 import { AgentMcpAuditPublisher } from '@/agent-mcp-connections/infrastructure/audit/agent-mcp-audit.publisher';
 import { AgentMcpConnectionRepository } from '@/agent-mcp-connections/infrastructure/persistence/agent-mcp-connection.repository';
-import type { AgentActor } from '@/agent/domain/agent-actor';
 import type { AllConfigType } from '@/config/config.type';
 import {
   CredentialCryptoEnvelopeSchema,
   CredentialCryptoProvider,
 } from '@/credential-crypto/credential-crypto.provider';
 
+import type {
+  StoredOAuthClientInformation,
+  StoredOAuthTokens,
+} from '@modelcontextprotocol/client';
 import {
   OAuthClientInformationFullSchema,
   OAuthClientInformationSchema,
   OAuthTokensSchema,
 } from '@modelcontextprotocol/core';
-import type {
-  StoredOAuthClientInformation,
-  StoredOAuthTokens,
-} from '@modelcontextprotocol/client';
 import { z } from 'zod';
 
 const OAUTH_CREDENTIAL_FORMAT_VERSION = 1;

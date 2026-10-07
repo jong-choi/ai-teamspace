@@ -5,9 +5,9 @@ import type { ConfigService } from '@nestjs/config';
 import type { AllConfigType } from '@/config/config.type';
 import type { CredentialCryptoProvider } from '@/credential-crypto/credential-crypto.provider';
 import type { McpAgentOauthFlow } from '@/mcp-agent-delegations/domain/mcp-agent-oauth-flow';
+import type { McpAgentOauthFlowRepository } from '@/mcp-agent-delegations/infrastructure/persistence/mcp-agent-oauth-flow.repository';
 import { McpAgentDelegationFlowInvalidError } from '@/mcp-agent-delegations/mcp-agent-delegation.error';
 import { McpAgentOauthFlowService } from '@/mcp-agent-delegations/mcp-agent-oauth-flow.service';
-import type { McpAgentOauthFlowRepository } from '@/mcp-agent-delegations/infrastructure/persistence/mcp-agent-oauth-flow.repository';
 
 const config = {
   resourceUrl: 'https://workos.example/mcp',

@@ -2,14 +2,14 @@ import type { ConfigService } from '@nestjs/config';
 
 import type { Auth } from '@/auth/auth';
 import type { AllConfigType } from '@/config/config.type';
+import { McpHttpHandler } from '@/mcp/infrastructure/transport/model-context-protocol/mcp-http.handler';
+import type { McpHttpSecurityGuard } from '@/mcp/infrastructure/transport/model-context-protocol/mcp-http-security.guard';
+import type { WorkOsMcpServerFactory } from '@/mcp/mcp-server.factory';
 import {
   McpAccessKeyAuthenticationError,
   McpAccessKeyRateLimitedError,
 } from '@/mcp-access-keys/mcp-access-key.error';
 import type { McpAccessKeyAuthenticator } from '@/mcp-access-keys/mcp-access-key-authenticator.provider';
-import { McpHttpHandler } from '@/mcp/infrastructure/transport/model-context-protocol/mcp-http.handler';
-import type { McpHttpSecurityGuard } from '@/mcp/infrastructure/transport/model-context-protocol/mcp-http-security.guard';
-import type { WorkOsMcpServerFactory } from '@/mcp/mcp-server.factory';
 
 import type { AuthService } from '@thallesp/nestjs-better-auth';
 

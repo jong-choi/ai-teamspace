@@ -4,8 +4,8 @@ import type { ConfigService } from '@nestjs/config';
 
 import type { AllConfigType } from '@/config/config.type';
 import type { CredentialCryptoProvider } from '@/credential-crypto/credential-crypto.provider';
-import { McpAgentDelegationCredentialService } from '@/mcp-agent-delegations/mcp-agent-delegation-credential.service';
 import type { McpAgentDelegationRepository } from '@/mcp-agent-delegations/infrastructure/persistence/mcp-agent-delegation.repository';
+import { McpAgentDelegationCredentialService } from '@/mcp-agent-delegations/mcp-agent-delegation-credential.service';
 
 const envelope = {
   version: 1 as const,

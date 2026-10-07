@@ -1,15 +1,15 @@
 import { createHash } from 'node:crypto';
 
+import type { ConfigService } from '@nestjs/config';
+
+import type { AgentActor } from '@/agent/domain/agent-actor';
 import { AgentMcpOauthStateService } from '@/agent-mcp-connections/application/agent-mcp-oauth-state.service';
 import { AgentMcpConnectionSchema } from '@/agent-mcp-connections/domain/agent-mcp-connection';
 import { AgentMcpOauthStateInvalidError } from '@/agent-mcp-connections/domain/agent-mcp-connection.error';
 import type { AgentMcpOauthState } from '@/agent-mcp-connections/domain/agent-mcp-oauth-state';
 import type { AgentMcpConnectionRepository } from '@/agent-mcp-connections/infrastructure/persistence/agent-mcp-connection.repository';
-import type { AgentActor } from '@/agent/domain/agent-actor';
 import type { AllConfigType } from '@/config/config.type';
 import type { CredentialCryptoProvider } from '@/credential-crypto/credential-crypto.provider';
-
-import type { ConfigService } from '@nestjs/config';
 
 describe('외부 MCP OAuth state 서비스', () => {
   const actor: AgentActor = {

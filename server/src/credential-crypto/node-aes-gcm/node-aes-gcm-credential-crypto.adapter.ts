@@ -3,11 +3,11 @@ import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
 import type { CredentialCryptoConfig } from '@/credential-crypto/config/credential-crypto-config.type';
 import { CredentialDecryptError } from '@/credential-crypto/credential-crypto.error';
 import {
+  type CredentialCryptoAssociatedData,
   CredentialCryptoAssociatedDataSchema,
+  type CredentialCryptoEnvelope,
   CredentialCryptoEnvelopeSchema,
   CredentialCryptoProvider,
-  type CredentialCryptoAssociatedData,
-  type CredentialCryptoEnvelope,
 } from '@/credential-crypto/credential-crypto.provider';
 
 const algorithm = 'aes-256-gcm';

@@ -1,19 +1,19 @@
+import type { ConfigService } from '@nestjs/config';
+
 import { AgentMcpConnectionsService } from '@/agent-mcp-connections/application/agent-mcp-connections.service';
 import type { AgentMcpCredentialService } from '@/agent-mcp-connections/application/agent-mcp-credential.service';
-import type { AgentMcpOauthCredentialService } from '@/agent-mcp-connections/application/agent-mcp-oauth-credential.service';
 import type { AgentMcpOauthService } from '@/agent-mcp-connections/application/agent-mcp-oauth.service';
+import type { AgentMcpOauthCredentialService } from '@/agent-mcp-connections/application/agent-mcp-oauth-credential.service';
+import { AgentMcpConnectionSchema } from '@/agent-mcp-connections/domain/agent-mcp-connection';
 import {
   AgentMcpConnectionCredentialRequiredError,
   AgentMcpConnectionRevisionConflictError,
   AgentMcpDiscoveryFailedError,
 } from '@/agent-mcp-connections/domain/agent-mcp-connection.error';
-import { AgentMcpConnectionSchema } from '@/agent-mcp-connections/domain/agent-mcp-connection';
 import type { AgentMcpAuditPublisher } from '@/agent-mcp-connections/infrastructure/audit/agent-mcp-audit.publisher';
 import type { AgentMcpConnectionRepository } from '@/agent-mcp-connections/infrastructure/persistence/agent-mcp-connection.repository';
 import type { AllConfigType } from '@/config/config.type';
 import type { OrganizationsService } from '@/organizations/organizations.service';
-
-import type { ConfigService } from '@nestjs/config';
 
 describe('external MCP connection application service', () => {
   const context = {

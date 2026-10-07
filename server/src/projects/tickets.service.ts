@@ -26,12 +26,12 @@ import {
 } from '@/projects/dto/ticket-comment.dto';
 import type { UpdateTicketInput } from '@/projects/dto/update-ticket.dto';
 import { type ProjectSummaryReadModel } from '@/projects/infrastructure/persistence/project.repository';
+import { TicketRepository } from '@/projects/infrastructure/persistence/ticket.repository';
 import {
   type TicketCardMetadata,
   type TicketDetailChildren,
   TicketDetailQueryRepository,
 } from '@/projects/infrastructure/persistence/ticket-detail-query.repository';
-import { TicketRepository } from '@/projects/infrastructure/persistence/ticket.repository';
 import { ProjectResourceLoader } from '@/projects/project-resource.loader';
 import { ProjectUserResolver } from '@/projects/project-user.resolver';
 

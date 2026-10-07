@@ -1,10 +1,10 @@
+import type { RunTelemetryContext } from '@repo/agent-runtime/core';
 import type { AgentConfig } from '@/agent/config/agent-config.type';
 import { LangfuseAgentTelemetryAdapter } from '@/agent/infrastructure/observability/langfuse/langfuse-agent-telemetry.adapter';
 
 import { CallbackHandler } from '@langfuse/langchain';
 import { createTraceId } from '@langfuse/tracing';
 import { InMemorySpanExporter } from '@opentelemetry/sdk-trace-node';
-import type { RunTelemetryContext } from '@repo/agent-runtime/core';
 
 const configuration = {
   enabled: true,

@@ -7,24 +7,24 @@ import type { MeetingRecurrenceSeries } from '@/calendar/domain/meeting-recurren
 import type { CancelMeetingInput } from '@/calendar/dto/cancel-meeting.dto';
 import type { CreateMeetingInput } from '@/calendar/dto/create-meeting.dto';
 import type { RescheduleMeetingInput } from '@/calendar/dto/reschedule-meeting.dto';
+import type { CalendarSchedulingConflict } from '@/calendar/infrastructure/persistence/calendar-availability.repository';
 import {
   CalendarSchedulingRepository,
   type RecurrenceSeriesMutation,
   type RescheduleMeetingsResult,
   type ScheduleMeetingResult,
 } from '@/calendar/infrastructure/persistence/calendar-scheduling.repository';
-import type { CalendarSchedulingConflict } from '@/calendar/infrastructure/persistence/calendar-availability.repository';
-import {
-  findSchedulingConflict,
-  isMeetingRoomSelectable,
-  loadMeetingDetails,
-} from '@/calendar/infrastructure/persistence/drizzle/repositories/calendar-persistence.helpers';
 import { toMeetingInsert } from '@/calendar/infrastructure/persistence/drizzle/mappers/meeting.mapper';
 import { toMeetingAttendeeInsert } from '@/calendar/infrastructure/persistence/drizzle/mappers/meeting-attendee.mapper';
 import {
   toMeetingRecurrenceSeriesInsert,
   toMeetingRecurrenceSeriesUpdate,
 } from '@/calendar/infrastructure/persistence/drizzle/mappers/meeting-recurrence-series.mapper';
+import {
+  findSchedulingConflict,
+  isMeetingRoomSelectable,
+  loadMeetingDetails,
+} from '@/calendar/infrastructure/persistence/drizzle/repositories/calendar-persistence.helpers';
 import { meeting } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting.schema';
 import { meetingAttendee } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting-attendee.schema';
 import { meetingRecurrenceSeries } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting-recurrence-series.schema';

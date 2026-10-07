@@ -1,5 +1,5 @@
-import type { McpAccessKeyMetadata } from '@/mcp-access-keys/domain/mcp-access-key-contract';
 import type { McpScope } from '@/mcp/contracts/mcp-scope';
+import type { McpAccessKeyMetadata } from '@/mcp-access-keys/domain/mcp-access-key-contract';
 
 export type McpAccessKeyRecord = {
   id: string;

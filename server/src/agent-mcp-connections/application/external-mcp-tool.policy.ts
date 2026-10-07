@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 
+import type { McpToolIdentity } from '@/agent/infrastructure/mcp/workos-tool-session.provider';
 import type { AgentMcpConnection } from '@/agent-mcp-connections/domain/agent-mcp-connection';
 import type { AgentMcpConnectionTool } from '@/agent-mcp-connections/domain/agent-mcp-connection-tool';
 import {
   createAgentMcpToolName,
   createAgentMcpToolSchemaFingerprint,
 } from '@/agent-mcp-connections/domain/agent-mcp-tool-identity';
-import type { McpToolIdentity } from '@/agent/infrastructure/mcp/workos-tool-session.provider';
 
 import type { StructuredTool } from '@langchain/core/tools';
 

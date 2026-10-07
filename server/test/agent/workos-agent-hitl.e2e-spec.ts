@@ -1,15 +1,13 @@
+import { AgentHttpException } from '@repo/agent-runtime';
 import type { McpCredentialProvider } from '@/agent/infrastructure/mcp/mcp-credential.provider';
 import type {
   AgentModelProvider,
   AgentModels,
 } from '@/agent/infrastructure/model/agent-model.provider';
 
-import { AgentHttpException } from '@repo/agent-runtime';
-
 import { AIMessage } from '@langchain/core/messages';
 import { fakeModel } from '@langchain/core/testing';
 import { Client } from '@langchain/langgraph-sdk';
-
 import { startWorkOsMcpFixture } from '@test/agent/fixtures/workos-mcp.fixture';
 import { startWorkOsMcpProcessFixture } from '@test/agent/fixtures/workos-mcp-process.fixture';
 import {

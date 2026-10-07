@@ -1,10 +1,10 @@
+import { extractMcpCredential } from '@/mcp/infrastructure/auth/mcp-credential.extractor';
 import {
-  McpAccessKeyMetadataSchema,
   grantToAllowedOrganizationIds,
+  McpAccessKeyMetadataSchema,
   permissionMapToScopes,
   scopesToPermissionMap,
 } from '@/mcp-access-keys/domain/mcp-access-key-contract';
-import { extractMcpCredential } from '@/mcp/infrastructure/auth/mcp-credential.extractor';
 
 describe('MCP access key canonical contract', () => {
   it('scope와 Better Auth permission map을 양방향 canonical mapping한다', () => {

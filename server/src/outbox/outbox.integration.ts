@@ -1,8 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-import { PostgresOutboxStore } from '@nestjs/outbox/postgres';
 import { ConfigModule } from '@nestjs/config';
+import { PostgresOutboxStore } from '@nestjs/outbox/postgres';
 import { Test } from '@nestjs/testing';
 
 import databaseConfig from '@/database/config/database.config';

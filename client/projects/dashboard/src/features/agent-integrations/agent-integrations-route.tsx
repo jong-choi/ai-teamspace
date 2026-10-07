@@ -7,8 +7,8 @@ import {
   DashboardQueryBoundary,
   DashboardState,
 } from '@core/app/state/dashboard-query-state';
-import { AgentIntegrationsPage } from '@core/features/agent-integrations/components/agent-integrations-page';
 import { useAgentIntegrationsActiveOrganization } from '@core/features/agent-integrations/agent-integrations-query';
+import { AgentIntegrationsPage } from '@core/features/agent-integrations/components/agent-integrations-page';
 import { AuthenticationRequiredState } from '@core/features/auth/authentication-required-state';
 
 export function AgentIntegrationsRoute({

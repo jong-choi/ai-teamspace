@@ -1,9 +1,9 @@
 import {
+  createAuthOptions,
   MCP_ACCESS_KEY_CONFIG_ID,
   MCP_ACCESS_KEY_PREFIX,
   MCP_CONSENT_PAGE,
   MCP_LOGIN_PAGE,
-  createAuthOptions,
 } from '@/auth/auth-options';
 import type { McpConfig } from '@/mcp/config/mcp-config.type';
 

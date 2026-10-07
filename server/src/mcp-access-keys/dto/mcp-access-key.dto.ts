@@ -1,9 +1,9 @@
 import { createZodDto } from '@/common/dto/create-zod-dto';
+import { McpScopesSchema } from '@/mcp/contracts/mcp-scope';
 import {
   McpAccessKeyOrganizationGrantSchema,
   McpAccessKeyScopeRequestSchema,
 } from '@/mcp-access-keys/domain/mcp-access-key-contract';
-import { McpScopesSchema } from '@/mcp/contracts/mcp-scope';
 
 import { z } from 'zod';
 

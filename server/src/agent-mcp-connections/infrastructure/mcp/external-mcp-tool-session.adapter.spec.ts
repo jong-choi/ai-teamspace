@@ -1,13 +1,14 @@
-import { ExternalMcpToolSessionAdapter } from '@/agent-mcp-connections/infrastructure/mcp/external-mcp-tool-session.adapter';
+import type { ConfigService } from '@nestjs/config';
+
+import type { AgentActor } from '@/agent/domain/agent-actor';
+import { AgentMcpConnectionSchema } from '@/agent-mcp-connections/domain/agent-mcp-connection';
 import type { AgentMcpAuditPublisher } from '@/agent-mcp-connections/infrastructure/audit/agent-mcp-audit.publisher';
 import type { ExternalMcpConnectionSessionProvider } from '@/agent-mcp-connections/infrastructure/mcp/external-mcp-connection-session.provider';
-import { AgentMcpConnectionSchema } from '@/agent-mcp-connections/domain/agent-mcp-connection';
+import { ExternalMcpToolSessionAdapter } from '@/agent-mcp-connections/infrastructure/mcp/external-mcp-tool-session.adapter';
 import type { AgentMcpConnectionRepository } from '@/agent-mcp-connections/infrastructure/persistence/agent-mcp-connection.repository';
-import type { AgentActor } from '@/agent/domain/agent-actor';
+import type { AllConfigType } from '@/config/config.type';
 
 import type { StructuredTool } from '@langchain/core/tools';
-import type { ConfigService } from '@nestjs/config';
-import type { AllConfigType } from '@/config/config.type';
 
 describe('외부 MCP aggregate tool session', () => {
   const actor: AgentActor = {

@@ -1,3 +1,4 @@
+import { Controller, useForm } from 'react-hook-form';
 import { ActivityIndicator, ScrollView, View } from 'react-native';
 import { Redirect, useRouter } from 'expo-router';
 
@@ -18,7 +19,6 @@ import {
 } from '@core/app/state/dashboard-query-state';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { Controller, useForm } from 'react-hook-form';
 
 export function OnboardingRoute() {
   const { currentUserId, sessionPending } = useDashboardPlatform();

@@ -1,11 +1,11 @@
 import type { ConfigService } from '@nestjs/config';
 
 import type { AllConfigType } from '@/config/config.type';
-import { McpAgentDelegationRequiredError } from '@/mcp-agent-delegations/mcp-agent-delegation.error';
-import { McpAgentDelegationWorkOsAuthProviderFactory } from '@/mcp-agent-delegations/mcp-agent-delegation-workos-auth-provider.factory';
-import type { McpAgentDelegationCredentialService } from '@/mcp-agent-delegations/mcp-agent-delegation-credential.service';
-import type { McpAgentOauthFlowService } from '@/mcp-agent-delegations/mcp-agent-oauth-flow.service';
 import type { McpAgentDelegationRepository } from '@/mcp-agent-delegations/infrastructure/persistence/mcp-agent-delegation.repository';
+import { McpAgentDelegationRequiredError } from '@/mcp-agent-delegations/mcp-agent-delegation.error';
+import type { McpAgentDelegationCredentialService } from '@/mcp-agent-delegations/mcp-agent-delegation-credential.service';
+import { McpAgentDelegationWorkOsAuthProviderFactory } from '@/mcp-agent-delegations/mcp-agent-delegation-workos-auth-provider.factory';
+import type { McpAgentOauthFlowService } from '@/mcp-agent-delegations/mcp-agent-oauth-flow.service';
 
 const config = {
   resourceUrl: 'https://workos.example/mcp',

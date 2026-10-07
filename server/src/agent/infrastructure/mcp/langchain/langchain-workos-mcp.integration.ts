@@ -1,5 +1,5 @@
-import { AgentConfiguration } from '@/agent/config/agent-configuration';
 import type { AgentConfig } from '@/agent/config/agent-config.type';
+import { AgentConfiguration } from '@/agent/config/agent-configuration';
 import { LangChainWorkOsMcpAdapter } from '@/agent/infrastructure/mcp/langchain/langchain-workos-mcp.adapter';
 import { McpToolApprovalPolicy } from '@/agent/infrastructure/mcp/langchain/mcp-tool-approval.policy';
 import type { McpCredentialProvider } from '@/agent/infrastructure/mcp/mcp-credential.provider';

@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
-import { Test, type TestingModule } from '@nestjs/testing';
 import { ConfigModule } from '@nestjs/config';
+import { Test, type TestingModule } from '@nestjs/testing';
 
 import {
   organization,
@@ -9,8 +9,8 @@ import {
 } from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
 import type { Meeting } from '@/calendar/domain/meeting';
 import {
-  CreateMeetingSchema,
   type CreateMeetingInput,
+  CreateMeetingSchema,
 } from '@/calendar/dto/create-meeting.dto';
 import type { RescheduleMeetingInput } from '@/calendar/dto/reschedule-meeting.dto';
 import { CalendarMeetingQueryRepository } from '@/calendar/infrastructure/persistence/calendar-meeting-query.repository';

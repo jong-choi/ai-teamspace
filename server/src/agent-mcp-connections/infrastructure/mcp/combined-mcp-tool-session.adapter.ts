@@ -1,12 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 
-import { ExternalMcpToolSessionProvider } from '@/agent-mcp-connections/infrastructure/mcp/external-mcp-tool-session.provider';
 import type { AgentActor } from '@/agent/domain/agent-actor';
 import { LangChainWorkOsMcpAdapter } from '@/agent/infrastructure/mcp/langchain/langchain-workos-mcp.adapter';
 import {
   type WorkOsToolSession,
   WorkOsToolSessionProvider,
 } from '@/agent/infrastructure/mcp/workos-tool-session.provider';
+import { ExternalMcpToolSessionProvider } from '@/agent-mcp-connections/infrastructure/mcp/external-mcp-tool-session.provider';
 
 @Injectable()
 export class CombinedMcpToolSessionAdapter extends WorkOsToolSessionProvider {

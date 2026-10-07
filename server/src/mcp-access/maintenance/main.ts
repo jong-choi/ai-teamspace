@@ -1,11 +1,11 @@
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 
-import {
-  McpAccessMaintenanceTargetsSchema,
-  McpAccessMaintenanceService,
-} from '@/mcp-access/maintenance/mcp-access-maintenance.service';
 import { McpAccessMaintenanceModule } from '@/mcp-access/maintenance/mcp-access-maintenance.module';
+import {
+  McpAccessMaintenanceService,
+  McpAccessMaintenanceTargetsSchema,
+} from '@/mcp-access/maintenance/mcp-access-maintenance.service';
 
 function parseInteger(
   value: string | undefined,

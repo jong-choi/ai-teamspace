@@ -1,21 +1,21 @@
-import { Test, type TestingModule } from '@nestjs/testing';
 import { ConfigModule } from '@nestjs/config';
+import { Test, type TestingModule } from '@nestjs/testing';
 
 import { user } from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
 import databaseConfig from '@/database/config/database.config';
 import { DatabaseModule } from '@/database/database.module';
 import { DatabaseService } from '@/database/database.service';
+import type { CreateProjectInput } from '@/projects/dto/create-project.dto';
 import { ProjectDrizzlePersistenceModule } from '@/projects/infrastructure/persistence/drizzle/drizzle-persistence.module';
 import { project } from '@/projects/infrastructure/persistence/drizzle/schema/project.schema';
-import type { CreateProjectInput } from '@/projects/dto/create-project.dto';
-import { ProjectColumnRepository } from '@/projects/infrastructure/persistence/project-column.repository';
 import { ProjectRepository } from '@/projects/infrastructure/persistence/project.repository';
+import { ProjectColumnRepository } from '@/projects/infrastructure/persistence/project-column.repository';
+import { TicketRepository } from '@/projects/infrastructure/persistence/ticket.repository';
 import { TicketChecklistRepository } from '@/projects/infrastructure/persistence/ticket-checklist.repository';
 import { TicketCommentRepository } from '@/projects/infrastructure/persistence/ticket-comment.repository';
 import { TicketDetailQueryRepository } from '@/projects/infrastructure/persistence/ticket-detail-query.repository';
 import { TicketLabelRepository } from '@/projects/infrastructure/persistence/ticket-label.repository';
 import { TicketOrderingRepository } from '@/projects/infrastructure/persistence/ticket-ordering.repository';
-import { TicketRepository } from '@/projects/infrastructure/persistence/ticket.repository';
 
 import { inArray } from 'drizzle-orm';
 

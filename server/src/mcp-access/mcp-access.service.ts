@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+
 import { Inject, Injectable, Optional } from '@nestjs/common';
 
 import type { McpAuthContext } from '@/mcp/contracts/mcp-auth-context';
@@ -41,8 +43,6 @@ import type { OrganizationAuthorizationChangedEvent } from '@/organizations/doma
 import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
 import { OrganizationMembershipService } from '@/organizations/organization-membership.service';
 import { OrganizationsService } from '@/organizations/organizations.service';
-
-import { randomUUID } from 'node:crypto';
 
 @Injectable()
 export class McpAccessService {

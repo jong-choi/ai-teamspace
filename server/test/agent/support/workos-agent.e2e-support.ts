@@ -19,7 +19,6 @@ import {
 import { AIMessage } from '@langchain/core/messages';
 import { type FakeBuiltModel, fakeModel } from '@langchain/core/testing';
 import { Client } from '@langchain/langgraph-sdk';
-
 import { createTestWorkOsAgentGraphFactory } from '@test/agent/support/workos-agent-test-graph';
 
 export const testAgentCredentials: McpCredentialProvider = {

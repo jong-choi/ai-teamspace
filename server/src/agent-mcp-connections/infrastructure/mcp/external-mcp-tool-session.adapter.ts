@@ -1,16 +1,16 @@
 import { Injectable, Logger, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { classifyExternalMcpError } from '@/agent-mcp-connections/application/external-mcp-error-category';
-import { AgentMcpAuditPublisher } from '@/agent-mcp-connections/infrastructure/audit/agent-mcp-audit.publisher';
-import { ExternalMcpConnectionSessionProvider } from '@/agent-mcp-connections/infrastructure/mcp/external-mcp-connection-session.provider';
-import { ExternalMcpToolSessionProvider } from '@/agent-mcp-connections/infrastructure/mcp/external-mcp-tool-session.provider';
-import { AgentMcpConnectionRepository } from '@/agent-mcp-connections/infrastructure/persistence/agent-mcp-connection.repository';
 import type { AgentActor } from '@/agent/domain/agent-actor';
 import type {
   McpToolIdentity,
   WorkOsToolSession,
 } from '@/agent/infrastructure/mcp/workos-tool-session.provider';
+import { classifyExternalMcpError } from '@/agent-mcp-connections/application/external-mcp-error-category';
+import { AgentMcpAuditPublisher } from '@/agent-mcp-connections/infrastructure/audit/agent-mcp-audit.publisher';
+import { ExternalMcpConnectionSessionProvider } from '@/agent-mcp-connections/infrastructure/mcp/external-mcp-connection-session.provider';
+import { ExternalMcpToolSessionProvider } from '@/agent-mcp-connections/infrastructure/mcp/external-mcp-tool-session.provider';
+import { AgentMcpConnectionRepository } from '@/agent-mcp-connections/infrastructure/persistence/agent-mcp-connection.repository';
 import type { AllConfigType } from '@/config/config.type';
 
 @Injectable()

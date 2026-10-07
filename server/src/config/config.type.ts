@@ -1,5 +1,5 @@
-import type { AgentMcpConnectionsConfig } from '@/agent-mcp-connections/config/agent-mcp-connections-config.type';
 import type { AgentConfig } from '@/agent/config/agent-config.type';
+import type { AgentMcpConnectionsConfig } from '@/agent-mcp-connections/config/agent-mcp-connections-config.type';
 import type { AuthConfig } from '@/auth/config/auth-config.type';
 import type { CacheConfig } from '@/chat/config/cache-config.type';
 import type { AppConfig } from '@/config/app-config.type';

@@ -2,14 +2,14 @@ import { Injectable } from '@nestjs/common';
 
 import { DatabaseService } from '@/database/database.service';
 import type { ProjectColumn } from '@/projects/domain/project-column';
+import { toProjectUpdate } from '@/projects/infrastructure/persistence/drizzle/mappers/project.mapper';
 import {
   toProjectColumnDomain,
   toProjectColumnInsert,
   toProjectColumnUpdate,
 } from '@/projects/infrastructure/persistence/drizzle/mappers/project-column.mapper';
-import { toProjectUpdate } from '@/projects/infrastructure/persistence/drizzle/mappers/project.mapper';
-import { projectColumn } from '@/projects/infrastructure/persistence/drizzle/schema/project-column.schema';
 import { project } from '@/projects/infrastructure/persistence/drizzle/schema/project.schema';
+import { projectColumn } from '@/projects/infrastructure/persistence/drizzle/schema/project-column.schema';
 import { ProjectColumnRepository } from '@/projects/infrastructure/persistence/project-column.repository';
 
 import { and, asc, eq, isNull, max } from 'drizzle-orm';

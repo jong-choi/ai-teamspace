@@ -1,5 +1,5 @@
-import { randomUUID } from 'node:crypto';
 import { spawn } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 

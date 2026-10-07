@@ -1,6 +1,6 @@
+import { OrganizationAuthorizationChangedProcessor } from '@/jobs/organization-authorization-changed.processor';
 import { McpAccessService } from '@/mcp-access/mcp-access.service';
 import { ORGANIZATION_AUTHORIZATION_CHANGED_JOB } from '@/organizations/domain/organization-public-event';
-import { OrganizationAuthorizationChangedProcessor } from '@/jobs/organization-authorization-changed.processor';
 import { WikiCollaborationInvalidationPublisher } from '@/wiki/infrastructure/collaboration/wiki-collaboration-invalidation.provider';
 
 import type { Job } from 'bullmq';

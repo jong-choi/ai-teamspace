@@ -1,3 +1,4 @@
+import type { AgentActor } from '@/agent/domain/agent-actor';
 import { AgentMcpOauthCredentialService } from '@/agent-mcp-connections/application/agent-mcp-oauth-credential.service';
 import { AgentMcpOauthStateService } from '@/agent-mcp-connections/application/agent-mcp-oauth-state.service';
 import {
@@ -5,7 +6,6 @@ import {
   AgentMcpOauthCredentialInvalidError,
   AgentMcpOauthStateInvalidError,
 } from '@/agent-mcp-connections/domain/agent-mcp-connection.error';
-import type { AgentActor } from '@/agent/domain/agent-actor';
 
 import type {
   OAuthClientInformationContext,

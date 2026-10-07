@@ -1,11 +1,11 @@
-import type { AuthInfo } from '@modelcontextprotocol/server';
-import { z } from 'zod';
-
 import {
-  McpAuthContextSchema,
   type McpAuthContext,
+  McpAuthContextSchema,
 } from '@/mcp/contracts/mcp-auth-context';
 import { normalizeMcpScopes } from '@/mcp/contracts/mcp-scope';
+
+import type { AuthInfo } from '@modelcontextprotocol/server';
+import { z } from 'zod';
 
 const oauthClaimsSchema = z
   .object({

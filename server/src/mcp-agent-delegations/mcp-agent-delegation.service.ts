@@ -7,19 +7,19 @@ import type {
   McpAgentDelegationStatus,
   StartMcpAgentDelegationResponse,
 } from '@/mcp-agent-delegations/dto/mcp-agent-delegation.dto';
-import { McpAgentDelegationCredentialService } from '@/mcp-agent-delegations/mcp-agent-delegation-credential.service';
+import { McpAgentTokenRevocationProvider } from '@/mcp-agent-delegations/infrastructure/oauth-server/mcp-agent-token-revocation.provider';
+import { McpAgentOauthFlowRepository } from '@/mcp-agent-delegations/infrastructure/persistence/mcp-agent-oauth-flow.repository';
 import {
   McpAgentDelegationFlowInvalidError,
   McpAgentDelegationRequiredError,
   McpAgentDelegationRevocationError,
 } from '@/mcp-agent-delegations/mcp-agent-delegation.error';
+import { McpAgentDelegationCredentialService } from '@/mcp-agent-delegations/mcp-agent-delegation-credential.service';
 import { McpAgentDelegationOAuthClientProvider } from '@/mcp-agent-delegations/mcp-agent-delegation-oauth-client.provider';
 import {
   type McpAgentDelegationActor,
   McpAgentOauthFlowService,
 } from '@/mcp-agent-delegations/mcp-agent-oauth-flow.service';
-import { McpAgentTokenRevocationProvider } from '@/mcp-agent-delegations/infrastructure/oauth-server/mcp-agent-token-revocation.provider';
-import { McpAgentOauthFlowRepository } from '@/mcp-agent-delegations/infrastructure/persistence/mcp-agent-oauth-flow.repository';
 import { OrganizationMembershipService } from '@/organizations/organization-membership.service';
 
 import {

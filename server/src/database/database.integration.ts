@@ -1,5 +1,5 @@
-import { Test } from '@nestjs/testing';
 import { ConfigModule } from '@nestjs/config';
+import { Test } from '@nestjs/testing';
 
 import { user } from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
 import databaseConfig from '@/database/config/database.config';

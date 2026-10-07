@@ -3,10 +3,10 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { toNodeHandler } from '@modelcontextprotocol/node';
-
 import type { AllConfigType } from '@/config/config.type';
 import { McpHttpHandler } from '@/mcp/infrastructure/transport/model-context-protocol/mcp-http.handler';
+
+import { toNodeHandler } from '@modelcontextprotocol/node';
 
 @Injectable()
 export class McpNodeAdapter {

@@ -1,16 +1,16 @@
 import { createHash } from 'node:crypto';
 
-import { fetchClientMetadataResource } from '@better-auth/cimd/node';
+import type { McpConfig } from '@/mcp/config/mcp-config.type';
+import { MCP_SCOPES } from '@/mcp/contracts/mcp-scope';
+
 import { apiKey } from '@better-auth/api-key';
 import { cimd } from '@better-auth/cimd';
+import { fetchClientMetadataResource } from '@better-auth/cimd/node';
+import { expo } from '@better-auth/expo';
 import { mcp } from '@better-auth/mcp';
 import type { ClientDiscovery } from '@better-auth/oauth-provider';
-import { expo } from '@better-auth/expo';
 import type { BetterAuthOptions } from 'better-auth';
 import { jwt, organization, username } from 'better-auth/plugins';
-
-import { MCP_SCOPES } from '@/mcp/contracts/mcp-scope';
-import type { McpConfig } from '@/mcp/config/mcp-config.type';
 
 export const organizationPlugin = organization();
 

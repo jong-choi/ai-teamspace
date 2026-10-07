@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
 import { Link, Redirect, useRouter } from 'expo-router';
 
@@ -12,7 +13,6 @@ import {
   useDashboardPlatform,
 } from '@core/app/platform/dashboard-platform';
 
-import { Controller, useForm } from 'react-hook-form';
 import { Eye, EyeOff } from 'lucide-react-native';
 
 export function LoginRoute() {

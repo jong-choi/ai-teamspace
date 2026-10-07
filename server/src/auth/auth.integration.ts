@@ -12,11 +12,10 @@ import {
 } from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
 import { DatabaseService } from '@/database/database.service';
 
+import { createAppTestingModule } from '@test/support/app-testing-module';
 import { AuthService } from '@thallesp/nestjs-better-auth';
 import { eq } from 'drizzle-orm';
 import request from 'supertest';
-
-import { createAppTestingModule } from '@test/support/app-testing-module';
 
 describe('Better Auth Drizzle 통합', () => {
   let app: INestApplication;

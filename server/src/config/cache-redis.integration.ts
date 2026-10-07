@@ -1,5 +1,5 @@
-import type { CacheConfig } from '@/chat/config/cache-config.type';
 import cacheConfig from '@/chat/config/cache.config';
+import type { CacheConfig } from '@/chat/config/cache-config.type';
 
 import { Redis } from 'ioredis';
 

@@ -7,11 +7,11 @@ import {
   TicketNotFoundError,
 } from '@/projects/domain/project.error';
 import type { Ticket } from '@/projects/domain/ticket';
-import { ProjectColumnRepository } from '@/projects/infrastructure/persistence/project-column.repository';
 import {
   ProjectRepository,
   type ProjectSummaryReadModel,
 } from '@/projects/infrastructure/persistence/project.repository';
+import { ProjectColumnRepository } from '@/projects/infrastructure/persistence/project-column.repository';
 import { TicketRepository } from '@/projects/infrastructure/persistence/ticket.repository';
 
 @Injectable()

@@ -4,11 +4,11 @@ import { bindMcpTool, type BoundMcpTool } from '@/mcp/tools/bound-mcp-tool';
 import { toMcpOrganizationActor } from '@/mcp/tools/mcp-application-actor';
 import {
   projectGetTool,
+  projectsListTool,
   projectTicketCreateTool,
   projectTicketGetTool,
   projectTicketMoveTool,
   projectTicketUpdateTool,
-  projectsListTool,
 } from '@/mcp/tools/projects/project-tool-definitions';
 import { ProjectsService } from '@/projects/projects.service';
 import { TicketOrderingService } from '@/projects/ticket-ordering.service';

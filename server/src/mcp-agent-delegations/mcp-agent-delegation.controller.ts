@@ -25,8 +25,8 @@ import { TrustedOriginGuard } from '@/common/http/trusted-origin.guard';
 import {
   McpAgentDelegationStatusDto,
   StartMcpAgentDelegationDto,
-  StartMcpAgentDelegationResponseDto,
   type StartMcpAgentDelegationInput,
+  StartMcpAgentDelegationResponseDto,
 } from '@/mcp-agent-delegations/dto/mcp-agent-delegation.dto';
 import { McpAgentDelegationFlowInvalidError } from '@/mcp-agent-delegations/mcp-agent-delegation.error';
 import { McpAgentDelegationService } from '@/mcp-agent-delegations/mcp-agent-delegation.service';

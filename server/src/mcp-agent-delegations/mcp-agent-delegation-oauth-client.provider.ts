@@ -1,17 +1,17 @@
 import type { McpConfig } from '@/mcp/config/mcp-config.type';
 import { MCP_SCOPES } from '@/mcp/contracts/mcp-scope';
-import { McpAgentDelegationCredentialService } from '@/mcp-agent-delegations/mcp-agent-delegation-credential.service';
+import type { McpAgentOauthFlow } from '@/mcp-agent-delegations/domain/mcp-agent-oauth-flow';
 import {
   McpAgentDelegationCredentialInvalidError,
   McpAgentDelegationFlowInvalidError,
   McpAgentDelegationRequiredError,
 } from '@/mcp-agent-delegations/mcp-agent-delegation.error';
+import type { McpAgentRefreshLease } from '@/mcp-agent-delegations/mcp-agent-delegation-credential.service';
+import { McpAgentDelegationCredentialService } from '@/mcp-agent-delegations/mcp-agent-delegation-credential.service';
 import type {
   McpAgentDelegationActor,
   McpAgentOauthFlowService,
 } from '@/mcp-agent-delegations/mcp-agent-oauth-flow.service';
-import type { McpAgentOauthFlow } from '@/mcp-agent-delegations/domain/mcp-agent-oauth-flow';
-import type { McpAgentRefreshLease } from '@/mcp-agent-delegations/mcp-agent-delegation-credential.service';
 
 import type {
   OAuthClientInformationContext,

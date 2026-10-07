@@ -6,8 +6,8 @@ import {
 import type { Meeting } from '@/calendar/domain/meeting';
 import { BullMqCalendarReminderScheduler } from '@/calendar/infrastructure/reminder/bullmq/bullmq-calendar-reminder.scheduler';
 import type { DatabaseService } from '@/database/database.service';
-import type { QueueConfig } from '@/queue/config/queue-config.type';
 import queueConfig from '@/queue/config/queue.config';
+import type { QueueConfig } from '@/queue/config/queue-config.type';
 import { createProducerRedisOptions } from '@/queue/queue.config';
 
 import { Queue } from 'bullmq';

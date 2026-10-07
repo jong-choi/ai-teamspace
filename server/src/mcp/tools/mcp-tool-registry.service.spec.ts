@@ -1,8 +1,8 @@
 import type { McpAuthContext } from '@/mcp/contracts/mcp-auth-context';
 import type { BoundMcpTool } from '@/mcp/tools/bound-mcp-tool';
-import { McpToolRegistryService } from '@/mcp/tools/mcp-tool-registry.service';
 import type { McpToolAuthorizationService } from '@/mcp/tools/mcp-tool-authorization.service';
 import type { McpToolDefinition } from '@/mcp/tools/mcp-tool-definition';
+import { McpToolRegistryService } from '@/mcp/tools/mcp-tool-registry.service';
 import { v1McpToolDefinitions } from '@/mcp/tools/v1-tool-manifest';
 
 function registrar(tools: readonly BoundMcpTool[]) {

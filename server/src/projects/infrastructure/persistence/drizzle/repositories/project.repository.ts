@@ -6,14 +6,14 @@ import { ProjectKeyConflictError } from '@/projects/domain/project.error';
 import { defaultProjectColumns } from '@/projects/domain/project-default-columns';
 import type { CreateProjectInput } from '@/projects/dto/create-project.dto';
 import type { UpdateProjectInput } from '@/projects/dto/update-project.dto';
-import { toProjectColumnInsert } from '@/projects/infrastructure/persistence/drizzle/mappers/project-column.mapper';
 import {
   toProjectDomain,
   toProjectInsert,
   toProjectUpdate,
 } from '@/projects/infrastructure/persistence/drizzle/mappers/project.mapper';
-import { projectColumn } from '@/projects/infrastructure/persistence/drizzle/schema/project-column.schema';
+import { toProjectColumnInsert } from '@/projects/infrastructure/persistence/drizzle/mappers/project-column.mapper';
 import { project } from '@/projects/infrastructure/persistence/drizzle/schema/project.schema';
+import { projectColumn } from '@/projects/infrastructure/persistence/drizzle/schema/project-column.schema';
 import { ticket } from '@/projects/infrastructure/persistence/drizzle/schema/ticket.schema';
 import {
   ProjectRepository,

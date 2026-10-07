@@ -1,11 +1,11 @@
+import { createHash } from 'node:crypto';
+
 import { Injectable, Logger } from '@nestjs/common';
 
 import {
   type McpPolicyAuditEvent,
   McpPolicyAuditPublisher,
 } from '@/mcp-access/infrastructure/audit/mcp-policy-audit.publisher';
-
-import { createHash } from 'node:crypto';
 
 @Injectable()
 export class LoggerMcpPolicyAuditPublisher extends McpPolicyAuditPublisher {

@@ -1,7 +1,7 @@
+import { ExternalMcpToolPolicy } from '@/agent-mcp-connections/application/external-mcp-tool.policy';
 import { AgentMcpConnectionSchema } from '@/agent-mcp-connections/domain/agent-mcp-connection';
 import { AgentMcpConnectionToolSchema } from '@/agent-mcp-connections/domain/agent-mcp-connection-tool';
 import { createAgentMcpToolSchemaFingerprint } from '@/agent-mcp-connections/domain/agent-mcp-tool-identity';
-import { ExternalMcpToolPolicy } from '@/agent-mcp-connections/application/external-mcp-tool.policy';
 
 import type { StructuredTool } from '@langchain/core/tools';
 

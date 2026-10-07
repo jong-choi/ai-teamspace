@@ -11,8 +11,8 @@ import {
   toTicketInsert,
   toTicketUpdate,
 } from '@/projects/infrastructure/persistence/drizzle/mappers/ticket.mapper';
-import { projectColumn } from '@/projects/infrastructure/persistence/drizzle/schema/project-column.schema';
 import { project } from '@/projects/infrastructure/persistence/drizzle/schema/project.schema';
+import { projectColumn } from '@/projects/infrastructure/persistence/drizzle/schema/project-column.schema';
 import { ticket } from '@/projects/infrastructure/persistence/drizzle/schema/ticket.schema';
 import {
   type CreateTicketResult,

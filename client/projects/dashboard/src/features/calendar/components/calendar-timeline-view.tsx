@@ -11,13 +11,13 @@ import {
   getWeekDateKeys,
   weekdayIndex,
 } from '@core/features/calendar/lib/calendar-date-key';
-import { getPeriodTitle } from '@core/features/calendar/lib/calendar-range';
 import {
   getMeetingAttendeeCount,
   getMeetingLocationLabel,
   getMeetingTimeLabel,
   groupMeetingsByDate,
 } from '@core/features/calendar/lib/calendar-meeting';
+import { getPeriodTitle } from '@core/features/calendar/lib/calendar-range';
 import {
   CALENDAR_TIMELINE_END_HOUR,
   CALENDAR_TIMELINE_HOUR_HEIGHT,

@@ -1,9 +1,9 @@
+import type { AgentActor } from '@/agent/domain/agent-actor';
 import { AgentMcpCredentialService } from '@/agent-mcp-connections/application/agent-mcp-credential.service';
 import { AgentMcpConnectionSchema } from '@/agent-mcp-connections/domain/agent-mcp-connection';
 import { AgentMcpConnectionAuthKindMismatchError } from '@/agent-mcp-connections/domain/agent-mcp-connection.error';
 import type { AgentMcpAuditPublisher } from '@/agent-mcp-connections/infrastructure/audit/agent-mcp-audit.publisher';
 import type { AgentMcpConnectionRepository } from '@/agent-mcp-connections/infrastructure/persistence/agent-mcp-connection.repository';
-import type { AgentActor } from '@/agent/domain/agent-actor';
 import type { CredentialCryptoProvider } from '@/credential-crypto/credential-crypto.provider';
 
 describe('외부 MCP bearer credential 서비스', () => {

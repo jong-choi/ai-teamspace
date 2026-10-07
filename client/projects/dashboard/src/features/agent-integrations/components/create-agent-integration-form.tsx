@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { ActivityIndicator, View } from 'react-native';
 
 import type { AgentMcpConnection } from '@repo/client/api-client/schemas';
@@ -13,7 +14,6 @@ import {
   useAgentIntegrationMutations,
 } from '@core/features/agent-integrations/agent-integrations-mutations';
 
-import { Controller, useForm } from 'react-hook-form';
 import { Eye, EyeOff } from 'lucide-react-native';
 
 type CreateAgentIntegrationFormProps = {

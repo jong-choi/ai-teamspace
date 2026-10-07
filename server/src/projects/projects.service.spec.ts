@@ -2,24 +2,24 @@ import type { AuthUserIdentity } from '@/auth/auth-user-directory.service';
 import { OrganizationNotFoundError } from '@/organizations/domain/organization.error';
 import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
 import type { OrganizationMembershipService } from '@/organizations/organization-membership.service';
+import type { Project } from '@/projects/domain/project';
 import {
   ProjectArchivedError,
   ProjectColumnNotFoundError,
   ProjectUserNotMemberError,
 } from '@/projects/domain/project.error';
-import type { Project } from '@/projects/domain/project';
 import type { ProjectColumn } from '@/projects/domain/project-column';
-import { ProjectColumnRepository } from '@/projects/infrastructure/persistence/project-column.repository';
 import {
   ProjectRepository,
   type ProjectSummaryReadModel,
 } from '@/projects/infrastructure/persistence/project.repository';
-import { TicketDetailQueryRepository } from '@/projects/infrastructure/persistence/ticket-detail-query.repository';
+import { ProjectColumnRepository } from '@/projects/infrastructure/persistence/project-column.repository';
 import { TicketRepository } from '@/projects/infrastructure/persistence/ticket.repository';
+import { TicketDetailQueryRepository } from '@/projects/infrastructure/persistence/ticket-detail-query.repository';
 import { ProjectColumnsService } from '@/projects/project-columns.service';
-import { ProjectsService } from '@/projects/projects.service';
 import { ProjectResourceLoader } from '@/projects/project-resource.loader';
 import { ProjectUserResolver } from '@/projects/project-user.resolver';
+import { ProjectsService } from '@/projects/projects.service';
 import { TicketsService } from '@/projects/tickets.service';
 
 import { jest } from '@jest/globals';

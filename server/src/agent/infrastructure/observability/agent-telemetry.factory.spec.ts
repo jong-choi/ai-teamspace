@@ -1,5 +1,5 @@
-import { AgentConfiguration } from '@/agent/config/agent-configuration';
 import type { AgentConfig } from '@/agent/config/agent-config.type';
+import { AgentConfiguration } from '@/agent/config/agent-configuration';
 import { AgentTelemetryFactory } from '@/agent/infrastructure/observability/agent-telemetry.factory';
 import { LangfuseAgentTelemetryAdapter } from '@/agent/infrastructure/observability/langfuse/langfuse-agent-telemetry.adapter';
 

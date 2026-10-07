@@ -9,14 +9,14 @@ import {
   toTicketLabelInsert,
   toTicketLabelUpdate,
 } from '@/projects/infrastructure/persistence/drizzle/mappers/ticket-label.mapper';
-import { project } from '@/projects/infrastructure/persistence/drizzle/schema/project.schema';
-import { ticketLabel } from '@/projects/infrastructure/persistence/drizzle/schema/ticket-label.schema';
-import { ticketLabelAssignment } from '@/projects/infrastructure/persistence/drizzle/schema/ticket-label-assignment.schema';
 import {
   lockActiveProject,
   lockActiveTicket,
   touchProject,
 } from '@/projects/infrastructure/persistence/drizzle/repositories/ticket-workflow.helpers';
+import { project } from '@/projects/infrastructure/persistence/drizzle/schema/project.schema';
+import { ticketLabel } from '@/projects/infrastructure/persistence/drizzle/schema/ticket-label.schema';
+import { ticketLabelAssignment } from '@/projects/infrastructure/persistence/drizzle/schema/ticket-label-assignment.schema';
 import { TicketLabelRepository } from '@/projects/infrastructure/persistence/ticket-label.repository';
 
 import { and, asc, eq } from 'drizzle-orm';

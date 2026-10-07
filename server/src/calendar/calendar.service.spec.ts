@@ -1,6 +1,6 @@
-import { CalendarMeetingContentService } from '@/calendar/calendar-meeting-content.service';
 import { CalendarMeetingLoader } from '@/calendar/calendar-meeting.loader';
 import { CalendarMeetingPolicy } from '@/calendar/calendar-meeting.policy';
+import { CalendarMeetingContentService } from '@/calendar/calendar-meeting-content.service';
 import type { CalendarMeetingPresenterService } from '@/calendar/calendar-meeting-presenter.service';
 import { CalendarMeetingCanceledError } from '@/calendar/domain/calendar.error';
 import type { Meeting } from '@/calendar/domain/meeting';

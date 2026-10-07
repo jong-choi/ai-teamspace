@@ -5,8 +5,8 @@ import { ConfigModule } from '@nestjs/config';
 import { OrganizationAuthorizationChangedProcessor } from '@/jobs/organization-authorization-changed.processor';
 import { McpAccessModule } from '@/mcp-access/mcp-access.module';
 import { ORGANIZATION_PUBLIC_EVENT_QUEUE } from '@/organizations/domain/organization-public-event';
-import { QueueModule } from '@/queue/queue.module';
 import queueConfig from '@/queue/config/queue.config';
+import { QueueModule } from '@/queue/queue.module';
 import collaborationConfig from '@/wiki/infrastructure/collaboration/config/collaboration.config';
 import { RedisWikiCollaborationInvalidationPublisherModule } from '@/wiki/infrastructure/collaboration/redis/redis-wiki-collaboration-invalidation-publisher.module';
 

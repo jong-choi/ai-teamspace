@@ -1,6 +1,9 @@
-import { Test, type TestingModule } from '@nestjs/testing';
 import { ConfigModule } from '@nestjs/config';
+import { Test, type TestingModule } from '@nestjs/testing';
 
+import { AgentMcpConnectionRepository } from '@/agent-mcp-connections/infrastructure/persistence/agent-mcp-connection.repository';
+import { AgentMcpConnectionPersistenceModule } from '@/agent-mcp-connections/infrastructure/persistence/agent-mcp-connection-persistence.module';
+import { agentMcpConnection } from '@/agent-mcp-connections/infrastructure/persistence/drizzle/schema/agent-mcp-connection.schema';
 import {
   organization,
   user,
@@ -8,9 +11,6 @@ import {
 import databaseConfig from '@/database/config/database.config';
 import { DatabaseModule } from '@/database/database.module';
 import { DatabaseService } from '@/database/database.service';
-import { AgentMcpConnectionPersistenceModule } from '@/agent-mcp-connections/infrastructure/persistence/agent-mcp-connection-persistence.module';
-import { AgentMcpConnectionRepository } from '@/agent-mcp-connections/infrastructure/persistence/agent-mcp-connection.repository';
-import { agentMcpConnection } from '@/agent-mcp-connections/infrastructure/persistence/drizzle/schema/agent-mcp-connection.schema';
 
 import { inArray } from 'drizzle-orm';
 

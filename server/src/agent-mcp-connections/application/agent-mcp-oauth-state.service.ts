@@ -3,6 +3,7 @@ import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import type { AgentActor } from '@/agent/domain/agent-actor';
 import {
   AgentMcpConnectionAuthKindMismatchError,
   AgentMcpConnectionNotFoundError,
@@ -10,7 +11,6 @@ import {
 } from '@/agent-mcp-connections/domain/agent-mcp-connection.error';
 import type { AgentMcpOauthState } from '@/agent-mcp-connections/domain/agent-mcp-oauth-state';
 import { AgentMcpConnectionRepository } from '@/agent-mcp-connections/infrastructure/persistence/agent-mcp-connection.repository';
-import type { AgentActor } from '@/agent/domain/agent-actor';
 import type { AllConfigType } from '@/config/config.type';
 import {
   CredentialCryptoEnvelopeSchema,

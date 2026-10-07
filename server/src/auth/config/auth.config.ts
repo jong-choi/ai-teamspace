@@ -1,8 +1,9 @@
-import { httpUrlSchema, trustedOriginsSchema } from '@/config/validation';
+import { registerAs } from '@nestjs/config';
+
 import type { AuthConfig } from '@/auth/config/auth-config.type';
+import { httpUrlSchema, trustedOriginsSchema } from '@/config/validation';
 import validateConfig from '@/utils/validate-config';
 
-import { registerAs } from '@nestjs/config';
 import { z } from 'zod';
 
 const authConfigSchema = z.object({

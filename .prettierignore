@@ -1,6 +1,14 @@
 node_modules/
 dist/
 coverage/
+.venv/
+**/.venv/
+.pytest_cache/
+**/.pytest_cache/
+.ruff_cache/
+**/.ruff_cache/
+__pycache__/
+**/__pycache__/
 .turbo/
 .expo/
 **/generated/

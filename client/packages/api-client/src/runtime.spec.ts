@@ -25,7 +25,9 @@ describe('API 런타임', () => {
   });
 
   it('API runtime이 구성되지 않았으면 base URL 조회를 fail-fast한다', () => {
-    expect(() => getApiBaseUrl()).toThrow('API runtime base URL이 구성되지 않았습니다.');
+    expect(() => getApiBaseUrl()).toThrow(
+      'API runtime base URL이 구성되지 않았습니다.',
+    );
   });
 
   it('네이티브 요청에 쿠키와 Expo 출처 헤더를 함께 전달한다', async () => {

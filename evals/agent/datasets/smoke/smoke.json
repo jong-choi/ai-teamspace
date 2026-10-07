@@ -6,7 +6,9 @@
       "id": "schema-smoke",
       "version": "1.0.0",
       "tags": ["pr", "schema-only"],
-      "input": ["Return a concise acknowledgement without performing a write action."],
+      "input": [
+        "Return a concise acknowledgement without performing a write action."
+      ],
       "persona": "read-only-member",
       "preconditions": [],
       "forbidden_tools": [],

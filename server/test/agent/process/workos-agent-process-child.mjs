@@ -54,7 +54,9 @@ const models =
     : {
         root: fakeModel().respond(new AIMessage('process root complete')),
         researcher: fakeModel().respond(new AIMessage('unused researcher')),
-        operator: fakeModel().respond(new AIMessage('process operator complete')),
+        operator: fakeModel().respond(
+          new AIMessage('process operator complete'),
+        ),
       };
 
 const modelProvider = { createModels: () => models };

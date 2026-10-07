@@ -63,10 +63,7 @@
           }
         }
       ],
-      "forbidden_tools": [
-        "wiki_document_create",
-        "wiki_document_update"
-      ],
+      "forbidden_tools": ["wiki_document_create", "wiki_document_update"],
       "outcome_assertions": [
         {
           "source": "wiki_document:doc",
@@ -102,10 +99,7 @@
           }
         }
       ],
-      "forbidden_tools": [
-        "wiki_document_create",
-        "wiki_document_update"
-      ],
+      "forbidden_tools": ["wiki_document_create", "wiki_document_update"],
       "outcome_assertions": [
         {
           "source": "wiki_document:doc",
@@ -141,10 +135,7 @@
           }
         }
       ],
-      "forbidden_tools": [
-        "wiki_document_create",
-        "wiki_document_update"
-      ],
+      "forbidden_tools": ["wiki_document_create", "wiki_document_update"],
       "outcome_assertions": [
         {
           "source": "wiki_document:doc",

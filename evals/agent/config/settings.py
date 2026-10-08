@@ -12,6 +12,7 @@ from config.models import (
     EvalTargetAdapter,
     EvalTier,
     HarnessLimits,
+    JudgeProvider,
     JudgeSettings,
     LangfuseLookupSettings,
     SafeSettingsManifest,
@@ -130,7 +131,7 @@ class EvalSettings(BaseSettings):
         default=None,
         alias="EVAL_AUTH_BEARER_TOKEN",
     )
-    judge_provider: str | None = Field(default=None, alias="EVAL_JUDGE_PROVIDER")
+    judge_provider: JudgeProvider | None = Field(default=None, alias="EVAL_JUDGE_PROVIDER")
     judge_model: str | None = Field(default=None, alias="EVAL_JUDGE_MODEL")
     judge_api_key: SecretStr | None = Field(
         default=None,

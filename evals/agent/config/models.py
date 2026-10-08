@@ -23,10 +23,14 @@ class EvalTargetAdapter(StrEnum):
     DETERMINISTIC_FIXTURE = "deterministic-fixture"
 
 
+class JudgeProvider(StrEnum):
+    OLLAMA_CLOUD = "ollama-cloud"
+
+
 class JudgeSettings(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    provider: str
+    provider: JudgeProvider
     model: str
     api_key: SecretStr
 

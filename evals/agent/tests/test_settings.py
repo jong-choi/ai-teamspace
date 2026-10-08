@@ -38,7 +38,7 @@ def test_safe_manifest_contains_no_secret() -> None:
     payload.update(
         {
             "EVAL_AUTH_BEARER_TOKEN": "access-token-canary",
-            "EVAL_JUDGE_PROVIDER": "fixture",
+            "EVAL_JUDGE_PROVIDER": "ollama-cloud",
             "EVAL_JUDGE_MODEL": "judge-1",
             "EVAL_JUDGE_API_KEY": "judge-secret-canary",
         }

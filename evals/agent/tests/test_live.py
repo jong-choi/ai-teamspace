@@ -88,7 +88,7 @@ async def test_live_run_fails_closed_when_judge_is_configured_without_adapter() 
     payload = settings_payload()
     payload.update(
         {
-            "EVAL_JUDGE_PROVIDER": "fixture-provider",
+            "EVAL_JUDGE_PROVIDER": "ollama-cloud",
             "EVAL_JUDGE_MODEL": "fixture-model",
             "EVAL_JUDGE_API_KEY": "judge-key-canary",
         }

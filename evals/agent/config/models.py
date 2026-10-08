@@ -44,6 +44,8 @@ class LangfuseLookupSettings(BaseModel):
     secret_key: SecretStr | None = None
     project_alias: str | None = None
     ui_trace_url_template: str | None = None
+    # Langfuse ingest는 비동기라 run 직후에는 trace가 아직 보이지 않을 수 있다.
+    ingestion_wait_seconds: float = Field(default=30, ge=0, le=300)
 
     @model_validator(mode="after")
     def validate_enabled_configuration(self) -> LangfuseLookupSettings:

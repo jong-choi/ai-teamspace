@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import time
+from collections.abc import Callable
 from typing import Any
 
 from langfuse import Langfuse
@@ -7,10 +9,20 @@ from langfuse import Langfuse
 from config.models import LangfuseLookupSettings
 from reports.schema import LangfuseTraceLink
 
+POLL_INTERVAL_SECONDS = 1.0
+
 
 class LangfuseTraceLookup:
-    def __init__(self, settings: LangfuseLookupSettings) -> None:
+    def __init__(
+        self,
+        settings: LangfuseLookupSettings,
+        *,
+        sleep: Callable[[float], None] = time.sleep,
+        monotonic: Callable[[], float] = time.monotonic,
+    ) -> None:
         self._settings = settings
+        self._sleep = sleep
+        self._monotonic = monotonic
         self._client: Langfuse | None = None
         if settings.enabled:
             assert settings.public_key is not None
@@ -55,7 +67,7 @@ class LangfuseTraceLookup:
 
         trace_id = self.trace_id_for_run(run_id)
         try:
-            observations = self.observations_for_run(run_id)
+            observations = self._wait_for_observations(run_id)
             sampled = bool(observations)
             error = None if observations else "trace not found or not sampled"
         except Exception as error_value:
@@ -73,6 +85,14 @@ class LangfuseTraceLookup:
             ui_url=ui_url,
             linkage_error=error,
         )
+
+    def _wait_for_observations(self, run_id: str) -> list[dict[str, Any]]:
+        deadline = self._monotonic() + self._settings.ingestion_wait_seconds
+        while True:
+            observations = self.observations_for_run(run_id)
+            if observations or self._monotonic() >= deadline:
+                return observations
+            self._sleep(POLL_INTERVAL_SECONDS)
 
     def close(self) -> None:
         if self._client is not None:

@@ -159,6 +159,12 @@ class EvalSettings(BaseSettings):
         default=None,
         alias="EVAL_LANGFUSE_UI_TRACE_URL_TEMPLATE",
     )
+    langfuse_ingestion_wait_seconds: float = Field(
+        default=30,
+        ge=0,
+        le=300,
+        alias="EVAL_LANGFUSE_INGESTION_WAIT_SECONDS",
+    )
 
     @field_validator(
         "auth_bearer_token",
@@ -270,6 +276,7 @@ class EvalSettings(BaseSettings):
             secret_key=self.langfuse_secret_key,
             project_alias=self.langfuse_project_alias,
             ui_trace_url_template=self.langfuse_ui_trace_url_template,
+            ingestion_wait_seconds=self.langfuse_ingestion_wait_seconds,
         )
         return self
 
@@ -306,6 +313,7 @@ class EvalSettings(BaseSettings):
             secret_key=self.langfuse_secret_key,
             project_alias=self.langfuse_project_alias,
             ui_trace_url_template=self.langfuse_ui_trace_url_template,
+            ingestion_wait_seconds=self.langfuse_ingestion_wait_seconds,
         )
 
     def safe_manifest(self) -> SafeSettingsManifest:

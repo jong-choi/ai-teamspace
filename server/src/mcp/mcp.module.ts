@@ -1,6 +1,17 @@
-import { Module } from '@nestjs/common';
+import {
+  type MiddlewareConsumer,
+  Module,
+  type NestModule,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 import { AuthModule } from '@/auth/auth.module';
+import { authOptions } from '@/auth/auth-options';
+import type { AllConfigType } from '@/config/config.type';
+import {
+  BetterAuthOAuthMetadataMiddleware,
+  oauthMetadataRoutes,
+} from '@/mcp/infrastructure/auth/better-auth/better-auth-oauth-metadata.middleware';
 import { McpHttpHandler } from '@/mcp/infrastructure/transport/model-context-protocol/mcp-http.handler';
 import { McpHttpSecurityGuard } from '@/mcp/infrastructure/transport/model-context-protocol/mcp-http-security.guard';
 import { McpNodeAdapter } from '@/mcp/infrastructure/transport/model-context-protocol/mcp-node.adapter';
@@ -25,4 +36,16 @@ import { McpOAuthConnectionsModule } from '@/mcp-oauth-connections/mcp-oauth-con
     WorkOsMcpServerFactory,
   ],
 })
-export class McpModule {}
+export class McpModule implements NestModule {
+  constructor(private readonly configService: ConfigService<AllConfigType>) {}
+
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(BetterAuthOAuthMetadataMiddleware).forRoutes(
+      ...oauthMetadataRoutes({
+        resourcePath: this.configService.getOrThrow('mcp', { infer: true })
+          .resourcePath,
+        authBasePath: authOptions.basePath,
+      }),
+    );
+  }
+}

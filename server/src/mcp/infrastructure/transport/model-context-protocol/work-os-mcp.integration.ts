@@ -180,6 +180,35 @@ describe('실제 Work OS MCP transport 통합', () => {
     }
   });
 
+  it('root OAuth discovery 문서가 MCP resource와 Better Auth issuer를 가리킨다', async () => {
+    const http = request(app.getHttpServer());
+
+    for (const path of [
+      '/.well-known/oauth-protected-resource',
+      '/.well-known/oauth-protected-resource/mcp',
+    ]) {
+      const resourceMetadata = await http.get(path);
+      expect(resourceMetadata.status).toBe(200);
+      expect(resourceMetadata.body).toMatchObject({
+        resource: resourceUrl,
+        authorization_servers: [`${baseUrl}/api/auth`],
+      });
+    }
+
+    const authorizationMetadata = await http.get(
+      '/.well-known/oauth-authorization-server/api/auth',
+    );
+    expect(authorizationMetadata.status).toBe(200);
+    expect(authorizationMetadata.body).toMatchObject({
+      issuer: `${baseUrl}/api/auth`,
+      authorization_endpoint: `${baseUrl}/api/auth/oauth2/authorize`,
+    });
+
+    const head = await http.head('/.well-known/oauth-protected-resource/mcp');
+    expect(head.status).toBe(200);
+    expect(head.text).toBeUndefined();
+  });
+
   it('잘못된 JSON은 전역 parser가 아니라 MCP transport가 JSON-RPC parse error로 거부한다', async () => {
     const fixture = await createActorAndKey();
 

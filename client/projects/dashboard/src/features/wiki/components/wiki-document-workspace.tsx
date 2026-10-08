@@ -4,6 +4,7 @@ import { Pressable, View } from 'react-native';
 import type { WikiTreeOutput as WikiTreeData } from '@repo/client/api-client/schemas';
 import { cn } from '@repo/client/rnr/lib/utils';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
+import { WikiKnowledgeGraphActions } from '@core/features/knowledge-graph/components/wiki/wiki-knowledge-graph-actions';
 import { WikiMarkdownViewer } from '@core/features/wiki/components/wiki-document-viewer';
 import { WikiHeader } from '@core/features/wiki/components/wiki-header';
 import { WikiHistoryDialog } from '@core/features/wiki/components/wiki-history-dialog';
@@ -97,6 +98,15 @@ export function WikiDocumentWorkspace({
         activeDocument={activeDocument}
         collaborators={collaboration.collaborators}
         editModeDisabled={collaboration.editModeDisabled}
+        knowledgeGraphActions={
+          activeDocument ? (
+            <WikiKnowledgeGraphActions
+              documentId={documentId}
+              organizationId={organizationId}
+              savedOnServer={collaboration.indicator.tone === 'saved'}
+            />
+          ) : undefined
+        }
         mode={collaboration.mode}
         onExport={() => void handleExport()}
         onModeChange={collaboration.requestMode}

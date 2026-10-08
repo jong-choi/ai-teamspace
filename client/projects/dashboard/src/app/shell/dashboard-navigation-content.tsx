@@ -24,6 +24,7 @@ import {
   FileText,
   FolderKanban,
   MessageSquare,
+  Network,
   Search,
   Settings,
   Sparkles,
@@ -42,6 +43,7 @@ const NAVIGATION_ITEMS = [
   { id: 'projects', label: '프로젝트', icon: FolderKanban },
   { id: 'calendar', label: '회의일정', icon: CalendarDays },
   { id: 'wiki', label: '위키', icon: FileText },
+  { id: 'knowledge-graph', label: '지식 그래프', icon: Network },
   CHAT_NAVIGATION_ITEM,
   { id: 'ai', label: 'AI', icon: Sparkles, badge: 'AGENT' },
   { id: 'settings', label: '설정', icon: Settings },
@@ -114,7 +116,9 @@ export function DashboardNavigationContent({
                   ? '/calendar'
                   : item.id === 'wiki'
                     ? '/wiki'
-                    : '/settings/mcp';
+                    : item.id === 'knowledge-graph'
+                      ? '/knowledge-graph'
+                      : '/settings/mcp';
             return (
               <NavigationItem
                 key={item.id}

@@ -62,13 +62,15 @@ export function DashboardShell({
         ? 'calendar'
         : pathname.startsWith('/wiki')
           ? 'wiki'
-          : pathname.startsWith('/chat')
-            ? 'chat'
-            : pathname.startsWith('/settings')
-              ? 'settings'
-              : pathname.startsWith('/organizations')
-                ? 'members'
-                : 'projects');
+          : pathname.startsWith('/knowledge-graph')
+            ? 'knowledge-graph'
+            : pathname.startsWith('/chat')
+              ? 'chat'
+              : pathname.startsWith('/settings')
+                ? 'settings'
+                : pathname.startsWith('/organizations')
+                  ? 'members'
+                  : 'projects');
   const insets = useSafeAreaInsets();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const agentChatOpen = useAgentChatStore((state) => state.open);

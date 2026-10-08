@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 
 import type {
@@ -21,6 +22,8 @@ type WikiHeaderProps = {
   activeDocument?: WikiDocumentTreeNode;
   collaborators?: readonly WikiCollaborator[];
   editModeDisabled?: boolean;
+  // 지식 그래프 진입·갱신 액션. 소유 feature가 만든 요소를 그대로 받는다.
+  knowledgeGraphActions?: ReactNode;
   mode?: WikiEditorMode;
   onExport?: () => void;
   onModeChange?: (mode: WikiEditorMode) => void;
@@ -40,6 +43,7 @@ export function WikiHeader({
   activeDocument,
   collaborators = [],
   editModeDisabled = false,
+  knowledgeGraphActions,
   mode = 'view',
   onExport,
   onModeChange,
@@ -147,6 +151,7 @@ export function WikiHeader({
           />
         </View>
 
+        {knowledgeGraphActions}
         <Button
           accessibilityLabel="문서 기록 보기"
           className="h-8 w-8"

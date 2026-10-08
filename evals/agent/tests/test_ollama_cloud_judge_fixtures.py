@@ -6,7 +6,7 @@ import pytest
 
 from config.models import DeepEvalAsyncMode, JudgeSettings
 from config.settings import EvalSettings
-from datasets.schema import EvalCase
+from datasets.schema import EvalCase, ToolExpectation
 from metrics.ollama_cloud_judge import create_ollama_cloud_judge
 from runner.trajectory import ObservedToolCall, ObservedTrajectory
 
@@ -32,7 +32,7 @@ def fixture_case() -> EvalCase:
         version="1.0.0",
         input=[REQUEST],
         persona="member",
-        expected_tools={"tools": ["wiki_search"]},
+        expected_tools=ToolExpectation(tools=["wiki_search"]),
     )
 
 

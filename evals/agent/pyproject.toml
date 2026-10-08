@@ -10,6 +10,7 @@ dependencies = [
   "langfuse==4.17.0",
   "langgraph-sdk==0.4.6",
   "mcp==2.3.0",
+  "ollama==0.6.2",
   "pydantic==2.13.5",
   "pydantic-settings==2.15.0",
 ]

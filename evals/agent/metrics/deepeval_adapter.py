@@ -14,9 +14,15 @@ from runner.trajectory import ObservedTrajectory
 
 
 class StandaloneMetric(Protocol):
-    threshold: float | None
-    score: float | None
-    reason: str | None
+    # DeepEval metric은 측정 뒤 score/reason을 채우므로 adapter는 읽기만 한다.
+    @property
+    def threshold(self) -> float | None: ...
+
+    @property
+    def score(self) -> float | None: ...
+
+    @property
+    def reason(self) -> str | None: ...
 
     def measure(self, test_case: LLMTestCase, _show_indicator: bool = True) -> float: ...
 

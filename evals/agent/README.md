@@ -44,7 +44,9 @@ Reports are written as redacted `report.json` and `report.md` under `EVAL_OUTPUT
 
 When `--baseline-report` is supplied, the prior machine report is loaded and compared only when dataset/version, tool manifest, Agent/MCP protocol, model/prompt, evaluator, personas, trial count, random seed, and concrete trial set are compatible. Incompatible baselines produce no synthetic deltas and make the CLI exit with status 2; comparable reports record pass-rate, failure-count, tool-count, latency/cost, newly-failing, and resolved-trial deltas. Baseline promotion remains a review action, never an automatic overwrite.
 
-The current live CLI is deterministic-gate first. If `EVAL_JUDGE_*` settings are configured without a reviewed judge adapter, the run fails closed instead of silently skipping the judge.
+The live CLI is deterministic-gate first. When `EVAL_JUDGE_PROVIDER=ollama-cloud`, `EVAL_JUDGE_MODEL`, and `EVAL_JUDGE_API_KEY` are all set, cases that pass deterministic scoring additionally run DeepEval `ArgumentCorrectnessMetric` with an Ollama Cloud judge model (`https://ollama.com`, Bearer API key). Judge metrics are supplemental and never change a trial's pass/fail. Before the judge runs, the harness replaces DeepEval's telemetry backend with a no-op and refuses to run if Confident AI credentials are configured, so nothing except the judge request leaves the machine. Any other provider value fails settings validation.
+
+Ollama Cloud does not enforce the `format` JSON schema the way a local Ollama server does, so judge output relies on DeepEval's prompt-level JSON instructions. `tests/test_ollama_cloud_judge_fixtures.py` checks that the configured judge passes a correct-argument fixture and fails a wrong-argument fixture. It calls Ollama Cloud and is excluded from the default `pytest` run; run it explicitly with `uv run pytest -m live_judge`.
 
 ## Security dataset
 

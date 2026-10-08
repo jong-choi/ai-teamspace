@@ -6,10 +6,13 @@ import json
 from pathlib import Path
 from typing import NoReturn
 
-from config.settings import load_settings
+from config.models import DeepEvalAsyncMode
+from config.settings import EvalSettings, load_settings
 from datasets.schema import load_dataset
+from metrics.ollama_cloud_judge import create_ollama_cloud_judge
 from reports.baseline import compare_reports, load_report
 from reports.render import write_report
+from runner.case_runner import Judge
 from runner.live import run_configured_dataset
 from runner.manifest import dependency_versions
 
@@ -51,7 +54,9 @@ def command_run(
     settings = load_settings()
     dataset = load_dataset(path)
     try:
-        report = asyncio.run(run_configured_dataset(settings, dataset))
+        report = asyncio.run(
+            run_configured_dataset(settings, dataset, judge=configured_judge(settings))
+        )
         if baseline_report is not None:
             baseline = load_report(baseline_report)
             diff = compare_reports(
@@ -92,6 +97,17 @@ def command_run(
     if baseline_status == "incompatible":
         return 2
     return 0 if report.summary.failed_trials == 0 else 1
+
+
+def configured_judge(settings: EvalSettings) -> Judge | None:
+    judge_settings = settings.judge()
+    if judge_settings is None:
+        return None
+    return create_ollama_cloud_judge(
+        judge_settings,
+        async_mode=settings.deepeval_async_mode == DeepEvalAsyncMode.ASYNC,
+        timeout_seconds=settings.case_timeout_seconds,
+    )
 
 
 def build_parser() -> argparse.ArgumentParser:

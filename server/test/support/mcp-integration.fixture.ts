@@ -13,9 +13,12 @@ import {
 import { DatabaseService } from '@/database/database.service';
 import { WORK_OS_MCP_PROTOCOL_VERSION } from '@/mcp/contracts/mcp-protocol';
 import type { McpScope } from '@/mcp/contracts/mcp-scope';
+import { OrganizationMemberListSchema } from '@/organizations/dto/organization-member-list.dto';
 
 import {
+  type AuthProvider,
   Client,
+  type FetchLike,
   StreamableHTTPClientTransport,
 } from '@modelcontextprotocol/client';
 import { createAppTestingModule } from '@test/support/app-testing-module';
@@ -40,6 +43,13 @@ export interface McpActor {
   keyId: string;
   secret: string;
   userPolicyRevision: number;
+}
+
+export interface McpMember {
+  agent: TestAgent;
+  userId: string;
+  organizationId: string;
+  memberId: string;
 }
 
 export interface OpenedMcpClient {
@@ -102,61 +112,13 @@ export class McpIntegrationApp {
    * 회원가입 → 조직 생성 → 조직/개인 MCP policy → Personal Access Key 발급을 실제 REST로 수행한다.
    */
   async createActor(input: { scopes: readonly McpScope[] }): Promise<McpActor> {
-    const id = randomUUID().replaceAll('-', '').slice(0, 16);
-    const agent = request
-      .agent(this.app.getHttpServer())
-      .set('Origin', this.baseUrl);
-
-    const signUp = expectStatus(
-      await agent.post('/api/auth/sign-up/email').send({
-        email: `mcp-${id}@example.com`,
-        name: `MCP Integration ${id}`,
-        password: 'StrongPassword123!',
-        username: `mcp${id}`,
-      }),
-      200,
-      '회원가입',
-    );
-    agent.set('Cookie', toCookieHeader(signUp.headers['set-cookie']));
-    const userId: string = signUp.body.user.id;
-    this.userIds.add(userId);
-
-    const createdOrganization = expectStatus(
-      await agent
-        .post('/organizations')
-        .send({ name: `MCP Integration ${id}`, slug: `mcp-${id}` }),
-      201,
-      '조직 생성',
-    );
-    const organizationId: string = createdOrganization.body.organization.id;
-    this.organizationIds.add(organizationId);
-
-    const initialAccess = expectStatus(
-      await agent.get(`/organizations/${organizationId}/mcp-access`),
-      200,
-      'MCP access 조회',
-    );
-    const organizationUpdate = expectStatus(
-      await agent
-        .patch(
-          `/organizations/${organizationId}/mcp-access/organization-policy`,
-        )
-        .send({
-          allowedScopes: input.scopes,
-          expectedRevision: initialAccess.body.organizationPolicy.revision,
-        }),
-      200,
-      '조직 MCP policy 변경',
-    );
-    const userUpdate = expectStatus(
-      await agent.patch(`/organizations/${organizationId}/mcp-access/me`).send({
-        requestedScopes: input.scopes,
-        expectedRevision: organizationUpdate.body.myPolicy.revision,
-      }),
-      200,
-      '개인 MCP policy 변경',
+    const { agent, userId } = await this.signUp();
+    const { organizationId, userPolicyRevision } = await this.addOrganization(
+      { agent },
+      { scopes: input.scopes },
     );
 
+    const id = uniqueId();
     const keyResponse = expectStatus(
       await agent
         .post('/mcp/access-keys')
@@ -180,7 +142,93 @@ export class McpIntegrationApp {
       organizationId,
       keyId: keyResponse.body.key.id,
       secret: keyResponse.body.secret,
-      userPolicyRevision: userUpdate.body.myPolicy.revision,
+      userPolicyRevision,
+    };
+  }
+
+  /** 새 조직을 만들어 활성 조직으로 두고 조직과 개인 MCP policy를 `scopes`로 맞춘다. */
+  async addOrganization(
+    actor: Pick<McpActor, 'agent'>,
+    input: { scopes: readonly McpScope[] },
+  ): Promise<{ organizationId: string; userPolicyRevision: number }> {
+    const id = uniqueId();
+    const created = expectStatus(
+      await actor.agent
+        .post('/organizations')
+        .send({ name: `MCP Integration ${id}`, slug: `mcp-${id}` }),
+      201,
+      '조직 생성',
+    );
+    const organizationId: string = created.body.organization.id;
+    this.organizationIds.add(organizationId);
+
+    const access = expectStatus(
+      await actor.agent.get(`/organizations/${organizationId}/mcp-access`),
+      200,
+      'MCP access 조회',
+    );
+    expectStatus(
+      await actor.agent
+        .patch(
+          `/organizations/${organizationId}/mcp-access/organization-policy`,
+        )
+        .send({
+          allowedScopes: input.scopes,
+          expectedRevision: access.body.organizationPolicy.revision,
+        }),
+      200,
+      '조직 MCP policy 변경',
+    );
+    const userPolicyRevision = await this.requestUserScopes(
+      actor.agent,
+      organizationId,
+      input.scopes,
+    );
+    return { organizationId, userPolicyRevision };
+  }
+
+  /** owner 조직에 새 user를 member로 초대·수락시키고 활성 조직과 개인 MCP policy를 맞춘다. */
+  async addMember(
+    owner: McpActor,
+    input: { scopes: readonly McpScope[] },
+  ): Promise<McpMember> {
+    const { agent, userId, username } = await this.signUp();
+    const invitation = expectStatus(
+      await owner.agent
+        .post(`/organizations/${owner.organizationId}/invitations`)
+        .send({ recipientUsername: username, role: 'member' }),
+      201,
+      '조직 초대',
+    );
+    expectStatus(
+      await agent.post(`/invitations/${invitation.body.id}/accept`),
+      200,
+      '초대 수락',
+    );
+    expectStatus(
+      await agent
+        .put('/organizations/active')
+        .send({ organizationId: owner.organizationId }),
+      200,
+      '활성 조직 변경',
+    );
+    await this.requestUserScopes(agent, owner.organizationId, input.scopes);
+
+    const members = expectStatus(
+      await owner.agent.get(`/organizations/${owner.organizationId}/members`),
+      200,
+      '조직 member 조회',
+    );
+    const member = OrganizationMemberListSchema.parse(members.body).items.find(
+      (item) => item.userId === userId,
+    );
+    if (!member) throw new Error('초대를 수락한 member를 찾지 못했습니다.');
+
+    return {
+      agent,
+      userId,
+      organizationId: owner.organizationId,
+      memberId: member.id,
     };
   }
 
@@ -188,10 +236,16 @@ export class McpIntegrationApp {
   async connectClient(input: {
     name: string;
     headers?: Record<string, string>;
+    authProvider?: AuthProvider;
+    fetch?: FetchLike;
   }): Promise<OpenedMcpClient> {
     const transport = new StreamableHTTPClientTransport(
       new URL(this.resourceUrl),
-      { requestInit: { headers: input.headers } },
+      {
+        requestInit: { headers: input.headers },
+        authProvider: input.authProvider,
+        fetch: input.fetch,
+      },
     );
     const client = createModernMcpClient(input.name);
     const close = async (): Promise<void> => {
@@ -208,7 +262,7 @@ export class McpIntegrationApp {
   }
 
   /** delegation start → authorize → consent까지 진행하고 아직 호출하지 않은 callback URL을 돌려준다. */
-  async authorizeAgentDelegation(actor: McpActor): Promise<URL> {
+  async authorizeAgentDelegation(actor: Pick<McpActor, 'agent'>): Promise<URL> {
     const start = expectStatus(
       await actor.agent
         .post('/mcp/agent-delegation/start')
@@ -239,9 +293,59 @@ export class McpIntegrationApp {
   }
 
   /** callback까지 호출하고 응답을 그대로 돌려줘 test가 성공과 실패를 모두 검증하게 한다. */
-  async completeAgentDelegation(actor: McpActor): Promise<TestResponse> {
+  async completeAgentDelegation(
+    actor: Pick<McpActor, 'agent'>,
+  ): Promise<TestResponse> {
     const callbackUrl = await this.authorizeAgentDelegation(actor);
     return actor.agent.get(callbackUrl.pathname + callbackUrl.search);
+  }
+
+  private async signUp(): Promise<{
+    agent: TestAgent;
+    userId: string;
+    username: string;
+  }> {
+    const id = uniqueId();
+    const username = `mcp${id}`;
+    const agent = request
+      .agent(this.app.getHttpServer())
+      .set('Origin', this.baseUrl);
+    const signUp = expectStatus(
+      await agent.post('/api/auth/sign-up/email').send({
+        email: `mcp-${id}@example.com`,
+        name: `MCP Integration ${id}`,
+        password: 'StrongPassword123!',
+        username,
+      }),
+      200,
+      '회원가입',
+    );
+    agent.set('Cookie', toCookieHeader(signUp.headers['set-cookie']));
+    const userId: string = signUp.body.user.id;
+    this.userIds.add(userId);
+    return { agent, userId, username };
+  }
+
+  /** 개인 MCP policy의 요청 scope를 바꾸고 새 revision을 돌려준다. */
+  private async requestUserScopes(
+    agent: TestAgent,
+    organizationId: string,
+    scopes: readonly McpScope[],
+  ): Promise<number> {
+    const access = expectStatus(
+      await agent.get(`/organizations/${organizationId}/mcp-access`),
+      200,
+      'MCP access 조회',
+    );
+    const updated = expectStatus(
+      await agent.patch(`/organizations/${organizationId}/mcp-access/me`).send({
+        requestedScopes: scopes,
+        expectedRevision: access.body.myPolicy.revision,
+      }),
+      200,
+      '개인 MCP policy 변경',
+    );
+    return updated.body.myPolicy.revision;
   }
 
   /** 이 fixture로 만든 actor의 조직, key, session, account, user를 지운다. */
@@ -284,6 +388,10 @@ export function createModernMcpClient(name: string): Client {
     { name, version: '0.0.1' },
     { versionNegotiation: { mode: { pin: WORK_OS_MCP_PROTOCOL_VERSION } } },
   );
+}
+
+function uniqueId(): string {
+  return randomUUID().replaceAll('-', '').slice(0, 16);
 }
 
 function expectStatus(

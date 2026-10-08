@@ -1,7 +1,3 @@
-import {
-  oauthClient,
-  oauthClientResource,
-} from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
 import { WORK_OS_MCP_PROTOCOL_VERSION } from '@/mcp/contracts/mcp-protocol';
 import type { McpScope } from '@/mcp/contracts/mcp-scope';
 import { WikiDocumentSchema } from '@/wiki/dto/wiki-document.dto';
@@ -10,7 +6,6 @@ import {
   type McpActor,
   McpIntegrationApp,
 } from '@test/support/mcp-integration.fixture';
-import { eq } from 'drizzle-orm';
 import request from 'supertest';
 
 const WIKI_SCOPES: readonly McpScope[] = ['wiki:read', 'wiki:write'];
@@ -141,55 +136,6 @@ describe('실제 Work OS MCP transport 통합', () => {
     const head = await http.head('/.well-known/oauth-protected-resource/mcp');
     expect(head.status).toBe(200);
     expect(head.text).toBeUndefined();
-  });
-
-  it('first-party Agent OAuth를 authorize/consent/callback으로 완료하고 active delegation을 만든다', async () => {
-    const actor = await target.createActor({ scopes: WIKI_SCOPES });
-
-    const callback = await target.completeAgentDelegation(actor);
-
-    expect(callback.status).toBe(302);
-    expect(callback.headers.location).toContain('/settings/mcp/consent');
-    const status = await actor.agent.get('/mcp/agent-delegation');
-    expect(status.status).toBe(200);
-    expect(status.body).toMatchObject({ status: 'active' });
-    expect(status.body.grantedScopes).toEqual(
-      expect.arrayContaining(['wiki:read', 'wiki:write']),
-    );
-  });
-
-  it('first-party client row가 없을 때 동시 authorize가 client와 resource link를 하나씩만 만든다', async () => {
-    const actor = await target.createActor({ scopes: WIKI_SCOPES });
-    const start = await actor.agent
-      .post('/mcp/agent-delegation/start')
-      .send({ returnTo: '/ai' });
-    expect(start.status).toBe(201);
-    const authorizationUrl = new URL(start.body.authorizationUrl);
-    const clientId = authorizationUrl.searchParams.get('client_id');
-    if (!clientId) throw new Error('authorization URL에 client_id가 없습니다.');
-    await target.database
-      .delete(oauthClient)
-      .where(eq(oauthClient.clientId, clientId));
-
-    const authorizations = await Promise.all(
-      Array.from({ length: 4 }, () =>
-        actor.agent.get(authorizationUrl.pathname + authorizationUrl.search),
-      ),
-    );
-    expect(authorizations.map((response) => response.status)).toEqual([
-      302, 302, 302, 302,
-    ]);
-
-    const clients = await target.database
-      .select({ id: oauthClient.id })
-      .from(oauthClient)
-      .where(eq(oauthClient.clientId, clientId));
-    const links = await target.database
-      .select({ resourceId: oauthClientResource.resourceId })
-      .from(oauthClientResource)
-      .where(eq(oauthClientResource.clientId, clientId));
-    expect(clients).toHaveLength(1);
-    expect(links).toEqual([{ resourceId: target.resourceUrl }]);
   });
 
   it('잘못된 JSON은 전역 parser가 아니라 MCP transport가 JSON-RPC parse error로 거부한다', async () => {

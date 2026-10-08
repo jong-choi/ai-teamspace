@@ -26,6 +26,9 @@ export class GuardedSafeOutboundHttpAdapter extends SafeOutboundHttp {
       ...requestInit,
       signal,
       ...this.securityOptions(url),
+      // 공용 dispatcher의 연결 시점 IP pinning은 private 주소를 항상 거부한다.
+      // private network 허용(개발·test 전용, production은 config가 금지) 때만 끈다.
+      ...(this.config.allowPrivateNetworks && { dispatcher: null }),
       timeoutMs: this.config.toolTimeoutMs,
       followRedirects: false,
       maxRedirects: 0,

@@ -12,6 +12,7 @@ import {
   McpCredentialExtractionError,
 } from '@/mcp/infrastructure/auth/mcp-credential.extractor';
 import { McpHttpSecurityGuard } from '@/mcp/infrastructure/transport/model-context-protocol/mcp-http-security.guard';
+import { rejectOversizedToolInput } from '@/mcp/infrastructure/transport/model-context-protocol/mcp-tool-input-bound';
 import { WorkOsMcpServerFactory } from '@/mcp/mcp-server.factory';
 import {
   McpAccessKeyAuthenticationError,
@@ -41,7 +42,7 @@ export class McpHttpHandler {
   ) {
     const config = configService.getOrThrow('mcp', { infer: true });
 
-    const coreHandler = createMcpHandler(
+    const sdkHandler = createMcpHandler(
       ({ authInfo }) => {
         if (!authInfo) {
           throw new Error('검증된 MCP AuthInfo가 없습니다.');
@@ -53,6 +54,13 @@ export class McpHttpHandler {
         maxRequestBodySize: config.protocol.maxRequestBodyBytes,
       },
     );
+    const coreHandler: Pick<SdkMcpHttpHandler, 'fetch'> = {
+      fetch: async (request, context) =>
+        (await rejectOversizedToolInput(
+          request,
+          config.protocol.maxToolInputElements,
+        )) ?? sdkHandler.fetch(request, context),
+    };
 
     const protectedOAuthFetch = requireMcpAuth(
       authService.instance,

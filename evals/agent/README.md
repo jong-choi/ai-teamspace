@@ -36,7 +36,7 @@ uv run python -m runner.main run datasets/smoke/smoke.json \
   --baseline-report ../../.temp/evals/agent/baseline/report.json
 ```
 
-With `EVAL_TARGET_ADAPTER=public-http`, `run` requires a dedicated ephemeral target. It performs unauthenticated Agent Protocol `GET /info` capability capture, creates an isolated full-scope manifest actor through public Better Auth/product APIs, issues a short-lived public MCP access key, verifies MCP `2026-07-28`, captures the live tool manifest hash, revokes the probe key, and then runs bounded case/trial jobs through public Agent Protocol sessions. Per-case MCP credentials and sessions are isolated; active access keys are revoked during fixture cleanup.
+With `EVAL_TARGET_ADAPTER=public-http`, `run` requires a dedicated ephemeral target. It performs unauthenticated Agent Protocol `GET /info` capability capture, creates an isolated full-scope manifest actor through public Better Auth/product APIs, issues a short-lived public MCP access key, verifies MCP `2026-07-28`, captures the live tool manifest hash, revokes the probe key, and then runs bounded case/trial jobs through public Agent Protocol sessions. Personas with a valid session and an active organization also complete the first-party Agent OAuth delegation through the public `/mcp/agent-delegation/start` → authorize → consent → callback endpoints, because the Work OS Agent calls Work OS MCP with the user's delegation. Per-case MCP credentials, delegations, and sessions are isolated; active access keys and delegations are revoked during fixture cleanup.
 
 With `EVAL_TARGET_ADAPTER=deterministic-fixture`, the same CLI, suite runner, case runner, deterministic scorer, report writer, and baseline diff execute without network or provider credentials. The adapter materializes dataset-declared preconditions and expected tool/argument/HITL/auth-denial behavior as an in-memory oracle. Its manifest uses a distinct fixture runtime/model identity, so fixture reports cannot be compared to a live public target as an apples-to-apples baseline. Langfuse linkage and judge credentials are rejected in this mode.
 
@@ -81,3 +81,23 @@ EVAL_TARGET_ADAPTER=deterministic-fixture EVAL_DATASET=security EVAL_BASELINE=se
 ```
 
 Fixture results prove harness, dataset, scorer, and report behavior only. Live `public-http` runs against a local server remain authoritative for the Nest Agent Protocol, MCP authorization, configured model, HITL runtime, and Langfuse linkage boundaries. Baseline promotion remains a review action, never an automatic overwrite.
+
+### Live runs against a local server
+
+Live `public-http` runs target a locally started server that uses the test database. The server, MCP resource, and trusted origin must share one loopback origin, so start the built server with `BETTER_AUTH_URL` pointing at the same loopback origin as `EVAL_SERVER_URL` (process environment overrides `server/.env`):
+
+```bash
+npm run build --workspace @repo/server            # from the repository root
+cd server && BETTER_AUTH_URL=http://localhost:3100 node dist/main.js
+```
+
+To link runs to Langfuse, start the local self-hosted Langfuse in [infra/langfuse](../../infra/langfuse/README.md), start the server with `LANGFUSE_ENABLED=true` and that project's keys, and set `EVAL_LANGFUSE_*` in `evals/agent/.env`. Linkage waits up to `EVAL_LANGFUSE_INGESTION_WAIT_SECONDS` (default 30) for asynchronous ingestion. Then, from `evals/agent`:
+
+```bash
+EVAL_OUTPUT_DIR=.temp/evals/agent/local-live-smoke \
+  uv run python -m runner.main run datasets/smoke/smoke.json
+EVAL_DATASET=security EVAL_BASELINE=security-v1 EVAL_OUTPUT_DIR=.temp/evals/agent/local-live-security \
+  uv run python -m runner.main run datasets/security/security.json
+```
+
+The Agent model and the optional judge both call Ollama Cloud, so live runs need the server's Ollama Cloud key and, for the judge, `EVAL_JUDGE_*`. Reviewed baselines are kept under `.temp/evals/agent/baseline/<dataset>/report.json` (gitignored) and are copied there by hand after review; pass one with `--baseline-report ../../.temp/evals/agent/baseline/<dataset>/report.json`.

@@ -27,6 +27,8 @@ const mcpConfig: McpConfig = {
     rateLimitMax: 60,
     operationRetentionHours: 24,
     reservationStaleAfterSeconds: 300,
+    reconciliationIntervalSeconds: 900,
+    reconciliationBatchSize: 100,
   },
   agentDelegation: {
     clientId: 'work-os-agent',

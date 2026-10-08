@@ -18,6 +18,8 @@ export type McpConfig = {
     rateLimitMax: number;
     operationRetentionHours: number;
     reservationStaleAfterSeconds: number;
+    reconciliationIntervalSeconds: number;
+    reconciliationBatchSize: number;
   };
   agentDelegation: {
     clientId: string;

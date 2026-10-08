@@ -119,6 +119,18 @@ const mcpConfigSchema = z
       .number()
       .int()
       .positive(),
+    MCP_ACCESS_KEY_RECONCILIATION_INTERVAL_SECONDS: z.coerce
+      .number()
+      .int()
+      .min(60)
+      .max(86_400)
+      .default(900),
+    MCP_ACCESS_KEY_RECONCILIATION_BATCH_SIZE: z.coerce
+      .number()
+      .int()
+      .min(1)
+      .max(1_000)
+      .default(100),
     MCP_AGENT_OAUTH_CLIENT_ID: z.string().trim().min(1).max(256),
     MCP_AGENT_OAUTH_CLIENT_SECRET: z.string().min(32).max(512),
     MCP_AGENT_OAUTH_REDIRECT_URL: agentDelegationRedirectUrlSchema,
@@ -190,6 +202,10 @@ export function createMcpConfig(): McpConfig {
         environment.MCP_ACCESS_KEY_OPERATION_RETENTION_HOURS,
       reservationStaleAfterSeconds:
         environment.MCP_ACCESS_KEY_RESERVATION_STALE_AFTER_SECONDS,
+      reconciliationIntervalSeconds:
+        environment.MCP_ACCESS_KEY_RECONCILIATION_INTERVAL_SECONDS,
+      reconciliationBatchSize:
+        environment.MCP_ACCESS_KEY_RECONCILIATION_BATCH_SIZE,
     },
     agentDelegation: {
       clientId: environment.MCP_AGENT_OAUTH_CLIENT_ID,

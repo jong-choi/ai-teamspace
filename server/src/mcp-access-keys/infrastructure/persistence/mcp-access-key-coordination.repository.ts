@@ -18,6 +18,12 @@ export type ReserveMcpAccessKeyOperationResult =
   | { status: 'existing'; operation: McpAccessKeyOperation };
 
 export abstract class McpAccessKeyCoordinationRepository {
+  // allocation 또는 pending operation이 남은 user id를 userId 순서로 afterUserId 다음부터 limit개까지 반환한다.
+  abstract listCoordinatedUserIds(input: {
+    afterUserId: string | null;
+    limit: number;
+  }): Promise<string[]>;
+
   abstract listAllocationsForUser(
     userId: string,
   ): Promise<McpAccessKeyAllocation[]>;

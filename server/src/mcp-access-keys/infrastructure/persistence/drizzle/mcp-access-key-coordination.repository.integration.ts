@@ -10,9 +10,12 @@ import { mcpAccessKeyAllocation } from '@/mcp-access-keys/infrastructure/persist
 import { mcpAccessKeyOperation } from '@/mcp-access-keys/infrastructure/persistence/drizzle/schema/mcp-access-key-operation.schema';
 import { McpAccessKeyCoordinationRepository } from '@/mcp-access-keys/infrastructure/persistence/mcp-access-key-coordination.repository';
 
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 
 const userId = 'mcp-access-key-coordination-user';
+const pendingOnlyUserId = 'mcp-access-key-coordination-pending-user';
+const completedOnlyUserId = 'mcp-access-key-coordination-completed-user';
+const extraUserIds = [pendingOnlyUserId, completedOnlyUserId];
 
 describe('MCP access key coordination Drizzle 저장소 통합', () => {
   let moduleRef: TestingModule;
@@ -158,6 +161,56 @@ describe('MCP access key coordination Drizzle 저장소 통합', () => {
     });
   });
 
+  it('정리 대상 user 조회는 allocation 또는 pending operation이 있는 user를 page 사이 중복 없이 한 번씩 반환한다', async () => {
+    await database.insert(user).values(
+      extraUserIds.map((id) => ({
+        id,
+        name: 'MCP Key User',
+        email: `${id}@example.com`,
+        username: id.replaceAll('-', ''),
+      })),
+    );
+    await repository.reserveAllocation(userId, 2);
+    await repository.reserveAllocation(userId, 2);
+    await repository.reserveOperation({
+      userId,
+      idempotencyKey: 'sweep-pending',
+      operation: 'create',
+      requestFingerprint: 'e'.repeat(64),
+      expiresAt: new Date(Date.now() + 60_000),
+    });
+    await repository.reserveOperation({
+      userId: pendingOnlyUserId,
+      idempotencyKey: 'sweep-pending',
+      operation: 'rotate',
+      requestFingerprint: 'f'.repeat(64),
+      expiresAt: new Date(Date.now() + 60_000),
+    });
+    const completed = await repository.reserveOperation({
+      userId: completedOnlyUserId,
+      idempotencyKey: 'sweep-completed',
+      operation: 'create',
+      requestFingerprint: 'a'.repeat(64),
+      expiresAt: new Date(Date.now() + 60_000),
+    });
+    await repository.completeOperation(completed.operation.id, 'result-key');
+
+    // test DB에 다른 user의 coordination row가 있어도 성립하도록 모든 page를 끝까지 읽는다.
+    const visited: string[] = [];
+    let afterUserId: string | null = null;
+    let page: string[];
+    do {
+      page = await repository.listCoordinatedUserIds({ afterUserId, limit: 2 });
+      visited.push(...page);
+      afterUserId = page.at(-1) ?? null;
+    } while (page.length === 2);
+
+    expect(new Set(visited).size).toBe(visited.length);
+    expect(visited.filter((id) => id === userId)).toHaveLength(1);
+    expect(visited).toContain(pendingOnlyUserId);
+    expect(visited).not.toContain(completedOnlyUserId);
+  });
+
   it('user delete cascade가 allocation과 operation을 함께 제거한다', async () => {
     await repository.reserveAllocation(userId, 1);
     await repository.reserveOperation({
@@ -192,5 +245,6 @@ describe('MCP access key coordination Drizzle 저장소 통합', () => {
       .delete(mcpAccessKeyAllocation)
       .where(eq(mcpAccessKeyAllocation.userId, userId));
     await database.delete(user).where(eq(user.id, userId));
+    await database.delete(user).where(inArray(user.id, extraUserIds));
   }
 });

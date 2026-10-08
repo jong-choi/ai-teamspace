@@ -12,12 +12,44 @@ import {
   type ReserveMcpAccessKeyOperationResult,
 } from '@/mcp-access-keys/infrastructure/persistence/mcp-access-key-coordination.repository';
 
-import { and, eq, lte } from 'drizzle-orm';
+import { and, asc, eq, gt, lte } from 'drizzle-orm';
+import { union } from 'drizzle-orm/pg-core';
 
 @Injectable()
 export class McpAccessKeyCoordinationDrizzleRepository extends McpAccessKeyCoordinationRepository {
   constructor(private readonly database: DatabaseService) {
     super();
+  }
+
+  async listCoordinatedUserIds(input: {
+    afterUserId: string | null;
+    limit: number;
+  }) {
+    const rows = await union(
+      this.database.db
+        .select({ userId: mcpAccessKeyAllocation.userId })
+        .from(mcpAccessKeyAllocation)
+        .where(
+          input.afterUserId === null
+            ? undefined
+            : gt(mcpAccessKeyAllocation.userId, input.afterUserId),
+        ),
+      this.database.db
+        .select({ userId: mcpAccessKeyOperation.userId })
+        .from(mcpAccessKeyOperation)
+        .where(
+          and(
+            eq(mcpAccessKeyOperation.status, 'pending'),
+            input.afterUserId === null
+              ? undefined
+              : gt(mcpAccessKeyOperation.userId, input.afterUserId),
+          ),
+        ),
+    )
+      .orderBy(asc(mcpAccessKeyAllocation.userId))
+      .limit(input.limit);
+
+    return rows.map((row) => row.userId);
   }
 
   async listAllocationsForUser(userId: string) {

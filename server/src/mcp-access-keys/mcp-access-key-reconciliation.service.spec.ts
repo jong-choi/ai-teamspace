@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 
 import type { AllConfigType } from '@/config/config.type';
@@ -10,6 +11,7 @@ const config = {
   accessKey: {
     maxActivePerUser: 2,
     reservationStaleAfterSeconds: 300,
+    reconciliationBatchSize: 2,
   },
 };
 
@@ -32,6 +34,7 @@ describe('MCP access key reconciliation', () => {
   const listForUser = jest.fn();
   const getForUser = jest.fn();
   const revoke = jest.fn();
+  const listCoordinatedUserIds = jest.fn();
   const listAllocationsForUser = jest.fn();
   const findAllocationByKeyId = jest.fn();
   const reserveAllocation = jest.fn();
@@ -49,6 +52,7 @@ describe('MCP access key reconciliation', () => {
       revoke,
     } as unknown as McpAccessKeyProvider,
     {
+      listCoordinatedUserIds,
       listAllocationsForUser,
       findAllocationByKeyId,
       reserveAllocation,
@@ -67,6 +71,57 @@ describe('MCP access key reconciliation', () => {
     listExpiredOperationsForUser.mockResolvedValue([]);
     findAllocationByKeyId.mockResolvedValue(null);
     revoke.mockResolvedValue(true);
+  });
+
+  it('전체 정리는 userId page를 끝까지 이어 받고 user마다 한 번씩 정리한다', async () => {
+    listCoordinatedUserIds
+      .mockResolvedValueOnce(['user-a', 'user-b'])
+      .mockResolvedValueOnce(['user-c']);
+
+    const sweep = await service.reconcileAllUsers();
+
+    expect(listCoordinatedUserIds.mock.calls).toEqual([
+      [{ afterUserId: null, limit: 2 }],
+      [{ afterUserId: 'user-b', limit: 2 }],
+    ]);
+    expect(listForUser.mock.calls).toEqual([
+      ['user-a'],
+      ['user-b'],
+      ['user-c'],
+    ]);
+    expect(sweep).toMatchObject({ reconciledUsers: 3, failedUsers: 0 });
+  });
+
+  it('page가 정확히 가득 차면 빈 page를 받은 뒤 끝낸다', async () => {
+    listCoordinatedUserIds
+      .mockResolvedValueOnce(['user-a', 'user-b'])
+      .mockResolvedValueOnce([]);
+
+    const sweep = await service.reconcileAllUsers();
+
+    expect(listCoordinatedUserIds).toHaveBeenCalledTimes(2);
+    expect(sweep.reconciledUsers).toBe(2);
+  });
+
+  it('한 user 정리가 실패해도 나머지 user를 정리하고 log에 user id를 남기지 않는다', async () => {
+    const warn = jest.spyOn(Logger.prototype, 'warn').mockImplementation();
+    listCoordinatedUserIds
+      .mockResolvedValueOnce(['user-a', 'user-b'])
+      .mockResolvedValueOnce(['user-c']);
+    listForUser.mockImplementation(async (userId: string) => {
+      if (userId === 'user-b') throw new TypeError('provider 장애');
+      return [];
+    });
+
+    const sweep = await service.reconcileAllUsers();
+
+    expect(sweep).toMatchObject({ reconciledUsers: 2, failedUsers: 1 });
+    expect(listForUser).toHaveBeenCalledWith('user-c');
+    expect(JSON.stringify(warn.mock.calls)).not.toContain('user-b');
+    expect(warn).toHaveBeenCalledWith(
+      expect.objectContaining({ errorName: 'TypeError' }),
+    );
+    warn.mockRestore();
   });
 
   it('stale reservation을 해제하고 allocation 없는 active key를 복구한다', async () => {

@@ -57,6 +57,8 @@ describe('MCP 설정', () => {
         rateLimitMax: 60,
         operationRetentionHours: 24,
         reservationStaleAfterSeconds: 300,
+        reconciliationIntervalSeconds: 900,
+        reconciliationBatchSize: 100,
       },
       agentDelegation: {
         clientId: 'work-os-agent',
@@ -111,6 +113,15 @@ describe('MCP 설정', () => {
   it('access key rate limit과 active key 제한은 양수만 허용한다', () => {
     process.env.MCP_ACCESS_KEY_RATE_LIMIT_MAX = '0';
 
+    expect(() => mcpConfig()).toThrow();
+  });
+
+  it('access key reconciliation 주기와 page 크기는 허용 범위 밖이면 거부한다', () => {
+    process.env.MCP_ACCESS_KEY_RECONCILIATION_INTERVAL_SECONDS = '59';
+    expect(() => mcpConfig()).toThrow();
+
+    process.env.MCP_ACCESS_KEY_RECONCILIATION_INTERVAL_SECONDS = '900';
+    process.env.MCP_ACCESS_KEY_RECONCILIATION_BATCH_SIZE = '0';
     expect(() => mcpConfig()).toThrow();
   });
 

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import type { AllConfigType } from '@/config/config.type';
@@ -17,13 +17,67 @@ export type McpAccessKeyReconciliationResult = {
   failedOperations: number;
 };
 
+export type McpAccessKeyReconciliationSweepResult =
+  McpAccessKeyReconciliationResult & {
+    reconciledUsers: number;
+    failedUsers: number;
+  };
+
 @Injectable()
 export class McpAccessKeyReconciliationService {
+  private readonly logger = new Logger(McpAccessKeyReconciliationService.name);
+
   constructor(
     private readonly configService: ConfigService<AllConfigType>,
     private readonly provider: McpAccessKeyProvider,
     private readonly coordination: McpAccessKeyCoordinationRepository,
   ) {}
+
+  // coordination 상태가 남은 모든 user를 userId keyset page로 나눠 정리한다.
+  async reconcileAllUsers(): Promise<McpAccessKeyReconciliationSweepResult> {
+    const { reconciliationBatchSize } = this.configService.getOrThrow('mcp', {
+      infer: true,
+    }).accessKey;
+    const sweep: McpAccessKeyReconciliationSweepResult = {
+      releasedAllocations: 0,
+      recoveredAllocations: 0,
+      revokedOrphanKeys: 0,
+      completedOperations: 0,
+      failedOperations: 0,
+      reconciledUsers: 0,
+      failedUsers: 0,
+    };
+
+    let afterUserId: string | null = null;
+    let userIds: string[];
+    do {
+      userIds = await this.coordination.listCoordinatedUserIds({
+        afterUserId,
+        limit: reconciliationBatchSize,
+      });
+      for (const userId of userIds) {
+        try {
+          const result = await this.reconcileUser(userId);
+          sweep.releasedAllocations += result.releasedAllocations;
+          sweep.recoveredAllocations += result.recoveredAllocations;
+          sweep.revokedOrphanKeys += result.revokedOrphanKeys;
+          sweep.completedOperations += result.completedOperations;
+          sweep.failedOperations += result.failedOperations;
+          sweep.reconciledUsers += 1;
+        } catch (error) {
+          // 한 user의 provider·DB 오류가 나머지 user 정리를 막지 않게 하고 다음 주기에 다시 시도한다.
+          sweep.failedUsers += 1;
+          this.logger.warn({
+            event: 'mcp_access_key_user_reconciliation_failed',
+            errorName: error instanceof Error ? error.name : 'UnknownError',
+          });
+        }
+      }
+      afterUserId = userIds.at(-1) ?? null;
+    } while (userIds.length === reconciliationBatchSize);
+
+    return sweep;
+  }
 
   async reconcileUser(
     userId: string,

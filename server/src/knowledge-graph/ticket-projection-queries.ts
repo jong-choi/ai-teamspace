@@ -125,6 +125,11 @@ WITH DISTINCT marker, ticket
 FOREACH (ignored IN CASE WHEN ticket IS NULL THEN [] ELSE [1] END |
   SET ticket.deleted = true
 )
+WITH DISTINCT marker, ticket
+OPTIONAL MATCH (ticket)-[curatedReference:KG_CURATED_RELATED_TO]-()
+WHERE curatedReference.organizationId = $organizationId
+DELETE curatedReference
+WITH DISTINCT marker
 SET marker.appliedSeq = $sourceVersion, marker.deleted = true
 RETURN marker.appliedSeq AS appliedSeq
 `;

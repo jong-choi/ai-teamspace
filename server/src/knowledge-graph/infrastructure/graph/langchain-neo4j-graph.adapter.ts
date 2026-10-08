@@ -15,9 +15,10 @@ import knowledgeGraphConfig from '@/knowledge-graph/config/knowledge-graph.confi
 import {
   TOMBSTONE_CURATED_EDGE,
   TOMBSTONE_CURATED_NODE,
-  UPSERT_CURATED_EDGE,
   UPSERT_CURATED_NODE,
+  upsertCuratedEdgeQuery,
 } from '@/knowledge-graph/curated-projection-queries';
+import { normalizeCuratedEdge } from '@/knowledge-graph/domain/curated-edge-policy';
 import type {
   CuratedEdge,
   CuratedNode,
@@ -93,6 +94,11 @@ WITH marker, document
 FOREACH (ignored IN CASE WHEN document IS NULL THEN [] ELSE [1] END |
     SET document.deleted = true, document.title = null
 )
+WITH DISTINCT marker, document
+OPTIONAL MATCH (document)-[curatedReference:KG_CURATED_RELATED_TO]-()
+WHERE curatedReference.organizationId = $organizationId
+DELETE curatedReference
+WITH DISTINCT marker
 SET marker.appliedSeq = $sourceVersion, marker.deleted = true
 RETURN marker.appliedSeq AS appliedSeq
 `;
@@ -512,6 +518,17 @@ export class LangchainNeo4jGraphAdapter
     >,
     node: CuratedNode | null,
   ): Promise<void> {
+    if (
+      tracking.aggregateKind !== 'curated_node' ||
+      (node &&
+        (node.organizationId !== tracking.organizationId ||
+          node.id !== tracking.aggregateId ||
+          (!tracking.deleted && node.deletedAt !== null)))
+    ) {
+      throw new Error(
+        'curated node 투영의 조직·식별자·삭제 상태가 원본과 일치하지 않습니다.',
+      );
+    }
     if (!tracking.deleted && !node) {
       throw new Error('삭제되지 않은 curated node 원본을 조회할 수 없습니다.');
     }
@@ -541,13 +558,30 @@ export class LangchainNeo4jGraphAdapter
     >,
     edge: CuratedEdge | null,
   ): Promise<void> {
+    if (
+      tracking.aggregateKind !== 'curated_edge' ||
+      (edge &&
+        (edge.organizationId !== tracking.organizationId ||
+          edge.id !== tracking.aggregateId ||
+          (!tracking.deleted && edge.deletedAt !== null)))
+    ) {
+      throw new Error(
+        'curated edge 투영의 조직·식별자·삭제 상태가 원본과 일치하지 않습니다.',
+      );
+    }
     if (!tracking.deleted && !edge) {
       throw new Error('삭제되지 않은 curated edge 원본을 조회할 수 없습니다.');
     }
+    if (edge && !tracking.deleted) normalizeCuratedEdge(edge);
     const graph = await this.getGraph();
     const organizationId = tracking.organizationId;
     await graph.query(
-      tracking.deleted ? TOMBSTONE_CURATED_EDGE : UPSERT_CURATED_EDGE,
+      tracking.deleted
+        ? TOMBSTONE_CURATED_EDGE
+        : upsertCuratedEdgeQuery(
+            edge?.sourceNodeKind ?? 'curated_node',
+            edge?.targetNodeKind ?? 'curated_node',
+          ),
       {
         sourceKey: sourceKey(
           'curated_edge',
@@ -560,11 +594,17 @@ export class LangchainNeo4jGraphAdapter
         sourceNodeId: edge?.sourceNodeId ?? null,
         targetNodeId: edge?.targetNodeId ?? null,
         sourceNodeKey: edge
-          ? sourceKey('curated_node', organizationId, edge.sourceNodeId)
+          ? sourceKey(edge.sourceNodeKind, organizationId, edge.sourceNodeId)
           : null,
         targetNodeKey: edge
-          ? sourceKey('curated_node', organizationId, edge.targetNodeId)
+          ? sourceKey(edge.targetNodeKind, organizationId, edge.targetNodeId)
           : null,
+        endpointKeys: edge
+          ? [
+              sourceKey(edge.sourceNodeKind, organizationId, edge.sourceNodeId),
+              sourceKey(edge.targetNodeKind, organizationId, edge.targetNodeId),
+            ]
+          : [],
         predicate: edge?.predicate ?? null,
         directed: edge?.directed ?? null,
         propertiesJson: JSON.stringify(edge?.properties ?? {}),

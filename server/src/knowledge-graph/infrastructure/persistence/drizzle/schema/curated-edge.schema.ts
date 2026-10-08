@@ -3,7 +3,7 @@ import { authUserIdColumn } from '@/auth/infrastructure/persistence/drizzle/auth
 import { CuratedGraphPropertiesSchema } from '@/knowledge-graph/domain/curated-graph-properties';
 import { curatedNode } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/curated-node.schema';
 
-import { sql } from 'drizzle-orm';
+import { inArray, sql } from 'drizzle-orm';
 import {
   boolean,
   check,
@@ -19,6 +19,21 @@ import {
 } from 'drizzle-orm/pg-core';
 import type { z } from 'zod';
 
+const curatedEdgePredicates = [
+  'related_to',
+  'depends_on',
+  'contains',
+  'references',
+] as const;
+const curatedEdgeStatuses = ['active', 'deleted'] as const;
+const curatedEndpointKinds = [
+  'curated_node',
+  'wiki_document',
+  'project',
+  'ticket',
+  'meeting',
+] as const;
+
 export const curatedEdge = pgTable(
   'kg_curated_edge',
   {
@@ -28,13 +43,27 @@ export const curatedEdge = pgTable(
       .references(() => authOrganizationIdColumn, { onDelete: 'cascade' }),
     sourceNodeId: uuid('source_node_id').notNull(),
     targetNodeId: uuid('target_node_id').notNull(),
-    predicate: text('predicate').notNull(),
+    sourceNodeKind: text('source_node_kind', { enum: curatedEndpointKinds })
+      .default('curated_node')
+      .notNull(),
+    targetNodeKind: text('target_node_kind', { enum: curatedEndpointKinds })
+      .default('curated_node')
+      .notNull(),
+    sourceCuratedNodeId: uuid('source_curated_node_id').generatedAlwaysAs(
+      sql`case when source_node_kind = 'curated_node' then source_node_id else null end`,
+    ),
+    targetCuratedNodeId: uuid('target_curated_node_id').generatedAlwaysAs(
+      sql`case when target_node_kind = 'curated_node' then target_node_id else null end`,
+    ),
+    predicate: text('predicate', { enum: curatedEdgePredicates }).notNull(),
     directed: boolean('directed').default(true).notNull(),
     properties: jsonb('properties')
       .$type<z.infer<typeof CuratedGraphPropertiesSchema>>()
       .default(sql`'{}'::jsonb`)
       .notNull(),
-    status: text('status').default('active').notNull(),
+    status: text('status', { enum: curatedEdgeStatuses })
+      .default('active')
+      .notNull(),
     revision: integer('revision').default(1).notNull(),
     createdByUserId: text('created_by_user_id')
       .notNull()
@@ -53,22 +82,38 @@ export const curatedEdge = pgTable(
   (table) => [
     foreignKey({
       name: 'kg_curated_edge_source_organization_fk',
-      columns: [table.sourceNodeId, table.organizationId],
+      columns: [table.sourceCuratedNodeId, table.organizationId],
       foreignColumns: [curatedNode.id, curatedNode.organizationId],
     }).onDelete('restrict'),
     foreignKey({
       name: 'kg_curated_edge_target_organization_fk',
-      columns: [table.targetNodeId, table.organizationId],
+      columns: [table.targetCuratedNodeId, table.organizationId],
       foreignColumns: [curatedNode.id, curatedNode.organizationId],
     }).onDelete('restrict'),
     check(
       'kg_curated_edge_predicate_check',
-      sql`${table.predicate} = 'related_to'`,
+      inArray(table.predicate, [...curatedEdgePredicates]).inlineParams(),
+    ),
+    check(
+      'kg_curated_edge_source_kind_check',
+      inArray(table.sourceNodeKind, [...curatedEndpointKinds]).inlineParams(),
+    ),
+    check(
+      'kg_curated_edge_target_kind_check',
+      inArray(table.targetNodeKind, [...curatedEndpointKinds]).inlineParams(),
+    ),
+    check(
+      'kg_curated_edge_endpoint_policy_check',
+      sql`${table.predicate} = 'references' or (${table.sourceNodeKind} = 'curated_node' and ${table.targetNodeKind} = 'curated_node')`,
+    ),
+    check(
+      'kg_curated_edge_direction_check',
+      sql`${table.predicate} = 'related_to' or ${table.directed} = true`,
     ),
     check('kg_curated_edge_revision_check', sql`${table.revision} > 0`),
     check(
       'kg_curated_edge_status_check',
-      sql`${table.status} in ('active', 'deleted')`,
+      inArray(table.status, [...curatedEdgeStatuses]).inlineParams(),
     ),
     check(
       'kg_curated_edge_delete_state_check',
@@ -76,13 +121,15 @@ export const curatedEdge = pgTable(
     ),
     check(
       'kg_curated_edge_no_self_loop_check',
-      sql`${table.sourceNodeId} <> ${table.targetNodeId}`,
+      sql`${table.predicate} = 'references' or ${table.sourceNodeKind} <> ${table.targetNodeKind} or ${table.sourceNodeId} <> ${table.targetNodeId}`,
     ),
     uniqueIndex('kg_curated_edge_active_unique')
       .on(
         table.organizationId,
-        table.sourceNodeId,
-        table.targetNodeId,
+        table.sourceNodeKind,
+        sql`(case when ${table.directed} then ${table.sourceNodeId} else least(${table.sourceNodeId}, ${table.targetNodeId}) end)`,
+        table.targetNodeKind,
+        sql`(case when ${table.directed} then ${table.targetNodeId} else greatest(${table.sourceNodeId}, ${table.targetNodeId}) end)`,
         table.predicate,
         table.directed,
       )

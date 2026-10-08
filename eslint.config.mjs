@@ -196,6 +196,13 @@ export default tseslint.config(
           capture: ['feature'],
         },
         {
+          type: 'adapter',
+          pattern:
+            'server/src/*/infrastructure/persistence/drizzle/repositories/**',
+          mode: 'full',
+          capture: ['feature'],
+        },
+        {
           type: 'server-infra',
           pattern: 'server/src/{auth,config,database,jobs,outbox,queue}/**',
           mode: 'full',
@@ -327,6 +334,7 @@ export default tseslint.config(
                 'schema-aggregator',
                 'drizzle-config',
                 'server-test',
+                ['adapter', { feature: 'auth' }],
               ],
               allow: ['auth-generated'],
             },

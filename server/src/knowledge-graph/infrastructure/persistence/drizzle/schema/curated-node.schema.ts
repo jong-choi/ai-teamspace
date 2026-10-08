@@ -2,7 +2,7 @@ import { authOrganizationIdColumn } from '@/auth/infrastructure/persistence/driz
 import { authUserIdColumn } from '@/auth/infrastructure/persistence/drizzle/auth-user-reference';
 import { CuratedGraphPropertiesSchema } from '@/knowledge-graph/domain/curated-graph-properties';
 
-import { sql } from 'drizzle-orm';
+import { inArray, sql } from 'drizzle-orm';
 import {
   check,
   index,
@@ -16,6 +16,15 @@ import {
 } from 'drizzle-orm/pg-core';
 import type { z } from 'zod';
 
+const curatedNodeKinds = [
+  'custom',
+  'concept',
+  'topic',
+  'technology',
+  'reference',
+] as const;
+const curatedNodeStatuses = ['active', 'deleted'] as const;
+
 export const curatedNode = pgTable(
   'kg_curated_node',
   {
@@ -23,13 +32,15 @@ export const curatedNode = pgTable(
     organizationId: text('organization_id')
       .notNull()
       .references(() => authOrganizationIdColumn, { onDelete: 'cascade' }),
-    kind: text('kind').notNull(),
+    kind: text('kind', { enum: curatedNodeKinds }).notNull(),
     title: text('title').notNull(),
     properties: jsonb('properties')
       .$type<z.infer<typeof CuratedGraphPropertiesSchema>>()
       .default(sql`'{}'::jsonb`)
       .notNull(),
-    status: text('status').default('active').notNull(),
+    status: text('status', { enum: curatedNodeStatuses })
+      .default('active')
+      .notNull(),
     revision: integer('revision').default(1).notNull(),
     createdByUserId: text('created_by_user_id')
       .notNull()
@@ -50,10 +61,13 @@ export const curatedNode = pgTable(
       table.id,
       table.organizationId,
     ),
-    check('kg_curated_node_kind_check', sql`${table.kind} = 'custom'`),
+    check(
+      'kg_curated_node_kind_check',
+      inArray(table.kind, [...curatedNodeKinds]).inlineParams(),
+    ),
     check(
       'kg_curated_node_status_check',
-      sql`${table.status} in ('active', 'deleted')`,
+      inArray(table.status, [...curatedNodeStatuses]).inlineParams(),
     ),
     check('kg_curated_node_revision_check', sql`${table.revision} > 0`),
     check(

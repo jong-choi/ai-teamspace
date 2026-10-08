@@ -1,7 +1,3 @@
-import {
-  CURATED_EDGE_PREDICATES,
-  CURATED_NODE_KINDS,
-} from '@/knowledge-graph/domain/curated-graph.constants';
 import { CuratedGraphPropertiesSchema } from '@/knowledge-graph/domain/curated-graph-properties';
 import { curatedEdge } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/curated-edge.schema';
 import { curatedNode } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/curated-node.schema';
@@ -11,7 +7,6 @@ import {
   createSelectSchema,
   createUpdateSchema,
 } from 'drizzle-zod';
-import { z } from 'zod';
 
 export const curatedNodeSelectSchema = createSelectSchema(curatedNode, {
   properties: CuratedGraphPropertiesSchema,
@@ -36,13 +31,18 @@ export const curatedEdgeUpdateSchema = createUpdateSchema(curatedEdge, {
 export const CreateCuratedNodeSchema = curatedNodeInsertSchema
   .pick({ kind: true, title: true, properties: true })
   .extend({
-    kind: z.enum(CURATED_NODE_KINDS),
+    title: curatedNodeSelectSchema.shape.title.trim().min(1).max(200),
     properties: CuratedGraphPropertiesSchema.default({}),
   });
 
 export const UpdateCuratedNodeSchema = curatedNodeUpdateSchema
-  .pick({ title: true, properties: true })
+  .pick({ kind: true, title: true, properties: true })
   .extend({
+    title: curatedNodeSelectSchema.shape.title
+      .trim()
+      .min(1)
+      .max(200)
+      .optional(),
     properties: CuratedGraphPropertiesSchema.optional(),
   });
 
@@ -50,20 +50,31 @@ export const CreateCuratedEdgeSchema = curatedEdgeInsertSchema
   .pick({
     sourceNodeId: true,
     targetNodeId: true,
+    sourceNodeKind: true,
+    targetNodeKind: true,
     predicate: true,
     directed: true,
     properties: true,
   })
   .extend({
-    predicate: z.enum(CURATED_EDGE_PREDICATES),
-    directed: z.boolean().default(true),
+    sourceNodeKind:
+      curatedEdgeSelectSchema.shape.sourceNodeKind.default('curated_node'),
+    targetNodeKind:
+      curatedEdgeSelectSchema.shape.targetNodeKind.default('curated_node'),
+    directed: curatedEdgeSelectSchema.shape.directed.default(true),
     properties: CuratedGraphPropertiesSchema.default({}),
   });
 
 export const UpdateCuratedEdgeSchema = curatedEdgeUpdateSchema
-  .pick({ predicate: true, directed: true, properties: true })
+  .pick({
+    sourceNodeId: true,
+    targetNodeId: true,
+    sourceNodeKind: true,
+    targetNodeKind: true,
+    predicate: true,
+    directed: true,
+    properties: true,
+  })
   .extend({
-    predicate: z.enum(CURATED_EDGE_PREDICATES).optional(),
-    directed: z.boolean().optional(),
     properties: CuratedGraphPropertiesSchema.optional(),
   });

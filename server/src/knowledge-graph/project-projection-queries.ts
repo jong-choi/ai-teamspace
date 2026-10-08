@@ -71,6 +71,11 @@ WITH DISTINCT marker, project
 FOREACH (ignored IN CASE WHEN project IS NULL THEN [] ELSE [1] END |
   SET project.deleted = true
 )
+WITH DISTINCT marker, project
+OPTIONAL MATCH (project)-[curatedReference:KG_CURATED_RELATED_TO]-()
+WHERE curatedReference.organizationId = $organizationId
+DELETE curatedReference
+WITH DISTINCT marker
 SET marker.appliedSeq = $sourceVersion, marker.deleted = true
 RETURN marker.appliedSeq AS appliedSeq
 `;

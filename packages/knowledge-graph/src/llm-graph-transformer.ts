@@ -1,5 +1,6 @@
 // LangChain JS Community MIT 원본 이식: THIRD_PARTY_NOTICES.md 참조.
 import { Document } from '@langchain/core/documents';
+import type { BaseLanguageModelInput } from '@langchain/core/language_models/base';
 import { BaseLanguageModel } from '@langchain/core/language_models/base';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
 import type { RunnableInterface } from '@langchain/core/runnables';
@@ -261,6 +262,10 @@ export interface LLMGraphTransformerProps {
 
   /** LLM이 관계 타입을 누락했을 경우 사용하는 기본 타입. */
   fallbackRelationshipType?: string | null;
+  /** Structured Output 미지원 모델이 사용할 별도 추출 어댑터. */
+  structuredOutputAdapter?: (
+    schema: z.ZodTypeAny,
+  ) => RunnableInterface<BaseLanguageModelInput, ExtractedGraph>;
 }
 
 export class LLMGraphTransformer {
@@ -287,8 +292,12 @@ export class LLMGraphTransformer {
     nodeProperties = [],
     relationshipProperties = [],
     fallbackRelationshipType = null,
+    structuredOutputAdapter,
   }: LLMGraphTransformerProps) {
-    if (typeof llm.withStructuredOutput !== 'function') {
+    if (
+      !structuredOutputAdapter &&
+      typeof llm.withStructuredOutput !== 'function'
+    ) {
       throw new Error(
         "The specified LLM does not support the 'withStructuredOutput'. Please ensure you are using an LLM that supports this feature.",
       );
@@ -308,7 +317,12 @@ export class LLMGraphTransformer {
       nodeProperties,
       relationshipProperties,
     );
-    const structuredLLM = llm.withStructuredOutput(toJsonSchema(schema));
+    const structuredLLM = structuredOutputAdapter
+      ? structuredOutputAdapter(schema)
+      : llm.withStructuredOutput?.(toJsonSchema(schema));
+    if (!structuredLLM) {
+      throw new Error('구조화 출력 모델이나 Tool Calling 어댑터가 필요합니다.');
+    }
     this.chain = prompt.pipe(structuredLLM);
   }
 

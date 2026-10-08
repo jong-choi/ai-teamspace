@@ -11,6 +11,27 @@ Neo4j 공식 LangChain JS 통합과 MIT 라이선스 `LLMGraphTransformer` 이�
 
 `@langchain/community` 패키지는 설치하지 않는다. LLM·Embeddings 구현과 연결 자격 증명은 호출자가 주입한다.
 
+### Structured Output 미지원 모델용 Tool Calling 어댑터
+
+네이티브 JSON Schema Structured Output을 지원하는 LLM은 기존 `new LLMGraphTransformer({ llm, ... })`를 사용한다. **Ollama Cloud처럼 네이티브 Structured Output이 지원되지 않는 모델**은 별도 `createToolCallingGraphTransformer()`를 사용한다.
+
+```ts
+// ollamaChatModel은 호출자가 생성한 Tool Calling 지원 LangChain 채팅 모델이다.
+const transformer = createToolCallingGraphTransformer({
+  llm: ollamaChatModel,
+  allowedNodes: ['Person', 'Technology'],
+  allowedRelationships: ['USES'],
+  strictMode: true,
+  maxToolCallRetries: 1,
+});
+const graphDocuments =
+  await transformer.convertToGraphDocuments(sourceDocuments);
+```
+
+**책임 분리:** `src/llm-graph-transformer.ts`는 기존 프롬프트·Zod 그래프 스키마·노드/관계 매핑을 보존한다. `src/tool-calling-structured-output.adapter.ts`만 도구 정의, `bindTools()` 호출, `extract_graph` 인수의 Zod 검증, 도구 미호출·스키마 오류 재시도를 처리한다. 잘못된 응답을 빈 그래프로 조용히 대체하지 않는다.
+
+이 어댑터는 Tool Calling 자체를 지원하는 모델에서만 사용할 수 있다. Tool Calling의 결과 스키마 준수는 모델이 보장하지 않으므로 Zod 검증을 수행하며, 응답이 계속 잘못되면 오류를 던진다. 실제 Ollama Cloud 모델 호출에는 해당 제공자의 인증·연결 설정이 별도로 필요하다.
+
 ## 사용 흐름
 
 ```ts
@@ -44,7 +65,7 @@ const results = await vectorStore.similaritySearch(query, 5, {
 - 공식 `Neo4jGraph.initialize()`는 초기화 때 schema refresh를 수행한다. Neo4j Community와 APOC 구성을 실제 환경에서 검증해야 한다.
 - `includeSource: true`만으로 tenant별 노드가 격리되지는 않는다. 같은 `Node.id`/label이 서로 다른 출처에서 **병합되는 현상**을 통합 테스트에서 재현했다. 조직/출처별 ID namespace와 권한 정책은 상위 서버 책임이다.
 - `Neo4jVectorStore`의 메타데이터 필터는 실제 Neo4j Community 2025.09 환경에서 확인했으나, 필터 없는 검색은 전역 데이터를 대상으로 할 수 있다. 패키지는 인증·권한을 강제하지 않는다.
-- LLM은 구조화 출력 지원 모델이어야 한다. 실제 Gemini API 연동 및 추출 품질은 API 키·비용이 수반되어 별도 검증이 필요하다.
+- LLM은 네이티브 Structured Output 또는 Tool Calling을 지원해야 한다. 후자는 전용 어댑터와 Zod 검증을 이용한다. 실제 공급자 API의 추출 품질은 별도 검증이 필요하다.
 - 원본 라이브러리와 분리하여 관리하는 만큼, upstream 보안 수정과 타입 호환성은 지속적으로 추적해야 한다.
 
 ## 검증
@@ -57,6 +78,12 @@ npm run lint
 npm run typecheck
 npm run test
 npm run build
+```
+
+실제 Ollama Cloud 사용 시에는 별도 선택 실행 테스트를 사용한다. `OLLAMA_API_KEY`를 **프로세스 환경변수로만** 전달하며 파일·커밋에 기록하지 않는다. 모델은 `gpt-oss:120b`이며 Tool Calling이 실패하면 테스트도 실패한다.
+
+```sh
+KG_TEST_OLLAMA_CLOUD=1 npm run test:integration -- --runTestsByPath test/ollama-cloud.integration.ts
 ```
 
 실제 DB 통합 검증은 **전용·격리된 Neo4j Community 테스트 DB**에서만 진행한다. `NEO4J_URI`, `NEO4J_USERNAME`, `NEO4J_PASSWORD`를 설정하고 쓰기 테스트를 명시적으로 허용할 때만 실행한다.

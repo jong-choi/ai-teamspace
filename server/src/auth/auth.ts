@@ -6,6 +6,7 @@ import {
 import type { AuthConfig } from '@/auth/config/auth-config.type';
 import * as authSchema from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
 import { protectOrganizationOwners } from '@/auth/infrastructure/persistence/drizzle/owner-protected.adapter';
+import { surfaceUniqueViolations } from '@/auth/infrastructure/persistence/drizzle/unique-violation.adapter';
 import { problemDetailsPlugin } from '@/auth/plugins/problem-details.plugin';
 import type { DatabaseService } from '@/database/database.service';
 import type { McpConfig } from '@/mcp/config/mcp-config.type';
@@ -37,11 +38,13 @@ export function createAuth(
     ],
     database: (options: BetterAuthOptions) =>
       protectOrganizationOwners(
-        drizzleAdapter(database, {
-          provider: 'pg',
-          schema: authSchema,
-          transaction: true,
-        })(options),
+        surfaceUniqueViolations(
+          drizzleAdapter(database, {
+            provider: 'pg',
+            schema: authSchema,
+            transaction: true,
+          })(options),
+        ),
       ),
   });
 }

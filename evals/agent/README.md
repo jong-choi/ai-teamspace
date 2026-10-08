@@ -50,10 +50,32 @@ The current live CLI is deterministic-gate first. If `EVAL_JUDGE_*` settings are
 
 `datasets/security/security.json` contains deterministic authorization cases for an expired/invalid Agent session, read-only write attempts, restricted MCP policy writes, and a user with no active organization. The `expected_execution=auth_denied` contract only accepts typed Agent Protocol 401/403 failures; expected denial still runs public outcome observation and forbidden-tool assertions, while an unexpected successful execution becomes a `security_failure`. Live preflight also proves that a mutated MCP access key and the same key after public revocation both return a 401 resource-server discovery challenge.
 
-## CI
+## Local gates
 
-`.github/workflows/agent-evals.yml` runs the credential-free harness contract gate on relevant pull requests: frozen sync, lock check, the full test suite, Ruff, strict Pyright, tracked dataset validation, and the loopback settings contract. It then runs both tracked smoke and security datasets through the actual `runner.main run` CLI with `EVAL_TARGET_ADAPTER=deterministic-fixture` and uploads their redacted reports as `agent-eval-pr-fast-report`. Pull-request jobs never receive provider or Langfuse secrets.
+Evaluations run on a developer machine only; GitHub Actions does not run them. Run every command from `evals/agent`. Settings are read from `evals/agent/.env`, and process environment variables override it for a single command.
 
-Scheduled nightly and manually dispatched nightly/release jobs force `EVAL_TARGET_ADAPTER=public-http` and remain black-box live tiers against a pre-provisioned ephemeral server. Scheduled live execution is skipped until `AGENT_EVAL_SERVER_URL` is configured. The live job uses the following repository variables: `AGENT_EVAL_SERVER_URL`, `AGENT_EVAL_MCP_RESOURCE_URL`, `AGENT_EVAL_TRUSTED_ORIGIN`, `AGENT_EVAL_EPHEMERAL_TARGET_ORIGIN`, and optional dataset/Langfuse variables. The only workflow secret consumed by the harness is optional `AGENT_EVAL_LANGFUSE_SECRET_KEY`.
+Credential-free harness contract gate:
 
-Nightly uploads the redacted `report.json` and `report.md` as the fixed `agent-eval-report` artifact. A release dispatch requires `baseline_run_id`; it downloads that reviewed prior run's artifact and invokes `--baseline-report`. The workflow does not promote or overwrite a baseline automatically. PR-fast fixture results prove harness/dataset/scorer/report behavior only; live nightly/release remains authoritative for the Nest Agent Protocol, MCP authorization, configured model, HITL runtime, and Langfuse linkage boundaries.
+```bash
+uv sync --frozen
+uv lock --check
+uv run pytest
+uv run ruff check .
+uv run pyright
+uv run python -m runner.main validate-dataset datasets/smoke/smoke.json
+uv run python -m runner.main validate-dataset datasets/security/security.json
+uv run python -m runner.main settings
+```
+
+Deterministic fixture runs of both tracked datasets, without network or provider credentials:
+
+```bash
+EVAL_TARGET_ADAPTER=deterministic-fixture EVAL_DATASET=smoke EVAL_BASELINE=smoke-v1 \
+  EVAL_OUTPUT_DIR=.temp/evals/agent/local-fixture-smoke \
+  uv run python -m runner.main run datasets/smoke/smoke.json
+EVAL_TARGET_ADAPTER=deterministic-fixture EVAL_DATASET=security EVAL_BASELINE=security-v1 \
+  EVAL_OUTPUT_DIR=.temp/evals/agent/local-fixture-security \
+  uv run python -m runner.main run datasets/security/security.json
+```
+
+Fixture results prove harness, dataset, scorer, and report behavior only. Live `public-http` runs against a local server remain authoritative for the Nest Agent Protocol, MCP authorization, configured model, HITL runtime, and Langfuse linkage boundaries. Baseline promotion remains a review action, never an automatic overwrite.

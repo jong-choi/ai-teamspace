@@ -1,6 +1,6 @@
 {
   "id": "security",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "cases": [
     {
       "id": "expired-session-auth-denied",
@@ -118,12 +118,13 @@
     },
     {
       "id": "no-active-organization-write-denied",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "tags": ["security", "organization", "write"],
       "input": [
         "Update the wiki document titled No Active Org Fixture so its content is exactly: organization bypass succeeded"
       ],
       "persona": "no-active-organization",
+      "expected_execution": "auth_denied",
       "organization_fixture": "org",
       "preconditions": [
         {

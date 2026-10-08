@@ -1,0 +1,96 @@
+name: Server integration
+
+on:
+  pull_request:
+    paths:
+      - 'server/**'
+      - 'packages/agent-runtime/**'
+      - 'client/packages/api-client/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/server-integration.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: server-integration-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    name: PostgreSQL/Redis integration gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: work_os_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d work_os_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      redis:
+        image: redis:8.2.10-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      # job마다 새 service container를 쓰므로 빈 DB에서 전체 migration부터 검증한다.
+      CI_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/work_os_ci
+      CI_REDIS_URL: redis://localhost:6379
+      AGENT_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/work_os_ci
+      AGENT_TEST_REDIS_URL: redis://localhost:6379
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prepare server test environment
+        working-directory: server
+        # 실제 secret 없이 .env.example의 test용 placeholder에 CI service URL만 덮어쓴다.
+        run: |
+          cp .env.example .env
+          set_env() {
+            sed -i "s|^$1=.*|$1=$2|" .env
+          }
+          for key in DATABASE_URL AGENT_DATABASE_URL AGENT_TEST_DATABASE_URL; do
+            set_env "$key" "$CI_DATABASE_URL"
+          done
+          for key in REDIS_QUEUE_URL REDIS_CACHE_URL REDIS_COLLABORATION_URL AGENT_REDIS_URL AGENT_TEST_REDIS_URL; do
+            set_env "$key" "$CI_REDIS_URL"
+          done
+
+      - name: Static checks
+        run: npm run check
+
+      - name: Server integration (blank DB migration, MCP, durable Agent)
+        run: npm run test:integration --workspace @repo/server
+
+      - name: Agent runtime durable integration
+        run: npm run test:integration --workspace @repo/agent-runtime
+
+      - name: Server E2E
+        run: npm run test:e2e --workspace @repo/server
+
+      - name: OpenAPI and generated client drift
+        run: npm run api:check

@@ -211,6 +211,60 @@ describe('실제 Work OS MCP transport 통합', () => {
     expect(head.text).toBeUndefined();
   });
 
+  it('first-party Agent OAuth를 authorize/consent/callback으로 완료하고 active delegation을 만든다', async () => {
+    const fixture = await createActorAndKey();
+    const start = await fixture.agent
+      .post('/mcp/agent-delegation/start')
+      .send({ returnTo: '/ai' });
+    expect(start.status).toBe(201);
+    expect(start.body).toMatchObject({ status: 'pending_consent' });
+    const authorizationUrl = new URL(start.body.authorizationUrl as string);
+
+    const authorization = await fixture.agent.get(
+      authorizationUrl.pathname + authorizationUrl.search,
+    );
+    expect(authorizationUrl.pathname).toBe('/api/auth/oauth2/authorize');
+    expect(authorization.status).toBe(302);
+    const authorizationRedirect = new URL(
+      String(authorization.headers.location),
+      baseUrl,
+    );
+    let callbackUrl = authorizationRedirect;
+    if (authorizationRedirect.pathname === '/settings/mcp/consent') {
+      const consent = await fixture.agent
+        .post('/api/auth/oauth2/consent')
+        .send({
+          accept: true,
+          oauth_query: authorizationRedirect.search.slice(1),
+        });
+      expect(consent.status).toBe(200);
+      callbackUrl = new URL(
+        String(consent.body.redirect_uri ?? consent.body.url),
+        baseUrl,
+      );
+    }
+    expect(callbackUrl.pathname).toBe('/mcp/agent-delegation/callback');
+    expect({
+      error: callbackUrl.searchParams.get('error'),
+      description: callbackUrl.searchParams.get('error_description'),
+      hasCode: callbackUrl.searchParams.has('code'),
+    }).toEqual({ error: null, description: null, hasCode: true });
+    expect(callbackUrl.searchParams.has('state')).toBe(true);
+
+    const callback = await fixture.agent.get(
+      callbackUrl.pathname + callbackUrl.search,
+    );
+    expect(callback.status).toBe(302);
+    expect(callback.headers.location).toContain('/settings/mcp/consent');
+
+    const status = await fixture.agent.get('/mcp/agent-delegation');
+    expect(status.status).toBe(200);
+    expect(status.body).toMatchObject({ status: 'active' });
+    expect(status.body.grantedScopes).toEqual(
+      expect.arrayContaining(['wiki:read', 'wiki:write']),
+    );
+  });
+
   it('first-party client row가 없을 때 동시 authorize가 client와 resource link를 하나씩만 만든다', async () => {
     const fixture = await createActorAndKey();
     const start = await fixture.agent

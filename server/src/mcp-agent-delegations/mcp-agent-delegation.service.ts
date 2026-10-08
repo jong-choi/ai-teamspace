@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import type { AllConfigType } from '@/config/config.type';
+import { WORK_OS_MCP_PROTOCOL_VERSION } from '@/mcp/contracts/mcp-protocol';
 import { MCP_SCOPES } from '@/mcp/contracts/mcp-scope';
 import type {
   McpAgentDelegationStatus,
@@ -230,10 +231,14 @@ export class McpAgentDelegationService {
         onInsufficientScope: 'throw',
       },
     );
-    const client = new Client({
-      name: 'work-os-agent-delegation-smoke',
-      version: '0.0.1',
-    });
+    const client = new Client(
+      { name: 'work-os-agent-delegation-smoke', version: '0.0.1' },
+      {
+        versionNegotiation: {
+          mode: { pin: WORK_OS_MCP_PROTOCOL_VERSION },
+        },
+      },
+    );
 
     try {
       await client.connect(transport);

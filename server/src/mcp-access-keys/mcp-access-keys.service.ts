@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import type { AllConfigType } from '@/config/config.type';
+import { WORK_OS_MCP_PROTOCOL_VERSION } from '@/mcp/contracts/mcp-protocol';
 import { MCP_SCOPES } from '@/mcp/contracts/mcp-scope';
 import { MCP_ACCESS_KEY_PREFIX } from '@/mcp-access-keys/domain/mcp-access-key-contract';
 import type { McpConnectionInfo } from '@/mcp-access-keys/dto/mcp-connection-info.dto';
@@ -16,7 +17,7 @@ export class McpAccessKeysService {
 
     return McpConnectionInfoSchema.parse({
       resourceUrl: config.resourceUrl,
-      protocolVersion: '2026-07-28',
+      protocolVersion: WORK_OS_MCP_PROTOCOL_VERSION,
       authMethods: ['oauth', 'personal-access-key'],
       accessKey: {
         prefix: MCP_ACCESS_KEY_PREFIX,

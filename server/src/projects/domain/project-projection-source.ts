@@ -10,6 +10,7 @@ export const ProjectProjectionSourceSchema = projectSelectSchema
     key: true,
     name: true,
     leadUserId: true,
+    createdByUserId: true,
     archivedAt: true,
     updatedAt: true,
   })

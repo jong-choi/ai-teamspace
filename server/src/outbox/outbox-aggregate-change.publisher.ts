@@ -110,6 +110,35 @@ export class OutboxAggregateChangePublisher {
     );
   }
 
+  async meetingRoomChanged(
+    transaction: OwnerTransaction,
+    organizationId: string,
+    roomId: string,
+    operation: 'changed' | 'removed',
+  ): Promise<void> {
+    await this.recordChange(
+      transaction,
+      organizationId,
+      'meeting_room',
+      roomId,
+      operation,
+    );
+  }
+  async meetingRecurrenceChanged(
+    transaction: OwnerTransaction,
+    organizationId: string,
+    seriesId: string,
+    operation: 'changed' | 'removed',
+  ): Promise<void> {
+    await this.recordChange(
+      transaction,
+      organizationId,
+      'meeting_recurrence',
+      seriesId,
+      operation,
+    );
+  }
+
   async curatedNodeChanged(
     transaction: OwnerTransaction,
     organizationId: string,
@@ -227,6 +256,45 @@ export class OutboxAggregateChangePublisher {
         occurredAt: now.toISOString(),
       }),
     });
+  }
+
+  async recordObservedDeletion(
+    transaction: OwnerTransaction,
+    source: Pick<
+      typeof outboxAggregateVersion.$inferSelect,
+      | 'organizationId'
+      | 'aggregateKind'
+      | 'aggregateId'
+      | 'desiredSeq'
+      | 'deleted'
+    >,
+    deleted: boolean,
+  ): Promise<void> {
+    const [current] = await transaction
+      .select()
+      .from(outboxAggregateVersion)
+      .where(
+        and(
+          eq(outboxAggregateVersion.organizationId, source.organizationId),
+          eq(outboxAggregateVersion.aggregateKind, source.aggregateKind),
+          eq(outboxAggregateVersion.aggregateId, source.aggregateId),
+        ),
+      )
+      .for('update')
+      .limit(1);
+    if (
+      !current ||
+      current.desiredSeq !== source.desiredSeq ||
+      current.deleted === deleted
+    )
+      return;
+    await this.recordChange(
+      transaction,
+      source.organizationId,
+      source.aggregateKind,
+      source.aggregateId,
+      deleted ? 'removed' : 'changed',
+    );
   }
 
   private async recordChange(

@@ -2,6 +2,12 @@ import type { ProjectionStateRepository } from '@/knowledge-graph/infrastructure
 import type { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
 
 export abstract class ProjectionDeliveryRepository {
+  abstract recordObservedDeletion(
+    source: NonNullable<
+      Awaited<ReturnType<ProjectionStateRepository['current']>>
+    >,
+    deleted: boolean,
+  ): Promise<void>;
   abstract initializeBatch(
     kind: Parameters<WorkosSourceProvider['listIds']>[0],
     organizationId: string,

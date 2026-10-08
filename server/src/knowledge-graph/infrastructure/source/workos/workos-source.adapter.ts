@@ -37,6 +37,12 @@ export class WorkosSourceAdapter extends WorkosSourceProvider {
   meeting(organizationId: string, sourceId: string) {
     return this.meetingQuery.current(organizationId, sourceId);
   }
+  meetingRoom(organizationId: string, sourceId: string) {
+    return this.meetingQuery.room(organizationId, sourceId);
+  }
+  meetingRecurrence(organizationId: string, sourceId: string) {
+    return this.meetingQuery.recurrence(organizationId, sourceId);
+  }
   membership(organizationId: string, sourceId: string) {
     return this.membershipQuery.current(organizationId, sourceId);
   }
@@ -63,6 +69,14 @@ export class WorkosSourceAdapter extends WorkosSourceProvider {
         return this.ticketQuery.listIds(organizationId, afterId, limit);
       case 'meeting':
         return this.meetingQuery.listIds(organizationId, afterId, limit);
+      case 'meeting_room':
+        return this.meetingQuery.listRoomIds(organizationId, afterId, limit);
+      case 'meeting_recurrence':
+        return this.meetingQuery.listRecurrenceIds(
+          organizationId,
+          afterId,
+          limit,
+        );
       case 'membership':
         return (
           await this.membershipQuery.listUserIds(organizationId, afterId, limit)

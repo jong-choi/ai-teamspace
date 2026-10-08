@@ -7,7 +7,7 @@ export const ORGANIZATION_AUTHORIZATION_CHANGED_JOB =
 export const OrganizationAuthorizationChangedEventSchema = z.object({
   organizationId: z.string().min(1),
   userId: z.string().min(1),
-  reason: z.enum(['member-role-changed', 'member-removed']),
+  reason: z.enum(['member-added', 'member-role-changed', 'member-removed']),
 });
 
 export type OrganizationAuthorizationChangedEvent = z.infer<

@@ -118,6 +118,7 @@ export class TicketOrderingDrizzleRepository extends TicketOrderingRepository {
       const now = new Date();
       let movedTicket: Ticket = toTicketDomain(sourceTicket);
       let changed = false;
+      const changedIds = new Set<Ticket['id']>();
 
       if (sourceTicket.columnId === input.targetColumnId) {
         const result = await persistTicketOrder(
@@ -129,6 +130,7 @@ export class TicketOrderingDrizzleRepository extends TicketOrderingRepository {
         );
         movedTicket = result.focus ?? movedTicket;
         changed = result.changed;
+        for (const id of result.changedIds) changedIds.add(id);
       } else {
         const finalSourceOrder = sourceRows.filter(
           ({ id }) => id !== sourceTicket.id,
@@ -149,16 +151,24 @@ export class TicketOrderingDrizzleRepository extends TicketOrderingRepository {
         );
         movedTicket = targetResult.focus ?? movedTicket;
         changed = sourceResult.changed || targetResult.changed;
+        for (const id of [
+          ...sourceResult.changedIds,
+          ...targetResult.changedIds,
+        ]) {
+          changedIds.add(id);
+        }
       }
 
       if (changed) {
         await touchProject(transaction, projectId, now);
-        await this.graphEvents.ticketChanged(
-          transaction,
-          organizationId,
-          ticketId,
-          'changed',
-        );
+        for (const id of changedIds) {
+          await this.graphEvents.ticketChanged(
+            transaction,
+            organizationId,
+            id,
+            'changed',
+          );
+        }
       }
       return { kind: 'moved', ticket: movedTicket };
     });

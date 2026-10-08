@@ -1,4 +1,6 @@
 import type { MeetingProjectionSource } from '@/calendar/domain/meeting-projection-source';
+import type { MeetingRecurrenceSeries } from '@/calendar/domain/meeting-recurrence-series';
+import type { MeetingRoom } from '@/calendar/domain/meeting-room';
 import type {
   CuratedEdge,
   CuratedNode,
@@ -11,6 +13,18 @@ import type { TicketProjectionSource } from '@/projects/domain/ticket-projection
 import type { WikiProjectionSource } from '@/wiki/domain/wiki-projection-source';
 
 export abstract class KnowledgeGraphWriter {
+  abstract applyMeetingRoom(
+    tracking: NonNullable<
+      Awaited<ReturnType<ProjectionStateRepository['current']>>
+    >,
+    source: MeetingRoom | null,
+  ): Promise<void>;
+  abstract applyMeetingRecurrence(
+    tracking: NonNullable<
+      Awaited<ReturnType<ProjectionStateRepository['current']>>
+    >,
+    source: MeetingRecurrenceSeries | null,
+  ): Promise<void>;
   abstract applyWiki(
     tracking: NonNullable<
       Awaited<ReturnType<ProjectionStateRepository['current']>>

@@ -202,6 +202,8 @@ export class ProjectDrizzleRepository extends ProjectRepository {
         (input.archived !== undefined &&
           input.archived !== (current.archivedAt !== null));
 
+      if (!projectionChanged) return toProjectDomain(current);
+
       const [row] = await transaction
         .update(project)
         .set(

@@ -1,4 +1,6 @@
 import type { MeetingProjectionSource } from '@/calendar/domain/meeting-projection-source';
+import type { MeetingRecurrenceSeries } from '@/calendar/domain/meeting-recurrence-series';
+import type { MeetingRoom } from '@/calendar/domain/meeting-room';
 import type {
   CuratedEdge,
   CuratedNode,
@@ -10,6 +12,14 @@ import type { TicketLabelProjectionSource } from '@/projects/domain/ticket-label
 import type { TicketProjectionSource } from '@/projects/domain/ticket-projection-source';
 import type { WikiProjectionSource } from '@/wiki/domain/wiki-projection-source';
 export abstract class WorkosSourceProvider {
+  abstract meetingRoom(
+    organizationId: string,
+    sourceId: string,
+  ): Promise<MeetingRoom | null>;
+  abstract meetingRecurrence(
+    organizationId: string,
+    sourceId: string,
+  ): Promise<MeetingRecurrenceSeries | null>;
   abstract wiki(
     organizationId: string,
     sourceId: string,

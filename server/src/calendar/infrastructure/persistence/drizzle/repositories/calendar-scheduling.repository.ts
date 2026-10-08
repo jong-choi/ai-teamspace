@@ -218,6 +218,7 @@ export class CalendarSchedulingDrizzleRepository extends CalendarSchedulingRepos
   ): Promise<RescheduleMeetingsResult> {
     return this.runSerializable(async (transaction) => {
       const meetingIds = updates.map((item) => item.id);
+      const changedMeetingIds = new Set(meetingIds);
       const current = await loadMeetingDetails(
         transaction,
         organizationId,
@@ -340,13 +341,15 @@ export class CalendarSchedulingDrizzleRepository extends CalendarSchedulingRepos
           eq(meeting.organizationId, organizationId),
           eq(meeting.recurrenceSeriesId, recurrenceMutation.sourceSeriesId),
         );
-        await transaction
+        const remainingMeetings = await transaction
           .update(meeting)
           .set({
             iCalSequence: sql`${meeting.iCalSequence} + 1`,
             updatedAt: new Date(),
           })
-          .where(sourceSeriesCondition);
+          .where(sourceSeriesCondition)
+          .returning({ id: meeting.id });
+        for (const { id } of remainingMeetings) changedMeetingIds.add(id);
 
         const [remaining] = await transaction
           .select({ id: meeting.id })
@@ -365,10 +368,16 @@ export class CalendarSchedulingDrizzleRepository extends CalendarSchedulingRepos
                 ),
               ),
             );
+          await this.graphEvents.meetingRecurrenceChanged(
+            transaction,
+            organizationId,
+            recurrenceMutation.sourceSeriesId,
+            'removed',
+          );
         }
       }
 
-      for (const meetingId of meetingIds) {
+      for (const meetingId of changedMeetingIds) {
         await this.graphEvents.meetingChanged(
           transaction,
           organizationId,
@@ -488,7 +497,7 @@ export class CalendarSchedulingDrizzleRepository extends CalendarSchedulingRepos
       >
     >,
   ): Promise<void> {
-    await transaction
+    const [row] = await transaction
       .update(meetingRecurrenceSeries)
       .set(
         toMeetingRecurrenceSeriesUpdate({
@@ -501,7 +510,15 @@ export class CalendarSchedulingDrizzleRepository extends CalendarSchedulingRepos
           eq(meetingRecurrenceSeries.organizationId, organizationId),
           eq(meetingRecurrenceSeries.id, seriesId),
         ),
-      );
+      )
+      .returning({ id: meetingRecurrenceSeries.id });
+    if (!row) throw new Error('반복 일정 series 변경 결과가 없습니다.');
+    await this.graphEvents.meetingRecurrenceChanged(
+      transaction,
+      organizationId,
+      seriesId,
+      'changed',
+    );
   }
 
   private async insertRecurrenceSeries(
@@ -517,6 +534,12 @@ export class CalendarSchedulingDrizzleRepository extends CalendarSchedulingRepos
       .values(toMeetingRecurrenceSeriesInsert({ organizationId, ...input }))
       .returning({ id: meetingRecurrenceSeries.id });
     if (!row) throw new Error('반복 일정 series 생성 결과가 없습니다.');
+    await this.graphEvents.meetingRecurrenceChanged(
+      transaction,
+      organizationId,
+      row.id,
+      'changed',
+    );
     return row.id;
   }
 

@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 
 import knowledgeGraphConfig from '@/knowledge-graph/config/knowledge-graph.config';
 import { KnowledgeGraphWriter } from '@/knowledge-graph/infrastructure/graph/knowledge-graph-writer.provider';
+import { ProjectionDeliveryRepository } from '@/knowledge-graph/infrastructure/persistence/projection-delivery.repository';
 import { ProjectionStateRepository } from '@/knowledge-graph/infrastructure/persistence/projection-state.repository';
 import { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
 import { KnowledgeGraphProjectionService } from '@/knowledge-graph/knowledge-graph-projection.service';
@@ -51,6 +52,8 @@ describe('업무 그래프 투영 처리', () => {
   const ticketLabelReader = { current: jest.fn() };
   const ticketReader = { current: jest.fn() };
   const meetingReader = { current: jest.fn() };
+  const meetingRoomReader = { current: jest.fn() };
+  const recurrenceReader = { current: jest.fn() };
   const membershipReader = { current: jest.fn() };
   const curatedReader = { node: jest.fn(), edge: jest.fn() };
   const writer = {
@@ -59,11 +62,14 @@ describe('업무 그래프 투영 처리', () => {
     applyTicketLabel: jest.fn(),
     applyTicket: jest.fn(),
     applyMeeting: jest.fn(),
+    applyMeetingRoom: jest.fn(),
+    applyMeetingRecurrence: jest.fn(),
     applyMembership: jest.fn(),
     applyCuratedNode: jest.fn(),
     applyCuratedEdge: jest.fn(),
   };
   const config = { enabled: true };
+  const delivery = { recordObservedDeletion: jest.fn() };
 
   let projection: KnowledgeGraphProjectionService;
 
@@ -86,6 +92,7 @@ describe('업무 그래프 투영 처리', () => {
         KnowledgeGraphProjectionService,
         { provide: knowledgeGraphConfig.KEY, useValue: config },
         { provide: ProjectionStateRepository, useValue: state },
+        { provide: ProjectionDeliveryRepository, useValue: delivery },
         {
           provide: WorkosSourceProvider,
           useValue: {
@@ -94,6 +101,8 @@ describe('업무 그래프 투영 처리', () => {
             ticketLabel: ticketLabelReader.current,
             ticket: ticketReader.current,
             meeting: meetingReader.current,
+            meetingRoom: meetingRoomReader.current,
+            meetingRecurrence: recurrenceReader.current,
             membership: membershipReader.current,
             curatedNode: curatedReader.node,
             curatedEdge: curatedReader.edge,
@@ -268,10 +277,39 @@ describe('업무 그래프 투영 처리', () => {
     );
   });
 
+  it.each([true, false])(
+    'Membership 삭제 신호 %s와 현재 원본이 다르면 새 버전을 요청하고 이전 버전을 쓰지 않는다',
+    async (deleted) => {
+      const source = { ...tracking, aggregateKind: 'membership', deleted };
+      state.current.mockResolvedValue(source);
+      membershipReader.current.mockResolvedValue(
+        deleted ? { userId: source.aggregateId } : null,
+      );
+      await expect(
+        projection.applySourceEvent({
+          ...payload,
+          aggregateKind: 'membership',
+        }),
+      ).rejects.toThrow('Membership 원본 상태');
+      expect(delivery.recordObservedDeletion).toHaveBeenCalledWith(
+        source,
+        !deleted,
+      );
+      expect(writer.applyMembership).not.toHaveBeenCalled();
+      expect(state.markApplied).not.toHaveBeenCalled();
+    },
+  );
+
   it.each([
     ['ticket_label', ticketLabelReader.current, writer.applyTicketLabel],
     ['ticket', ticketReader.current, writer.applyTicket],
     ['meeting', meetingReader.current, writer.applyMeeting],
+    ['meeting_room', meetingRoomReader.current, writer.applyMeetingRoom],
+    [
+      'meeting_recurrence',
+      recurrenceReader.current,
+      writer.applyMeetingRecurrence,
+    ],
     ['membership', membershipReader.current, writer.applyMembership],
     ['curated_node', curatedReader.node, writer.applyCuratedNode],
     ['curated_edge', curatedReader.edge, writer.applyCuratedEdge],

@@ -3,6 +3,14 @@ import type { ConfigType } from '@nestjs/config';
 
 import { createNeo4jGraph } from '@repo/knowledge-graph';
 import type { MeetingProjectionSource } from '@/calendar/domain/meeting-projection-source';
+import type { MeetingRecurrenceSeries } from '@/calendar/domain/meeting-recurrence-series';
+import type { MeetingRoom } from '@/calendar/domain/meeting-room';
+import {
+  TOMBSTONE_MEETING_RECURRENCE,
+  TOMBSTONE_MEETING_ROOM,
+  UPSERT_MEETING_RECURRENCE,
+  UPSERT_MEETING_ROOM,
+} from '@/knowledge-graph/calendar-reference-projection-queries';
 import knowledgeGraphConfig from '@/knowledge-graph/config/knowledge-graph.config';
 import {
   TOMBSTONE_CURATED_EDGE,
@@ -159,6 +167,16 @@ export class LangchainNeo4jGraphAdapter
     >,
     project: ProjectProjectionSource | null,
   ): Promise<void> {
+    if (
+      tracking.aggregateKind !== 'project' ||
+      (project &&
+        (project.organizationId !== tracking.organizationId ||
+          project.id !== tracking.aggregateId))
+    ) {
+      throw new Error(
+        'Project 투영 원본과 변경 버전의 조직 또는 식별자가 일치하지 않습니다.',
+      );
+    }
     if (!tracking.deleted && !project) {
       throw new Error('삭제되지 않은 프로젝트 원본을 조회할 수 없습니다.');
     }
@@ -168,6 +186,27 @@ export class LangchainNeo4jGraphAdapter
       sourceVersion: tracking.desiredSeq,
       organizationId: tracking.organizationId,
       sourceId: tracking.aggregateId,
+      organizationKey: sourceKey(
+        'organization',
+        tracking.organizationId,
+        tracking.organizationId,
+      ),
+      creatorUserId: project?.createdByUserId ?? null,
+      creatorKey: project
+        ? sourceKey(
+            'user_reference',
+            tracking.organizationId,
+            project.createdByUserId,
+          )
+        : null,
+      leadUserId: project?.leadUserId ?? null,
+      leadKey: project?.leadUserId
+        ? sourceKey(
+            'user_reference',
+            tracking.organizationId,
+            project.leadUserId,
+          )
+        : null,
       projectKey: project?.key ?? null,
       name: project?.name ?? null,
       archivedAt: project?.archivedAt?.toISOString() ?? null,
@@ -185,6 +224,16 @@ export class LangchainNeo4jGraphAdapter
     >,
     label: TicketLabelProjectionSource | null,
   ): Promise<void> {
+    if (
+      tracking.aggregateKind !== 'ticket_label' ||
+      (label &&
+        (label.organizationId !== tracking.organizationId ||
+          label.id !== tracking.aggregateId))
+    ) {
+      throw new Error(
+        'Label 투영 원본과 변경 버전의 조직 또는 식별자가 일치하지 않습니다.',
+      );
+    }
     if (!tracking.deleted && !label) {
       throw new Error('삭제되지 않은 ticket label 원본을 조회할 수 없습니다.');
     }
@@ -214,6 +263,20 @@ export class LangchainNeo4jGraphAdapter
     >,
     ticket: TicketProjectionSource | null,
   ): Promise<void> {
+    if (
+      tracking.aggregateKind !== 'ticket' ||
+      (ticket &&
+        (ticket.organizationId !== tracking.organizationId ||
+          ticket.id !== tracking.aggregateId ||
+          ticket.labels.some((label) => label.projectId !== ticket.projectId) ||
+          ticket.checklists.some((checklist) =>
+            checklist.items.some((item) => item.checklistId !== checklist.id),
+          )))
+    ) {
+      throw new Error(
+        'Ticket 투영 원본과 변경 버전의 조직 또는 관계 식별자가 일치하지 않습니다.',
+      );
+    }
     if (!tracking.deleted && !ticket) {
       throw new Error('삭제되지 않은 티켓 원본을 조회할 수 없습니다.');
     }
@@ -266,6 +329,18 @@ export class LangchainNeo4jGraphAdapter
     >,
     meeting: MeetingProjectionSource | null,
   ): Promise<void> {
+    if (
+      tracking.aggregateKind !== 'meeting' ||
+      (meeting &&
+        (meeting.organizationId !== tracking.organizationId ||
+          meeting.id !== tracking.aggregateId ||
+          meeting.room?.id !== (meeting.meetingRoomId ?? undefined) ||
+          meeting.recurrence?.id !== (meeting.recurrenceSeriesId ?? undefined)))
+    ) {
+      throw new Error(
+        'Meeting 투영 원본과 변경 버전의 조직 또는 관계 식별자가 일치하지 않습니다.',
+      );
+    }
     if (!tracking.deleted && !meeting) {
       throw new Error('삭제되지 않은 회의 원본을 조회할 수 없습니다.');
     }
@@ -299,16 +374,95 @@ export class LangchainNeo4jGraphAdapter
         ? sourceKey('meeting_recurrence', organizationId, meeting.recurrence.id)
         : null,
       recurrenceId: meeting?.recurrence?.id ?? null,
-      recurrenceFrequency: meeting?.recurrence?.frequency ?? null,
-      recurrenceInterval: meeting?.recurrence?.interval ?? null,
-      recurrenceCount: meeting?.recurrence?.count ?? null,
-      recurrenceUntil: meeting?.recurrence?.until?.toISOString() ?? null,
-      recurrenceTimeZone: meeting?.recurrence?.timeZone ?? null,
+      recurrenceOriginalStartAt:
+        meeting?.recurrenceOriginalStartAt?.toISOString() ?? null,
       attendees: (meeting?.attendees ?? []).map((attendee) => ({
         ...attendee,
         key: sourceKey('user_reference', organizationId, attendee.userId),
       })),
     });
+  }
+
+  async applyMeetingRoom(
+    tracking: NonNullable<
+      Awaited<ReturnType<ProjectionStateRepository['current']>>
+    >,
+    room: MeetingRoom | null,
+  ): Promise<void> {
+    if (
+      tracking.aggregateKind !== 'meeting_room' ||
+      (room &&
+        (room.organizationId !== tracking.organizationId ||
+          room.id !== tracking.aggregateId))
+    ) {
+      throw new Error(
+        'Room 투영 원본과 변경 버전의 조직 또는 식별자가 일치하지 않습니다.',
+      );
+    }
+    if (!tracking.deleted && !room)
+      throw new Error('삭제되지 않은 회의실 원본을 조회할 수 없습니다.');
+    const graph = await this.getGraph();
+    await graph.query(
+      tracking.deleted ? TOMBSTONE_MEETING_ROOM : UPSERT_MEETING_ROOM,
+      {
+        sourceKey: sourceKey(
+          'meeting_room',
+          tracking.organizationId,
+          tracking.aggregateId,
+        ),
+        sourceVersion: tracking.desiredSeq,
+        organizationId: tracking.organizationId,
+        sourceId: tracking.aggregateId,
+        name: room?.name ?? null,
+        capacity: room?.capacity ?? null,
+        floor: room?.floor ?? null,
+        active: room?.active ?? null,
+        sourceUpdatedAt: room?.updatedAt.toISOString() ?? null,
+      },
+    );
+  }
+
+  async applyMeetingRecurrence(
+    tracking: NonNullable<
+      Awaited<ReturnType<ProjectionStateRepository['current']>>
+    >,
+    series: MeetingRecurrenceSeries | null,
+  ): Promise<void> {
+    if (
+      tracking.aggregateKind !== 'meeting_recurrence' ||
+      (series &&
+        (series.organizationId !== tracking.organizationId ||
+          series.id !== tracking.aggregateId))
+    ) {
+      throw new Error(
+        'Recurrence 투영 원본과 변경 버전의 조직 또는 식별자가 일치하지 않습니다.',
+      );
+    }
+    if (!tracking.deleted && !series)
+      throw new Error('삭제되지 않은 반복 일정 원본을 조회할 수 없습니다.');
+    const graph = await this.getGraph();
+    await graph.query(
+      tracking.deleted
+        ? TOMBSTONE_MEETING_RECURRENCE
+        : UPSERT_MEETING_RECURRENCE,
+      {
+        sourceKey: sourceKey(
+          'meeting_recurrence',
+          tracking.organizationId,
+          tracking.aggregateId,
+        ),
+        sourceVersion: tracking.desiredSeq,
+        organizationId: tracking.organizationId,
+        sourceId: tracking.aggregateId,
+        frequency: series?.frequency ?? null,
+        interval: series?.interval ?? null,
+        count: series?.count ?? null,
+        until: series?.until?.toISOString() ?? null,
+        byWeekday: series?.byWeekday ?? [],
+        timeZone: series?.timeZone ?? null,
+        sourceUpdatedAt: series?.updatedAt.toISOString() ?? null,
+      },
+    );
   }
 
   async applyMembership(
@@ -317,6 +471,16 @@ export class LangchainNeo4jGraphAdapter
     >,
     membership: OrganizationMembershipProjection | null,
   ): Promise<void> {
+    if (
+      tracking.aggregateKind !== 'membership' ||
+      (membership &&
+        (membership.organizationId !== tracking.organizationId ||
+          membership.userId !== tracking.aggregateId))
+    ) {
+      throw new Error(
+        'Membership 투영 원본과 변경 버전의 조직 또는 사용자 식별자가 일치하지 않습니다.',
+      );
+    }
     if (!tracking.deleted && !membership) {
       throw new Error('삭제되지 않은 membership 원본을 조회할 수 없습니다.');
     }

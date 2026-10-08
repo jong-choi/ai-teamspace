@@ -11,6 +11,7 @@ import { InvitationsController } from '@/organizations/invitations.controller';
 import { OrganizationInvitationsController } from '@/organizations/organization-invitations.controller';
 import { OrganizationInvitationsService } from '@/organizations/organization-invitations.service';
 import { OrganizationMembershipService } from '@/organizations/organization-membership.service';
+import { OrganizationPublicEventsService } from '@/organizations/organization-public-events.service';
 import { OrganizationsController } from '@/organizations/organizations.controller';
 import { OrganizationsService } from '@/organizations/organizations.service';
 
@@ -29,6 +30,7 @@ import { OrganizationsService } from '@/organizations/organizations.service';
     InvitationsController,
   ],
   providers: [
+    OrganizationPublicEventsService,
     OrganizationsService,
     OrganizationInvitationsService,
     OrganizationMembershipService,

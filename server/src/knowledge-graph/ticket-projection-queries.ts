@@ -16,6 +16,7 @@ SET ticket.organizationId = $organizationId,
     ticket.dueAt = $dueAt,
     ticket.archivedAt = $archivedAt,
     ticket.sourceUpdatedAt = $sourceUpdatedAt,
+    ticket.placeholder = false,
     ticket.deleted = false
 WITH marker, ticket
 OPTIONAL MATCH (ticket)-[oldRel]->()
@@ -28,13 +29,15 @@ WHERE type(oldRel) IN [
   'KG_TICKET_CHECKLIST'
 ]
 DELETE oldRel
-WITH marker, ticket
+WITH DISTINCT marker, ticket
 OPTIONAL MATCH (oldChecklist:KGWorkOSTicketChecklist {organizationId: $organizationId, ticketId: $sourceId})
+OPTIONAL MATCH (oldChecklist)-[oldItemRel:KG_CHECKLIST_ITEM]->()
 SET oldChecklist.deleted = true
-WITH marker, ticket
+DELETE oldItemRel
+WITH DISTINCT marker, ticket
 OPTIONAL MATCH (oldItem:KGWorkOSTicketChecklistItem {organizationId: $organizationId, ticketId: $sourceId})
 SET oldItem.deleted = true
-WITH marker, ticket
+WITH DISTINCT marker, ticket
 MERGE (project:KGWorkOSProject {key: $projectKey})
 ON CREATE SET project.organizationId = $organizationId,
               project.sourceId = $projectId,
@@ -110,13 +113,15 @@ WHERE type(ownedRel) IN [
   'KG_TICKET_CHECKLIST'
 ]
 DELETE ownedRel
-WITH marker, ticket
+WITH DISTINCT marker, ticket
 OPTIONAL MATCH (checklist:KGWorkOSTicketChecklist {organizationId: $organizationId, ticketId: $sourceId})
+OPTIONAL MATCH (checklist)-[itemRel:KG_CHECKLIST_ITEM]->()
 SET checklist.deleted = true
-WITH marker, ticket
+DELETE itemRel
+WITH DISTINCT marker, ticket
 OPTIONAL MATCH (item:KGWorkOSTicketChecklistItem {organizationId: $organizationId, ticketId: $sourceId})
 SET item.deleted = true
-WITH marker, ticket
+WITH DISTINCT marker, ticket
 FOREACH (ignored IN CASE WHEN ticket IS NULL THEN [] ELSE [1] END |
   SET ticket.deleted = true
 )

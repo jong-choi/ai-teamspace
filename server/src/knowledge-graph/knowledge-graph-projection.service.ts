@@ -3,6 +3,7 @@ import type { ConfigType } from '@nestjs/config';
 
 import knowledgeGraphConfig from '@/knowledge-graph/config/knowledge-graph.config';
 import { KnowledgeGraphWriter } from '@/knowledge-graph/infrastructure/graph/knowledge-graph-writer.provider';
+import { ProjectionDeliveryRepository } from '@/knowledge-graph/infrastructure/persistence/projection-delivery.repository';
 import { ProjectionStateRepository } from '@/knowledge-graph/infrastructure/persistence/projection-state.repository';
 import { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
 
@@ -14,6 +15,7 @@ export class KnowledgeGraphProjectionService {
     private readonly sourceState: ProjectionStateRepository,
     private readonly sources: WorkosSourceProvider,
     private readonly writer: KnowledgeGraphWriter,
+    private readonly delivery: ProjectionDeliveryRepository,
   ) {}
 
   async applySourceEvent(raw: unknown): Promise<void> {
@@ -28,6 +30,8 @@ export class KnowledgeGraphProjectionService {
       event.aggregateKind !== 'ticket_label' &&
       event.aggregateKind !== 'ticket' &&
       event.aggregateKind !== 'meeting' &&
+      event.aggregateKind !== 'meeting_room' &&
+      event.aggregateKind !== 'meeting_recurrence' &&
       event.aggregateKind !== 'membership' &&
       event.aggregateKind !== 'curated_node' &&
       event.aggregateKind !== 'curated_edge'
@@ -99,11 +103,33 @@ export class KnowledgeGraphProjectionService {
         await this.applyCurrentSnapshot(source, () =>
           this.writer.applyMeeting(source, snapshot),
         );
+      } else if (source.aggregateKind === 'meeting_room') {
+        const snapshot = await this.sources.meetingRoom(
+          source.organizationId,
+          source.aggregateId,
+        );
+        await this.applyCurrentSnapshot(source, () =>
+          this.writer.applyMeetingRoom(source, snapshot),
+        );
+      } else if (source.aggregateKind === 'meeting_recurrence') {
+        const snapshot = await this.sources.meetingRecurrence(
+          source.organizationId,
+          source.aggregateId,
+        );
+        await this.applyCurrentSnapshot(source, () =>
+          this.writer.applyMeetingRecurrence(source, snapshot),
+        );
       } else if (source.aggregateKind === 'membership') {
         const snapshot = await this.sources.membership(
           source.organizationId,
           source.aggregateId,
         );
+        if (source.deleted !== (snapshot === null)) {
+          await this.delivery.recordObservedDeletion(source, snapshot === null);
+          throw new Error(
+            'Membership 원본 상태가 변경되어 최신 버전으로 다시 처리해야 합니다.',
+          );
+        }
         await this.applyCurrentSnapshot(source, () =>
           this.writer.applyMembership(source, snapshot),
         );

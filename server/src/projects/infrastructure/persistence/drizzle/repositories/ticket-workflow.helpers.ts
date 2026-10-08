@@ -122,8 +122,13 @@ export async function persistTicketOrder(
   rows: readonly TicketOrderRow[],
   updatedAt: Date,
   focusTicketId: string,
-): Promise<{ changed: boolean; focus: Ticket | null }> {
+): Promise<{
+  changed: boolean;
+  changedIds: Ticket['id'][];
+  focus: Ticket | null;
+}> {
   let changed = false;
+  const changedIds: Ticket['id'][] = [];
   let focus: Ticket | null = null;
   for (const [position, row] of rows.entries()) {
     if (row.columnId === columnId && row.position === position) {
@@ -141,11 +146,12 @@ export async function persistTicketOrder(
       throw new Error('티켓 이동 중 순서 갱신 결과가 없습니다.');
     }
     changed = true;
+    changedIds.push(updated.id);
     if (updated.id === focusTicketId) {
       focus = toTicketDomain(updated);
     }
   }
-  return { changed, focus };
+  return { changed, changedIds, focus };
 }
 
 export async function persistChecklistItemOrder(

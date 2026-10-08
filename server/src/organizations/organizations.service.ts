@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
 import {
   OrganizationMemberNotFoundError,
@@ -18,21 +18,19 @@ import type { OrganizationMemberList } from '@/organizations/dto/organization-me
 import type { QueryOrganizationMembersInput } from '@/organizations/dto/query-organization-members.dto';
 import type { SetActiveOrganizationInput } from '@/organizations/dto/set-active-organization.dto';
 import type { UpdateOrganizationMemberRoleInput } from '@/organizations/dto/update-organization-member-role.dto';
-import { OrganizationPublicEventPublisher } from '@/organizations/infrastructure/events/organization-public-event.provider';
 import {
   type OrganizationActorContext,
   OrganizationProvider,
 } from '@/organizations/infrastructure/organization/organization.provider';
+import { OrganizationPublicEventsService } from '@/organizations/organization-public-events.service';
 
 const memberSearchPageSize = 100;
 
 @Injectable()
 export class OrganizationsService {
-  private readonly logger = new Logger(OrganizationsService.name);
-
   constructor(
     private readonly organizationProvider: OrganizationProvider,
-    private readonly publicEventPublisher: OrganizationPublicEventPublisher,
+    private readonly publicEvents: OrganizationPublicEventsService,
   ) {}
 
   async list(context: OrganizationActorContext): Promise<OrganizationList> {
@@ -41,11 +39,20 @@ export class OrganizationsService {
     };
   }
 
-  create(
+  async create(
     context: OrganizationActorContext,
     input: CreateOrganizationInput,
   ): Promise<OrganizationAccess> {
-    return this.organizationProvider.createForActor(context, input);
+    const created = await this.organizationProvider.createForActor(
+      context,
+      input,
+    );
+    await this.publicEvents.publishAuthorizationChanged({
+      organizationId: created.organization.id,
+      userId: context.userId,
+      reason: 'member-added',
+    });
+    return created;
   }
 
   async getActive(
@@ -187,7 +194,7 @@ export class OrganizationsService {
       target,
       input.role,
     );
-    await this.publishAuthorizationChanged({
+    await this.publicEvents.publishAuthorizationChanged({
       organizationId,
       userId: target.userId,
       reason: 'member-role-changed',
@@ -221,25 +228,10 @@ export class OrganizationsService {
       organizationId,
       memberId,
     );
-    await this.publishAuthorizationChanged({
+    await this.publicEvents.publishAuthorizationChanged({
       organizationId,
       userId: target.userId,
       reason: 'member-removed',
     });
-  }
-
-  private async publishAuthorizationChanged(
-    event: Parameters<
-      OrganizationPublicEventPublisher['publishAuthorizationChanged']
-    >[0],
-  ): Promise<void> {
-    try {
-      await this.publicEventPublisher.publishAuthorizationChanged(event);
-    } catch (error) {
-      this.logger.error(
-        `조직 권한 invalidation event 발행에 실패했습니다: organization=${event.organizationId}, user=${event.userId}`,
-        error,
-      );
-    }
   }
 }

@@ -17,7 +17,9 @@ SET meeting.organizationId = $organizationId,
     meeting.locationText = $locationText,
     meeting.reminderMinutes = $reminderMinutes,
     meeting.canceledAt = $canceledAt,
+    meeting.recurrenceOriginalStartAt = $recurrenceOriginalStartAt,
     meeting.sourceUpdatedAt = $sourceUpdatedAt,
+    meeting.placeholder = false,
     meeting.deleted = false
 WITH marker, meeting
 OPTIONAL MATCH (meeting)-[oldRel]->()
@@ -28,7 +30,7 @@ WHERE type(oldRel) IN [
   'KG_MEETING_ATTENDEE'
 ]
 DELETE oldRel
-WITH marker, meeting
+WITH DISTINCT marker, meeting
 MERGE (organizer:KGWorkOSUserReference {key: $organizerKey})
 ON CREATE SET organizer.organizationId = $organizationId,
               organizer.sourceId = $organizerUserId
@@ -43,13 +45,9 @@ FOREACH (ignored IN CASE WHEN $roomKey IS NULL THEN [] ELSE [1] END |
 )
 FOREACH (ignored IN CASE WHEN $recurrenceKey IS NULL THEN [] ELSE [1] END |
   MERGE (series:KGWorkOSMeetingRecurrence {key: $recurrenceKey})
-  SET series.organizationId = $organizationId,
+  ON CREATE SET series.organizationId = $organizationId,
       series.sourceId = $recurrenceId,
-      series.frequency = $recurrenceFrequency,
-      series.interval = $recurrenceInterval,
-      series.count = $recurrenceCount,
-      series.until = $recurrenceUntil,
-      series.timeZone = $recurrenceTimeZone,
+      series.placeholder = true,
       series.deleted = false
   MERGE (meeting)-[:KG_MEETING_RECURRENCE]->(series)
 )
@@ -79,7 +77,7 @@ WHERE type(ownedRel) IN [
   'KG_MEETING_ATTENDEE'
 ]
 DELETE ownedRel
-WITH marker, meeting
+WITH DISTINCT marker, meeting
 FOREACH (ignored IN CASE WHEN meeting IS NULL THEN [] ELSE [1] END |
   SET meeting.deleted = true
 )

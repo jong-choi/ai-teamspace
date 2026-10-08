@@ -24,6 +24,7 @@ export class ProjectProjectionSourceDrizzleRepository extends ProjectProjectionS
             key: project.key,
             name: project.name,
             leadUserId: project.leadUserId,
+            createdByUserId: project.createdByUserId,
             archivedAt: project.archivedAt,
             updatedAt: project.updatedAt,
           })

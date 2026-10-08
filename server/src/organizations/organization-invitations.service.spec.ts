@@ -9,12 +9,14 @@ import {
 } from '@/organizations/domain/organization.error';
 import type { OrganizationInvitation } from '@/organizations/domain/organization-invitation';
 import { OrganizationRoleSchema } from '@/organizations/domain/organization-role';
+import { OrganizationPublicEventPublisher } from '@/organizations/infrastructure/events/organization-public-event.provider';
 import { OrganizationInvitationProvider } from '@/organizations/infrastructure/invitation/organization-invitation.provider';
 import {
   type OrganizationActorContext,
   OrganizationProvider,
 } from '@/organizations/infrastructure/organization/organization.provider';
 import { OrganizationInvitationsService } from '@/organizations/organization-invitations.service';
+import { OrganizationPublicEventsService } from '@/organizations/organization-public-events.service';
 
 import { jest } from '@jest/globals';
 
@@ -57,6 +59,11 @@ class FakeAuthUserDirectory {
 class FakeInvitationDelivery {
   deliverOrganizationInvitation =
     jest.fn<ChatService['deliverOrganizationInvitation']>();
+}
+
+class FakeOrganizationPublicEventPublisher extends OrganizationPublicEventPublisher {
+  publishAuthorizationChanged =
+    jest.fn<OrganizationPublicEventPublisher['publishAuthorizationChanged']>();
 }
 
 const context: OrganizationActorContext = {
@@ -130,6 +137,9 @@ describe('조직 초대 서비스', () => {
       invitationProvider,
       directory,
       chat,
+      new OrganizationPublicEventsService(
+        new FakeOrganizationPublicEventPublisher(),
+      ),
     );
   });
 

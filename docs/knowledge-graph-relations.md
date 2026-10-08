@@ -21,7 +21,7 @@ PostgreSQL 업무 원본과 현재 owner의 공개 조회 계약이 관계의 �
 | Meeting → Organization               | organization FK                                                | 필수, organization 삭제 cascade                               | 조직별 회의 원본                                                                          |
 | Meeting → Project                    | nullable text field, 직접 FK 없음                              | owner의 공개 Project 조회로 현재 조직의 활성 UUID 참조를 검사 | 현재 writer는 `projectReference` 속성만 저장하고 Project edge를 생성하지 않음             |
 | Meeting → Room                       | `(meeting_room_id, organization_id)` 복합 FK                   | nullable, room 삭제 restrict                                  | 해당 조직 room만 연결; room 속성은 Meeting 버전으로 덮지 않음                             |
-| Meeting → Recurrence                 | `(recurrence_series_id, organization_id)` 복합 FK              | nullable, series 삭제 restrict; occurrence identity unique    | 동일 조직의 반복 일정 참조; series 공유 속성의 단일 owner 검증 필요                       |
+| Meeting → Recurrence                 | `(recurrence_series_id, organization_id)` 복합 FK              | nullable, series 삭제 restrict; occurrence identity unique    | 동일 조직의 반복 일정 참조; Calendar Recurrence source가 공유 속성을 독립 버전으로 소유   |
 | Meeting ↔ Attendee                   | `(meeting_id, user_id)` PK, meeting/user FK                    | meeting 삭제 cascade, user 삭제 restrict                      | pending/accepted/tentative/declined 상태를 구분; 제거는 연결 삭제                         |
 | Membership → Organization / User     | Better Auth-generated FK                                       | 조직·사용자 삭제 cascade                                      | 공개 OrganizationProvider를 통해 읽는 현재 membership; 그래프를 인가 근거로 사용하지 않음 |
 | CuratedNode → Organization / Actor   | organization/user FK                                           | 조직 삭제 cascade, actor 삭제 restrict                        | curated 원본의 revision·삭제 상태와 별도 권한 검사                                        |
@@ -76,5 +76,17 @@ NODE_OPTIONS=--experimental-vm-modules npm exec --workspace @repo/server -- jest
 ```
 
 Membership 공개 조회의 실통합은 `src/organizations/membership-projection-query.integration.ts`가 소유한다. 전용 PostgreSQL·Redis 주소와 BullMQ prefix를 지정해 실행한다. 이 검사는 실제 가입·초대·역할 변경·탈퇴 API를 사용하며 외부 LLM을 호출하지 않는다.
+
+## P4 업무 source 투영과 공유 속성 소유권
+
+Project source는 조직·작성자·담당자와 컬럼 연결을 소유한다. Ticket은 Project/Column/Label/User의 최소 참조만 생성하며 이들 공유 노드의 기존 속성과 삭제 상태를 변경하지 않는다. Label의 이름·색상은 ticket_label source가 소유한다. Checklist/Item은 Ticket aggregate의 snapshot 안에서 갱신하며 기존 소유 관계를 제거하고 현재 관계만 연결한다. Ticket 이동·보관으로 순서가 바뀐 sibling도 자기 desiredSeq와 Outbox를 같은 업무 transaction에서 기록한다.
+
+Calendar의 공유 속성 owner는 meeting_room과 meeting_recurrence source다. Room과 Recurrence 각각 공개 owner query, 전용 persistence port, 전용 Drizzle adapter를 사용한다. 두 source는 별도 Neo4j marker/fence로 속성과 tombstone을 갱신한다. Meeting은 이들 공유 노드에 최소 placeholder와 연결만 만든다. 더 큰 Meeting 버전도 다른 source의 버전과 비교하거나 속성을 덮지 않는다. Room create/update, series create/update/split 및 빈 원본 series 삭제는 같은 PG transaction 안에서 원본·desiredSeq·Outbox를 처리한다. 분할 시 기존 series에 남아 iCalSequence/updatedAt이 바뀐 회의도 실제 ID마다 발행한다.
+
+두 kind는 Outbox canonical text column의 TypeScript enum metadata에서 파생한다. 새 PostgreSQL enum이나 별도 테이블을 추가한 것이 아니다. 기존 8종 source에 이 둘을 더해 지원 source는 10종이다. 새 구조라며 임의 SQL migration을 작성하지 않는다.
+
+Membership은 조직 생성과 초대 수락의 member-added public event도 전달한다. 실제 Better Auth 원본 commit 후 public event→Jobs bridge→PG desiredSeq/Outbox→KG worker 경로이며 Better Auth transaction과 bridge transaction이 하나라고 주장하지 않는다. 기존 event 발행 실패 처리 정책을 유지하고, 중간 발행 유실·전체 조직 삭제 자동 탐지는 P6의 원본 재조정 대상으로 남는다. 현재 KG worker는 pending membership의 삭제 신호와 공개 owner 원본의 존재 여부가 다르면 현재 desiredSeq를 잠금/CAS로 확인해 새 버전과 Outbox를 기록한다. 오래된 탈퇴 관찰로 재가입한 membership을 삭제하거나, 사라진 membership의 stale changed 신호로 부활시키지 않는다. 그래프의 membership은 현재 인가 판단에 사용하지 않는다.
+
+실제 원본/Jobs/Neo4j 검사는 `src/knowledge-graph/project-ticket-delivery.integration.ts`, `calendar-delivery.integration.ts`, `membership-delivery.integration.ts`가 소유한다. Neo4j 관계 교체·fence·shared source 검사는 `project-projection.integration.ts`, `ticket-projection.integration.ts`, `calendar-reference-projection.integration.ts`가 소유한다. 조직 삭제 검사는 격리 fixture의 조직 row cascade 후 전달된 이벤트를 처리하는 범위이며 운영 조직 삭제 API나 자동 복구 scheduler 전체를 검증했다는 뜻이 아니다.
 
 이 원본 관계 검사가 성공해도 Outbox relay, Neo4j fencing, 모델 추출, API 인가 및 UI 검증이 완료된 것은 아니다. 각 후속 단계에서 해당 책임을 실제 실행으로 검증한다.

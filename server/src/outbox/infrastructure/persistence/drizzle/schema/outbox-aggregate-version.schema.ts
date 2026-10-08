@@ -20,6 +20,8 @@ export const outboxAggregateVersion = pgTable(
         'ticket_label',
         'ticket',
         'meeting',
+        'meeting_room',
+        'meeting_recurrence',
         'membership',
         'curated_node',
         'curated_edge',

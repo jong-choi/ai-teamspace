@@ -11,12 +11,16 @@ import {
 import { meetingRoom } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting-room.schema';
 import { MeetingRoomRepository } from '@/calendar/infrastructure/persistence/meeting-room.repository';
 import { DatabaseService } from '@/database/database.service';
+import { OutboxAggregateChangePublisher } from '@/outbox/outbox-aggregate-change.publisher';
 
 import { and, asc, eq } from 'drizzle-orm';
 
 @Injectable()
 export class MeetingRoomDrizzleRepository extends MeetingRoomRepository {
-  constructor(private readonly database: DatabaseService) {
+  constructor(
+    private readonly database: DatabaseService,
+    private readonly graphEvents: OutboxAggregateChangePublisher,
+  ) {
     super();
   }
 
@@ -68,12 +72,20 @@ export class MeetingRoomDrizzleRepository extends MeetingRoomRepository {
       description: input.description ?? null,
       active: true,
     };
-    const [row] = await this.database.db
-      .insert(meetingRoom)
-      .values(toMeetingRoomInsert(values))
-      .returning();
-    if (!row) throw new Error('회의실 생성 결과가 없습니다.');
-    return toMeetingRoomDomain(row);
+    return this.database.db.transaction(async (transaction) => {
+      const [row] = await transaction
+        .insert(meetingRoom)
+        .values(toMeetingRoomInsert(values))
+        .returning();
+      if (!row) throw new Error('회의실 생성 결과가 없습니다.');
+      await this.graphEvents.meetingRoomChanged(
+        transaction,
+        organizationId,
+        row.id,
+        'changed',
+      );
+      return toMeetingRoomDomain(row);
+    });
   }
 
   async updateMeetingRoom(
@@ -87,21 +99,50 @@ export class MeetingRoomDrizzleRepository extends MeetingRoomRepository {
         'name' | 'capacity' | 'floor' | 'description' | 'active'
       >
     > = input;
-    const [row] = await this.database.db
-      .update(meetingRoom)
-      .set(
-        toMeetingRoomUpdate({
-          ...changes,
-          updatedAt: new Date(),
-        }),
-      )
-      .where(
-        and(
-          eq(meetingRoom.organizationId, organizationId),
-          eq(meetingRoom.id, meetingRoomId),
-        ),
-      )
-      .returning();
-    return row ? toMeetingRoomDomain(row) : null;
+    return this.database.db.transaction(async (transaction) => {
+      const [current] = await transaction
+        .select()
+        .from(meetingRoom)
+        .where(
+          and(
+            eq(meetingRoom.organizationId, organizationId),
+            eq(meetingRoom.id, meetingRoomId),
+          ),
+        )
+        .for('update')
+        .limit(1);
+      if (!current) return null;
+      const changed =
+        (input.name !== undefined && input.name !== current.name) ||
+        (input.capacity !== undefined && input.capacity !== current.capacity) ||
+        (input.floor !== undefined && input.floor !== current.floor) ||
+        (input.description !== undefined &&
+          input.description !== current.description) ||
+        (input.active !== undefined && input.active !== current.active);
+      if (!changed) return toMeetingRoomDomain(current);
+      const [row] = await transaction
+        .update(meetingRoom)
+        .set(
+          toMeetingRoomUpdate({
+            ...changes,
+            updatedAt: new Date(),
+          }),
+        )
+        .where(
+          and(
+            eq(meetingRoom.organizationId, organizationId),
+            eq(meetingRoom.id, meetingRoomId),
+          ),
+        )
+        .returning();
+      if (!row) throw new Error('회의실 변경 결과가 없습니다.');
+      await this.graphEvents.meetingRoomChanged(
+        transaction,
+        organizationId,
+        row.id,
+        'changed',
+      );
+      return toMeetingRoomDomain(row);
+    });
   }
 }

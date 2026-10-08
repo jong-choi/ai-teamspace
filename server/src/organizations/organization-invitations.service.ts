@@ -25,6 +25,7 @@ import {
   type OrganizationActorContext,
   OrganizationProvider,
 } from '@/organizations/infrastructure/organization/organization.provider';
+import { OrganizationPublicEventsService } from '@/organizations/organization-public-events.service';
 
 type OrganizationInvitationDelivery = Pick<
   ChatService,
@@ -45,6 +46,7 @@ export class OrganizationInvitationsService {
     private readonly userDirectory: OrganizationInvitationUserDirectory,
     @Inject(ChatService)
     private readonly chatService: OrganizationInvitationDelivery,
+    private readonly publicEvents: OrganizationPublicEventsService,
   ) {}
 
   async create(
@@ -152,9 +154,16 @@ export class OrganizationInvitationsService {
     context: OrganizationActorContext,
     invitationId: string,
   ): Promise<OrganizationInvitationResponse> {
-    return toOrganizationInvitationResponse(
-      await this.invitationProvider.accept(context, invitationId),
+    const accepted = await this.invitationProvider.accept(
+      context,
+      invitationId,
     );
+    await this.publicEvents.publishAuthorizationChanged({
+      organizationId: accepted.organizationId,
+      userId: context.userId,
+      reason: 'member-added',
+    });
+    return toOrganizationInvitationResponse(accepted);
   }
 
   async reject(

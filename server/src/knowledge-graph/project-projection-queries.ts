@@ -11,12 +11,32 @@ SET project.organizationId = $organizationId,
     project.name = $name,
     project.archivedAt = $archivedAt,
     project.sourceUpdatedAt = $sourceUpdatedAt,
+    project.placeholder = false,
     project.deleted = false
-WITH marker, project
+WITH DISTINCT marker, project
+OPTIONAL MATCH (project)-[oldReference]->()
+WHERE type(oldReference) IN ['KG_PROJECT_ORGANIZATION', 'KG_PROJECT_CREATOR', 'KG_PROJECT_LEAD']
+DELETE oldReference
+WITH DISTINCT marker, project
+MERGE (organization:KGWorkOSOrganization {key: $organizationKey})
+ON CREATE SET organization.organizationId = $organizationId,
+              organization.sourceId = $organizationId,
+              organization.placeholder = true,
+              organization.deleted = false
+MERGE (project)-[:KG_PROJECT_ORGANIZATION]->(organization)
+MERGE (creator:KGWorkOSUserReference {key: $creatorKey})
+ON CREATE SET creator.organizationId = $organizationId, creator.sourceId = $creatorUserId
+MERGE (project)-[:KG_PROJECT_CREATOR]->(creator)
+FOREACH (ignored IN CASE WHEN $leadKey IS NULL THEN [] ELSE [1] END |
+  MERGE (lead:KGWorkOSUserReference {key: $leadKey})
+  ON CREATE SET lead.organizationId = $organizationId, lead.sourceId = $leadUserId
+  MERGE (project)-[:KG_PROJECT_LEAD]->(lead)
+)
+WITH DISTINCT marker, project
 OPTIONAL MATCH (project)-[oldColumnRel:KG_PROJECT_COLUMN]->(oldColumn:KGWorkOSProjectColumn)
 SET oldColumn.deleted = true
 DELETE oldColumnRel
-WITH marker, project
+WITH DISTINCT marker, project
 FOREACH (column IN $columns |
   MERGE (columnNode:KGWorkOSProjectColumn {key: column.key})
   SET columnNode.organizationId = $organizationId,
@@ -25,6 +45,7 @@ FOREACH (column IN $columns |
       columnNode.name = column.name,
       columnNode.position = column.position,
       columnNode.isCompleted = column.isCompleted,
+      columnNode.placeholder = false,
       columnNode.deleted = false
   MERGE (project)-[:KG_PROJECT_COLUMN]->(columnNode)
 )
@@ -42,7 +63,11 @@ OPTIONAL MATCH (project:KGWorkOSProject {key: $sourceKey})
 OPTIONAL MATCH (project)-[columnRel:KG_PROJECT_COLUMN]->(column:KGWorkOSProjectColumn)
 SET column.deleted = true
 DELETE columnRel
-WITH marker, project
+WITH DISTINCT marker, project
+OPTIONAL MATCH (project)-[ownedReference]->()
+WHERE type(ownedReference) IN ['KG_PROJECT_ORGANIZATION', 'KG_PROJECT_CREATOR', 'KG_PROJECT_LEAD']
+DELETE ownedReference
+WITH DISTINCT marker, project
 FOREACH (ignored IN CASE WHEN project IS NULL THEN [] ELSE [1] END |
   SET project.deleted = true
 )

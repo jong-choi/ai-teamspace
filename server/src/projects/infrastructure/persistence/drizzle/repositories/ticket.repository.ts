@@ -222,6 +222,25 @@ export class TicketDrizzleRepository extends TicketRepository {
         input.dueAt === undefined;
       if (current.archivedAt !== null && !restoring) return null;
 
+      const dueAt =
+        input.dueAt === undefined
+          ? undefined
+          : input.dueAt
+            ? new Date(input.dueAt)
+            : null;
+      const changed =
+        (input.title !== undefined && input.title !== current.title) ||
+        (input.descriptionMarkdown !== undefined &&
+          input.descriptionMarkdown !== current.descriptionMarkdown) ||
+        (input.priority !== undefined && input.priority !== current.priority) ||
+        (input.assigneeUserId !== undefined &&
+          input.assigneeUserId !== current.assigneeUserId) ||
+        (dueAt !== undefined &&
+          dueAt?.getTime() !== current.dueAt?.getTime()) ||
+        (input.archived !== undefined &&
+          input.archived !== (current.archivedAt !== null));
+      if (!changed) return toTicketDomain(current);
+
       let position = current.position;
       if (restoring) {
         const [positionRow] = await transaction
@@ -246,12 +265,7 @@ export class TicketDrizzleRepository extends TicketRepository {
             descriptionMarkdown: input.descriptionMarkdown,
             priority: input.priority,
             assigneeUserId: input.assigneeUserId,
-            dueAt:
-              input.dueAt === undefined
-                ? undefined
-                : input.dueAt
-                  ? new Date(input.dueAt)
-                  : null,
+            dueAt,
             archivedAt,
             position,
             updatedAt: now,
@@ -266,13 +280,21 @@ export class TicketDrizzleRepository extends TicketRepository {
         archivedAt !== null &&
         current.archivedAt === null
       ) {
-        await normalizeActiveTicketOrder(
+        const changedIds = await normalizeActiveTicketOrder(
           transaction,
           organizationId,
           projectId,
           current.columnId,
           now,
         );
+        for (const id of changedIds) {
+          await this.graphEvents.ticketChanged(
+            transaction,
+            organizationId,
+            id,
+            'changed',
+          );
+        }
       }
       await this.graphEvents.ticketChanged(
         transaction,
@@ -300,7 +322,8 @@ async function normalizeActiveTicketOrder(
   projectId: string,
   columnId: string,
   updatedAt: Date,
-): Promise<void> {
+): Promise<Ticket['id'][]> {
+  const changedIds: Ticket['id'][] = [];
   const rows = await transaction
     .select()
     .from(ticket)
@@ -326,7 +349,9 @@ async function normalizeActiveTicketOrder(
           eq(ticket.projectId, projectId),
         ),
       );
+    changedIds.push(row.id);
   }
+  return changedIds;
 }
 
 function escapeLikePattern(value: string): string {

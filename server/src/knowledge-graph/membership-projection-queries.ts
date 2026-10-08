@@ -14,9 +14,10 @@ WITH marker, membership
 OPTIONAL MATCH (membership)-[oldRel]->()
 WHERE type(oldRel) IN ['KG_MEMBERSHIP_ORGANIZATION', 'KG_MEMBERSHIP_USER']
 DELETE oldRel
-WITH marker, membership
+WITH DISTINCT marker, membership
 MERGE (organization:KGWorkOSOrganization {key: $organizationKey})
 ON CREATE SET organization.organizationId = $organizationId,
+              organization.sourceId = $organizationId,
               organization.deleted = false,
               organization.placeholder = true
 MERGE (user:KGWorkOSUserReference {key: $userKey})
@@ -38,7 +39,7 @@ OPTIONAL MATCH (membership:KGWorkOSMembership {key: $sourceKey})
 OPTIONAL MATCH (membership)-[ownedRel]->()
 WHERE type(ownedRel) IN ['KG_MEMBERSHIP_ORGANIZATION', 'KG_MEMBERSHIP_USER']
 DELETE ownedRel
-WITH marker, membership
+WITH DISTINCT marker, membership
 FOREACH (ignored IN CASE WHEN membership IS NULL THEN [] ELSE [1] END |
   SET membership.deleted = true
 )

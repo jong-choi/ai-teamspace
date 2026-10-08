@@ -15,6 +15,7 @@ import {
   type OrganizationActorContext,
   OrganizationProvider,
 } from '@/organizations/infrastructure/organization/organization.provider';
+import { OrganizationPublicEventsService } from '@/organizations/organization-public-events.service';
 import { OrganizationsService } from '@/organizations/organizations.service';
 
 import { jest } from '@jest/globals';
@@ -90,7 +91,10 @@ describe('조직 서비스', () => {
   beforeEach(() => {
     provider = new FakeOrganizationProvider();
     publicEventPublisher = new FakeOrganizationPublicEventPublisher();
-    service = new OrganizationsService(provider, publicEventPublisher);
+    service = new OrganizationsService(
+      provider,
+      new OrganizationPublicEventsService(publicEventPublisher),
+    );
   });
 
   afterEach(() => {

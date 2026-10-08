@@ -138,6 +138,19 @@ export class ProjectColumnDrizzleRepository extends ProjectColumnRepository {
         .limit(1);
       if (!projectRow) return null;
 
+      const [current] = await transaction
+        .select()
+        .from(projectColumn)
+        .where(
+          and(
+            eq(projectColumn.id, columnId),
+            eq(projectColumn.projectId, projectId),
+          ),
+        )
+        .limit(1);
+      if (!current) return null;
+      if (current.name === name) return toProjectColumnDomain(current);
+
       const now = new Date();
       const [row] = await transaction
         .update(projectColumn)

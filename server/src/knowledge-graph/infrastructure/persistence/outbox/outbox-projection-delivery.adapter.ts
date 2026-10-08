@@ -36,4 +36,13 @@ export class OutboxProjectionDeliveryAdapter extends ProjectionDeliveryRepositor
       this.events.requeueCurrent(transaction, source),
     );
   }
+  async recordObservedDeletion(
+    ...[source, deleted]: Parameters<
+      ProjectionDeliveryRepository['recordObservedDeletion']
+    >
+  ): Promise<void> {
+    await this.database.db.transaction((transaction) =>
+      this.events.recordObservedDeletion(transaction, source, deleted),
+    );
+  }
 }

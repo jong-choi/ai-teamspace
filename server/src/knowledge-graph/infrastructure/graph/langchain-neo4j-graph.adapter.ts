@@ -121,6 +121,16 @@ export class LangchainNeo4jGraphAdapter
     >,
     wiki: WikiProjectionSource | null,
   ): Promise<void> {
+    if (
+      tracking.aggregateKind !== 'wiki_document' ||
+      (wiki &&
+        (wiki.organizationId !== tracking.organizationId ||
+          wiki.id !== tracking.aggregateId))
+    ) {
+      throw new Error(
+        'Wiki 투영 원본과 변경 버전의 조직 또는 식별자가 일치하지 않습니다.',
+      );
+    }
     if (!tracking.deleted && !wiki) {
       throw new Error('삭제되지 않은 위키 원본을 조회할 수 없습니다.');
     }

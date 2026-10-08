@@ -8,6 +8,8 @@ import tseslint from 'typescript-eslint';
 export default tseslint.config(
   {
     ignores: [
+      // .gitignore의 작업 디렉터리. Prettier와 달리 ESLint flat config는 .gitignore를 읽지 않는다.
+      '.temp/**',
       '**/node_modules/**',
       '**/dist/**',
       '**/coverage/**',

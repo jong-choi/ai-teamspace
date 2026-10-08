@@ -1,0 +1,48 @@
+{
+  "name": "@repo/knowledge-graph",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "imports": {
+    "#knowledge-graph/*": {
+      "types": "./src/*",
+      "default": "./dist/*"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\" \"*.json\" \"*.mjs\" README.md THIRD_PARTY_NOTICES.md",
+    "typecheck": "tsc -p tsconfig.integration.json --noEmit",
+    "lint": "eslint src/ test/",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --config ./jest.config.mjs --runInBand",
+    "test:integration": "NODE_OPTIONS=--experimental-vm-modules jest --config ./jest.config.integration.mjs --runInBand"
+  },
+  "dependencies": {
+    "@langchain/core": "1.2.14",
+    "@langchain/classic": "1.0.52",
+    "@langchain/neo4j": "0.1.24",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@jest/globals": "^30.5.2",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.0.0",
+    "jest": "^30.5.2",
+    "ts-jest": "^29.4.14",
+    "typescript": "^6.0.2"
+  }
+}

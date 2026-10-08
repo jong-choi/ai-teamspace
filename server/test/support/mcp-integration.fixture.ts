@@ -30,15 +30,6 @@ import request, { type Response as TestResponse } from 'supertest';
 
 type TestAgent = ReturnType<typeof request.agent>;
 
-const OVERRIDDEN_ENVIRONMENT_KEYS = [
-  'BETTER_AUTH_URL',
-  'APP_TRUSTED_ORIGINS',
-  'MCP_RESOURCE_URL',
-  'MCP_ALLOWED_HOSTS',
-  'MCP_ALLOWED_ORIGINS',
-  'MCP_AGENT_OAUTH_REDIRECT_URL',
-] as const;
-
 export interface McpActor {
   agent: TestAgent;
   userId: string;
@@ -82,20 +73,25 @@ export class McpIntegrationApp {
     >,
   ) {}
 
-  static async start(): Promise<McpIntegrationApp> {
+  /** `environment`는 이 app에만 필요한 환경 변수 override이며 close 때 함께 복원한다. */
+  static async start(
+    options: { environment?: Record<string, string> } = {},
+  ): Promise<McpIntegrationApp> {
     const port = await reservePort();
     const baseUrl = `http://127.0.0.1:${port}`;
-    const originalEnvironment = new Map(
-      OVERRIDDEN_ENVIRONMENT_KEYS.map((key) => [key, process.env[key]]),
-    );
-    Object.assign(process.env, {
+    const overrides: Record<string, string> = {
       BETTER_AUTH_URL: baseUrl,
       APP_TRUSTED_ORIGINS: baseUrl,
       MCP_RESOURCE_URL: `${baseUrl}/mcp`,
       MCP_ALLOWED_HOSTS: '127.0.0.1,localhost',
       MCP_ALLOWED_ORIGINS: '127.0.0.1,localhost',
       MCP_AGENT_OAUTH_REDIRECT_URL: `${baseUrl}/mcp/agent-delegation/callback`,
-    });
+      ...options.environment,
+    };
+    const originalEnvironment = new Map(
+      Object.keys(overrides).map((key) => [key, process.env[key]]),
+    );
+    Object.assign(process.env, overrides);
 
     const moduleFixture = await createAppTestingModule().compile();
     const app = moduleFixture.createNestApplication({ bodyParser: false });

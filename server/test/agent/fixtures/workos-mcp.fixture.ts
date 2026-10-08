@@ -1,3 +1,4 @@
+import { createServer as createHttpsServer } from 'node:https';
 import type { AddressInfo } from 'node:net';
 
 import { createMcpExpressApp } from '@modelcontextprotocol/express';
@@ -22,7 +23,9 @@ export interface StartedWorkOsMcpFixture {
  * WorkOS 기능을 흉내 내지 않고 MCP protocol/auth/tool discovery 동작만 검증하는 generic fixture다.
  * 모든 tool 이름과 payload는 test 전용이며 application service/domain을 import하지 않는다.
  */
-export async function startWorkOsMcpFixture(): Promise<StartedWorkOsMcpFixture> {
+export async function startWorkOsMcpFixture(
+  options: { tls?: { key: string; cert: string } } = {},
+): Promise<StartedWorkOsMcpFixture> {
   const state: FixtureMcpState = {
     actors: [],
     reads: [],
@@ -54,7 +57,10 @@ export async function startWorkOsMcpFixture(): Promise<StartedWorkOsMcpFixture> 
     nodeHandler(request, response, request.body),
   );
 
-  const httpServer = app.listen(0, '127.0.0.1');
+  // HTTPS만 허용하는 external MCP 경계를 검증할 때는 test 인증서로 TLS server를 띄운다.
+  const httpServer = options.tls
+    ? createHttpsServer(options.tls, app).listen(0, '127.0.0.1')
+    : app.listen(0, '127.0.0.1');
   await new Promise<void>((resolve, reject) => {
     httpServer.once('listening', resolve);
     httpServer.once('error', reject);
@@ -62,7 +68,7 @@ export async function startWorkOsMcpFixture(): Promise<StartedWorkOsMcpFixture> 
   const address = httpServer.address() as AddressInfo;
 
   return {
-    url: `http://127.0.0.1:${address.port}/mcp`,
+    url: `${options.tls ? 'https' : 'http'}://127.0.0.1:${address.port}/mcp`,
     state,
     close: async () => {
       await handler.close();

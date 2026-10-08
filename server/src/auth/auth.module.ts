@@ -5,6 +5,7 @@ import { createAuth } from '@/auth/auth';
 import { AuthUserDirectoryService } from '@/auth/auth-user-directory.service';
 import { AuthUserDirectory } from '@/auth/infrastructure/user-directory/auth-user-directory.provider';
 import { BetterAuthUserDirectory } from '@/auth/infrastructure/user-directory/better-auth-user-directory.adapter';
+import { createJsonBodyTypeMatcher } from '@/common/http/json-body-type.matcher';
 import type { AllConfigType } from '@/config/config.type';
 import { DatabaseModule } from '@/database/database.module';
 import { DatabaseService } from '@/database/database.service';
@@ -19,13 +20,22 @@ import { AuthModule as NestBetterAuthModule } from '@thallesp/nestjs-better-auth
       useFactory: (
         configService: ConfigService<AllConfigType>,
         databaseService: DatabaseService,
-      ) => ({
-        auth: createAuth(
-          databaseService.db,
-          configService.getOrThrow('auth', { infer: true }),
-          configService.getOrThrow('mcp', { infer: true }),
-        ),
-      }),
+      ) => {
+        const mcpConfig = configService.getOrThrow('mcp', { infer: true });
+        return {
+          auth: createAuth(
+            databaseService.db,
+            configService.getOrThrow('auth', { infer: true }),
+            mcpConfig,
+          ),
+          // MCP Streamable HTTP endpoint는 MCP SDK가 body를 직접 읽어 MCP 크기 제한과 JSON-RPC 오류 형식을 적용한다.
+          bodyParser: {
+            json: {
+              type: createJsonBodyTypeMatcher([mcpConfig.resourcePath]),
+            },
+          },
+        };
+      },
     }),
   ],
   providers: [

@@ -13,7 +13,11 @@ import { ApiExcludeController } from '@nestjs/swagger';
 
 import { McpNodeAdapter } from '@/mcp/infrastructure/transport/model-context-protocol/mcp-node.adapter';
 
+import { AllowAnonymous } from '@thallesp/nestjs-better-auth';
+
+// MCP endpoint는 session cookie 대신 McpHttpHandler의 OAuth/PAT 검증을 사용한다.
 @ApiExcludeController()
+@AllowAnonymous()
 @Controller()
 export class McpController {
   constructor(private readonly nodeAdapter: McpNodeAdapter) {}

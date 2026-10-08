@@ -68,28 +68,6 @@ const mcpResourceUrlSchema = secureOrLoopbackUrlSchema('MCP_RESOURCE_URL')
   })
   .transform((url) => url.href);
 
-const agentDelegationRedirectUrlSchema = secureOrLoopbackUrlSchema(
-  'MCP Agent OAuth redirect URL',
-)
-  .superRefine((url, context) => {
-    if (url.search || url.hash) {
-      context.addIssue({
-        code: 'custom',
-        message:
-          'MCP Agent OAuth redirect URL에는 query 또는 fragment를 포함할 수 없습니다.',
-      });
-    }
-
-    if (url.pathname !== '/mcp/agent-delegation/callback') {
-      context.addIssue({
-        code: 'custom',
-        message:
-          'MCP Agent OAuth redirect URL의 path는 /mcp/agent-delegation/callback 이어야 합니다.',
-      });
-    }
-  })
-  .transform((url) => url.href);
-
 const mcpConfigSchema = z
   .object({
     MCP_RESOURCE_URL: mcpResourceUrlSchema,
@@ -131,24 +109,6 @@ const mcpConfigSchema = z
       .min(1)
       .max(1_000)
       .default(100),
-    MCP_AGENT_OAUTH_CLIENT_ID: z.string().trim().min(1).max(256),
-    MCP_AGENT_OAUTH_CLIENT_SECRET: z.string().min(32).max(512),
-    MCP_AGENT_OAUTH_REDIRECT_URL: agentDelegationRedirectUrlSchema,
-    MCP_AGENT_OAUTH_FLOW_TTL_SECONDS: z.coerce
-      .number()
-      .int()
-      .min(60)
-      .max(1_800),
-    MCP_AGENT_OAUTH_REFRESH_LEASE_TTL_SECONDS: z.coerce
-      .number()
-      .int()
-      .min(5)
-      .max(60),
-    MCP_AGENT_OAUTH_REFRESH_LEASE_WAIT_MS: z.coerce
-      .number()
-      .int()
-      .min(100)
-      .max(10_000),
   })
   .superRefine((environment, context) => {
     if (
@@ -160,18 +120,6 @@ const mcpConfigSchema = z
         path: ['MCP_ACCESS_KEY_DEFAULT_EXPIRES_IN_DAYS'],
         message:
           'MCP access key 기본 만료 기간은 최대 만료 기간보다 클 수 없습니다.',
-      });
-    }
-
-    if (
-      environment.MCP_AGENT_OAUTH_REFRESH_LEASE_WAIT_MS >
-      environment.MCP_AGENT_OAUTH_REFRESH_LEASE_TTL_SECONDS * 1_000
-    ) {
-      context.addIssue({
-        code: 'custom',
-        path: ['MCP_AGENT_OAUTH_REFRESH_LEASE_WAIT_MS'],
-        message:
-          'MCP Agent OAuth refresh lease 대기 시간은 lease TTL보다 길 수 없습니다.',
       });
     }
   });
@@ -206,15 +154,6 @@ export function createMcpConfig(): McpConfig {
         environment.MCP_ACCESS_KEY_RECONCILIATION_INTERVAL_SECONDS,
       reconciliationBatchSize:
         environment.MCP_ACCESS_KEY_RECONCILIATION_BATCH_SIZE,
-    },
-    agentDelegation: {
-      clientId: environment.MCP_AGENT_OAUTH_CLIENT_ID,
-      clientSecret: environment.MCP_AGENT_OAUTH_CLIENT_SECRET,
-      redirectUrl: environment.MCP_AGENT_OAUTH_REDIRECT_URL,
-      flowTtlSeconds: environment.MCP_AGENT_OAUTH_FLOW_TTL_SECONDS,
-      refreshLeaseTtlSeconds:
-        environment.MCP_AGENT_OAUTH_REFRESH_LEASE_TTL_SECONDS,
-      refreshLeaseWaitMs: environment.MCP_AGENT_OAUTH_REFRESH_LEASE_WAIT_MS,
     },
   };
 }

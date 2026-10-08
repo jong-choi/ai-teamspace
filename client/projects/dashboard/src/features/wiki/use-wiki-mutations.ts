@@ -14,7 +14,26 @@ import type {
 import { useMutationErrorNotification } from '@core/app/error/use-mutation-error-notification';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 
-import { useQueryClient } from '@tanstack/react-query';
+import { type QueryClient, useQueryClient } from '@tanstack/react-query';
+
+export function invalidateWikiTree(
+  queryClient: QueryClient,
+  organizationId: string,
+) {
+  return queryClient.invalidateQueries({
+    queryKey: getWikiControllerGetTreeQueryKey(organizationId),
+  });
+}
+
+export function invalidateWikiDocument(
+  queryClient: QueryClient,
+  organizationId: string,
+  documentId: string,
+) {
+  return queryClient.invalidateQueries({
+    queryKey: getWikiControllerGetDocumentQueryKey(organizationId, documentId),
+  });
+}
 
 export function useWikiMutations(organizationId: string) {
   const queryClient = useQueryClient();
@@ -35,21 +54,13 @@ export function useWikiMutations(organizationId: string) {
   });
 
   const invalidateTree = useCallback(
-    () =>
-      queryClient.invalidateQueries({
-        queryKey: getWikiControllerGetTreeQueryKey(organizationId),
-      }),
+    () => invalidateWikiTree(queryClient, organizationId),
     [organizationId, queryClient],
   );
 
   const invalidateDocument = useCallback(
     (documentId: string) =>
-      queryClient.invalidateQueries({
-        queryKey: getWikiControllerGetDocumentQueryKey(
-          organizationId,
-          documentId,
-        ),
-      }),
+      invalidateWikiDocument(queryClient, organizationId, documentId),
     [organizationId, queryClient],
   );
 

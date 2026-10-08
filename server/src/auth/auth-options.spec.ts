@@ -30,14 +30,6 @@ const mcpConfig: McpConfig = {
     reconciliationIntervalSeconds: 900,
     reconciliationBatchSize: 100,
   },
-  agentDelegation: {
-    clientId: 'work-os-agent',
-    clientSecret: 'replace-with-a-random-secret-of-at-least-32-characters',
-    redirectUrl: 'https://workos.example/mcp/agent-delegation/callback',
-    flowTtlSeconds: 600,
-    refreshLeaseTtlSeconds: 15,
-    refreshLeaseWaitMs: 5_000,
-  },
 };
 
 describe('Better Auth MCP option factory', () => {

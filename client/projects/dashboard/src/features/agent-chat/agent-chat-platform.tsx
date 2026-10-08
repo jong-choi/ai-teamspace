@@ -13,18 +13,11 @@ export type AgentRunMetadataNamespace = {
   organizationId: string;
 };
 
-export type AgentAuthorizationResult =
-  { type: 'success' } | { type: 'cancel' | 'dismiss' };
-
 export type AgentChatPlatform = {
   client: Client;
   createRunMetadataStorage(
     namespace: AgentRunMetadataNamespace,
   ): AgentRunMetadataStorage;
-  openAuthorization(input: {
-    authorizationUrl: string;
-    redirectUrl: string;
-  }): Promise<AgentAuthorizationResult>;
 };
 
 const AgentChatPlatformContext = createContext<AgentChatPlatform | null>(null);

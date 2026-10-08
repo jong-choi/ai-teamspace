@@ -21,12 +21,4 @@ export type McpConfig = {
     reconciliationIntervalSeconds: number;
     reconciliationBatchSize: number;
   };
-  agentDelegation: {
-    clientId: string;
-    clientSecret: string;
-    redirectUrl: string;
-    flowTtlSeconds: number;
-    refreshLeaseTtlSeconds: number;
-    refreshLeaseWaitMs: number;
-  };
 };

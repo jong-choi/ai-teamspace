@@ -1,4 +1,3 @@
-import { createFirstPartyAgentClientDiscovery } from '@/auth/plugins/first-party-agent-client-discovery';
 import type { McpConfig } from '@/mcp/config/mcp-config.type';
 import { MCP_SCOPES } from '@/mcp/contracts/mcp-scope';
 import { MCP_ACCESS_KEY_PREFIX } from '@/mcp-access-keys/domain/mcp-access-key-contract';
@@ -58,11 +57,6 @@ export function createAuthOptions(mcpConfig: McpConfig) {
         consentPage: MCP_CONSENT_PAGE,
         resource: mcpConfig.resourceUrl,
         scopes: [...MCP_SCOPES, 'offline_access'],
-        extensions: [
-          {
-            clientDiscovery: createFirstPartyAgentClientDiscovery(mcpConfig),
-          },
-        ],
       }),
       cimd({
         fetchClientMetadataResource,

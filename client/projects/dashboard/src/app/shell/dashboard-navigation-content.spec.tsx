@@ -111,4 +111,21 @@ describe('사이드바 실제 계정 표시', () => {
     await fireEvent.press(view.getByText('멤버'));
     expect(mockPush).not.toHaveBeenCalled();
   });
+  it('AI는 페이지 이동 없이 채팅 패널을 여닫는 토글이다', async () => {
+    mockPush.mockClear();
+    const onToggleAgentChat = jest.fn();
+    const view = await render(
+      <DashboardNavigationContent
+        agentChatOpen
+        agentChatPendingApproval
+        onToggleAgentChat={onToggleAgentChat}
+        organizationName="테스트 조직"
+      />,
+    );
+    const toggle = view.getByLabelText('AI, 승인 대기 중');
+    expect(toggle.props.accessibilityState).toMatchObject({ expanded: true });
+    await fireEvent.press(toggle);
+    expect(onToggleAgentChat).toHaveBeenCalledTimes(1);
+    expect(mockPush).not.toHaveBeenCalled();
+  });
 });

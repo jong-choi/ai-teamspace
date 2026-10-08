@@ -1,5 +1,8 @@
 import { ScrollView, View } from 'react-native';
+import { Link } from 'expo-router';
 
+import { Button } from '@repo/client/rnr/components/ui/button';
+import { Text } from '@repo/client/rnr/components/ui/text';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 import { DashboardShell } from '@core/app/shell/dashboard-shell';
 import {
@@ -84,12 +87,17 @@ function McpAccessPage({ organizationId }: { organizationId: string }) {
   return (
     <ScrollView className="min-h-0 flex-1" showsVerticalScrollIndicator={false}>
       <View className="mx-auto w-full max-w-5xl gap-5 p-4 sm:p-6 lg:p-8">
-        <View className="gap-1">
+        <View className="flex-row flex-wrap items-start justify-between gap-3">
           <DashboardState
-            className="items-start p-0"
+            className="flex-1 items-start p-0"
             description="Agent와 외부 MCP credential이 사용할 수 있는 capability의 조직 ceiling과 개인 요청 범위를 관리합니다."
             title="MCP 권한"
           />
+          <Link asChild href="/settings/mcp/integrations">
+            <Button accessibilityRole="link" size="sm" variant="outline">
+              <Text className="text-xs">외부 MCP 연결 관리</Text>
+            </Button>
+          </Link>
         </View>
         <DashboardQueryBoundary
           fallback={

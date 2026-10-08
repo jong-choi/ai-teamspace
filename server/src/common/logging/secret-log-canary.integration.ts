@@ -2,8 +2,6 @@ import { format } from 'node:util';
 
 import { Logger } from '@nestjs/common';
 
-import { McpAgentDelegationCredentialService } from '@/mcp-agent-delegations/mcp-agent-delegation-credential.service';
-
 import {
   type StartedWorkOsMcpFixture,
   startWorkOsMcpFixture,
@@ -153,38 +151,6 @@ describe('structured log secret canary 검증', () => {
       }),
     ).rejects.toThrow();
 
-    const callbackUrl = await target.authorizeAgentDelegation(actor);
-    const authorizationCode = requiredSearchParam(callbackUrl, 'code');
-    const oauthState = requiredSearchParam(callbackUrl, 'state');
-    secrets.push(
-      { name: 'authorization code', value: authorizationCode },
-      { name: 'OAuth state', value: oauthState },
-    );
-    const tamperedState = `${oauthState}-tampered`;
-    const tamperedCallback = new URL(callbackUrl);
-    tamperedCallback.searchParams.set('state', tamperedState);
-    secrets.push({ name: 'tampered OAuth state', value: tamperedState });
-    await actor.agent
-      .get(tamperedCallback.pathname + tamperedCallback.search)
-      .expect(400);
-    await actor.agent
-      .get(callbackUrl.pathname + callbackUrl.search)
-      .expect(302);
-
-    const delegationTokens = await target.app
-      .get(McpAgentDelegationCredentialService)
-      .tokens(actor);
-    if (!delegationTokens?.refresh_token) {
-      throw new Error('log canary에 필요한 delegation token이 없습니다.');
-    }
-    secrets.push(
-      { name: 'delegation access token', value: delegationTokens.access_token },
-      {
-        name: 'delegation refresh token',
-        value: delegationTokens.refresh_token,
-      },
-    );
-
     const externalToken = `fixture:${actor.userId}`;
     secrets.push({ name: 'external MCP bearer token', value: externalToken });
     await actor.agent
@@ -214,7 +180,6 @@ describe('structured log secret canary 검증', () => {
 
     for (const environmentKey of [
       'BETTER_AUTH_SECRET',
-      'MCP_AGENT_OAUTH_CLIENT_SECRET',
       'CREDENTIAL_ENCRYPTION_KEYS',
       'COLLABORATION_JWT_SECRET',
       'OLLAMA_API_KEY',
@@ -250,10 +215,4 @@ function cookieValue(cookieHeader: string): string {
   if (separator < 0)
     throw new Error('session cookie 형식이 올바르지 않습니다.');
   return cookieHeader.slice(separator + 1);
-}
-
-function requiredSearchParam(url: URL, name: string): string {
-  const value = url.searchParams.get(name);
-  if (!value) throw new Error(`OAuth callback URL에 ${name}이 없습니다.`);
-  return value;
 }

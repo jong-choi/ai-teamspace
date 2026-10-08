@@ -354,6 +354,7 @@ server contract
 # 상태 관리
 
 - global state library를 도입할 때는 하나의 라이브러리로 통일하고 이 문서에 명시한다.
+- client global state library는 Zustand로 통일한다. store는 feature provider에서 `zustand/vanilla`의 `createStore`로 만들어 session 단위로 수명을 관리한다.
 - global store에는 client-local shared state만 둔다.
 - React Query server data, router가 소유하는 route state, form library가 소유하는 form state, component 하나에서만 쓰는 local state를 global store에 중복 저장하지 않는다.
 - 같은 값을 여러 store에서 동시에 관리하지 않는다.

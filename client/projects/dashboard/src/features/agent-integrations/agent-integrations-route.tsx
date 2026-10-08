@@ -20,7 +20,7 @@ export function AgentIntegrationsRoute({
 
   if (sessionPending) {
     return (
-      <DashboardShell activeNavigationItem="ai">
+      <DashboardShell activeNavigationItem="settings">
         <DashboardLoading label="세션을 확인하는 중..." />
       </DashboardShell>
     );
@@ -28,7 +28,7 @@ export function AgentIntegrationsRoute({
 
   if (!currentUserId) {
     return (
-      <DashboardShell activeNavigationItem="ai">
+      <DashboardShell activeNavigationItem="settings">
         <AuthenticationRequiredState />
       </DashboardShell>
     );
@@ -37,7 +37,7 @@ export function AgentIntegrationsRoute({
   return (
     <DashboardQueryBoundary
       fallback={
-        <DashboardShell activeNavigationItem="ai">
+        <DashboardShell activeNavigationItem="settings">
           <DashboardLoading label="활성 조직을 불러오는 중..." />
         </DashboardShell>
       }
@@ -63,7 +63,7 @@ function AuthenticatedAgentIntegrationsRoute({
 
   return (
     <DashboardShell
-      activeNavigationItem="ai"
+      activeNavigationItem="settings"
       organizationName={activeOrganization?.organization.name}
     >
       {!activeOrganization ? (

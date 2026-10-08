@@ -19,14 +19,6 @@ describe('MCP 설정', () => {
       MCP_ACCESS_KEY_RATE_LIMIT_MAX: '60',
       MCP_ACCESS_KEY_OPERATION_RETENTION_HOURS: '24',
       MCP_ACCESS_KEY_RESERVATION_STALE_AFTER_SECONDS: '300',
-      MCP_AGENT_OAUTH_CLIENT_ID: 'work-os-agent',
-      MCP_AGENT_OAUTH_CLIENT_SECRET:
-        'replace-with-a-random-secret-of-at-least-32-characters',
-      MCP_AGENT_OAUTH_REDIRECT_URL:
-        'http://127.0.0.1:3100/mcp/agent-delegation/callback',
-      MCP_AGENT_OAUTH_FLOW_TTL_SECONDS: '600',
-      MCP_AGENT_OAUTH_REFRESH_LEASE_TTL_SECONDS: '15',
-      MCP_AGENT_OAUTH_REFRESH_LEASE_WAIT_MS: '5000',
     };
   });
 
@@ -59,14 +51,6 @@ describe('MCP 설정', () => {
         reservationStaleAfterSeconds: 300,
         reconciliationIntervalSeconds: 900,
         reconciliationBatchSize: 100,
-      },
-      agentDelegation: {
-        clientId: 'work-os-agent',
-        clientSecret: 'replace-with-a-random-secret-of-at-least-32-characters',
-        redirectUrl: 'http://127.0.0.1:3100/mcp/agent-delegation/callback',
-        flowTtlSeconds: 600,
-        refreshLeaseTtlSeconds: 15,
-        refreshLeaseWaitMs: 5000,
       },
     });
   });
@@ -123,23 +107,5 @@ describe('MCP 설정', () => {
     process.env.MCP_ACCESS_KEY_RECONCILIATION_INTERVAL_SECONDS = '900';
     process.env.MCP_ACCESS_KEY_RECONCILIATION_BATCH_SIZE = '0';
     expect(() => mcpConfig()).toThrow();
-  });
-
-  it('Agent OAuth callback은 canonical callback path만 허용한다', () => {
-    process.env.MCP_AGENT_OAUTH_REDIRECT_URL =
-      'https://example.com/other/callback';
-
-    expect(() => mcpConfig()).toThrow(
-      'MCP Agent OAuth redirect URL의 path는 /mcp/agent-delegation/callback 이어야 합니다.',
-    );
-  });
-
-  it('Agent OAuth refresh lease 대기 시간은 lease TTL 안으로 제한한다', () => {
-    process.env.MCP_AGENT_OAUTH_REFRESH_LEASE_TTL_SECONDS = '5';
-    process.env.MCP_AGENT_OAUTH_REFRESH_LEASE_WAIT_MS = '6000';
-
-    expect(() => mcpConfig()).toThrow(
-      'MCP Agent OAuth refresh lease 대기 시간은 lease TTL보다 길 수 없습니다.',
-    );
   });
 });

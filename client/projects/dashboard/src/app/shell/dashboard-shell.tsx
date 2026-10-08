@@ -26,8 +26,18 @@ import {
 } from '@core/app/shell/dashboard-navigation-content';
 import { DashboardOrganizationLabel } from '@core/app/shell/dashboard-organization-label';
 import { ThemeToggle } from '@core/app/shell/theme-toggle';
+import { AgentChatPanel } from '@core/features/agent-chat/agent-chat-panel';
+import { useAgentChatStore } from '@core/features/agent-chat/agent-chat-provider';
+import { useAgentChatWideLayout } from '@core/features/agent-chat/lib/use-agent-chat-layout';
 
-import { Building2, Menu, Search, UserRound, X } from 'lucide-react-native';
+import {
+  Building2,
+  Menu,
+  Search,
+  Sparkles,
+  UserRound,
+  X,
+} from 'lucide-react-native';
 
 const DashboardShellContext = createContext(false);
 
@@ -52,17 +62,24 @@ export function DashboardShell({
         ? 'calendar'
         : pathname.startsWith('/wiki')
           ? 'wiki'
-          : pathname.startsWith('/ai')
-            ? 'ai'
-            : pathname.startsWith('/chat')
-              ? 'chat'
-              : pathname.startsWith('/settings')
-                ? 'settings'
-                : pathname.startsWith('/organizations')
-                  ? 'members'
-                  : 'projects');
+          : pathname.startsWith('/chat')
+            ? 'chat'
+            : pathname.startsWith('/settings')
+              ? 'settings'
+              : pathname.startsWith('/organizations')
+                ? 'members'
+                : 'projects');
   const insets = useSafeAreaInsets();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const agentChatOpen = useAgentChatStore((state) => state.open);
+  const agentChatExpanded = useAgentChatStore((state) => state.expanded);
+  const agentChatPendingApproval = useAgentChatStore(
+    (state) => state.pendingApproval,
+  );
+  const toggleAgentChat = useAgentChatStore((state) => state.togglePanel);
+  const wide = useAgentChatWideLayout();
+  // 모바일에서 열렸거나 웹에서 확장되면 업무 본문은 숨기기만 하고 mount는 유지한다.
+  const agentChatCoversBody = agentChatOpen && (!wide || agentChatExpanded);
   const previousLayoutWidth = useRef<number | null>(null);
 
   useEffect(() => {
@@ -132,7 +149,13 @@ export function DashboardShell({
 
           <DashboardNavigationContent
             activeItem={currentItem}
+            agentChatOpen={agentChatOpen}
+            agentChatPendingApproval={agentChatPendingApproval}
             onNavigate={() => setDrawerOpen(false)}
+            onToggleAgentChat={() => {
+              setDrawerOpen(false);
+              toggleAgentChat();
+            }}
             organizationName={organizationName}
           />
         </View>
@@ -165,6 +188,11 @@ export function DashboardShell({
             </View>
 
             <View className="flex-row items-center gap-1">
+              <AgentChatToggleButton
+                onPress={toggleAgentChat}
+                open={agentChatOpen}
+                pendingApproval={agentChatPendingApproval}
+              />
               <Button
                 accessibilityLabel="검색"
                 className="h-8 w-8"
@@ -184,7 +212,17 @@ export function DashboardShell({
             </View>
           </View>
 
-          <View className="min-h-0 flex-1 overflow-hidden">{children}</View>
+          <View className="min-h-0 flex-1 flex-row overflow-hidden">
+            <View
+              className={cn(
+                'min-h-0 min-w-0 flex-1 overflow-hidden',
+                agentChatCoversBody && 'hidden',
+              )}
+            >
+              {children}
+            </View>
+            <AgentChatPanel />
+          </View>
         </View>
 
         <Pressable
@@ -197,5 +235,40 @@ export function DashboardShell({
         />
       </View>
     </DashboardShellContext.Provider>
+  );
+}
+
+function AgentChatToggleButton({
+  onPress,
+  open,
+  pendingApproval,
+}: {
+  onPress: () => void;
+  open: boolean;
+  pendingApproval: boolean;
+}) {
+  return (
+    <Button
+      accessibilityLabel={
+        pendingApproval
+          ? 'Agent 채팅 열기, 승인 대기 중'
+          : open
+            ? 'Agent 채팅 닫기'
+            : 'Agent 채팅 열기'
+      }
+      accessibilityState={{ expanded: open }}
+      className={cn('relative h-8 w-8', open && 'bg-accent')}
+      onPress={onPress}
+      size="icon"
+      variant="ghost"
+    >
+      <Icon as={Sparkles} className="size-4 text-violet-500" />
+      {pendingApproval ? (
+        <View
+          accessibilityLabel="승인 대기"
+          className="absolute right-1 top-1 size-2 rounded-full bg-amber-500"
+        />
+      ) : null}
+    </Button>
   );
 }

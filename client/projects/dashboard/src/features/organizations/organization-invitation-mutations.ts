@@ -102,7 +102,7 @@ export function useOrganizationInvitationMutations(organizationId: string) {
   };
 }
 
-function invalidateOrganizationInvitationQueries(
+export function invalidateOrganizationInvitationQueries(
   queryClient: QueryClient,
   organizationId: string,
 ) {

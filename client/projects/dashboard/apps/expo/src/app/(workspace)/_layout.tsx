@@ -1,11 +1,11 @@
 import { Slot } from 'expo-router';
 
-import { DashboardShell } from '@core/app/shell/dashboard-shell';
+import { DashboardWorkspaceLayout } from '@core/app/shell/dashboard-workspace-layout';
 
 export default function WorkspaceLayout() {
   return (
-    <DashboardShell>
+    <DashboardWorkspaceLayout>
       <Slot />
-    </DashboardShell>
+    </DashboardWorkspaceLayout>
   );
 }

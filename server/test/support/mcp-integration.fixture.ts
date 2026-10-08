@@ -90,7 +90,6 @@ export class McpIntegrationApp {
       MCP_RESOURCE_URL: `${baseUrl}/mcp`,
       MCP_ALLOWED_HOSTS: '127.0.0.1,localhost',
       MCP_ALLOWED_ORIGINS: '127.0.0.1,localhost',
-      MCP_AGENT_OAUTH_REDIRECT_URL: `${baseUrl}/mcp/agent-delegation/callback`,
       AGENT_EXTERNAL_MCP_OAUTH_CALLBACK_URL: `${baseUrl}/agent/mcp-connections/oauth/callback`,
       ...options.environment,
     };
@@ -291,45 +290,6 @@ export class McpIntegrationApp {
       throw error;
     }
     return { client, close };
-  }
-
-  /** delegation start → authorize → consent까지 진행하고 아직 호출하지 않은 callback URL을 돌려준다. */
-  async authorizeAgentDelegation(actor: Pick<McpActor, 'agent'>): Promise<URL> {
-    const start = expectStatus(
-      await actor.agent
-        .post('/mcp/agent-delegation/start')
-        .send({ returnTo: '/ai' }),
-      201,
-      'delegation start',
-    );
-    const authorizationUrl = new URL(start.body.authorizationUrl);
-    const authorization = expectStatus(
-      await actor.agent.get(
-        authorizationUrl.pathname + authorizationUrl.search,
-      ),
-      302,
-      'OAuth authorize',
-    );
-    const consentUrl = new URL(
-      String(authorization.headers.location),
-      this.baseUrl,
-    );
-    const consent = expectStatus(
-      await actor.agent
-        .post('/api/auth/oauth2/consent')
-        .send({ accept: true, oauth_query: consentUrl.search.slice(1) }),
-      200,
-      'OAuth consent',
-    );
-    return new URL(String(consent.body.url), this.baseUrl);
-  }
-
-  /** callback까지 호출하고 응답을 그대로 돌려줘 test가 성공과 실패를 모두 검증하게 한다. */
-  async completeAgentDelegation(
-    actor: Pick<McpActor, 'agent'>,
-  ): Promise<TestResponse> {
-    const callbackUrl = await this.authorizeAgentDelegation(actor);
-    return actor.agent.get(callbackUrl.pathname + callbackUrl.search);
   }
 
   private async signUp(): Promise<{

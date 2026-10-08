@@ -1,5 +1,4 @@
 import { type ReactNode, useMemo } from 'react';
-import * as WebBrowser from 'expo-web-browser';
 
 import {
   type AgentChatPlatform,
@@ -17,16 +16,6 @@ export function ExpoAgentChatPlatformProvider({
     () => ({
       client: createAgentProtocolClient(),
       createRunMetadataStorage: createAgentRunMetadataStorage,
-      openAuthorization: async ({ authorizationUrl, redirectUrl }) => {
-        const result = await WebBrowser.openAuthSessionAsync(
-          authorizationUrl,
-          redirectUrl,
-        );
-        if (result.type === 'success') return { type: 'success' };
-        return {
-          type: result.type === 'dismiss' ? 'dismiss' : 'cancel',
-        };
-      },
     }),
     [],
   );

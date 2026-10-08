@@ -69,19 +69,63 @@ export type AgentToolDisplay = {
   resultSummary: string | null;
 };
 
+export type AgentToolSource =
+  | { kind: 'workos' }
+  | { kind: 'external'; namespace: string }
+  | { kind: 'agent' };
+
+// Deep Agent 내장 도구(계획, 파일, 하위 Agent 위임)의 사용자용 이름이다.
+const agentToolLabels: Record<string, string> = {
+  write_todos: '작업 계획 정리',
+  task: '하위 Agent 위임',
+  ls: '작업 파일 목록 확인',
+  read_file: '작업 파일 읽기',
+  write_file: '작업 파일 쓰기',
+  edit_file: '작업 파일 수정',
+  glob: '작업 파일 찾기',
+  grep: '작업 파일 검색',
+};
+
+const externalToolNamePattern = /^([a-z][a-z0-9]{0,31})__.+$/u;
+const permissionDeniedPattern =
+  /(?:forbidden|permission|not allowed|insufficient[_ ]scope|권한)/iu;
+
 export function getAgentToolLabel(name: string): string {
-  return toolLabels[name] ?? '외부 도구 작업';
+  return toolLabels[name] ?? agentToolLabels[name] ?? '외부 도구 작업';
+}
+
+export function getAgentToolSource(name: string): AgentToolSource {
+  if (toolLabels[name]) return { kind: 'workos' };
+  if (agentToolLabels[name]) return { kind: 'agent' };
+  const external = externalToolNamePattern.exec(name);
+  if (external?.[1]) return { kind: 'external', namespace: external[1] };
+  return { kind: 'external', namespace: '외부' };
+}
+
+export function isAgentToolPermissionDenied(text: string): boolean {
+  return permissionDeniedPattern.test(text);
 }
 
 export function projectAgentToolDisplay(input: {
   name: string;
   args: unknown;
   result: unknown;
+  structured?: unknown;
 }): AgentToolDisplay {
+  // write 도구의 structured 결과는 {result, mutation}이다. 화면에는 result만 요약한다.
+  const structured =
+    isRecord(input.structured) && 'mutation' in input.structured
+      ? input.structured['result']
+      : input.structured;
+
   return {
     label: getAgentToolLabel(input.name),
     fields: projectFields(input.args),
-    resultSummary: projectResultSummary(input.result),
+    resultSummary:
+      structured === undefined
+        ? projectResultSummary(input.result)
+        : (projectResultSummary(structured) ??
+          projectResultSummary(input.result)),
   };
 }
 

@@ -10,7 +10,6 @@ import { ChatModule } from '@/chat/chat.module';
 import { ProblemDetailsFilter } from '@/common/http/problem-details.filter';
 import { DatabaseModule } from '@/database/database.module';
 import { McpModule } from '@/mcp/mcp.module';
-import { McpAgentDelegationModule } from '@/mcp-agent-delegations/mcp-agent-delegation.module';
 import { OrganizationsModule } from '@/organizations/organizations.module';
 import { ProjectsModule } from '@/projects/projects.module';
 import { WikiModule } from '@/wiki/wiki.module';
@@ -28,7 +27,6 @@ import { NestProblemDetailsModule } from 'nest-problem-details-filter';
     AuthModule,
     CalendarModule,
     ChatModule,
-    McpAgentDelegationModule,
     McpModule,
     OrganizationsModule,
     ProjectsModule,

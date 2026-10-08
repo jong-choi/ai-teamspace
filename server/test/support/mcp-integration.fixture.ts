@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { createServer } from 'node:http';
 
 import type { INestApplication } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 import {
   account,
@@ -10,10 +11,12 @@ import {
   session,
   user,
 } from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
+import type { AllConfigType } from '@/config/config.type';
 import { DatabaseService } from '@/database/database.service';
 import { WORK_OS_MCP_PROTOCOL_VERSION } from '@/mcp/contracts/mcp-protocol';
 import type { McpScope } from '@/mcp/contracts/mcp-scope';
 import { OrganizationMemberListSchema } from '@/organizations/dto/organization-member-list.dto';
+import { project } from '@/projects/infrastructure/persistence/drizzle/schema/project.schema';
 
 import {
   type AuthProvider,
@@ -106,6 +109,13 @@ export class McpIntegrationApp {
 
   get resourceUrl(): string {
     return `${this.baseUrl}/mcp`;
+  }
+
+  /** app이 실제로 검증해 사용하는 MCP 설정이다. */
+  get mcpConfig(): AllConfigType['mcp'] {
+    return this.app
+      .get(ConfigService<AllConfigType>)
+      .getOrThrow('mcp', { infer: true });
   }
 
   /**
@@ -353,6 +363,10 @@ export class McpIntegrationApp {
     const organizationIds = [...this.organizationIds];
     const userIds = [...this.userIds];
     if (organizationIds.length > 0) {
+      // project는 조직 FK 없이 생성자를 restrict로 참조하므로 user보다 먼저 test 조직의 project를 지운다.
+      await this.database
+        .delete(project)
+        .where(inArray(project.organizationId, organizationIds));
       await this.database
         .delete(organization)
         .where(inArray(organization.id, organizationIds));
@@ -374,13 +388,47 @@ export class McpIntegrationApp {
   }
 
   async close(): Promise<void> {
-    await this.cleanupActors();
-    await this.app.close();
-    for (const [key, value] of this.originalEnvironment) {
-      if (value === undefined) delete process.env[key];
-      else process.env[key] = value;
+    try {
+      await this.cleanupActors();
+    } finally {
+      await this.app.close();
+      for (const [key, value] of this.originalEnvironment) {
+        if (value === undefined) delete process.env[key];
+        else process.env[key] = value;
+      }
     }
   }
+}
+
+/**
+ * official client 없이 raw HTTP로 보낼 modern protocol JSON-RPC 요청이다.
+ * 2026-07-28 revision은 요청마다 `Mcp-Method` header와 `_meta` envelope를 요구한다.
+ */
+export function modernMcpRequest(
+  method: string,
+  meta: Record<string, unknown> = {},
+): { headers: Record<string, string>; body: string } {
+  return {
+    headers: {
+      Accept: 'application/json, text/event-stream',
+      'Content-Type': 'application/json',
+      'MCP-Protocol-Version': WORK_OS_MCP_PROTOCOL_VERSION,
+      'Mcp-Method': method,
+    },
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id: 1,
+      method,
+      params: {
+        _meta: {
+          'io.modelcontextprotocol/protocolVersion':
+            WORK_OS_MCP_PROTOCOL_VERSION,
+          'io.modelcontextprotocol/clientCapabilities': {},
+          ...meta,
+        },
+      },
+    }),
+  };
 }
 
 export function createModernMcpClient(name: string): Client {

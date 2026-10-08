@@ -1,11 +1,8 @@
-import { ConfigService } from '@nestjs/config';
-
 import type { AgentActor } from '@/agent/domain/agent-actor';
 import {
   oauthClient,
   oauthClientResource,
 } from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
-import type { AllConfigType } from '@/config/config.type';
 import type { McpScope } from '@/mcp/contracts/mcp-scope';
 import { mcpAgentDelegation } from '@/mcp-agent-delegations/infrastructure/persistence/drizzle/schema/mcp-agent-delegation.schema';
 import { mcpAgentOauthFlow } from '@/mcp-agent-delegations/infrastructure/persistence/drizzle/schema/mcp-agent-oauth-flow.schema';
@@ -330,9 +327,7 @@ describe('실제 Agent OAuth delegation 통합', () => {
 
   /** 폐기 여부를 확인하려고 first-party client 자격으로 refresh grant를 직접 요청한다. */
   function requestRefreshToken(refreshToken: string): Promise<Response> {
-    const { clientId, clientSecret } = target.app
-      .get(ConfigService<AllConfigType>)
-      .getOrThrow('mcp', { infer: true }).agentDelegation;
+    const { clientId, clientSecret } = target.mcpConfig.agentDelegation;
     return fetch(`${target.baseUrl}/api/auth/oauth2/token`, {
       method: 'POST',
       headers: {

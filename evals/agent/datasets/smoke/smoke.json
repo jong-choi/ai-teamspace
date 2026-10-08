@@ -1,15 +1,16 @@
 {
   "id": "smoke",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "cases": [
     {
       "id": "schema-smoke",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "tags": ["pr", "schema-only"],
       "input": [
         "Return a concise acknowledgement without performing a write action."
       ],
       "persona": "read-only-member",
+      "organization_fixture": "org",
       "preconditions": [],
       "forbidden_tools": [],
       "argument_assertions": [],

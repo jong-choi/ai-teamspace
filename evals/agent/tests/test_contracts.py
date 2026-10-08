@@ -7,6 +7,7 @@ from pydantic import ValidationError
 
 from datasets.schema import EvalCase, load_dataset
 from metrics.eligibility import MetricSupport, metric_eligibility
+from personas.registry import persona_recipe
 from runner.manifest import canonicalize_tool_manifest, tool_manifest_hash
 
 
@@ -22,6 +23,27 @@ def test_tracked_security_dataset_loads() -> None:
     assert len(dataset.cases) == 4
     assert dataset.cases[0].expected_execution.value == "auth_denied"
     assert all("security" in case.tags for case in dataset.cases)
+
+
+@pytest.mark.parametrize(
+    "path",
+    sorted(Path("datasets").glob("*/*.json")),
+    ids=lambda path: path.stem,
+)
+def test_tracked_target_membership_personas_declare_an_organization_fixture(
+    path: Path,
+) -> None:
+    # public-http fixture provider는 대상 조직 membership persona에
+    # organization_fixture가 없으면 setup에서 실패한다. deterministic-fixture는
+    # 이 조건을 보지 않으므로 tracked dataset에서 막는다.
+    dataset = load_dataset(path)
+    missing = [
+        case.id
+        for case in dataset.cases
+        if persona_recipe(case.persona).membership == "target"
+        and case.organization_fixture is None
+    ]
+    assert missing == []
 
 
 def test_expected_and_forbidden_tool_overlap_is_invalid() -> None:

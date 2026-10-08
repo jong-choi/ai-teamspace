@@ -11,8 +11,14 @@ export const OutboxAggregateEventSchema = OutboxAggregateVersionSchema.pick({
   organizationId: true,
   aggregateKind: true,
   aggregateId: true,
-}).extend({
-  operation: z.enum(['changed', 'removed']),
-  sourceVersion: z.number().int().positive(),
-  occurredAt: z.iso.datetime(),
-});
+})
+  .extend({
+    organizationId: OutboxAggregateVersionSchema.shape.organizationId
+      .min(1)
+      .max(256),
+    aggregateId: OutboxAggregateVersionSchema.shape.aggregateId.min(1).max(256),
+    operation: z.enum(['changed', 'removed']),
+    sourceVersion: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
+    occurredAt: z.iso.datetime(),
+  })
+  .strict();

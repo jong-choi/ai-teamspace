@@ -1,4 +1,4 @@
-import { BullModule, getQueueToken } from '@nestjs/bullmq';
+import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ConfigModule, type ConfigType } from '@nestjs/config';
 import { OutboxModule, OutboxStorage } from '@nestjs/outbox';
@@ -7,10 +7,9 @@ import { fromDrizzle, PostgresOutboxStore } from '@nestjs/outbox/postgres';
 import { MeetingProjectionQueryModule } from '@/calendar/meeting-projection-query.module';
 import { DatabaseModule } from '@/database/database.module';
 import { DatabaseService } from '@/database/database.service';
-import {
-  KNOWLEDGE_GRAPH_PROJECTION_QUEUE,
-  KNOWLEDGE_GRAPH_SOURCE_CHANGED_JOB,
-} from '@/jobs/knowledge-graph/knowledge-graph-projection.job';
+import { KnowledgeGraphOutboxTransport } from '@/jobs/knowledge-graph/knowledge-graph-outbox.transport';
+import { KnowledgeGraphOutboxTransportModule } from '@/jobs/knowledge-graph/knowledge-graph-outbox-transport.module';
+import { KNOWLEDGE_GRAPH_PROJECTION_QUEUE } from '@/jobs/knowledge-graph/knowledge-graph-projection.job';
 import { KnowledgeGraphProjectionProcessor } from '@/jobs/knowledge-graph/knowledge-graph-projection.processor';
 import { KnowledgeGraphReconciliationScheduler } from '@/jobs/knowledge-graph/knowledge-graph-reconciliation.scheduler';
 import knowledgeGraphConfig from '@/knowledge-graph/config/knowledge-graph.config';
@@ -37,8 +36,6 @@ import { TicketProjectionQueryModule } from '@/projects/ticket-projection-query.
 import { QueueModule } from '@/queue/queue.module';
 import { WikiProjectionQueryModule } from '@/wiki/wiki-projection-query.module';
 
-import type { Queue } from 'bullmq';
-
 @Module({
   imports: [
     ConfigModule.forFeature(knowledgeGraphConfig),
@@ -53,47 +50,30 @@ import type { Queue } from 'bullmq';
     QueueModule.forWorker(),
     BullModule.registerQueue({ name: KNOWLEDGE_GRAPH_PROJECTION_QUEUE }),
     OutboxModule.forRootAsync({
+      isGlobal: false,
       imports: [
         ConfigModule.forFeature(knowledgeGraphConfig),
-        QueueModule.forWorker(),
-        BullModule.registerQueue({ name: KNOWLEDGE_GRAPH_PROJECTION_QUEUE }),
+        KnowledgeGraphOutboxTransportModule,
       ],
-      inject: [
-        knowledgeGraphConfig.KEY,
-        getQueueToken(KNOWLEDGE_GRAPH_PROJECTION_QUEUE),
-      ],
+      inject: [knowledgeGraphConfig.KEY, KnowledgeGraphOutboxTransport],
       useFactory: (
         config: ConfigType<typeof knowledgeGraphConfig>,
-        queue: Queue,
+        transport: KnowledgeGraphOutboxTransport,
       ) => ({
-        relay: { enabled: config.enabled, pollInterval: '1s', batchSize: 25 },
+        relay: {
+          enabled: config.enabled,
+          pollInterval: '1s',
+          batchSize: 25,
+          concurrency: 4,
+          lease: '30s',
+          publishTimeout: '8s',
+        },
         route: (message: { topic: string }) =>
           message.topic === KNOWLEDGE_GRAPH_OUTBOX_TOPIC
             ? 'knowledgeGraph'
             : 'local',
         transports: {
-          knowledgeGraph: {
-            publish: async (
-              message: { id: string; topic: string; payload: unknown },
-              { signal }: { signal: AbortSignal },
-            ) => {
-              if (signal.aborted) {
-                throw new Error('그래프 Outbox 전달이 중단되었습니다.');
-              }
-              if (message.topic !== KNOWLEDGE_GRAPH_OUTBOX_TOPIC) {
-                throw new Error('지원하지 않는 그래프 Outbox 주제입니다.');
-              }
-              await queue.add(
-                KNOWLEDGE_GRAPH_SOURCE_CHANGED_JOB,
-                message.payload,
-                {
-                  jobId: message.id,
-                  attempts: 10,
-                  backoff: { type: 'exponential', delay: 1_000 },
-                },
-              );
-            },
-          },
+          knowledgeGraph: transport,
         },
       }),
     }),

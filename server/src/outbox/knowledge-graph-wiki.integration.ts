@@ -114,11 +114,17 @@ describe('위키 원본 변경과 지식 그래프 Outbox 통합', () => {
     });
     expect((await relay.stats()).pending).toBe(initialPending + 1);
 
-    await wiki.updateDocumentMetadata(organizationId, created.id, actorId, {
-      parentDocumentId: null,
-      title: created.title,
-      position: created.position,
-    });
+    const unchanged = await wiki.updateDocumentMetadata(
+      organizationId,
+      created.id,
+      actorId,
+      {
+        parentDocumentId: null,
+        title: created.title,
+        position: created.position,
+      },
+    );
+    expect(unchanged?.updatedAt).toEqual(created.updatedAt);
     const [unchangedState] = await database
       .select()
       .from(outboxAggregateVersion)

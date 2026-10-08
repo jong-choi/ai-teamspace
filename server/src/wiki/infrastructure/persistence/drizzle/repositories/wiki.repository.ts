@@ -258,6 +258,8 @@ export class WikiDrizzleRepository extends WikiRepository {
         current.title !== title ||
         current.position !== metadata.position;
 
+      if (!changed) return toWikiDocumentDomain(current);
+
       const [row] = await transaction
         .update(wikiDocument)
         .set(
@@ -277,7 +279,7 @@ export class WikiDrizzleRepository extends WikiRepository {
         )
         .returning();
 
-      if (row && changed) {
+      if (row) {
         await this.graphEvents.wikiChanged(
           transaction,
           organizationId,

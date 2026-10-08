@@ -9,6 +9,7 @@ import {
   AgentHttpException,
   AgentRuntimeModule,
   createInMemoryAgentRuntimeDeps,
+  type TelemetrySink,
 } from '@repo/agent-runtime';
 import type { McpCredentialProvider } from '@/agent/infrastructure/mcp/mcp-credential.provider';
 import {
@@ -85,6 +86,7 @@ export async function startAgentApp(input: {
   modelProvider: AgentModelProvider;
   credentialProvider?: McpCredentialProvider;
   auth?: typeof testAgentAuth;
+  telemetry?: TelemetrySink;
 }): Promise<StartedAgentApp> {
   const graph = createTestWorkOsAgentGraphFactory({
     modelProvider: input.modelProvider,
@@ -94,7 +96,10 @@ export async function startAgentApp(input: {
   });
   const deps = createInMemoryAgentRuntimeDeps(
     { workos: graph },
-    { auth: input.auth ?? testAgentAuth },
+    {
+      auth: input.auth ?? testAgentAuth,
+      ...(input.telemetry ? { telemetry: input.telemetry } : {}),
+    },
   );
 
   @Module({

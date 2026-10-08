@@ -30,6 +30,56 @@ export type McpAgentDelegationActor = {
   organizationId: string;
 };
 
+/** OAuth client provider가 PKCE verifier와 discovery state를 읽고 쓰는 flow 저장 경계다. */
+export type McpAgentOauthFlowStore = Pick<
+  McpAgentOauthFlowService,
+  | 'saveCodeVerifier'
+  | 'codeVerifier'
+  | 'saveDiscoveryState'
+  | 'discoveryState'
+  | 'consume'
+>;
+
+/**
+ * token 교환 전에 선점한 callback flow다.
+ *
+ * flow row는 이미 consume되어 다시 읽을 수 없으므로 선점 직전에 복호화한 PKCE verifier와
+ * discovery state를 메모리에서 제공한다. 같은 callback의 다른 요청은 선점에 실패해 token 교환을 하지 않는다.
+ */
+export class ClaimedMcpAgentOauthCallback implements McpAgentOauthFlowStore {
+  constructor(
+    readonly flow: McpAgentOauthFlow,
+    private readonly claimedCodeVerifier: string,
+    private claimedDiscoveryState: OAuthDiscoveryState | undefined,
+  ) {}
+
+  saveCodeVerifier(): Promise<void> {
+    // callback 처리 중 새 authorization을 시작하지 않는다.
+    return Promise.reject(new McpAgentDelegationFlowInvalidError());
+  }
+
+  codeVerifier(): Promise<string> {
+    return Promise.resolve(this.claimedCodeVerifier);
+  }
+
+  saveDiscoveryState(
+    _flow: McpAgentOauthFlow,
+    state: OAuthDiscoveryState,
+  ): Promise<void> {
+    this.claimedDiscoveryState = state;
+    return Promise.resolve();
+  }
+
+  discoveryState(): Promise<OAuthDiscoveryState | undefined> {
+    return Promise.resolve(this.claimedDiscoveryState);
+  }
+
+  consume(): Promise<void> {
+    // 선점할 때 이미 consume했다.
+    return Promise.resolve();
+  }
+}
+
 @Injectable()
 export class McpAgentOauthFlowService {
   constructor(
@@ -61,6 +111,18 @@ export class McpAgentOauthFlowService {
     });
 
     return { flow, state };
+  }
+
+  /**
+   * callback flow를 token 교환 전에 원자적으로 consume해 같은 state의 동시·재전송 요청 중 하나만 처리한다.
+   * 실패한 callback도 flow를 소진하므로 재시도는 새 delegation start가 필요하다.
+   */
+  async claimCallback(state: string): Promise<ClaimedMcpAgentOauthCallback> {
+    const flow = await this.resolveCallback(state);
+    const codeVerifier = await this.codeVerifier(flow);
+    const discoveryState = await this.discoveryState(flow);
+    await this.consume(flow);
+    return new ClaimedMcpAgentOauthCallback(flow, codeVerifier, discoveryState);
   }
 
   async resolveCallback(state: string): Promise<McpAgentOauthFlow> {

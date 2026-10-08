@@ -54,3 +54,14 @@ export class McpAgentDelegationRefreshConflictError extends ApplicationError {
     );
   }
 }
+
+export class McpAgentDelegationVerificationError extends ApplicationError {
+  constructor(options?: ErrorOptions) {
+    super(
+      'MCP_AGENT_DELEGATION_VERIFICATION_FAILED',
+      'external_provider',
+      'Work OS MCP 연결을 확인하지 못해 Agent 권한 위임을 완료하지 않았습니다.',
+      options,
+    );
+  }
+}

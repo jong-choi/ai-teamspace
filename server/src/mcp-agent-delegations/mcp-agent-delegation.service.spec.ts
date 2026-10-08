@@ -6,6 +6,7 @@ import type { McpAgentOauthFlowRepository } from '@/mcp-agent-delegations/infras
 import {
   McpAgentDelegationFlowInvalidError,
   McpAgentDelegationRevocationError,
+  McpAgentDelegationVerificationError,
 } from '@/mcp-agent-delegations/mcp-agent-delegation.error';
 import { McpAgentDelegationService } from '@/mcp-agent-delegations/mcp-agent-delegation.service';
 import type { McpAgentDelegationCredentialService } from '@/mcp-agent-delegations/mcp-agent-delegation-credential.service';
@@ -61,8 +62,7 @@ const mcpConfig = {
 };
 
 describe('MCP Agent delegation callback', () => {
-  const resolveCallback = jest.fn();
-  const consume = jest.fn();
+  const claimCallback = jest.fn();
   const hasMemberUser = jest.fn();
   const tokens = jest.fn();
   const revokeCredential = jest.fn();
@@ -75,8 +75,7 @@ describe('MCP Agent delegation callback', () => {
       revoke: revokeCredential,
     } as unknown as McpAgentDelegationCredentialService,
     {
-      resolveCallback,
-      consume,
+      claimCallback,
     } as unknown as McpAgentOauthFlowService,
     {} as McpAgentOauthFlowRepository,
     { hasMemberUser } as unknown as OrganizationMembershipService,
@@ -96,8 +95,7 @@ describe('MCP Agent delegation callback', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    resolveCallback.mockResolvedValue(flow);
-    consume.mockResolvedValue(undefined);
+    claimCallback.mockResolvedValue({ flow });
     hasMemberUser.mockResolvedValue(true);
     revokeCredential.mockResolvedValue(true);
     revokeRefreshToken.mockResolvedValue(undefined);
@@ -127,7 +125,7 @@ describe('MCP Agent delegation callback', () => {
     jest.restoreAllMocks();
   });
 
-  it('state 검증 뒤 callback 전체 params를 finishAuth에 넘기고 flow consume 후 fresh reconnect한다', async () => {
+  it('token 교환 전에 callback flow를 선점하고 callback 전체 params를 finishAuth에 넘긴 뒤 fresh reconnect한다', async () => {
     const params = new URLSearchParams({
       code: 'authorization-code',
       state: 'raw-state',
@@ -138,15 +136,17 @@ describe('MCP Agent delegation callback', () => {
       completionUrl: flow.completionUrl,
     });
 
-    expect(resolveCallback).toHaveBeenCalledWith('raw-state');
+    expect(claimCallback).toHaveBeenCalledWith('raw-state');
+    expect(claimCallback.mock.invocationCallOrder[0]).toBeLessThan(
+      finishAuthSpy.mock.invocationCallOrder[0] ?? 0,
+    );
     expect(finishAuthSpy).toHaveBeenCalledWith(params);
-    expect(consume).toHaveBeenCalledWith(flow);
     expect(connectSpy).toHaveBeenCalledTimes(1);
     expect(clientCloseSpy).toHaveBeenCalledTimes(1);
     expect(transportCloseSpy).toHaveBeenCalled();
   });
 
-  it('token exchange가 실패해도 flow를 consume하고 attacker-controlled error를 외부 메시지로 노출하지 않는다', async () => {
+  it('선점한 flow의 token exchange가 실패하면 attacker-controlled error를 외부 메시지로 노출하지 않는다', async () => {
     finishAuthSpy.mockRejectedValue(
       new Error('error_description=attacker-controlled-secret'),
     );
@@ -165,8 +165,31 @@ describe('MCP Agent delegation callback', () => {
     expect((error as Error).message).not.toContain(
       'attacker-controlled-secret',
     );
-    expect(consume).toHaveBeenCalledWith(flow);
+    expect(claimCallback).toHaveBeenCalledWith('raw-state');
     expect(connectSpy).not.toHaveBeenCalled();
+  });
+
+  it('token 저장 뒤 MCP 재접속 검증이 실패하면 credential을 폐기하고 flow 오류와 구분해 알린다', async () => {
+    tokens.mockResolvedValue({
+      access_token: 'access-token',
+      refresh_token: 'refresh-token',
+      token_type: 'Bearer',
+      issuer: 'https://workos.example/api/auth',
+    });
+    connectSpy.mockRejectedValue(new Error('Unsupported protocol version'));
+
+    const error = await service
+      .finish(
+        new URLSearchParams({ code: 'authorization-code', state: 'raw-state' }),
+      )
+      .catch((caught: unknown) => caught);
+
+    expect(error).toBeInstanceOf(McpAgentDelegationVerificationError);
+    expect(revokeRefreshToken).toHaveBeenCalledWith('refresh-token');
+    expect(revokeCredential).toHaveBeenCalledWith({
+      userId: flow.userId,
+      organizationId: flow.organizationId,
+    });
   });
 
   it('revoke는 refresh token을 Better Auth authorization server에서 폐기한 뒤 local delegation을 revoke한다', async () => {
@@ -216,7 +239,7 @@ describe('MCP Agent delegation callback', () => {
       service.finish(new URLSearchParams({ code: 'authorization-code' })),
     ).rejects.toBeInstanceOf(McpAgentDelegationFlowInvalidError);
 
-    expect(resolveCallback).not.toHaveBeenCalled();
+    expect(claimCallback).not.toHaveBeenCalled();
     expect(finishAuthSpy).not.toHaveBeenCalled();
   });
 });

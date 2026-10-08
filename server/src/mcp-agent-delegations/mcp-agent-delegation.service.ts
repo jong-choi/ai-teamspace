@@ -14,6 +14,7 @@ import {
   McpAgentDelegationFlowInvalidError,
   McpAgentDelegationRequiredError,
   McpAgentDelegationRevocationError,
+  McpAgentDelegationVerificationError,
 } from '@/mcp-agent-delegations/mcp-agent-delegation.error';
 import { McpAgentDelegationCredentialService } from '@/mcp-agent-delegations/mcp-agent-delegation-credential.service';
 import { McpAgentDelegationOAuthClientProvider } from '@/mcp-agent-delegations/mcp-agent-delegation-oauth-client.provider';
@@ -152,7 +153,8 @@ export class McpAgentDelegationService {
       throw new McpAgentDelegationFlowInvalidError();
     }
 
-    const flow = await this.flowService.resolveCallback(state);
+    const callback = await this.flowService.claimCallback(state);
+    const { flow } = callback;
     const actor = {
       userId: flow.userId,
       organizationId: flow.organizationId,
@@ -163,7 +165,7 @@ export class McpAgentDelegationService {
       actor,
       this.config(),
       this.credentials,
-      this.flowService,
+      callback,
       'reject',
       flow,
       state,
@@ -175,18 +177,10 @@ export class McpAgentDelegationService {
         onInsufficientScope: 'throw',
       },
     );
-    let consumed = false;
 
     try {
       await transport.finishAuth(callbackParams);
-      await this.flowService.consume(flow);
-      consumed = true;
-      await this.smokeReconnect(actor);
-      return { completionUrl: flow.completionUrl };
     } catch (error) {
-      if (!consumed) {
-        await this.flowService.consume(flow).catch(() => undefined);
-      }
       if (error instanceof McpAgentDelegationFlowInvalidError) {
         throw error;
       }
@@ -194,6 +188,9 @@ export class McpAgentDelegationService {
     } finally {
       await transport.close().catch(() => undefined);
     }
+
+    await this.verifyDelegation(actor);
+    return { completionUrl: flow.completionUrl };
   }
 
   async revoke(actor: McpAgentDelegationActor | null): Promise<void> {
@@ -213,6 +210,21 @@ export class McpAgentDelegationService {
 
     if (remoteFailure !== undefined) {
       throw new McpAgentDelegationRevocationError({ cause: remoteFailure });
+    }
+  }
+
+  /**
+   * 저장한 credential로 Work OS MCP에 다시 접속해 본다. 실패하면 사용할 수 없는 credential을
+   * active로 남기지 않도록 폐기하고 OAuth flow 오류와 구분되는 오류로 알린다.
+   */
+  private async verifyDelegation(
+    actor: McpAgentDelegationActor,
+  ): Promise<void> {
+    try {
+      await this.smokeReconnect(actor);
+    } catch (error) {
+      await this.revoke(actor).catch(() => undefined);
+      throw new McpAgentDelegationVerificationError({ cause: error });
     }
   }
 

@@ -10,7 +10,7 @@ import type { McpAgentRefreshLease } from '@/mcp-agent-delegations/mcp-agent-del
 import { McpAgentDelegationCredentialService } from '@/mcp-agent-delegations/mcp-agent-delegation-credential.service';
 import type {
   McpAgentDelegationActor,
-  McpAgentOauthFlowService,
+  McpAgentOauthFlowStore,
 } from '@/mcp-agent-delegations/mcp-agent-oauth-flow.service';
 
 import type {
@@ -32,7 +32,7 @@ export class McpAgentDelegationOAuthClientProvider implements OAuthClientProvide
     private readonly actor: McpAgentDelegationActor,
     private readonly config: McpConfig,
     private readonly credentials: McpAgentDelegationCredentialService,
-    private readonly flowService: McpAgentOauthFlowService,
+    private readonly flowStore: McpAgentOauthFlowStore,
     private readonly redirectMode: McpAgentDelegationRedirectMode,
     private readonly flow?: McpAgentOauthFlow,
     private readonly rawState?: string,
@@ -138,14 +138,14 @@ export class McpAgentDelegationOAuthClientProvider implements OAuthClientProvide
     if (!this.flow) {
       throw new McpAgentDelegationFlowInvalidError();
     }
-    await this.flowService.saveCodeVerifier(this.flow, codeVerifier);
+    await this.flowStore.saveCodeVerifier(this.flow, codeVerifier);
   }
 
   codeVerifier(): Promise<string> {
     if (!this.flow) {
       throw new McpAgentDelegationFlowInvalidError();
     }
-    return this.flowService.codeVerifier(this.flow);
+    return this.flowStore.codeVerifier(this.flow);
   }
 
   async saveDiscoveryState(state: OAuthDiscoveryState): Promise<void> {
@@ -156,12 +156,12 @@ export class McpAgentDelegationOAuthClientProvider implements OAuthClientProvide
     this.resolvedIssuer = issuer;
 
     if (!this.flow) return;
-    await this.flowService.saveDiscoveryState(this.flow, state);
+    await this.flowStore.saveDiscoveryState(this.flow, state);
   }
 
   async discoveryState(): Promise<OAuthDiscoveryState | undefined> {
     if (!this.flow) return undefined;
-    const state = await this.flowService.discoveryState(this.flow);
+    const state = await this.flowStore.discoveryState(this.flow);
     if (state) {
       const issuer = normalizeOAuthIssuer(state.authorizationServerUrl);
       if (this.resolvedIssuer && this.resolvedIssuer !== issuer) {
@@ -182,7 +182,7 @@ export class McpAgentDelegationOAuthClientProvider implements OAuthClientProvide
       this.flow &&
       (scope === 'verifier' || scope === 'discovery' || scope === 'all')
     ) {
-      await this.flowService.consume(this.flow);
+      await this.flowStore.consume(this.flow);
     }
   }
 

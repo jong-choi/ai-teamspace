@@ -47,9 +47,21 @@ describe('external MCP OAuth SDK provider bridge', () => {
       'capture',
     );
 
+    const discovery = {
+      authorizationServerUrl: issuer,
+    };
+    // MCP SDK 2.3.1은 interactive state를 요청하기 전에 discovery snapshot을 저장한다.
+    await provider.saveDiscoveryState(discovery);
     await expect(provider.state()).resolves.toBe('state-secret');
     await expect(provider.state()).resolves.toBe('state-secret');
     expect(deps.stateService.createState).toHaveBeenCalledTimes(1);
+    expect(deps.stateService.saveDiscoveryState).toHaveBeenCalledWith(
+      actor,
+      connectionId,
+      'state-secret',
+      callbackUrl,
+      discovery,
+    );
 
     await provider.saveCodeVerifier('pkce-secret');
     await expect(provider.codeVerifier()).resolves.toBe('pkce-secret');
@@ -59,18 +71,6 @@ describe('external MCP OAuth SDK provider bridge', () => {
       'state-secret',
       callbackUrl,
       'pkce-secret',
-    );
-
-    const discovery = {
-      authorizationServerUrl: issuer,
-    };
-    await provider.saveDiscoveryState(discovery);
-    expect(deps.stateService.saveDiscoveryState).toHaveBeenCalledWith(
-      actor,
-      connectionId,
-      'state-secret',
-      callbackUrl,
-      discovery,
     );
   });
 

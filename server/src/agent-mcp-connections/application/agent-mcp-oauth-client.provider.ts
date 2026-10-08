@@ -169,13 +169,11 @@ export class AgentMcpOauthClientProvider implements OAuthClientProvider {
   }
 
   async saveDiscoveryState(discoveryState: OAuthDiscoveryState): Promise<void> {
-    if (!this.currentState) {
-      return;
-    }
+    const state = await this.state();
     await this.stateService.saveDiscoveryState(
       this.actor,
       this.connectionId,
-      this.currentState,
+      state,
       this.callbackUrl,
       discoveryState,
     );

@@ -28,6 +28,7 @@ import { DatabaseService } from '@/database/database.service';
 import { eq, inArray } from 'drizzle-orm';
 
 const organizationId = 'calendar-repository-integration-org';
+const otherOrganizationId = 'calendar-repository-integration-other-org';
 const organizerA = 'calendar-repository-organizer-a';
 const organizerB = 'calendar-repository-organizer-b';
 const userIds = [organizerA, organizerB] as const;
@@ -167,6 +168,12 @@ describe('캘린더 Drizzle scheduling 저장소 통합', () => {
       slug: 'calendar-repository-integration-org',
       createdAt: new Date(),
     });
+    await database.insert(organization).values({
+      id: otherOrganizationId,
+      name: '캘린더 관계 검증 다른 조직',
+      slug: otherOrganizationId,
+      createdAt: new Date(),
+    });
   });
 
   afterAll(async () => {
@@ -256,6 +263,32 @@ describe('캘린더 Drizzle scheduling 저장소 통합', () => {
     );
 
     expect(result.status).toBe('room_unavailable');
+  });
+
+  it('다른 조직의 회의실은 저수준 변경에서도 복합 FK로 거부한다', async () => {
+    const room = await roomRepository.createMeetingRoom(otherOrganizationId, {
+      name: '다른 조직 회의실',
+      capacity: 8,
+      floor: null,
+      description: null,
+    });
+    const result = await schedulingRepository.scheduleMeeting(
+      ...scheduleInput(organizerA),
+    );
+    if (result.status !== 'scheduled')
+      throw new Error('관계 검증용 회의가 없습니다.');
+    const id = result.records[0].meeting.id;
+    await expect(
+      database
+        .update(meeting)
+        .set({ locationType: 'meeting_room', meetingRoomId: room.id })
+        .where(eq(meeting.id, id)),
+    ).rejects.toMatchObject({
+      cause: { code: '23503', constraint: 'meeting_room_organization_fk' },
+    });
+    expect(
+      (await queryRepository.findMeetingById(organizationId, id))?.meeting,
+    ).toMatchObject({ locationType: 'online', meetingRoomId: null });
   });
 
   it('끝 시각과 다음 시작 시각이 맞닿는 half-open interval은 충돌하지 않는다', async () => {
@@ -646,10 +679,15 @@ describe('캘린더 Drizzle scheduling 저장소 통합', () => {
       .where(eq(meetingRecurrenceSeries.organizationId, organizationId));
     await database
       .delete(meetingRoom)
-      .where(eq(meetingRoom.organizationId, organizationId));
+      .where(
+        inArray(meetingRoom.organizationId, [
+          organizationId,
+          otherOrganizationId,
+        ]),
+      );
     await database
       .delete(organization)
-      .where(eq(organization.id, organizationId));
+      .where(inArray(organization.id, [organizationId, otherOrganizationId]));
     await database.delete(user).where(inArray(user.id, userIds));
   }
 });

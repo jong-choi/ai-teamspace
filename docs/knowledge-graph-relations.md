@@ -1,0 +1,80 @@
+# 그래프 투영의 원본 관계와 허용 범위
+
+PostgreSQL 업무 원본과 현재 owner의 공개 조회 계약이 관계의 기준이다. Neo4j는 이 원본의 비동기 투영이다. 자연어 추론, 임의 이름 일치, 현재 그래프 membership으로 업무 관계나 권한을 확정하지 않는다.
+
+## 원본과 투영 경계
+
+| 관계                                 | 원본과 제약                                                    | 조직·삭제 정책                                                | 투영 허용 범위                                                                            |
+| ------------------------------------ | -------------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Project → Organization               | `project.organization_id` → Better Auth organization FK        | 필수, 조직 삭제 cascade                                       | 실제 조직의 프로젝트만 원본으로 사용                                                      |
+| Project → Lead / Creator             | nullable lead / 필수 creator → user FK                         | lead 삭제 set null, creator 삭제 restrict                     | 과거 작성·담당 사실; 현재 멤버 권한을 의미하지 않음                                       |
+| ProjectColumn → Project              | `project_column.project_id` FK                                 | 필수, project 삭제 cascade                                    | Project owner가 column 속성과 연결을 소유                                                 |
+| Ticket → Project                     | `(project_id, organization_id)` 복합 FK                        | 필수, project 삭제 cascade                                    | 해당 조직의 프로젝트 관계만 생성                                                          |
+| Ticket → Column                      | `(column_id, project_id)` 복합 FK                              | 필수, column 삭제 restrict                                    | 프로젝트 안의 column만 연결                                                               |
+| Ticket → Assignee / Reporter         | nullable assignee / 필수 reporter → user FK                    | assignee 삭제 set null, reporter 삭제 restrict                | 과거 사용자 참조; 새로운 할당은 owner가 현재 멤버 검사                                    |
+| Ticket ↔ Label                       | assignment `(ticket_id, label_id)` PK, 개별 FK                 | 중복 연결 차단, ticket/label 삭제 cascade                     | 동일 project만 허용; 아래 제한 필수                                                       |
+| Ticket → Checklist → Item            | 각 단계 FK                                                     | 필수, 상위 삭제 cascade                                       | Ticket source에 속한 항목과 관계만 교체                                                   |
+| Ticket → Comment → Author            | ticket/user FK                                                 | ticket 삭제 cascade, author 삭제 restrict                     | 댓글 원문을 구조 그래프에 복제하지 않음; 별도 활동 관계가 필요하면 owner 계약부터 추가    |
+| WikiDocument → Collection            | `(collection_id, organization_id)` 복합 FK                     | 필수, collection 삭제 cascade                                 | 해당 조직 collection의 문서만 사용                                                        |
+| WikiDocument → Parent                | `(parent_document_id, collection_id, organization_id)` 복합 FK | nullable, parent 삭제 restrict, 직접 자기 참조 check          | 같은 scope의 부모만 생성; 간접 cycle은 owner 잠금으로 차단                                |
+| Wiki → Creator / Updater             | user FK                                                        | 필수, user 삭제 restrict                                      | 과거 작성자 사실과 현재 읽기 권한 분리                                                    |
+| Meeting → Organization               | organization FK                                                | 필수, organization 삭제 cascade                               | 조직별 회의 원본                                                                          |
+| Meeting → Project                    | nullable text field, 직접 FK 없음                              | owner의 공개 Project 조회로 현재 조직의 활성 UUID 참조를 검사 | 현재 writer는 `projectReference` 속성만 저장하고 Project edge를 생성하지 않음             |
+| Meeting → Room                       | `(meeting_room_id, organization_id)` 복합 FK                   | nullable, room 삭제 restrict                                  | 해당 조직 room만 연결; room 속성은 Meeting 버전으로 덮지 않음                             |
+| Meeting → Recurrence                 | `(recurrence_series_id, organization_id)` 복합 FK              | nullable, series 삭제 restrict; occurrence identity unique    | 동일 조직의 반복 일정 참조; series 공유 속성의 단일 owner 검증 필요                       |
+| Meeting ↔ Attendee                   | `(meeting_id, user_id)` PK, meeting/user FK                    | meeting 삭제 cascade, user 삭제 restrict                      | pending/accepted/tentative/declined 상태를 구분; 제거는 연결 삭제                         |
+| Membership → Organization / User     | Better Auth-generated FK                                       | 조직·사용자 삭제 cascade                                      | 공개 OrganizationProvider를 통해 읽는 현재 membership; 그래프를 인가 근거로 사용하지 않음 |
+| CuratedNode → Organization / Actor   | organization/user FK                                           | 조직 삭제 cascade, actor 삭제 restrict                        | curated 원본의 revision·삭제 상태와 별도 권한 검사                                        |
+| CuratedEdge → Source / Target        | node ID와 organization 복합 FK                                 | 같은 조직, endpoint 삭제 restrict                             | 현재 active curated node 양끝만 허용                                                      |
+| Curated audit → Organization / Actor | organization/user FK                                           | 조직 삭제 cascade, actor 삭제 restrict                        | actor·target·revision·digest를 보존; 변경 원본·Outbox와 같은 transaction                  |
+
+## 동일 프로젝트 라벨 제한
+
+TicketLabelAssignment의 두 FK는 ticket와 label의 존재만 보장한다. 같은 프로젝트에 속함을 DB가 보장하는 것으로 설명하지 않는다.
+
+TicketLabel owner는 활성 Project/Ticket 잠금을 잡고 label.projectId를 확인한다. TicketProjectionSource의 조회도 label.projectId = ticket.projectId 조건을 적용한다. 실제 owner 테스트에서 같은 조직의 다른 프로젝트 및 다른 조직의 label 연결을 거부한다. 저수준 DB에 교차 프로젝트 assignment를 넣는 감사 테스트에서는 DB가 이를 허용하지만 공개 투영 source에는 이 label이 나타나지 않는다.
+
+운영 데이터 감사에서 이런 assignment가 발견되면 원본을 정정할 때까지 해당 연결을 authoritative 관계로 사용하지 않는다. 이벤트를 발행하지 않는 임의 DB 수정은 지원되는 업무 변경 경로가 아니다. 추가 DB 제약이 필요하면 project scope key의 데이터 전환과 생성 migration을 별도 설계한다. 기존 row 삭제나 임의 NULL 기본값으로 정합성 검사를 통과시키지 않는다.
+
+## Meeting의 Project 문자열
+
+현재 서비스는 Project의 UUID를 문자열로 사용하며 project key/name으로 연결하지 않는다. Public ProjectReferenceRepository는 파생 Project ID schema로 입력을 확인해 잘못된 문자열을 UUID query에 전달하지 않는다. 같은 조직의 활성 Project만 선택하고, 캘린더 capability는 조회되지 않는 ID를 CalendarProjectNotFoundError로 변환한다.
+
+현재 저장 column은 text이며 직접 FK가 없다. 잘못된 저수준 참조나 참조 대상 삭제를 DB가 차단한다고 주장하지 않는다. 실제 카탈로그·owner 테스트로 확인한 이 한계를 보존한다. Project edge를 추가하려면 현재 원본 존재와 조직 범위, 기존 데이터 정정, 삭제·재투영 정책을 함께 검증해야 한다. 문자열을 UUID로 바꾸는 것만으로 관계를 수락하지 않는다.
+
+## 조회와 사용자 권한
+
+Project/Ticket/Meeting의 관계 snapshot은 owner Drizzle adapter의 repeatable read transaction으로 읽는다. Wiki와 TicketLabel은 단일 조회다. KG가 다른 feature의 table이나 adapter를 직접 읽지 않고 공개 owner query service를 사용한다.
+
+사용자 FK는 현재 조직 membership을 보장하지 않는다. lead/assignee/attendee 신규 지정은 현재 owner 서비스의 membership 검사를 거친다. 과거 작성자·탈퇴자의 업무 사실은 현재 membership과 분리한다. 공개 MembershipProjectionQuery는 Better Auth capability로 org/user/role을 조회하고 조직별 keyset cursor를 적용한다.
+
+## 데이터 감사와 migration 적용
+
+정비 전 시스템 카탈로그에서 FK·복합 column 순서·nullable·삭제 정책·unique/check/index 및 migration history를 확인한다. 기존 데이터에서는 최소한 다음 위반을 읽기 전용으로 집계한다.
+
+- 존재하지 않는 조직을 가리키는 Project.
+- Ticket의 organization/project 또는 column/project 불일치.
+- ticket와 label의 project 불일치 또는 중복 assignment.
+- Wiki의 collection/org 및 parent scope 불일치, 직접·간접 cycle.
+- Meeting의 Room/Recurrence 조직 불일치, 해석되지 않는 Project 문자열.
+- membership, attendee, curated endpoint의 존재·조직·중복 상태 불일치.
+
+이상이 있으면 해당 원본의 그래프 활성화를 보류하고 데이터 소유자가 정정 계획을 세운다. 사용자 데이터 임의 삭제, 무조건 전체 backfill, 기본 조직 치환을 하지 않는다. 운영 DB에서 실행하지 않은 감사는 통과로 기록하지 않는다.
+
+Project 조직 FK는 Drizzle schema 변경에서 공식 codegen으로 생성한 [0020 migration](../server/drizzle/0020_absent_iron_patriot.sql)에 있다. 기존 orphan가 있으면 FK 적용이 실패하며 기존 데이터가 자동 삭제되거나 변경되지 않는다. 적용 전 읽기 전용 감사 및 원본 정정을 완료한다. 새 제약의 rollback이 필요하면 owner schema를 수정하고 새로운 공식 migration을 생성한다. 기존 migration history나 생성 SQL을 수동 수정하지 않는다.
+
+## 재현 가능한 관계 검사
+
+빈 격리 PostgreSQL과 이전 migration이 적용된 DB에서 공식 db:migrate를 각각 실행한다. 테스트 환경 DATABASE_URL을 지정하고 다음 owner integration을 실행한다.
+
+```sh
+NODE_OPTIONS=--experimental-vm-modules npm exec --workspace @repo/server -- jest --config ./jest.config.integration.mjs --runInBand \
+  src/projects/infrastructure/persistence/drizzle/project.repository.integration.ts \
+  src/projects/infrastructure/persistence/drizzle/ticket-workflow.repository.integration.ts \
+  src/wiki/infrastructure/persistence/drizzle/wiki.repository.integration.ts \
+  src/calendar/infrastructure/persistence/drizzle/calendar.repository.integration.ts
+```
+
+Membership 공개 조회의 실통합은 `src/organizations/membership-projection-query.integration.ts`가 소유한다. 전용 PostgreSQL·Redis 주소와 BullMQ prefix를 지정해 실행한다. 이 검사는 실제 가입·초대·역할 변경·탈퇴 API를 사용하며 외부 LLM을 호출하지 않는다.
+
+이 원본 관계 검사가 성공해도 Outbox relay, Neo4j fencing, 모델 추출, API 인가 및 UI 검증이 완료된 것은 아니다. 각 후속 단계에서 해당 책임을 실제 실행으로 검증한다.

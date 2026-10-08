@@ -1,13 +1,17 @@
 import { ConfigModule } from '@nestjs/config';
 import { Test, type TestingModule } from '@nestjs/testing';
 
-import { user } from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
+import {
+  organization,
+  user,
+} from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
 import databaseConfig from '@/database/config/database.config';
 import { DatabaseModule } from '@/database/database.module';
 import { DatabaseService } from '@/database/database.service';
 import type { CreateProjectInput } from '@/projects/dto/create-project.dto';
 import { ProjectDrizzlePersistenceModule } from '@/projects/infrastructure/persistence/drizzle/drizzle-persistence.module';
 import { project } from '@/projects/infrastructure/persistence/drizzle/schema/project.schema';
+import { ticketLabelAssignment } from '@/projects/infrastructure/persistence/drizzle/schema/ticket-label-assignment.schema';
 import { ProjectRepository } from '@/projects/infrastructure/persistence/project.repository';
 import { ProjectColumnRepository } from '@/projects/infrastructure/persistence/project-column.repository';
 import { TicketRepository } from '@/projects/infrastructure/persistence/ticket.repository';
@@ -16,6 +20,8 @@ import { TicketCommentRepository } from '@/projects/infrastructure/persistence/t
 import { TicketDetailQueryRepository } from '@/projects/infrastructure/persistence/ticket-detail-query.repository';
 import { TicketLabelRepository } from '@/projects/infrastructure/persistence/ticket-label.repository';
 import { TicketOrderingRepository } from '@/projects/infrastructure/persistence/ticket-ordering.repository';
+import { TicketProjectionQueryModule } from '@/projects/ticket-projection-query.module';
+import { TicketProjectionQueryService } from '@/projects/ticket-projection-query.service';
 
 import { inArray } from 'drizzle-orm';
 
@@ -53,6 +59,7 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
         }),
         DatabaseModule,
         ProjectDrizzlePersistenceModule,
+        TicketProjectionQueryModule,
       ],
     }).compile();
     await moduleRef.init();
@@ -81,6 +88,20 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
         name: '다른 사용자',
         email: 'ticket-workflow-other@example.com',
         username: 'ticketworkflowother',
+      },
+    ]);
+    await database.insert(organization).values([
+      {
+        id: organizationId,
+        name: '티켓 워크플로 조직',
+        slug: organizationId,
+        createdAt: new Date(),
+      },
+      {
+        id: otherOrganizationId,
+        name: '티켓 워크플로 다른 조직',
+        slug: otherOrganizationId,
+        createdAt: new Date(),
       },
     ]);
   });
@@ -591,6 +612,50 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
         otherLabel.id,
       ),
     ).resolves.toBeNull();
+
+    // 개별 FK만으로 동일 프로젝트가 보장되는지와 투영 경계를 별도로 확인한다.
+    await database.insert(ticketLabelAssignment).values({
+      ticketId: createdTicket.id,
+      labelId: otherLabel.id,
+    });
+    const source = await moduleRef
+      .get(TicketProjectionQueryService)
+      .current(organizationId, createdTicket.id);
+    expect(source?.labels).toEqual([]);
+  });
+
+  it('같은 조직 안에서도 다른 프로젝트 라벨은 owner가 거부한다', async () => {
+    const fixture = await createProjectFixture();
+    const other = await createProjectFixture({ key: 'SAMEORG' });
+    const [column] = fixture.columns;
+    if (!column) throw new Error('라벨 검증용 컬럼이 없습니다.');
+    const target = await createTicket(
+      fixture.project.id,
+      column.id,
+      '라벨 대상',
+    );
+    const otherLabel = await labels.createLabel(
+      organizationId,
+      other.project.id,
+      {
+        name: '다른 프로젝트 라벨',
+        color: 'blue',
+      },
+    );
+    if (!otherLabel) throw new Error('라벨 검증용 라벨이 없습니다.');
+    await expect(
+      labels.attachLabel(
+        organizationId,
+        fixture.project.id,
+        target.id,
+        otherLabel.id,
+      ),
+    ).resolves.toBeNull();
+    expect(
+      await moduleRef
+        .get(TicketProjectionQueryService)
+        .current(organizationId, target.id),
+    ).toMatchObject({ labels: [] });
   });
 
   async function cleanFixtures(): Promise<void> {
@@ -600,6 +665,9 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
         inArray(project.organizationId, [organizationId, otherOrganizationId]),
       );
     await database.delete(user).where(inArray(user.id, userIds));
+    await database
+      .delete(organization)
+      .where(inArray(organization.id, [organizationId, otherOrganizationId]));
   }
 
   async function createProjectFixture(

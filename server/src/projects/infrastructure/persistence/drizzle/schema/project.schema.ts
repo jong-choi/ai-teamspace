@@ -1,3 +1,4 @@
+import { authOrganizationIdColumn } from '@/auth/infrastructure/persistence/drizzle/auth-organization-reference';
 import { authUserIdColumn } from '@/auth/infrastructure/persistence/drizzle/auth-user-reference';
 
 import { sql } from 'drizzle-orm';
@@ -17,7 +18,9 @@ export const project = pgTable(
   'project',
   {
     id: uuid('id').defaultRandom().primaryKey(),
-    organizationId: text('organization_id').notNull(),
+    organizationId: text('organization_id')
+      .notNull()
+      .references(() => authOrganizationIdColumn, { onDelete: 'cascade' }),
     key: text('key').notNull(),
     name: text('name').notNull(),
     description: text('description').default('').notNull(),

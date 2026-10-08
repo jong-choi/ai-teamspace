@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { DatabaseService } from '@/database/database.service';
+import { OrganizationNotFoundError } from '@/organizations/domain/organization.error';
 import { OutboxAggregateChangePublisher } from '@/outbox/outbox-aggregate-change.publisher';
 import type { Project } from '@/projects/domain/project';
 import { ProjectKeyConflictError } from '@/projects/domain/project.error';
@@ -148,6 +149,15 @@ export class ProjectDrizzleRepository extends ProjectRepository {
       if (hasPostgresConstraint(error, 'project_organization_key_uidx')) {
         throw new ProjectKeyConflictError({ cause: error });
       }
+      if (
+        hasPostgresConstraint(
+          error,
+          'project_organization_id_organization_id_fk',
+          '23503',
+        )
+      ) {
+        throw new OrganizationNotFoundError({ cause: error });
+      }
       throw error;
     }
   }
@@ -283,19 +293,21 @@ export class ProjectDrizzleRepository extends ProjectRepository {
   }
 }
 
-function hasPostgresConstraint(error: unknown, constraint: string): boolean {
+function hasPostgresConstraint(
+  error: unknown,
+  constraint: string,
+  code = '23505',
+): boolean {
   let current = error;
   for (let depth = 0; depth < 4 && current; depth += 1) {
     if (typeof current !== 'object') return false;
-    const candidate = current as {
-      code?: unknown;
-      constraint?: unknown;
-      cause?: unknown;
-    };
-    if (candidate.code === '23505' && candidate.constraint === constraint) {
+    if (
+      Reflect.get(current, 'code') === code &&
+      Reflect.get(current, 'constraint') === constraint
+    ) {
       return true;
     }
-    current = candidate.cause;
+    current = Reflect.get(current, 'cause');
   }
   return false;
 }

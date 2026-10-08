@@ -8,10 +8,14 @@ import {
 import databaseConfig from '@/database/config/database.config';
 import { DatabaseModule } from '@/database/database.module';
 import { DatabaseService } from '@/database/database.service';
-import { WikiInvalidDocumentMoveError } from '@/wiki/domain/wiki.error';
+import {
+  WikiDocumentNotFoundError,
+  WikiInvalidDocumentMoveError,
+} from '@/wiki/domain/wiki.error';
 import type { CreateWikiDocumentInput } from '@/wiki/dto/create-wiki-document.dto';
 import { WikiDrizzlePersistenceModule } from '@/wiki/infrastructure/persistence/drizzle/drizzle-persistence.module';
 import { wikiCollection } from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-collection.schema';
+import { wikiDocument } from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-document.schema';
 import { wikiDocumentRevisionCollaborator } from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-document-revision-collaborator.schema';
 import { WikiRepository } from '@/wiki/infrastructure/persistence/wiki.repository';
 
@@ -220,6 +224,108 @@ describe('위키 Drizzle 저장소 통합', () => {
     await expect(
       repository.deleteDocument(organizationAId, root.id),
     ).resolves.toBe('not_empty');
+  });
+
+  it('다른 조직의 부모는 owner와 복합 FK 양쪽에서 거부한다', async () => {
+    const first = await createDocument(
+      repository,
+      organizationAId,
+      actorUserId,
+      {
+        parentDocumentId: null,
+        title: '조직 A',
+        position: 0,
+        contentMarkdown: '',
+      },
+    );
+    const second = await createDocument(
+      repository,
+      organizationBId,
+      actorUserId,
+      {
+        parentDocumentId: null,
+        title: '조직 B',
+        position: 0,
+        contentMarkdown: '',
+      },
+    );
+    await expect(
+      repository.updateDocumentMetadata(
+        organizationAId,
+        first.id,
+        actorUserId,
+        {
+          parentDocumentId: second.id,
+          title: first.title,
+          position: first.position,
+        },
+      ),
+    ).rejects.toBeInstanceOf(WikiDocumentNotFoundError);
+    await expect(
+      database
+        .update(wikiDocument)
+        .set({ parentDocumentId: second.id })
+        .where(eq(wikiDocument.id, first.id)),
+    ).rejects.toMatchObject({
+      cause: { code: '23503', constraint: 'wiki_document_parent_scope_fk' },
+    });
+  });
+
+  it('서로를 부모로 지정하는 동시 이동은 하나만 성공해 간접 cycle을 만들지 않는다', async () => {
+    const first = await createDocument(
+      repository,
+      organizationAId,
+      actorUserId,
+      {
+        parentDocumentId: null,
+        title: '첫째',
+        position: 0,
+        contentMarkdown: '',
+      },
+    );
+    const second = await createDocument(
+      repository,
+      organizationAId,
+      actorUserId,
+      {
+        parentDocumentId: null,
+        title: '둘째',
+        position: 1,
+        contentMarkdown: '',
+      },
+    );
+    const attempts = await Promise.allSettled([
+      repository.updateDocumentMetadata(
+        organizationAId,
+        first.id,
+        actorUserId,
+        {
+          parentDocumentId: second.id,
+          title: first.title,
+          position: first.position,
+        },
+      ),
+      repository.updateDocumentMetadata(
+        organizationAId,
+        second.id,
+        actorUserId,
+        {
+          parentDocumentId: first.id,
+          title: second.title,
+          position: second.position,
+        },
+      ),
+    ]);
+    expect(
+      attempts.filter((result) => result.status === 'fulfilled'),
+    ).toHaveLength(1);
+    const rejected = attempts.find((result) => result.status === 'rejected');
+    expect(rejected?.reason).toBeInstanceOf(WikiInvalidDocumentMoveError);
+    const rows = await database
+      .select()
+      .from(wikiDocument)
+      .where(inArray(wikiDocument.id, [first.id, second.id]));
+    expect(rows.filter((row) => row.parentDocumentId === null)).toHaveLength(1);
   });
 
   it('stale Yjs snapshot을 현재 DB state와 merge해 기존 struct를 잃지 않는다', async () => {

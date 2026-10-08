@@ -1,10 +1,16 @@
 import { ConfigModule } from '@nestjs/config';
 import { Test, type TestingModule } from '@nestjs/testing';
 
-import { user } from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
+import {
+  organization,
+  user,
+} from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
+import { CalendarProjectNotFoundError } from '@/calendar/domain/calendar.error';
+import { ProjectsCalendarReferenceAdapter } from '@/calendar/infrastructure/project/projects/projects-calendar-reference.adapter';
 import databaseConfig from '@/database/config/database.config';
 import { DatabaseModule } from '@/database/database.module';
 import { DatabaseService } from '@/database/database.service';
+import { OrganizationNotFoundError } from '@/organizations/domain/organization.error';
 import { ProjectKeyConflictError } from '@/projects/domain/project.error';
 import type { CreateProjectInput } from '@/projects/dto/create-project.dto';
 import type { CreateTicketInput } from '@/projects/dto/create-ticket.dto';
@@ -13,9 +19,12 @@ import type { UpdateTicketInput } from '@/projects/dto/update-ticket.dto';
 import { ProjectDrizzlePersistenceModule } from '@/projects/infrastructure/persistence/drizzle/drizzle-persistence.module';
 import { project } from '@/projects/infrastructure/persistence/drizzle/schema/project.schema';
 import { projectColumn } from '@/projects/infrastructure/persistence/drizzle/schema/project-column.schema';
+import { ticket } from '@/projects/infrastructure/persistence/drizzle/schema/ticket.schema';
 import { ProjectRepository } from '@/projects/infrastructure/persistence/project.repository';
 import { ProjectColumnRepository } from '@/projects/infrastructure/persistence/project-column.repository';
+import { ProjectReferenceRepository } from '@/projects/infrastructure/persistence/project-reference.repository';
 import { TicketRepository } from '@/projects/infrastructure/persistence/ticket.repository';
+import { ProjectReferenceQueryService } from '@/projects/project-reference-query.service';
 
 import { eq, inArray } from 'drizzle-orm';
 
@@ -38,6 +47,7 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
   let projects: ProjectRepository;
   let columns: ProjectColumnRepository;
   let tickets: TicketRepository;
+  let calendarReferences: ProjectsCalendarReferenceAdapter;
 
   beforeAll(async () => {
     moduleRef = await Test.createTestingModule({
@@ -55,6 +65,11 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
     projects = moduleRef.get(ProjectRepository);
     columns = moduleRef.get(ProjectColumnRepository);
     tickets = moduleRef.get(TicketRepository);
+    calendarReferences = new ProjectsCalendarReferenceAdapter(
+      new ProjectReferenceQueryService(
+        moduleRef.get(ProjectReferenceRepository),
+      ),
+    );
   });
 
   beforeEach(async () => {
@@ -78,6 +93,23 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
         username: 'projectrepositoryassignee',
       },
     ]);
+    await database
+      .insert(organization)
+      .values([
+        {
+          id: organizationId,
+          name: '프로젝트 저장소 조직',
+          slug: organizationId,
+          createdAt: new Date(),
+        },
+        {
+          id: otherOrganizationId,
+          name: '프로젝트 저장소 다른 조직',
+          slug: otherOrganizationId,
+          createdAt: new Date(),
+        },
+      ])
+      .onConflictDoNothing();
   });
 
   afterAll(async () => {
@@ -87,6 +119,9 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
         inArray(project.organizationId, [organizationId, otherOrganizationId]),
       );
     await database.delete(user).where(inArray(user.id, userIds));
+    await database
+      .delete(organization)
+      .where(inArray(organization.id, [organizationId, otherOrganizationId]));
     await moduleRef.close();
   });
 
@@ -110,6 +145,144 @@ describe('프로젝트 Drizzle 저장소 통합', () => {
       { name: 'In Progress', position: 2, isCompleted: false },
       { name: 'In Review', position: 3, isCompleted: false },
       { name: 'Done', position: 4, isCompleted: true },
+    ]);
+  });
+
+  it('없는 조직에는 프로젝트와 컬럼을 저장하지 않는다', async () => {
+    await expect(
+      createProject(createProjectInput, '존재하지-않는-조직'),
+    ).rejects.toBeInstanceOf(OrganizationNotFoundError);
+    expect(
+      await database
+        .select()
+        .from(project)
+        .where(eq(project.organizationId, '존재하지-않는-조직')),
+    ).toEqual([]);
+  });
+
+  it('조직 삭제는 프로젝트와 컬럼 및 티켓을 함께 정리한다', async () => {
+    const createdProject = await createProject();
+    const [column] = await columns.listColumns(
+      organizationId,
+      createdProject.id,
+    );
+    if (!column) throw new Error('삭제 검증용 컬럼이 없습니다.');
+    const result = await createTicket(createdProject.id, {
+      columnId: column.id,
+      title: '조직과 함께 삭제할 티켓',
+      descriptionMarkdown: '',
+      priority: 'medium',
+      assigneeUserId: null,
+      dueAt: null,
+    });
+    if (result.kind !== 'created')
+      throw new Error('삭제 검증용 티켓이 없습니다.');
+
+    await database
+      .delete(organization)
+      .where(eq(organization.id, organizationId));
+
+    expect(
+      await database
+        .select()
+        .from(project)
+        .where(eq(project.id, createdProject.id)),
+    ).toEqual([]);
+    expect(
+      await database
+        .select()
+        .from(projectColumn)
+        .where(eq(projectColumn.projectId, createdProject.id)),
+    ).toEqual([]);
+    expect(
+      await database
+        .select()
+        .from(ticket)
+        .where(eq(ticket.projectId, createdProject.id)),
+    ).toEqual([]);
+  });
+
+  it('캘린더의 프로젝트 문자열은 현재 조직의 활성 UUID 프로젝트만 참조한다', async () => {
+    const current = await createProject();
+    const other = await createProject(createProjectInput, otherOrganizationId);
+    await expect(
+      calendarReferences.assertReference(organizationId, current.id),
+    ).resolves.toBeUndefined();
+    await expect(
+      calendarReferences.assertReference(organizationId, other.id),
+    ).rejects.toBeInstanceOf(CalendarProjectNotFoundError);
+    await expect(
+      calendarReferences.assertReference(
+        organizationId,
+        '존재하지-않는-project-key',
+      ),
+    ).rejects.toBeInstanceOf(CalendarProjectNotFoundError);
+    await expect(
+      calendarReferences.assertReference(
+        organizationId,
+        '00000000-0000-4000-8000-000000000000',
+      ),
+    ).rejects.toBeInstanceOf(CalendarProjectNotFoundError);
+    await projects.updateProject(organizationId, current.id, {
+      archived: true,
+    });
+    await expect(
+      calendarReferences.assertReference(organizationId, current.id),
+    ).rejects.toBeInstanceOf(CalendarProjectNotFoundError);
+    await projects.updateProject(organizationId, current.id, {
+      archived: false,
+    });
+    await expect(
+      calendarReferences.assertReference(organizationId, current.id),
+    ).resolves.toBeUndefined();
+  });
+
+  it('티켓의 조직과 컬럼은 저수준 쓰기에서도 프로젝트 범위를 벗어나지 않는다', async () => {
+    const createdProject = await createProject();
+    const otherProject = await createProject({
+      ...createProjectInput,
+      key: 'OTHER',
+    });
+    const [column] = await columns.listColumns(
+      organizationId,
+      createdProject.id,
+    );
+    const [otherColumn] = await columns.listColumns(
+      organizationId,
+      otherProject.id,
+    );
+    if (!column || !otherColumn)
+      throw new Error('관계 검증용 컬럼이 없습니다.');
+    const created = await createTicket(createdProject.id, {
+      columnId: column.id,
+      title: '조직 범위',
+      descriptionMarkdown: '',
+      priority: 'medium',
+      assigneeUserId: null,
+      dueAt: null,
+    });
+    if (created.kind !== 'created')
+      throw new Error('관계 검증용 티켓이 없습니다.');
+    await expect(
+      database
+        .update(ticket)
+        .set({ organizationId: otherOrganizationId })
+        .where(eq(ticket.id, created.ticket.id)),
+    ).rejects.toMatchObject({
+      cause: { code: '23503', constraint: 'ticket_project_organization_fk' },
+    });
+    await expect(
+      database
+        .update(ticket)
+        .set({ columnId: otherColumn.id })
+        .where(eq(ticket.id, created.ticket.id)),
+    ).rejects.toMatchObject({
+      cause: { code: '23503', constraint: 'ticket_column_project_fk' },
+    });
+    expect(
+      await tickets.listTickets(organizationId, createdProject.id, {}),
+    ).toEqual([
+      expect.objectContaining({ id: created.ticket.id, columnId: column.id }),
     ]);
   });
 

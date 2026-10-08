@@ -27,7 +27,10 @@ dev = [
 package = false
 
 [tool.pytest.ini_options]
-addopts = "-q"
+addopts = "-q -m 'not live_judge'"
+markers = [
+  "live_judge: calls the configured Ollama Cloud judge; run explicitly with -m live_judge",
+]
 asyncio_mode = "auto"
 pythonpath = ["."]
 

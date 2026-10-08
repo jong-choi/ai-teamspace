@@ -51,6 +51,7 @@ export interface McpActor {
 export interface McpMember {
   agent: TestAgent;
   userId: string;
+  username: string;
   organizationId: string;
   memberId: string;
 }
@@ -202,27 +203,39 @@ export class McpIntegrationApp {
     owner: McpActor,
     input: { scopes: readonly McpScope[] },
   ): Promise<McpMember> {
-    const { agent, userId, username } = await this.signUp();
+    const member = await this.inviteMember(owner, await this.signUp());
+    await this.requestUserScopes(
+      member.agent,
+      owner.organizationId,
+      input.scopes,
+    );
+    return member;
+  }
+
+  /** 기존 user를 owner 조직에 초대·수락시키고 활성 조직으로 둔다. 개인 MCP policy는 바꾸지 않는다. */
+  async inviteMember(
+    owner: McpActor,
+    invitee: Pick<McpMember, 'agent' | 'userId' | 'username'>,
+  ): Promise<McpMember> {
     const invitation = expectStatus(
       await owner.agent
         .post(`/organizations/${owner.organizationId}/invitations`)
-        .send({ recipientUsername: username, role: 'member' }),
+        .send({ recipientUsername: invitee.username, role: 'member' }),
       201,
       '조직 초대',
     );
     expectStatus(
-      await agent.post(`/invitations/${invitation.body.id}/accept`),
+      await invitee.agent.post(`/invitations/${invitation.body.id}/accept`),
       200,
       '초대 수락',
     );
     expectStatus(
-      await agent
+      await invitee.agent
         .put('/organizations/active')
         .send({ organizationId: owner.organizationId }),
       200,
       '활성 조직 변경',
     );
-    await this.requestUserScopes(agent, owner.organizationId, input.scopes);
 
     const members = expectStatus(
       await owner.agent.get(`/organizations/${owner.organizationId}/members`),
@@ -230,13 +243,14 @@ export class McpIntegrationApp {
       '조직 member 조회',
     );
     const member = OrganizationMemberListSchema.parse(members.body).items.find(
-      (item) => item.userId === userId,
+      (item) => item.userId === invitee.userId,
     );
     if (!member) throw new Error('초대를 수락한 member를 찾지 못했습니다.');
 
     return {
-      agent,
-      userId,
+      agent: invitee.agent,
+      userId: invitee.userId,
+      username: invitee.username,
       organizationId: owner.organizationId,
       memberId: member.id,
     };

@@ -79,10 +79,11 @@ export class McpIntegrationApp {
     options: {
       environment?: Record<string, string>;
       logger?: NestApplicationOptions['logger'];
+      tls?: { key: string; cert: string };
     } = {},
   ): Promise<McpIntegrationApp> {
     const port = await reservePort();
-    const baseUrl = `http://127.0.0.1:${port}`;
+    const baseUrl = `${options.tls ? 'https' : 'http'}://127.0.0.1:${port}`;
     const overrides: Record<string, string> = {
       BETTER_AUTH_URL: baseUrl,
       APP_TRUSTED_ORIGINS: baseUrl,
@@ -90,6 +91,7 @@ export class McpIntegrationApp {
       MCP_ALLOWED_HOSTS: '127.0.0.1,localhost',
       MCP_ALLOWED_ORIGINS: '127.0.0.1,localhost',
       MCP_AGENT_OAUTH_REDIRECT_URL: `${baseUrl}/mcp/agent-delegation/callback`,
+      AGENT_EXTERNAL_MCP_OAUTH_CALLBACK_URL: `${baseUrl}/agent/mcp-connections/oauth/callback`,
       ...options.environment,
     };
     const originalEnvironment = new Map(
@@ -100,6 +102,7 @@ export class McpIntegrationApp {
     const moduleFixture = await createAppTestingModule().compile();
     const app = moduleFixture.createNestApplication({
       bodyParser: false,
+      ...(options.tls === undefined ? {} : { httpsOptions: options.tls }),
       ...(options.logger === undefined ? {} : { logger: options.logger }),
     });
     if (options.logger !== undefined) app.useLogger(options.logger);

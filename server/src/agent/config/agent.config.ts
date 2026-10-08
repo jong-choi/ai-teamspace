@@ -22,6 +22,16 @@ const optionalHttpUrlSchema = z.preprocess(
   httpUrlSchema.optional(),
 );
 
+const LOOPBACK_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]']);
+
+// 외부 provider에는 credential이 실리므로 HTTPS만 허용하고, 로컬 개발용 loopback만 HTTP를 허용한다.
+function isHttpsOrLoopbackHttp(url: URL): boolean {
+  return (
+    url.protocol === 'https:' ||
+    (url.protocol === 'http:' && LOOPBACK_HOSTNAMES.has(url.hostname))
+  );
+}
+
 const agentConfigSchema = z
   .object({
     AGENT_DATABASE_URL: databaseUrlSchema,
@@ -33,15 +43,7 @@ const agentConfigSchema = z
       .url()
       .transform((value) => new URL(value))
       .superRefine((url, context) => {
-        const isLoopback =
-          url.hostname === 'localhost' ||
-          url.hostname === '127.0.0.1' ||
-          url.hostname === '[::1]';
-
-        if (
-          url.protocol !== 'https:' &&
-          !(url.protocol === 'http:' && isLoopback)
-        ) {
+        if (!isHttpsOrLoopbackHttp(url)) {
           context.addIssue({
             code: 'custom',
             message:
@@ -100,7 +102,10 @@ const agentConfigSchema = z
       .enum(['true', 'false'])
       .default('false')
       .transform((value) => value === 'true'),
-    LANGFUSE_BASE_URL: optionalHttpUrlSchema,
+    LANGFUSE_BASE_URL: optionalHttpUrlSchema.refine(
+      (value) => value === undefined || isHttpsOrLoopbackHttp(new URL(value)),
+      'LANGFUSE_BASE_URL은 HTTPS여야 하며 로컬 개발에서는 loopback HTTP만 허용됩니다.',
+    ),
     LANGFUSE_PUBLIC_KEY: optionalTrimmedStringSchema,
     LANGFUSE_SECRET_KEY: optionalTrimmedStringSchema,
     LANGFUSE_TRACING_ENVIRONMENT: z

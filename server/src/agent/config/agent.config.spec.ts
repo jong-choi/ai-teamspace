@@ -106,6 +106,24 @@ describe('Agent 설정', () => {
     );
   });
 
+  it('Langfuse credential을 평문으로 보내는 공개 HTTP endpoint를 거부한다', async () => {
+    enableLangfuse('http://langfuse.example.com');
+
+    await expect(loadAgentConfig()).rejects.toThrow(
+      'LANGFUSE_BASE_URL은 HTTPS여야 하며 로컬 개발에서는 loopback HTTP만 허용됩니다.',
+    );
+  });
+
+  it('로컬 self-hosted Langfuse의 loopback HTTP endpoint는 허용한다', async () => {
+    enableLangfuse('http://localhost:3300');
+
+    const config = await loadAgentConfig();
+
+    expect(config.observability?.langfuse?.baseUrl).toBe(
+      'http://localhost:3300',
+    );
+  });
+
   it('Langfuse 식별자 해시 secret이 32바이트보다 짧으면 거부한다', async () => {
     process.env.LANGFUSE_ENABLED = 'true';
     process.env.LANGFUSE_BASE_URL = 'https://cloud.langfuse.com';
@@ -121,4 +139,12 @@ describe('Agent 설정', () => {
 
 async function loadAgentConfig() {
   return agentConfig();
+}
+
+function enableLangfuse(baseUrl: string) {
+  process.env.LANGFUSE_ENABLED = 'true';
+  process.env.LANGFUSE_BASE_URL = baseUrl;
+  process.env.LANGFUSE_PUBLIC_KEY = 'pk-test';
+  process.env.LANGFUSE_SECRET_KEY = 'sk-test';
+  process.env.LANGFUSE_ID_HASH_SECRET = '0123456789abcdef0123456789abcdef';
 }

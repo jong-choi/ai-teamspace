@@ -20,6 +20,7 @@ import {
   propagateAttributes,
   setLangfuseTracerProvider,
   startActiveObservation,
+  startObservation,
 } from '@langfuse/tracing';
 import { context } from '@opentelemetry/api';
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks';
@@ -115,6 +116,7 @@ export class LangfuseAgentTelemetryAdapter implements TelemetrySink {
   private readonly ownsContextManager: boolean;
   private readonly idGenerator = new RandomIdGenerator();
   private readonly inFlight = new Map<string, InFlightRun>();
+  private readonly pendingRecords = new Set<Promise<void>>();
 
   constructor(
     private readonly configuration: LangfuseConfiguration,
@@ -176,26 +178,16 @@ export class LangfuseAgentTelemetryAdapter implements TelemetrySink {
       }
 
       const state = this.inFlight.get(event.context.runId);
-      if (!state?.observation) {
-        this.inFlight.delete(event.context.runId);
+      this.inFlight.delete(event.context.runId);
+      if (!state) return;
+      if (!state.observation) {
+        // MCP 위임 없음처럼 graph를 만들기 전에 끝난 run은 root observation이 열리지 않았다.
+        this.track(this.recordRunWithoutGraph(event, state));
         return;
       }
 
-      state.observation.update({
-        level: finishLevel(event.status),
-        statusMessage: safeStatusMessage(event),
-        metadata: {
-          status: event.status,
-          durationMs: event.durationMs,
-          frameCount: event.frameCount,
-          ...(state.queuedMs !== undefined ? { queuedMs: state.queuedMs } : {}),
-          ...(event.failingNodes?.length
-            ? { failingNodes: event.failingNodes.slice(0, 16) }
-            : {}),
-        },
-      });
+      state.observation.update(this.finishAttributes(event, state));
       state.observation.end(event.endedAt);
-      this.inFlight.delete(event.context.runId);
     } catch {
       // Telemetry failure가 Agent run의 성공/실패 의미를 바꾸지 않게 한다.
     }
@@ -253,23 +245,7 @@ export class LangfuseAgentTelemetryAdapter implements TelemetrySink {
         });
         this.trimInFlightRuns();
 
-        return propagateAttributes(
-          {
-            userId: this.pseudonymousUserId(context),
-            sessionId: bounded(context.threadId),
-            metadata: {
-              runId: bounded(context.runId),
-              graphId: bounded(context.graphId),
-              trigger: context.trigger,
-            },
-            version: this.configuration.release,
-            tags: this.traceTags(context),
-            traceName: bounded(context.graphId),
-            environment: this.configuration.tracingEnvironment,
-            asBaggage: false,
-          },
-          body,
-        );
+        return propagateAttributes(this.runAttributes(context), body);
       },
       {
         asType: 'agent',
@@ -285,6 +261,7 @@ export class LangfuseAgentTelemetryAdapter implements TelemetrySink {
   }
 
   async flush(): Promise<void> {
+    await Promise.allSettled(this.pendingRecords);
     await this.processor.forceFlush();
   }
 
@@ -297,6 +274,7 @@ export class LangfuseAgentTelemetryAdapter implements TelemetrySink {
       }
     }
     this.inFlight.clear();
+    await Promise.allSettled(this.pendingRecords);
 
     try {
       await this.provider.shutdown();
@@ -309,6 +287,65 @@ export class LangfuseAgentTelemetryAdapter implements TelemetrySink {
         this.contextManager.disable();
       }
     }
+  }
+
+  private runAttributes(context: RunTelemetryContext) {
+    return {
+      userId: this.pseudonymousUserId(context),
+      sessionId: bounded(context.threadId),
+      metadata: {
+        runId: bounded(context.runId),
+        graphId: bounded(context.graphId),
+        trigger: context.trigger,
+      },
+      version: this.configuration.release,
+      tags: this.traceTags(context),
+      traceName: bounded(context.graphId),
+      environment: this.configuration.tracingEnvironment,
+      asBaggage: false,
+    };
+  }
+
+  private finishAttributes(event: RunFinishedEvent, state: InFlightRun) {
+    return {
+      level: finishLevel(event.status),
+      statusMessage: safeStatusMessage(event),
+      metadata: {
+        status: event.status,
+        durationMs: event.durationMs,
+        frameCount: event.frameCount,
+        ...(state.queuedMs !== undefined ? { queuedMs: state.queuedMs } : {}),
+        ...(event.failingNodes?.length
+          ? { failingNodes: event.failingNodes.slice(0, 16) }
+          : {}),
+      },
+    };
+  }
+
+  private async recordRunWithoutGraph(
+    event: RunFinishedEvent,
+    state: InFlightRun,
+  ): Promise<void> {
+    const traceId = await createTraceId(event.context.runId);
+    propagateAttributes(this.runAttributes(event.context), () => {
+      startObservation('agent-run', this.finishAttributes(event, state), {
+        asType: 'agent',
+        ...(state.startedAt ? { startTime: state.startedAt } : {}),
+        parentSpanContext: {
+          traceId,
+          spanId: this.idGenerator.generateSpanId(),
+          traceFlags: 0,
+        },
+      }).end(event.endedAt);
+    });
+  }
+
+  // Telemetry 기록 실패가 Agent run의 의미를 바꾸지 않도록 비동기 기록의 오류는 삼키고 flush가 기다리게 한다.
+  private track(record: Promise<void>): void {
+    const tracked = record
+      .catch(() => undefined)
+      .finally(() => this.pendingRecords.delete(tracked));
+    this.pendingRecords.add(tracked);
   }
 
   private pseudonymousUserId(context: RunTelemetryContext): string | undefined {

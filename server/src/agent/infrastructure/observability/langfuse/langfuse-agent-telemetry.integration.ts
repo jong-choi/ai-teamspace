@@ -33,6 +33,7 @@ const langfuseObservationsSchema = z.object({
       traceId: z.string(),
       type: z.string(),
       name: z.string(),
+      level: z.string(),
       sessionId: z.string().nullable(),
       userId: z.string().nullable(),
       isRootObservation: z.boolean(),
@@ -55,8 +56,9 @@ const localLangfuseDescribe =
     : describe.skip;
 
 const ID_HASH_SECRET = 'langfuse-acceptance-id-hash-secret-0123456789';
-// 연결을 받지 않는 loopback port다. Langfuse 장애 상황을 흉내 낸다.
+// 연결을 받지 않는 loopback port다. Langfuse·MCP 장애 상황을 흉내 낸다.
 const UNREACHABLE_LANGFUSE_URL = 'http://127.0.0.1:9';
+const UNREACHABLE_MCP_URL = 'http://127.0.0.1:9/mcp';
 
 describe('Langfuse Agent telemetry 통합', () => {
   let fixture: StartedWorkOsMcpFixture;
@@ -120,6 +122,39 @@ describe('Langfuse Agent telemetry 통합', () => {
         expect(raw).not.toContain(forbidden);
       }
     });
+
+    it('graph를 만들기 전에 실패한 run도 ERROR root observation으로 남는다', async () => {
+      const startedAt = new Date();
+      const telemetry = new LangfuseAgentTelemetryAdapter(
+        configuration({
+          baseUrl: langfuseBaseUrl,
+          publicKey: langfusePublicKey,
+          secretKey: langfuseSecretKey,
+        }),
+      );
+
+      const { threadId, runId, status } = await runAgent(telemetry, {
+        userId: `langfuse-failure-${randomUUID()}`,
+        prompt: 'MCP 장애 중 요청',
+        mcpUrl: UNREACHABLE_MCP_URL,
+      });
+      await telemetry.flush();
+      await telemetry.shutdown();
+
+      expect(status).toBe('error');
+      const { observations } = await waitForRootObservation(
+        await createTraceId(runId),
+        startedAt,
+      );
+      expect(observations).toEqual([
+        expect.objectContaining({
+          isRootObservation: true,
+          name: 'agent-run',
+          level: 'ERROR',
+          sessionId: threadId,
+        }),
+      ]);
+    });
   });
 
   it('Langfuse에 연결할 수 없어도 Agent run은 성공한다', async () => {
@@ -145,10 +180,10 @@ describe('Langfuse Agent telemetry 통합', () => {
 
   async function runAgent(
     telemetry: LangfuseAgentTelemetryAdapter,
-    input: { userId: string; prompt: string },
+    input: { userId: string; prompt: string; mcpUrl?: string },
   ) {
     const app = await startAgentApp({
-      mcpUrl: fixture.url,
+      mcpUrl: input.mcpUrl ?? fixture.url,
       modelProvider: new FixtureModelProvider({
         root: fakeModel()
           .respondWithTools([

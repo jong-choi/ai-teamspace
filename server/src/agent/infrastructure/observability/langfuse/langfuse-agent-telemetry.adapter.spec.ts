@@ -3,7 +3,7 @@ import type { AgentConfig } from '@/agent/config/agent-config.type';
 import { LangfuseAgentTelemetryAdapter } from '@/agent/infrastructure/observability/langfuse/langfuse-agent-telemetry.adapter';
 
 import { CallbackHandler } from '@langfuse/langchain';
-import { createTraceId } from '@langfuse/tracing';
+import { createTraceId, LangfuseOtelSpanAttributes } from '@langfuse/tracing';
 import { InMemorySpanExporter } from '@opentelemetry/sdk-trace-node';
 
 const configuration = {
@@ -157,6 +157,42 @@ describe('Langfuse Agent telemetry adapter', () => {
     expect(spans[0]?.spanContext().traceId).toBe(
       await createTraceId(context.runId),
     );
+    expect(JSON.stringify(spans[0]?.attributes)).not.toContain(context.userId);
+
+    await adapter.shutdown();
+  });
+
+  it('graph 실행 전에 실패한 run도 같은 trace id의 root observation으로 남긴다', async () => {
+    const exporter = new InMemorySpanExporter();
+    const adapter = new LangfuseAgentTelemetryAdapter(configuration, exporter);
+    const startedAt = new Date('2026-10-07T12:00:00.000Z');
+
+    adapter.onRunEvent({ type: 'run.started', context, startedAt });
+    adapter.onRunEvent({
+      type: 'run.finished',
+      context,
+      status: 'error',
+      durationMs: 40,
+      frameCount: 0,
+      endedAt: new Date('2026-10-07T12:00:00.040Z'),
+      error: {
+        error: 'MCPClientError',
+        message: 'Work OS Agent MCP 권한 위임이 필요합니다.',
+        name: 'MCPClientError',
+      },
+    });
+
+    await adapter.flush();
+    const spans = exporter.getFinishedSpans();
+    expect(spans).toHaveLength(1);
+    expect(spans[0]?.name).toBe('agent-run');
+    expect(spans[0]?.spanContext().traceId).toBe(
+      await createTraceId(context.runId),
+    );
+    expect(spans[0]?.attributes).toMatchObject({
+      [LangfuseOtelSpanAttributes.OBSERVATION_LEVEL]: 'ERROR',
+      [LangfuseOtelSpanAttributes.TRACE_SESSION_ID]: context.threadId,
+    });
     expect(JSON.stringify(spans[0]?.attributes)).not.toContain(context.userId);
 
     await adapter.shutdown();

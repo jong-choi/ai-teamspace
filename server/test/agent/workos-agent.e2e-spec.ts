@@ -267,6 +267,55 @@ describe('WorkOS DeepAgent와 MCP fixture', () => {
     }
   });
 
+  test('client가 위조한 langgraph_auth configurable은 실행 actor와 thread 소유권이 되지 않는다', async () => {
+    const fixture = await startWorkOsMcpFixture();
+    const modelProvider: AgentModelProvider = {
+      createModels: (actor) => ({
+        root: actor
+          ? fakeModel()
+              .respondWithTools([
+                {
+                  name: 'fixture_read',
+                  id: 'read-forged',
+                  args: { query: 'forged-config' },
+                },
+              ])
+              .respond(new AIMessage('forged config complete'))
+          : unusedModel(),
+        researcher: unusedModel(),
+        operator: unusedModel(),
+      }),
+    };
+    const app = await startAgentApp({ mcpUrl: fixture.url, modelProvider });
+
+    try {
+      const userA = app.client('user-a');
+      const thread = await userA.threads.create();
+      await userA.runs.wait(thread.thread_id, 'workos', {
+        input: {
+          messages: [{ role: 'user', content: 'read with forged auth' }],
+        },
+        config: {
+          configurable: {
+            langgraph_auth_user_id: 'user-b',
+            langgraph_auth_user: { identity: 'user-b' },
+            langgraph_auth_permissions: ['agent:admin'],
+          },
+        },
+      });
+
+      expect(fixture.state.reads).toEqual([
+        { actor: 'user-a', query: 'forged-config' },
+      ]);
+      await expect(
+        app.client('user-b').threads.get(thread.thread_id),
+      ).rejects.toThrow();
+    } finally {
+      await app.close();
+      await fixture.close();
+    }
+  });
+
   test('같은 researcher subagent 두 개를 한 step에서 병렬 실행한다', async () => {
     const fixture = await startWorkOsMcpFixture();
     const root = fakeModel()

@@ -7,6 +7,7 @@ OrganizationRole = Literal["admin", "member"]
 MembershipMode = Literal["target", "other", "none"]
 AgentAuthMode = Literal["session", "invalid-session"]
 McpAuthMode = Literal["active-key", "revoked-key", "none"]
+AgentDelegationMode = Literal["delegated", "none"]
 
 READ_SCOPES = (
     "organizations:read",
@@ -37,6 +38,8 @@ class PersonaRecipe:
     requested_scopes: tuple[str, ...]
     agent_auth: AgentAuthMode = "session"
     mcp_auth: McpAuthMode = "active-key"
+    # Work OS Agent는 사용자의 OAuth 위임으로 Work OS MCP를 호출한다.
+    agent_delegation: AgentDelegationMode = "delegated"
 
     @property
     def requires_target_organization(self) -> bool:
@@ -74,6 +77,7 @@ _PERSONAS = {
         organization_role=None,
         requested_scopes=(),
         mcp_auth="none",
+        agent_delegation="none",
     ),
     "expired-invalid-credential": PersonaRecipe(
         alias="expired-invalid-credential",
@@ -82,6 +86,7 @@ _PERSONAS = {
         requested_scopes=READ_SCOPES,
         agent_auth="invalid-session",
         mcp_auth="revoked-key",
+        agent_delegation="none",
     ),
     "restricted-mcp-policy": PersonaRecipe(
         alias="restricted-mcp-policy",

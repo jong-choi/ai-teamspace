@@ -25,6 +25,8 @@ class FakeBackend:
         self.tickets: dict[str, dict[str, Any]] = {}
         self.meetings: dict[str, dict[str, Any]] = {}
         self.access_keys: dict[str, dict[str, object]] = {}
+        self.agent_delegations: dict[str, str] = {}
+        self.delegation_status_after_consent = "active"
 
 
 class FakeProductSession:
@@ -210,6 +212,19 @@ class FakeProductSession:
     async def revoke_mcp_access_key(self, key_id: str) -> None:
         self.backend.access_keys[key_id]["revoked"] = True
         self.calls.append(("revoke_mcp_access_key", key_id))
+
+    async def delegate_agent(self, *, return_to: str) -> None:
+        self.calls.append(("delegate_agent", return_to))
+        self.backend.agent_delegations[self.user_id] = (
+            self.backend.delegation_status_after_consent
+        )
+
+    async def get_agent_delegation(self) -> dict[str, Any]:
+        return {"status": self.backend.agent_delegations.get(self.user_id, "not_connected")}
+
+    async def revoke_agent_delegation(self) -> None:
+        self.calls.append(("revoke_agent_delegation", None))
+        self.backend.agent_delegations[self.user_id] = "revoked"
 
     async def create_project(
         self,
@@ -410,8 +425,12 @@ async def test_read_write_persona_separates_bootstrap_and_actor_sessions(
     assert ("get_wiki_document", "document-1") in bootstrap.calls
     assert ("get_wiki_document", "document-1") not in actor.calls
 
+    assert backend.agent_delegations["user-actor"] == "active"
+    assert ("delegate_agent", "/ai") in actor.calls
+
     await provider.cleanup(case, lease)
     assert backend.access_keys["key-1"]["revoked"] is True
+    assert backend.agent_delegations["user-actor"] == "revoked"
     assert bootstrap.closed and actor.closed
 
 
@@ -489,6 +508,7 @@ async def test_no_active_organization_keeps_actor_unscoped(
     assert ("org-1", "user-actor") not in backend.user_requested
     with pytest.raises(ValueError, match="has no MCP credential"):
         provider.mcp_bearer_token(lease)
+    assert backend.agent_delegations == {}
 
     await provider.cleanup(case, lease)
 
@@ -512,8 +532,28 @@ async def test_invalid_credential_persona_never_exposes_valid_actor_cookie(
     assert "actor-session" not in headers["Cookie"]
     assert provider.mcp_bearer_token(lease) == "wos_mcp_actor_key-1"
     assert backend.access_keys["key-1"]["revoked"] is True
+    assert backend.agent_delegations == {}
 
     await provider.cleanup(case, lease)
+
+
+async def test_setup_fails_closed_when_agent_delegation_is_not_active(
+    sessions: tuple[
+        FakeBackend,
+        FakeProductSession,
+        FakeProductSession,
+        Iterator[FakeProductSession],
+    ],
+) -> None:
+    backend, bootstrap, actor, iterator = sessions
+    backend.delegation_status_after_consent = "pending"
+    provider = provider_from(iterator)
+
+    with pytest.raises(ValueError, match="did not become active"):
+        await provider.setup(case_for("read-only-member"), owner="run:pending")
+
+    assert backend.access_keys["key-1"]["revoked"] is True
+    assert bootstrap.closed and actor.closed
 
 
 def test_persona_registry_is_bounded_and_compatibility_aliases_are_canonical() -> None:

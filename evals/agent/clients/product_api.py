@@ -19,6 +19,19 @@ def _segment(value: str) -> str:
     return quote(value, safe="")
 
 
+def _path_and_query(url: str) -> str:
+    # 대상 server의 공개 URL이 loopback alias로 달라도 cookie jar가 있는 base URL로만 요청한다.
+    parsed = urlsplit(url)
+    return parsed.path + (f"?{parsed.query}" if parsed.query else "")
+
+
+def _required_text(payload: Mapping[str, Any], field: str) -> str:
+    value = payload.get(field)
+    if not isinstance(value, str) or not value:
+        raise ValueError(f"public API response is missing non-empty {field!r}")
+    return value
+
+
 def _validate_origin(value: str) -> str:
     parsed = urlsplit(value)
     if parsed.scheme not in {"http", "https"} or not parsed.hostname:
@@ -80,6 +93,17 @@ class ProductApiClient:
         response = await self._client.request(method, path)
         if response.status_code != expected_status:
             raise ProductApiError(method, path, response.status_code)
+
+    async def _request_redirect(self, method: str, path_and_query: str) -> str:
+        response = await self._client.request(method, path_and_query)
+        # OAuth code와 state가 오류 메시지에 남지 않도록 path만 기록한다.
+        path = urlsplit(path_and_query).path
+        if response.status_code != 302:
+            raise ProductApiError(method, path, response.status_code)
+        location = response.headers.get("location")
+        if not location:
+            raise ProductApiError(method, path, response.status_code)
+        return location
 
     async def sign_up_email(
         self,
@@ -239,6 +263,40 @@ class ProductApiClient:
         await self._request_empty(
             "DELETE",
             f"/mcp/access-keys/{_segment(key_id)}",
+            expected_status=204,
+        )
+
+    async def delegate_agent(self, *, return_to: str) -> None:
+        """Complete the first-party Agent OAuth delegation through public endpoints."""
+        started = await self._request_json(
+            "POST",
+            "/mcp/agent-delegation/start",
+            json_body={"returnTo": return_to},
+            expected_status=201,
+        )
+        consent_url = await self._request_redirect(
+            "GET",
+            _path_and_query(_required_text(started, "authorizationUrl")),
+        )
+        consented = await self._request_json(
+            "POST",
+            "/api/auth/oauth2/consent",
+            json_body={"accept": True, "oauth_query": urlsplit(consent_url).query},
+            expected_status=200,
+        )
+        await self._request_redirect("GET", _path_and_query(_required_text(consented, "url")))
+
+    async def get_agent_delegation(self) -> dict[str, Any]:
+        return await self._request_json(
+            "GET",
+            "/mcp/agent-delegation",
+            expected_status=200,
+        )
+
+    async def revoke_agent_delegation(self) -> None:
+        await self._request_empty(
+            "DELETE",
+            "/mcp/agent-delegation",
             expected_status=204,
         )
 

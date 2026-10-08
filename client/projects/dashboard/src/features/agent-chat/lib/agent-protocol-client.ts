@@ -4,8 +4,7 @@ import {
   getApiFetch,
   getApiHeaders,
 } from '@repo/client/api-client/runtime';
-
-import { Client } from '@langchain/langgraph-sdk';
+import { Client } from '@core/features/agent-chat/lib/langgraph-sdk-runtime';
 
 export const agentAssistantId = 'workos';
 export const agentGraphId = 'workos';

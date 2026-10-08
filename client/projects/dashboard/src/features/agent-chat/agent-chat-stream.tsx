@@ -18,11 +18,11 @@ import {
   agentMessagesKey,
 } from '@core/features/agent-chat/lib/agent-protocol-client';
 import { projectAgentToolDisplay } from '@core/features/agent-chat/lib/agent-tool-display';
+import { useStream } from '@core/features/agent-chat/lib/langgraph-sdk-runtime';
 
-import {
-  type DeepAgentTypeConfigLike,
-  type ResolveStreamInterface,
-  useStream,
+import type {
+  DeepAgentTypeConfigLike,
+  ResolveStreamInterface,
 } from '@langchain/langgraph-sdk/react';
 
 type WorkOsDeepAgent = {

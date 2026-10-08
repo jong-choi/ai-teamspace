@@ -46,6 +46,7 @@
     "expo-system-ui": "~57.0.4",
     "expo-web-browser": "~57.0.3",
     "isomorphic-webcrypto": "^2.3.8",
+    "langsmith": "0.9.0",
     "lucide-react-native": "^1.51.0",
     "nativewind": "^4.2.7",
     "react": "19.2.3",

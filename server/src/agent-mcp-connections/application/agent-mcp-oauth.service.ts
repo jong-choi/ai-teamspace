@@ -14,6 +14,7 @@ import {
   AgentMcpConnectionNotFoundError,
   AgentMcpOauthAuthorizationRequiredError,
   AgentMcpOauthCredentialInvalidError,
+  AgentMcpOauthStateInvalidError,
 } from '@/agent-mcp-connections/domain/agent-mcp-connection.error';
 import { AgentMcpAuditPublisher } from '@/agent-mcp-connections/infrastructure/audit/agent-mcp-audit.publisher';
 import { SafeOutboundHttp } from '@/agent-mcp-connections/infrastructure/http/safe-outbound-http';
@@ -24,6 +25,7 @@ import {
   auth,
   type AuthProvider,
   type FetchLike,
+  OAuthError,
   StreamableHTTPClientTransport,
 } from '@modelcontextprotocol/client';
 
@@ -146,6 +148,9 @@ export class AgentMcpOauthService {
         authKind: connection.authKind,
         errorCategory: classifyExternalMcpError(error),
       });
+      if (error instanceof OAuthError && error.code === 'invalid_grant') {
+        throw new AgentMcpOauthStateInvalidError({ cause: error });
+      }
       throw error;
     } finally {
       await transport.close().catch(() => undefined);

@@ -177,6 +177,11 @@ export default tseslint.config(
           pattern: 'server/src/**/*.integration.ts',
           mode: 'full',
         },
+        {
+          type: 'server-test',
+          pattern: 'server/src/*/testing/**',
+          mode: 'full',
+        },
         { type: 'server-test', pattern: 'server/test/**', mode: 'full' },
         {
           type: 'drizzle-config',
@@ -396,6 +401,7 @@ export default tseslint.config(
       '**/*.{spec,test}.{ts,tsx}',
       '**/*.integration.ts',
       '**/*.e2e-spec.ts',
+      'server/src/*/testing/**/*.ts',
     ],
     languageOptions: {
       globals: {

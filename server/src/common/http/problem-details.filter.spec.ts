@@ -123,4 +123,50 @@ describe('공용 Problem Details 처리', () => {
       log.mockRestore();
     }
   });
+
+  it('body parser의 노출 가능한 4xx 오류는 원래 status로 응답한다', () => {
+    const { filter, host, reply, response } = createFixture();
+    // body-parser가 limit 초과 시 던지는 http-errors 형식이다.
+    const tooLarge = Object.assign(new Error('request entity too large'), {
+      status: 413,
+      expose: true,
+      type: 'entity.too.large',
+    });
+
+    filter.catch(tooLarge, host);
+
+    expect(reply).toHaveBeenCalledWith(
+      response,
+      {
+        type: 'about:blank',
+        title: 'Payload Too Large',
+        status: 413,
+        detail: 'request entity too large',
+      },
+      413,
+    );
+  });
+
+  it('노출 표시가 없거나 5xx인 status 오류는 500으로 숨긴다', () => {
+    const log = jest
+      .spyOn(Logger.prototype, 'error')
+      .mockImplementation(() => {});
+    try {
+      const { filter, host, reply } = createFixture();
+
+      filter.catch(
+        Object.assign(new Error('내부 상세'), { status: 413, expose: false }),
+        host,
+      );
+      filter.catch(
+        Object.assign(new Error('내부 상세'), { status: 503, expose: true }),
+        host,
+      );
+
+      expect(reply.mock.calls.map((call) => call[2])).toEqual([500, 500]);
+      expect(JSON.stringify(reply.mock.calls)).not.toContain('내부 상세');
+    } finally {
+      log.mockRestore();
+    }
+  });
 });

@@ -56,6 +56,12 @@ export class ProblemDetailsFilter implements ExceptionFilter {
       });
     }
 
+    if (isExposedClientHttpError(exception)) {
+      return new HttpException(exception.message, exception.status, {
+        cause: exception,
+      });
+    }
+
     this.logFailure(
       'INTERNAL_SERVER_ERROR',
       HttpStatus.INTERNAL_SERVER_ERROR,
@@ -83,4 +89,22 @@ export class ProblemDetailsFilter implements ExceptionFilter {
       cause: cause instanceof Error ? cause.name : 'UnknownError',
     });
   }
+}
+
+/**
+ * body-parser 등 Express middleware가 던지는 `http-errors` 형식의 4xx 오류다.
+ * `expose: true`는 메시지를 client에 노출해도 된다는 표시이므로 원래 status를 유지한다.
+ */
+function isExposedClientHttpError(
+  exception: unknown,
+): exception is Error & { status: number } {
+  return (
+    exception instanceof Error &&
+    'expose' in exception &&
+    exception.expose === true &&
+    'status' in exception &&
+    typeof exception.status === 'number' &&
+    exception.status >= 400 &&
+    exception.status < 500
+  );
 }

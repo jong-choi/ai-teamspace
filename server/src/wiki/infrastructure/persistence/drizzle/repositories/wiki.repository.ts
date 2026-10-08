@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { DatabaseService } from '@/database/database.service';
+import { OutboxAggregateChangePublisher } from '@/outbox/outbox-aggregate-change.publisher';
 import {
   WikiCollaborationStateCorruptedError,
   WikiDocumentHistoryCorruptedError,
@@ -69,7 +70,10 @@ type WikiTransaction = Parameters<
 
 @Injectable()
 export class WikiDrizzleRepository extends WikiRepository {
-  constructor(private readonly database: DatabaseService) {
+  constructor(
+    private readonly database: DatabaseService,
+    private readonly graphEvents: OutboxAggregateChangePublisher,
+  ) {
     super();
   }
 
@@ -205,6 +209,12 @@ export class WikiDrizzleRepository extends WikiRepository {
         ordinal: 0,
       });
 
+      await this.graphEvents.wikiChanged(
+        transaction,
+        organizationId,
+        row.id,
+        'changed',
+      );
       return toWikiDocumentDomain(row);
     });
   }
@@ -243,6 +253,11 @@ export class WikiDrizzleRepository extends WikiRepository {
         requestedTitle: metadata.title,
         excludedDocumentId: documentId,
       });
+      const changed =
+        current.parentDocumentId !== metadata.parentDocumentId ||
+        current.title !== title ||
+        current.position !== metadata.position;
+
       const [row] = await transaction
         .update(wikiDocument)
         .set(
@@ -262,6 +277,14 @@ export class WikiDrizzleRepository extends WikiRepository {
         )
         .returning();
 
+      if (row && changed) {
+        await this.graphEvents.wikiChanged(
+          transaction,
+          organizationId,
+          documentId,
+          'changed',
+        );
+      }
       return row ? toWikiDocumentDomain(row) : null;
     });
   }
@@ -309,6 +332,14 @@ export class WikiDrizzleRepository extends WikiRepository {
           ),
         )
         .returning({ id: wikiDocument.id });
+      if (deleted) {
+        await this.graphEvents.wikiChanged(
+          transaction,
+          organizationId,
+          documentId,
+          'removed',
+        );
+      }
       return deleted ? 'deleted' : 'not_found';
     });
   }
@@ -415,6 +446,15 @@ export class WikiDrizzleRepository extends WikiRepository {
             })),
           );
         }
+      }
+
+      if (contentChanged) {
+        await this.graphEvents.wikiChanged(
+          transaction,
+          organizationId,
+          documentId,
+          'changed',
+        );
       }
 
       return {

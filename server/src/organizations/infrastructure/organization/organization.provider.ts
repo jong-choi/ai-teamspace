@@ -1,6 +1,7 @@
 import type { Organization } from '@/organizations/domain/organization';
 import type { OrganizationAccess } from '@/organizations/domain/organization-access';
 import type { OrganizationMember } from '@/organizations/domain/organization-member';
+import type { OrganizationMembershipProjection } from '@/organizations/domain/organization-membership-projection';
 import type { OrganizationRole } from '@/organizations/domain/organization-role';
 import type { CreateOrganizationInput } from '@/organizations/dto/create-organization.dto';
 import type { OrganizationMemberList } from '@/organizations/dto/organization-member-list.dto';
@@ -40,6 +41,17 @@ export abstract class OrganizationProvider {
     organizationId: string,
     userId: string,
   ): Promise<boolean>;
+
+  abstract getMembershipProjection(
+    organizationId: string,
+    userId: string,
+  ): Promise<OrganizationMembershipProjection | null>;
+
+  abstract listMembershipProjectionUserIds(
+    organizationId: string,
+    afterUserId: string | null,
+    limit: number,
+  ): Promise<string[]>;
 
   abstract listMembersByUserIds(
     context: OrganizationActorContext,

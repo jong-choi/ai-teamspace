@@ -14,12 +14,12 @@ import { Text } from '@repo/client/rnr/components/ui/text';
 import { Textarea } from '@repo/client/rnr/components/ui/textarea';
 import { cn } from '@repo/client/rnr/lib/utils';
 import { agentComposerSubmitsOnEnter } from '@core/features/agent-chat/components/agent-composer-key-handler';
-import { isAgentComposerSubmitKey } from '@core/features/agent-chat/lib/agent-composer-keys';
 import {
   AGENT_CHAT_QUEUE_LIMIT,
   type AgentQueuedMessage,
   type AgentReasoningEffort,
 } from '@core/features/agent-chat/lib/agent-chat-store';
+import { isAgentComposerSubmitKey } from '@core/features/agent-chat/lib/agent-composer-keys';
 
 import { ArrowUp, Clock3, ListPlus, Square, X } from 'lucide-react-native';
 

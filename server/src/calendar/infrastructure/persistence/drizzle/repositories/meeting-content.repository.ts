@@ -12,12 +12,16 @@ import { loadMeetingDetails } from '@/calendar/infrastructure/persistence/drizzl
 import { meeting } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting.schema';
 import { MeetingContentRepository } from '@/calendar/infrastructure/persistence/meeting-content.repository';
 import { DatabaseService } from '@/database/database.service';
+import { OutboxAggregateChangePublisher } from '@/outbox/outbox-aggregate-change.publisher';
 
 import { and, eq, sql } from 'drizzle-orm';
 
 @Injectable()
 export class MeetingContentDrizzleRepository extends MeetingContentRepository {
-  constructor(private readonly database: DatabaseService) {
+  constructor(
+    private readonly database: DatabaseService,
+    private readonly graphEvents: OutboxAggregateChangePublisher,
+  ) {
     super();
   }
 
@@ -26,30 +30,36 @@ export class MeetingContentDrizzleRepository extends MeetingContentRepository {
     meetingId: Meeting['id'],
     input: UpdateMeetingInput,
   ): Promise<CalendarMeetingDetailRecord | null> {
-    const changes: Partial<
-      Pick<Meeting, 'projectId' | 'title' | 'category' | 'reminderMinutes'>
-    > = input;
-    const [row] = await this.database.db
-      .update(meeting)
-      .set({
-        ...toMeetingUpdate(changes),
-        iCalSequence: sql`${meeting.iCalSequence} + 1`,
-        updatedAt: new Date(),
-      })
-      .where(
-        and(
-          eq(meeting.organizationId, organizationId),
-          eq(meeting.id, meetingId),
-        ),
-      )
-      .returning({ id: meeting.id });
-    if (!row) return null;
-    const [record] = await loadMeetingDetails(
-      this.database.db,
-      organizationId,
-      [meetingId],
-    );
-    return record ?? null;
+    return this.database.db.transaction(async (transaction) => {
+      const changes: Partial<
+        Pick<Meeting, 'projectId' | 'title' | 'category' | 'reminderMinutes'>
+      > = input;
+      const [row] = await transaction
+        .update(meeting)
+        .set({
+          ...toMeetingUpdate(changes),
+          iCalSequence: sql`${meeting.iCalSequence} + 1`,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(meeting.organizationId, organizationId),
+            eq(meeting.id, meetingId),
+          ),
+        )
+        .returning({ id: meeting.id });
+      if (!row) return null;
+      await this.graphEvents.meetingChanged(
+        transaction,
+        organizationId,
+        meetingId,
+        'changed',
+      );
+      const [record] = await loadMeetingDetails(transaction, organizationId, [
+        meetingId,
+      ]);
+      return record ?? null;
+    });
   }
 
   async updateMeetingAgenda(
@@ -57,28 +67,34 @@ export class MeetingContentDrizzleRepository extends MeetingContentRepository {
     meetingId: Meeting['id'],
     input: UpdateMeetingAgendaInput,
   ): Promise<CalendarMeetingDetailRecord | null> {
-    const changes: Pick<Meeting, 'agendaMarkdown'> = input;
-    const [row] = await this.database.db
-      .update(meeting)
-      .set({
-        ...toMeetingUpdate(changes),
-        iCalSequence: sql`${meeting.iCalSequence} + 1`,
-        updatedAt: new Date(),
-      })
-      .where(
-        and(
-          eq(meeting.organizationId, organizationId),
-          eq(meeting.id, meetingId),
-        ),
-      )
-      .returning({ id: meeting.id });
-    if (!row) return null;
-    const [record] = await loadMeetingDetails(
-      this.database.db,
-      organizationId,
-      [meetingId],
-    );
-    return record ?? null;
+    return this.database.db.transaction(async (transaction) => {
+      const changes: Pick<Meeting, 'agendaMarkdown'> = input;
+      const [row] = await transaction
+        .update(meeting)
+        .set({
+          ...toMeetingUpdate(changes),
+          iCalSequence: sql`${meeting.iCalSequence} + 1`,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(meeting.organizationId, organizationId),
+            eq(meeting.id, meetingId),
+          ),
+        )
+        .returning({ id: meeting.id });
+      if (!row) return null;
+      await this.graphEvents.meetingChanged(
+        transaction,
+        organizationId,
+        meetingId,
+        'changed',
+      );
+      const [record] = await loadMeetingDetails(transaction, organizationId, [
+        meetingId,
+      ]);
+      return record ?? null;
+    });
   }
 
   async updateMeetingNotes(
@@ -86,26 +102,32 @@ export class MeetingContentDrizzleRepository extends MeetingContentRepository {
     meetingId: Meeting['id'],
     input: UpdateMeetingNotesInput,
   ): Promise<CalendarMeetingDetailRecord | null> {
-    const changes: Pick<Meeting, 'notesMarkdown'> = input;
-    const [row] = await this.database.db
-      .update(meeting)
-      .set({
-        ...toMeetingUpdate(changes),
-        updatedAt: new Date(),
-      })
-      .where(
-        and(
-          eq(meeting.organizationId, organizationId),
-          eq(meeting.id, meetingId),
-        ),
-      )
-      .returning({ id: meeting.id });
-    if (!row) return null;
-    const [record] = await loadMeetingDetails(
-      this.database.db,
-      organizationId,
-      [meetingId],
-    );
-    return record ?? null;
+    return this.database.db.transaction(async (transaction) => {
+      const changes: Pick<Meeting, 'notesMarkdown'> = input;
+      const [row] = await transaction
+        .update(meeting)
+        .set({
+          ...toMeetingUpdate(changes),
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(meeting.organizationId, organizationId),
+            eq(meeting.id, meetingId),
+          ),
+        )
+        .returning({ id: meeting.id });
+      if (!row) return null;
+      await this.graphEvents.meetingChanged(
+        transaction,
+        organizationId,
+        meetingId,
+        'changed',
+      );
+      const [record] = await loadMeetingDetails(transaction, organizationId, [
+        meetingId,
+      ]);
+      return record ?? null;
+    });
   }
 }

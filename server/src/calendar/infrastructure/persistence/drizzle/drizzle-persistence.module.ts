@@ -12,8 +12,10 @@ import { MeetingRoomDrizzleRepository } from '@/calendar/infrastructure/persiste
 import { MeetingContentRepository } from '@/calendar/infrastructure/persistence/meeting-content.repository';
 import { MeetingParticipationRepository } from '@/calendar/infrastructure/persistence/meeting-participation.repository';
 import { MeetingRoomRepository } from '@/calendar/infrastructure/persistence/meeting-room.repository';
+import { OutboxInfrastructureModule } from '@/outbox/outbox.module';
 
 @Module({
+  imports: [OutboxInfrastructureModule],
   providers: [
     {
       provide: CalendarMeetingQueryRepository,

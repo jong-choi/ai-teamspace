@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 
+import { OutboxInfrastructureModule } from '@/outbox/outbox.module';
 import { ProjectDrizzleRepository } from '@/projects/infrastructure/persistence/drizzle/repositories/project.repository';
 import { ProjectColumnDrizzleRepository } from '@/projects/infrastructure/persistence/drizzle/repositories/project-column.repository';
 import { ProjectReferenceDrizzleRepository } from '@/projects/infrastructure/persistence/drizzle/repositories/project-reference.repository';
@@ -20,6 +21,7 @@ import { TicketLabelRepository } from '@/projects/infrastructure/persistence/tic
 import { TicketOrderingRepository } from '@/projects/infrastructure/persistence/ticket-ordering.repository';
 
 @Module({
+  imports: [OutboxInfrastructureModule],
   providers: [
     {
       provide: ProjectRepository,

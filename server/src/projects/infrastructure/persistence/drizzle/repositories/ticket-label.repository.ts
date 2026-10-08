@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { DatabaseService } from '@/database/database.service';
+import { OutboxAggregateChangePublisher } from '@/outbox/outbox-aggregate-change.publisher';
 import type { TicketLabel } from '@/projects/domain/ticket-label';
 import type { CreateTicketLabelInput } from '@/projects/dto/create-ticket-label.dto';
 import type { UpdateTicketLabelInput } from '@/projects/dto/update-ticket-label.dto';
@@ -23,7 +24,10 @@ import { and, asc, eq } from 'drizzle-orm';
 
 @Injectable()
 export class TicketLabelDrizzleRepository extends TicketLabelRepository {
-  constructor(private readonly database: DatabaseService) {
+  constructor(
+    private readonly database: DatabaseService,
+    private readonly graphEvents: OutboxAggregateChangePublisher,
+  ) {
     super();
   }
 
@@ -70,6 +74,12 @@ export class TicketLabelDrizzleRepository extends TicketLabelRepository {
         throw new Error('티켓 라벨 생성 결과가 없습니다.');
       }
       await touchProject(transaction, projectId, now);
+      await this.graphEvents.ticketLabelChanged(
+        transaction,
+        organizationId,
+        row.id,
+        'changed',
+      );
       return toTicketLabelDomain(row);
     });
   }
@@ -105,6 +115,12 @@ export class TicketLabelDrizzleRepository extends TicketLabelRepository {
         return null;
       }
       await touchProject(transaction, projectId, now);
+      await this.graphEvents.ticketLabelChanged(
+        transaction,
+        organizationId,
+        row.id,
+        'changed',
+      );
       return toTicketLabelDomain(row);
     });
   }
@@ -146,6 +162,12 @@ export class TicketLabelDrizzleRepository extends TicketLabelRepository {
         .returning({ ticketId: ticketLabelAssignment.ticketId });
       if (assignment) {
         await touchProject(transaction, projectId, new Date());
+        await this.graphEvents.ticketChanged(
+          transaction,
+          organizationId,
+          ticketId,
+          'changed',
+        );
       }
       return toTicketLabelDomain(labelRow);
     });
@@ -192,6 +214,12 @@ export class TicketLabelDrizzleRepository extends TicketLabelRepository {
         .returning({ ticketId: ticketLabelAssignment.ticketId });
       if (removed) {
         await touchProject(transaction, projectId, new Date());
+        await this.graphEvents.ticketChanged(
+          transaction,
+          organizationId,
+          ticketId,
+          'changed',
+        );
       }
       return true;
     });

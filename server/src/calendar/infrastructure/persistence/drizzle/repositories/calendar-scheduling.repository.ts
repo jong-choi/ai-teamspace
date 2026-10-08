@@ -29,6 +29,7 @@ import { meeting } from '@/calendar/infrastructure/persistence/drizzle/schema/me
 import { meetingAttendee } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting-attendee.schema';
 import { meetingRecurrenceSeries } from '@/calendar/infrastructure/persistence/drizzle/schema/meeting-recurrence-series.schema';
 import { DatabaseService } from '@/database/database.service';
+import { OutboxAggregateChangePublisher } from '@/outbox/outbox-aggregate-change.publisher';
 
 import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 
@@ -69,7 +70,10 @@ function hasSqlState(error: unknown, state: string): boolean {
 
 @Injectable()
 export class CalendarSchedulingDrizzleRepository extends CalendarSchedulingRepository {
-  constructor(private readonly database: DatabaseService) {
+  constructor(
+    private readonly database: DatabaseService,
+    private readonly graphEvents: OutboxAggregateChangePublisher,
+  ) {
     super();
   }
 
@@ -187,6 +191,14 @@ export class CalendarSchedulingDrizzleRepository extends CalendarSchedulingRepos
         }
       }
 
+      for (const meetingRow of insertedMeetings) {
+        await this.graphEvents.meetingChanged(
+          transaction,
+          organizationId,
+          meetingRow.id,
+          'changed',
+        );
+      }
       const records = await loadMeetingDetails(
         transaction,
         organizationId,
@@ -237,11 +249,9 @@ export class CalendarSchedulingDrizzleRepository extends CalendarSchedulingRepos
             meetingId: update.id,
             startAt: update.startAt,
             endAt: update.endAt,
-            participantUserIds: [
-              ...record.attendees
-                .filter((item) => item.status !== 'declined')
-                .map((item) => item.userId),
-            ],
+            participantUserIds: record.attendees
+              .filter((item) => item.status !== 'declined')
+              .map((item) => item.userId),
             meetingRoomId,
           },
         ];
@@ -358,6 +368,14 @@ export class CalendarSchedulingDrizzleRepository extends CalendarSchedulingRepos
         }
       }
 
+      for (const meetingId of meetingIds) {
+        await this.graphEvents.meetingChanged(
+          transaction,
+          organizationId,
+          meetingId,
+          'changed',
+        );
+      }
       const records = await loadMeetingDetails(
         transaction,
         organizationId,
@@ -377,7 +395,7 @@ export class CalendarSchedulingDrizzleRepository extends CalendarSchedulingRepos
     if (meetingIds.length === 0) return [];
     return this.database.db.transaction(async (transaction) => {
       const now = new Date();
-      await transaction
+      const canceled = await transaction
         .update(meeting)
         .set({
           canceledAt: now,
@@ -392,7 +410,16 @@ export class CalendarSchedulingDrizzleRepository extends CalendarSchedulingRepos
             inArray(meeting.id, meetingIds),
             isNull(meeting.canceledAt),
           ),
+        )
+        .returning({ id: meeting.id });
+      for (const { id } of canceled) {
+        await this.graphEvents.meetingChanged(
+          transaction,
+          organizationId,
+          id,
+          'changed',
         );
+      }
       return loadMeetingDetails(transaction, organizationId, meetingIds);
     });
   }

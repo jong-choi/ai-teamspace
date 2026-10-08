@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { DatabaseService } from '@/database/database.service';
+import { OutboxAggregateChangePublisher } from '@/outbox/outbox-aggregate-change.publisher';
 import type { Project } from '@/projects/domain/project';
 import { ProjectKeyConflictError } from '@/projects/domain/project.error';
 import { defaultProjectColumns } from '@/projects/domain/project-default-columns';
@@ -29,7 +30,10 @@ type ProjectStats = {
 
 @Injectable()
 export class ProjectDrizzleRepository extends ProjectRepository {
-  constructor(private readonly database: DatabaseService) {
+  constructor(
+    private readonly database: DatabaseService,
+    private readonly graphEvents: OutboxAggregateChangePublisher,
+  ) {
     super();
   }
 
@@ -132,6 +136,12 @@ export class ProjectDrizzleRepository extends ProjectRepository {
           ),
         );
 
+        await this.graphEvents.projectChanged(
+          transaction,
+          organizationId,
+          row.id,
+          'changed',
+        );
         return toProjectDomain(row);
       });
     } catch (error) {
@@ -173,6 +183,15 @@ export class ProjectDrizzleRepository extends ProjectRepository {
         return null;
       }
 
+      const projectionChanged =
+        (input.name !== undefined && input.name !== current.name) ||
+        (input.description !== undefined &&
+          input.description !== current.description) ||
+        (input.leadUserId !== undefined &&
+          input.leadUserId !== current.leadUserId) ||
+        (input.archived !== undefined &&
+          input.archived !== (current.archivedAt !== null));
+
       const [row] = await transaction
         .update(project)
         .set(
@@ -197,6 +216,14 @@ export class ProjectDrizzleRepository extends ProjectRepository {
         )
         .returning();
 
+      if (row && projectionChanged) {
+        await this.graphEvents.projectChanged(
+          transaction,
+          organizationId,
+          projectId,
+          'changed',
+        );
+      }
       return row ? toProjectDomain(row) : null;
     });
   }

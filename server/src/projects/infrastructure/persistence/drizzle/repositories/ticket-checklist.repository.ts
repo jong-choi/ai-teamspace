@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { DatabaseService } from '@/database/database.service';
+import { OutboxAggregateChangePublisher } from '@/outbox/outbox-aggregate-change.publisher';
 import type { TicketChecklistItem } from '@/projects/domain/ticket-checklist-item';
 import type { CreateTicketChecklistInput } from '@/projects/dto/create-ticket-checklist.dto';
 import type { CreateTicketChecklistItemInput } from '@/projects/dto/create-ticket-checklist-item.dto';
@@ -40,7 +41,10 @@ import { and, asc, eq, max } from 'drizzle-orm';
 
 @Injectable()
 export class TicketChecklistDrizzleRepository extends TicketChecklistRepository {
-  constructor(private readonly database: DatabaseService) {
+  constructor(
+    private readonly database: DatabaseService,
+    private readonly graphEvents: OutboxAggregateChangePublisher,
+  ) {
     super();
   }
 
@@ -81,6 +85,12 @@ export class TicketChecklistDrizzleRepository extends TicketChecklistRepository 
         throw new Error('티켓 체크리스트 생성 결과가 없습니다.');
       }
       await touchProject(transaction, projectId, now);
+      await this.graphEvents.ticketChanged(
+        transaction,
+        organizationId,
+        ticketId,
+        'changed',
+      );
       return { checklist: toTicketChecklistDomain(row), items: [] };
     });
   }
@@ -126,6 +136,12 @@ export class TicketChecklistDrizzleRepository extends TicketChecklistRepository 
           asc(ticketChecklistItem.id),
         );
       await touchProject(transaction, projectId, now);
+      await this.graphEvents.ticketChanged(
+        transaction,
+        organizationId,
+        ticketId,
+        'changed',
+      );
       return {
         checklist: toTicketChecklistDomain(row),
         items: items.map(toTicketChecklistItemDomain),
@@ -165,6 +181,12 @@ export class TicketChecklistDrizzleRepository extends TicketChecklistRepository 
       const now = new Date();
       await normalizeChecklistOrder(transaction, ticketId, now);
       await touchProject(transaction, projectId, now);
+      await this.graphEvents.ticketChanged(
+        transaction,
+        organizationId,
+        ticketId,
+        'changed',
+      );
       return true;
     });
   }
@@ -213,6 +235,12 @@ export class TicketChecklistDrizzleRepository extends TicketChecklistRepository 
         throw new Error('티켓 체크리스트 항목 생성 결과가 없습니다.');
       }
       await touchProject(transaction, projectId, now);
+      await this.graphEvents.ticketChanged(
+        transaction,
+        organizationId,
+        ticketId,
+        'changed',
+      );
       return toTicketChecklistItemDomain(row);
     });
   }
@@ -293,6 +321,12 @@ export class TicketChecklistDrizzleRepository extends TicketChecklistRepository 
       );
       if (result.changed) {
         await touchProject(transaction, projectId, now);
+        await this.graphEvents.ticketChanged(
+          transaction,
+          organizationId,
+          ticketId,
+          'changed',
+        );
       }
       return {
         kind: 'moved',
@@ -339,6 +373,12 @@ export class TicketChecklistDrizzleRepository extends TicketChecklistRepository 
       const now = new Date();
       await normalizeChecklistItemOrder(transaction, checklistId, now);
       await touchProject(transaction, projectId, now);
+      await this.graphEvents.ticketChanged(
+        transaction,
+        organizationId,
+        ticketId,
+        'changed',
+      );
       return true;
     });
   }
@@ -382,6 +422,12 @@ export class TicketChecklistDrizzleRepository extends TicketChecklistRepository 
         return null;
       }
       await touchProject(transaction, projectId, now);
+      await this.graphEvents.ticketChanged(
+        transaction,
+        organizationId,
+        ticketId,
+        'changed',
+      );
       return toTicketChecklistItemDomain(row);
     });
   }

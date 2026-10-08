@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { DatabaseService } from '@/database/database.service';
+import { OutboxAggregateChangePublisher } from '@/outbox/outbox-aggregate-change.publisher';
 import type { Ticket } from '@/projects/domain/ticket';
 import type { MoveTicketInput } from '@/projects/dto/move-ticket.dto';
 import { toTicketDomain } from '@/projects/infrastructure/persistence/drizzle/mappers/ticket.mapper';
@@ -21,7 +22,10 @@ import { and, asc, eq, isNull } from 'drizzle-orm';
 
 @Injectable()
 export class TicketOrderingDrizzleRepository extends TicketOrderingRepository {
-  constructor(private readonly database: DatabaseService) {
+  constructor(
+    private readonly database: DatabaseService,
+    private readonly graphEvents: OutboxAggregateChangePublisher,
+  ) {
     super();
   }
 
@@ -149,6 +153,12 @@ export class TicketOrderingDrizzleRepository extends TicketOrderingRepository {
 
       if (changed) {
         await touchProject(transaction, projectId, now);
+        await this.graphEvents.ticketChanged(
+          transaction,
+          organizationId,
+          ticketId,
+          'changed',
+        );
       }
       return { kind: 'moved', ticket: movedTicket };
     });

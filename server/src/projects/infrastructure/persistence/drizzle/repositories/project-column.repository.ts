@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { DatabaseService } from '@/database/database.service';
+import { OutboxAggregateChangePublisher } from '@/outbox/outbox-aggregate-change.publisher';
 import type { ProjectColumn } from '@/projects/domain/project-column';
 import { toProjectUpdate } from '@/projects/infrastructure/persistence/drizzle/mappers/project.mapper';
 import {
@@ -16,7 +17,10 @@ import { and, asc, eq, isNull, max } from 'drizzle-orm';
 
 @Injectable()
 export class ProjectColumnDrizzleRepository extends ProjectColumnRepository {
-  constructor(private readonly database: DatabaseService) {
+  constructor(
+    private readonly database: DatabaseService,
+    private readonly graphEvents: OutboxAggregateChangePublisher,
+  ) {
     super();
   }
 
@@ -103,6 +107,12 @@ export class ProjectColumnDrizzleRepository extends ProjectColumnRepository {
         .update(project)
         .set(toProjectUpdate({ updatedAt: now }))
         .where(eq(project.id, projectId));
+      await this.graphEvents.projectChanged(
+        transaction,
+        organizationId,
+        projectId,
+        'changed',
+      );
       return toProjectColumnDomain(row);
     });
   }
@@ -145,6 +155,12 @@ export class ProjectColumnDrizzleRepository extends ProjectColumnRepository {
         .update(project)
         .set(toProjectUpdate({ updatedAt: now }))
         .where(eq(project.id, projectId));
+      await this.graphEvents.projectChanged(
+        transaction,
+        organizationId,
+        projectId,
+        'changed',
+      );
       return toProjectColumnDomain(row);
     });
   }

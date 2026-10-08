@@ -4,6 +4,8 @@ import { fromDrizzle, PostgresOutboxStore } from '@nestjs/outbox/postgres';
 
 import { DatabaseModule } from '@/database/database.module';
 import { DatabaseService } from '@/database/database.service';
+import { OutboxAggregateChangePublisher } from '@/outbox/outbox-aggregate-change.publisher';
+import { OutboxAggregateProjectionState } from '@/outbox/outbox-aggregate-projection-state';
 
 @Module({
   imports: [
@@ -15,6 +17,8 @@ import { DatabaseService } from '@/database/database.service';
     }),
   ],
   providers: [
+    OutboxAggregateChangePublisher,
+    OutboxAggregateProjectionState,
     {
       provide: PostgresOutboxStore,
       inject: [DatabaseService, OutboxStorage],
@@ -28,6 +32,10 @@ import { DatabaseService } from '@/database/database.service';
         ),
     },
   ],
-  exports: [OutboxModule],
+  exports: [
+    OutboxModule,
+    OutboxAggregateChangePublisher,
+    OutboxAggregateProjectionState,
+  ],
 })
 export class OutboxInfrastructureModule {}

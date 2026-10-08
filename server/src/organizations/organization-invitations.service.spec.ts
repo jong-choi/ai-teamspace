@@ -19,6 +19,10 @@ import { OrganizationInvitationsService } from '@/organizations/organization-inv
 import { jest } from '@jest/globals';
 
 class FakeOrganizationProvider extends OrganizationProvider {
+  getMembershipProjection =
+    jest.fn<OrganizationProvider['getMembershipProjection']>();
+  listMembershipProjectionUserIds =
+    jest.fn<OrganizationProvider['listMembershipProjectionUserIds']>();
   listForActor = jest.fn<OrganizationProvider['listForActor']>();
   createForActor = jest.fn<OrganizationProvider['createForActor']>();
   getAccess = jest.fn<OrganizationProvider['getAccess']>();

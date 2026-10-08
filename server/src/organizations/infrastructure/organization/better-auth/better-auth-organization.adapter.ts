@@ -17,7 +17,11 @@ import {
 import { OrganizationAccessSchema } from '@/organizations/domain/organization-access';
 import type { OrganizationMember } from '@/organizations/domain/organization-member';
 import { OrganizationMemberSchema } from '@/organizations/domain/organization-member';
-import type { OrganizationRole } from '@/organizations/domain/organization-role';
+import type { OrganizationMembershipProjection } from '@/organizations/domain/organization-membership-projection';
+import {
+  type OrganizationRole,
+  OrganizationRoleSchema,
+} from '@/organizations/domain/organization-role';
 import type { CreateOrganizationInput } from '@/organizations/dto/create-organization.dto';
 import type { OrganizationMemberList } from '@/organizations/dto/organization-member-list.dto';
 import type { QueryOrganizationMembersInput } from '@/organizations/dto/query-organization-members.dto';
@@ -163,6 +167,50 @@ export class BetterAuthOrganizationAdapter extends OrganizationProvider {
     );
 
     return member !== null;
+  }
+
+  async getMembershipProjection(
+    organizationId: string,
+    userId: string,
+  ): Promise<OrganizationMembershipProjection | null> {
+    const adapter = await this.organizationAdapter();
+    const membership = await this.call(() =>
+      adapter.checkMembership({ userId, organizationId }),
+    );
+    if (!membership) return null;
+    return {
+      id: membership.id,
+      organizationId: membership.organizationId,
+      userId: membership.userId,
+      role: OrganizationRoleSchema.parse(membership.role),
+      createdAt: membership.createdAt.toISOString(),
+    };
+  }
+
+  async listMembershipProjectionUserIds(
+    organizationId: string,
+    afterUserId: string | null,
+    limit: number,
+  ): Promise<string[]> {
+    const authContext = await this.call(
+      () => this.authService.instance.$context,
+    );
+    const afterFilter: AuthWhere[] = afterUserId
+      ? [{ field: 'userId', operator: 'gt', value: afterUserId }]
+      : [];
+    const rows = await this.call(() =>
+      authContext.adapter.findMany<AuthMemberIdentity>({
+        model: 'member',
+        where: [
+          { field: 'organizationId', value: organizationId },
+          ...afterFilter,
+        ],
+        select: ['id', 'userId'],
+        sortBy: { field: 'userId', direction: 'asc' },
+        limit,
+      }),
+    );
+    return rows.map(({ userId: id }) => id);
   }
 
   async listMembersByUserIds(

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { DatabaseService } from '@/database/database.service';
+import { OutboxAggregateChangePublisher } from '@/outbox/outbox-aggregate-change.publisher';
 import type { Ticket } from '@/projects/domain/ticket';
 import type { CreateTicketInput } from '@/projects/dto/create-ticket.dto';
 import type { QueryTicketsInput } from '@/projects/dto/query-tickets.dto';
@@ -27,7 +28,10 @@ type TicketTransaction = Parameters<
 
 @Injectable()
 export class TicketDrizzleRepository extends TicketRepository {
-  constructor(private readonly database: DatabaseService) {
+  constructor(
+    private readonly database: DatabaseService,
+    private readonly graphEvents: OutboxAggregateChangePublisher,
+  ) {
     super();
   }
 
@@ -156,6 +160,12 @@ export class TicketDrizzleRepository extends TicketRepository {
         )
         .returning();
       if (!row) throw new Error('티켓 생성 결과가 없습니다.');
+      await this.graphEvents.ticketChanged(
+        transaction,
+        organizationId,
+        row.id,
+        'changed',
+      );
       return { kind: 'created', ticket: toTicketDomain(row) };
     });
   }
@@ -264,6 +274,12 @@ export class TicketDrizzleRepository extends TicketRepository {
           now,
         );
       }
+      await this.graphEvents.ticketChanged(
+        transaction,
+        organizationId,
+        ticketId,
+        'changed',
+      );
       await transaction
         .update(project)
         .set(toProjectUpdate({ updatedAt: now }))

@@ -21,6 +21,7 @@ import {
   type UpdateAttendeeRsvpResult,
 } from '@/calendar/infrastructure/persistence/meeting-participation.repository';
 import { DatabaseService } from '@/database/database.service';
+import { OutboxAggregateChangePublisher } from '@/outbox/outbox-aggregate-change.publisher';
 
 import { and, eq, notInArray, sql } from 'drizzle-orm';
 
@@ -53,7 +54,10 @@ function hasSqlState(error: unknown, state: string): boolean {
 
 @Injectable()
 export class MeetingParticipationDrizzleRepository extends MeetingParticipationRepository {
-  constructor(private readonly database: DatabaseService) {
+  constructor(
+    private readonly database: DatabaseService,
+    private readonly graphEvents: OutboxAggregateChangePublisher,
+  ) {
     super();
   }
 
@@ -125,6 +129,12 @@ export class MeetingParticipationDrizzleRepository extends MeetingParticipationR
         })
         .where(eq(meeting.id, meetingId));
 
+      await this.graphEvents.meetingChanged(
+        transaction,
+        organizationId,
+        meetingId,
+        'changed',
+      );
       const updated = await loadMeetingDetails(transaction, organizationId, [
         meetingId,
       ]);
@@ -195,6 +205,12 @@ export class MeetingParticipationDrizzleRepository extends MeetingParticipationR
             eq(meeting.id, meetingId),
           ),
         );
+      await this.graphEvents.meetingChanged(
+        transaction,
+        organizationId,
+        meetingId,
+        'changed',
+      );
       return { status: 'updated', attendee: toMeetingAttendeeDomain(row) };
     });
   }

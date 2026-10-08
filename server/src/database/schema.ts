@@ -10,12 +10,16 @@ import * as meetingRoomSchema from '@/calendar/infrastructure/persistence/drizzl
 import * as chatConversationSchema from '@/chat/infrastructure/persistence/drizzle/schema/chat-conversation.schema';
 import * as chatMessageSchema from '@/chat/infrastructure/persistence/drizzle/schema/chat-message.schema';
 import * as chatParticipantSchema from '@/chat/infrastructure/persistence/drizzle/schema/chat-participant.schema';
+import * as curatedEdgeSchema from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/curated-edge.schema';
+import * as curatedEditAuditSchema from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/curated-edit-audit.schema';
+import * as curatedNodeSchema from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/curated-node.schema';
 import * as mcpOrganizationPolicySchema from '@/mcp-access/infrastructure/persistence/drizzle/schema/mcp-organization-policy.schema';
 import * as mcpUserPolicySchema from '@/mcp-access/infrastructure/persistence/drizzle/schema/mcp-user-policy.schema';
 import * as mcpAccessKeyAllocationSchema from '@/mcp-access-keys/infrastructure/persistence/drizzle/schema/mcp-access-key-allocation.schema';
 import * as mcpAccessKeyOperationSchema from '@/mcp-access-keys/infrastructure/persistence/drizzle/schema/mcp-access-key-operation.schema';
 import * as mcpAgentDelegationSchema from '@/mcp-agent-delegations/infrastructure/persistence/drizzle/schema/mcp-agent-delegation.schema';
 import * as mcpAgentOauthFlowSchema from '@/mcp-agent-delegations/infrastructure/persistence/drizzle/schema/mcp-agent-oauth-flow.schema';
+import * as outboxAggregateVersionSchema from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 import * as projectSchema from '@/projects/infrastructure/persistence/drizzle/schema/project.schema';
 import * as projectColumnSchema from '@/projects/infrastructure/persistence/drizzle/schema/project-column.schema';
 import * as ticketSchema from '@/projects/infrastructure/persistence/drizzle/schema/ticket.schema';
@@ -42,12 +46,16 @@ export const databaseSchema = {
   ...chatConversationSchema,
   ...chatMessageSchema,
   ...chatParticipantSchema,
+  ...curatedNodeSchema,
+  ...curatedEdgeSchema,
+  ...curatedEditAuditSchema,
   ...mcpOrganizationPolicySchema,
   ...mcpUserPolicySchema,
   ...mcpAccessKeyAllocationSchema,
   ...mcpAccessKeyOperationSchema,
   ...mcpAgentDelegationSchema,
   ...mcpAgentOauthFlowSchema,
+  ...outboxAggregateVersionSchema,
   ...projectColumnSchema,
   ...projectSchema,
   ...ticketChecklistItemSchema,

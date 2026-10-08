@@ -4,9 +4,10 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import type { AllConfigType } from '@/config/config.type';
-import type {
-  McpAccessKeyRecord,
-  McpAccessKeySecretRecord,
+import {
+  isActiveMcpAccessKey,
+  type McpAccessKeyRecord,
+  type McpAccessKeySecretRecord,
 } from '@/mcp-access-keys/domain/mcp-access-key';
 import type { McpAccessKeyMetadata } from '@/mcp-access-keys/domain/mcp-access-key-contract';
 import {
@@ -96,7 +97,7 @@ export class McpAccessKeyLifecycleService {
       retentionHours: config.accessKey.operationRetentionHours,
     });
 
-    const allocation = await this.coordination.reserveAllocation(
+    const allocation = await this.reserveSlot(
       userId,
       config.accessKey.maxActivePerUser,
     );
@@ -202,7 +203,9 @@ export class McpAccessKeyLifecycleService {
 
     let reservedAllocation: { id: string } | null = null;
     if (!currentActive && targetActive) {
-      reservedAllocation = await this.coordination.reserveAllocation(
+      // 만료된 key는 만료 전에 확정한 allocation을 아직 가질 수 있다. 같은 key로 새 slot을 확정하기 전에 비운다.
+      await this.coordination.releaseAllocationByKeyId(userId, keyId);
+      reservedAllocation = await this.reserveSlot(
         userId,
         config.accessKey.maxActivePerUser,
       );
@@ -367,6 +370,27 @@ export class McpAccessKeyLifecycleService {
       key: replacement,
       secret: replacement.secret,
     });
+  }
+
+  // 만료나 비활성으로 상한에서 빠진 key도 allocation을 남길 수 있다. slot이 모두 찼을 때만 그 allocation을 회수하고 한 번 더 시도한다.
+  private async reserveSlot(userId: string, maxSlots: number) {
+    const reserved = await this.coordination.reserveAllocation(
+      userId,
+      maxSlots,
+    );
+    if (reserved) return reserved;
+
+    const inactiveKeys = (await this.provider.listForUser(userId)).filter(
+      (key) => !isActiveMcpAccessKey(key),
+    );
+    if (inactiveKeys.length === 0) return null;
+
+    await Promise.all(
+      inactiveKeys.map((key) =>
+        this.coordination.releaseAllocationByKeyId(userId, key.id),
+      ),
+    );
+    return this.coordination.reserveAllocation(userId, maxSlots);
   }
 
   private async requireRecord(

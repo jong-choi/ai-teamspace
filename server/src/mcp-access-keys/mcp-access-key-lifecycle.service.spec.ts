@@ -132,6 +132,7 @@ describe('MCP access key lifecycle', () => {
       secret: 'wos_mcp_one-time-secret',
     });
     revoke.mockResolvedValue(true);
+    listForUser.mockResolvedValue([]);
   });
 
   it('membership → idempotency → quota → provider → finalize 순서로 create한다', async () => {
@@ -186,6 +187,60 @@ describe('MCP access key lifecycle', () => {
 
     expect(createForUser).not.toHaveBeenCalled();
     expect(failOperation).toHaveBeenCalledWith('operation-a');
+  });
+
+  it('slot이 모두 찼으면 만료된 key의 allocation을 회수하고 한 번 더 예약한다', async () => {
+    reserveAllocation
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(allocation);
+    listForUser.mockResolvedValue([
+      { ...baseRecord, id: 'key-expired', expired: true },
+      { ...baseRecord, id: 'key-active' },
+    ]);
+
+    await service.create(
+      'user-a',
+      {
+        name: '노트북',
+        scopes: ['wiki:read'],
+        organizationGrant: {
+          mode: 'selected',
+          organizationIds: ['org-a'],
+        },
+      },
+      'idem-a',
+    );
+
+    expect(releaseAllocationByKeyId).toHaveBeenCalledTimes(1);
+    expect(releaseAllocationByKeyId).toHaveBeenCalledWith(
+      'user-a',
+      'key-expired',
+    );
+    expect(reserveAllocation).toHaveBeenCalledTimes(2);
+    expect(createForUser).toHaveBeenCalledTimes(1);
+  });
+
+  it('회수할 비활성 key가 없으면 다시 예약하지 않고 quota error로 끝낸다', async () => {
+    reserveAllocation.mockResolvedValue(null);
+    listForUser.mockResolvedValue([baseRecord]);
+
+    await expect(
+      service.create(
+        'user-a',
+        {
+          name: '노트북',
+          scopes: ['wiki:read'],
+          organizationGrant: {
+            mode: 'selected',
+            organizationIds: ['org-a'],
+          },
+        },
+        'idem-a',
+      ),
+    ).rejects.toBeInstanceOf(McpAccessKeyQuotaExceededError);
+
+    expect(reserveAllocation).toHaveBeenCalledTimes(1);
+    expect(releaseAllocationByKeyId).not.toHaveBeenCalled();
   });
 
   it('완료된 동일 idempotency 작업에서 secret을 재노출하지 않는다', async () => {
@@ -265,6 +320,7 @@ describe('MCP access key lifecycle', () => {
       enabled: true,
     });
 
+    expect(releaseAllocationByKeyId).toHaveBeenCalledWith('user-a', 'key-a');
     expect(reserveAllocation).toHaveBeenCalledWith('user-a', 2);
     expect(updateForUser).toHaveBeenCalledWith({
       userId: 'user-a',

@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import type { AllConfigType } from '@/config/config.type';
-import type { McpAccessKeyRecord } from '@/mcp-access-keys/domain/mcp-access-key';
+import {
+  isActiveMcpAccessKey,
+  type McpAccessKeyRecord,
+} from '@/mcp-access-keys/domain/mcp-access-key';
 import { McpAccessKeyProvider } from '@/mcp-access-keys/infrastructure/access-key/mcp-access-key.provider';
 import { McpAccessKeyCoordinationRepository } from '@/mcp-access-keys/infrastructure/persistence/mcp-access-key-coordination.repository';
 
@@ -148,5 +151,5 @@ export class McpAccessKeyReconciliationService {
 function isActiveKey(
   key: McpAccessKeyRecord | undefined,
 ): key is McpAccessKeyRecord {
-  return Boolean(key?.enabled && !key.expired);
+  return key !== undefined && isActiveMcpAccessKey(key);
 }

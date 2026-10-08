@@ -163,6 +163,42 @@ describe('Personal MCP Access Key lifecycle 통합', () => {
     await expect(authenticator.authenticate(actor.secret)).rejects.toThrow();
   });
 
+  it('만료된 key는 활성 key 상한을 차지하지 않는다', async () => {
+    const actor = await target.createActor({ scopes: WIKI_SCOPES });
+    const { maxActivePerUser } = target.mcpConfig.accessKey;
+    for (let index = 1; index < maxActivePerUser; index += 1) {
+      expect(
+        (await createKey(actor, { idempotencyKey: `fill-${index}` })).status,
+      ).toBe(201);
+    }
+    // 시간이 지나 만료된 key를 흉내 내도록 Better Auth key의 만료 시각을 과거로 옮긴다.
+    await target.database
+      .update(apikey)
+      .set({ expiresAt: new Date(Date.now() - 1_000) })
+      .where(eq(apikey.referenceId, actor.userId));
+
+    const created = await createKey(actor, { idempotencyKey: 'after-expiry' });
+
+    expect(created.status).toBe(201);
+  });
+
+  it('만료된 key는 만료 기간을 다시 지정하면 같은 key로 다시 활성화된다', async () => {
+    const actor = await target.createActor({ scopes: WIKI_SCOPES });
+    await target.database
+      .update(apikey)
+      .set({ expiresAt: new Date(Date.now() - 1_000) })
+      .where(eq(apikey.id, actor.keyId));
+
+    const extended = await actor.agent
+      .patch(`/mcp/access-keys/${actor.keyId}`)
+      .send({ expiresInDays: 1 });
+
+    expect(extended.status).toBe(200);
+    await expect(
+      authenticator.authenticate(actor.secret),
+    ).resolves.toMatchObject({ userId: actor.userId });
+  });
+
   it('reconciliation은 stale reservation을 정리하고 allocation 없는 active key를 복구하며 두 번째 실행은 아무것도 바꾸지 않는다', async () => {
     const actor = await target.createActor({ scopes: WIKI_SCOPES });
     const coordination = target.app.get(McpAccessKeyCoordinationRepository);

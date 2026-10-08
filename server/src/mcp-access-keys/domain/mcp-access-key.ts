@@ -37,3 +37,8 @@ export type UpdateMcpAccessKeyProviderInput = {
   enabled?: boolean;
   expiresInSeconds?: number;
 };
+
+// 활성 key 상한은 enabled이면서 만료되지 않은 key만 센다.
+export function isActiveMcpAccessKey(key: McpAccessKeyRecord): boolean {
+  return key.enabled && !key.expired;
+}

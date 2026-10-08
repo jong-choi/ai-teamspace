@@ -1,4 +1,5 @@
 import { DatabaseService } from '@/database/database.service';
+import type { OutboxAggregateChangePublisher } from '@/outbox/outbox-aggregate-change.publisher';
 import type { Ticket } from '@/projects/domain/ticket';
 import type { TicketChecklistItem } from '@/projects/domain/ticket-checklist-item';
 import { toProjectUpdate } from '@/projects/infrastructure/persistence/drizzle/mappers/project.mapper';
@@ -231,9 +232,19 @@ export async function touchProject(
   transaction: WorkflowTransaction,
   projectId: string,
   updatedAt: Date,
+  graphEvents: OutboxAggregateChangePublisher,
 ): Promise<void> {
-  await transaction
+  const [source] = await transaction
     .update(project)
     .set(toProjectUpdate({ updatedAt }))
-    .where(eq(project.id, projectId));
+    .where(eq(project.id, projectId))
+    .returning({ organizationId: project.organizationId });
+  if (source) {
+    await graphEvents.projectChanged(
+      transaction,
+      source.organizationId,
+      projectId,
+      'changed',
+    );
+  }
 }

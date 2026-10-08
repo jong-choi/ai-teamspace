@@ -14,6 +14,9 @@ export class OutboxProjectionStateAdapter extends ProjectionStateRepository {
   parseEvent(raw: unknown) {
     return OutboxAggregateEventSchema.parse(raw);
   }
+  async recoveryStats() {
+    return this.state.recoveryStats();
+  }
   async current(
     organizationId: string,
     kind: Parameters<ProjectionStateRepository['current']>[1],
@@ -22,9 +25,34 @@ export class OutboxProjectionStateAdapter extends ProjectionStateRepository {
     const row = await this.state.current(organizationId, kind, id);
     return row ? OutboxAggregateVersionSchema.parse(row) : null;
   }
-  async listUnapplied(limit: number) {
+  async listMembershipObservationBatch(
+    ...[cursor, limit]: Parameters<
+      ProjectionStateRepository['listMembershipObservationBatch']
+    >
+  ) {
     return OutboxAggregateVersionSchema.array().parse(
-      await this.state.listUnapplied(limit),
+      await this.state.listMembershipObservationBatch(cursor, limit),
+    );
+  }
+  async listTrackedOrganizationIds(
+    afterOrganizationId: string | null,
+    limit: number,
+  ) {
+    return (
+      await this.state.listTrackedOrganizationIds(afterOrganizationId, limit)
+    ).map(({ organizationId }) => organizationId);
+  }
+  async listLiveSourcesForOrganization(
+    ...[organizationId, cursor, limit]: Parameters<
+      ProjectionStateRepository['listLiveSourcesForOrganization']
+    >
+  ) {
+    return OutboxAggregateVersionSchema.array().parse(
+      await this.state.listLiveSourcesForOrganization(
+        organizationId,
+        cursor,
+        limit,
+      ),
     );
   }
   markApplying(
@@ -40,8 +68,15 @@ export class OutboxProjectionStateAdapter extends ProjectionStateRepository {
     kind: Parameters<ProjectionStateRepository['current']>[1],
     id: string,
     version: number,
+    snapshotDigest: Parameters<ProjectionStateRepository['markApplied']>[4],
   ) {
-    return this.state.markApplied(organizationId, kind, id, version);
+    return this.state.markApplied(
+      organizationId,
+      kind,
+      id,
+      version,
+      snapshotDigest,
+    );
   }
   markFailed(
     organizationId: string,

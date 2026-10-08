@@ -8,6 +8,10 @@ import {
 import { KNOWLEDGE_GRAPH_SOURCE_CHANGED_JOB } from '@/jobs/knowledge-graph/knowledge-graph-projection.job';
 import { KNOWLEDGE_GRAPH_OUTBOX_TOPIC } from '@/outbox/outbox-aggregate-change.publisher';
 import { OutboxAggregateEventSchema } from '@/outbox/outbox-aggregate-event.schema';
+import {
+  KNOWLEDGE_GRAPH_JOB_ATTEMPTS,
+  KNOWLEDGE_GRAPH_JOB_BACKOFF_MS,
+} from '@/outbox/outbox-aggregate-recovery.policy';
 
 import type { Queue } from 'bullmq';
 import type { Redis } from 'ioredis';
@@ -61,8 +65,8 @@ export class KnowledgeGraphOutboxTransport
       payload.data,
       {
         jobId: message.id,
-        attempts: 10,
-        backoff: { type: 'exponential', delay: 1_000 },
+        attempts: KNOWLEDGE_GRAPH_JOB_ATTEMPTS,
+        backoff: { type: 'exponential', delay: KNOWLEDGE_GRAPH_JOB_BACKOFF_MS },
       },
     );
     let onAbort: () => void = () => {};

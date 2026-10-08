@@ -160,6 +160,12 @@ export class TicketDrizzleRepository extends TicketRepository {
         )
         .returning();
       if (!row) throw new Error('티켓 생성 결과가 없습니다.');
+      await this.graphEvents.projectChanged(
+        transaction,
+        organizationId,
+        projectId,
+        'changed',
+      );
       await this.graphEvents.ticketChanged(
         transaction,
         organizationId,
@@ -311,6 +317,12 @@ export class TicketDrizzleRepository extends TicketRepository {
             eq(project.organizationId, organizationId),
           ),
         );
+      await this.graphEvents.projectChanged(
+        transaction,
+        organizationId,
+        projectId,
+        'changed',
+      );
       return toTicketDomain(row);
     });
   }

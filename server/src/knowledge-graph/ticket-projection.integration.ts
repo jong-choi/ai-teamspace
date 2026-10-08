@@ -75,6 +75,9 @@ describeWritable('실제 Neo4j Ticket의 관계 교체와 source 소유권', () 
       lastAttemptedAt: null,
       appliedAt: null,
       lastError: null,
+      appliedSnapshotDigest: null,
+      lastRequeuedAt: null,
+      requeueCount: 0,
       updatedAt: new Date(),
     });
   }

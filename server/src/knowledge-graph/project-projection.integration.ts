@@ -66,6 +66,9 @@ describeWritable('Neo4j Project의 관계와 공유 column 소유권', () => {
       lastAttemptedAt: null,
       appliedAt: null,
       lastError: null,
+      appliedSnapshotDigest: null,
+      lastRequeuedAt: null,
+      requeueCount: 0,
       updatedAt: new Date(),
     });
   }

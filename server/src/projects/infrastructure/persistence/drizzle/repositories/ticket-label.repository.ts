@@ -73,7 +73,7 @@ export class TicketLabelDrizzleRepository extends TicketLabelRepository {
       if (!row) {
         throw new Error('티켓 라벨 생성 결과가 없습니다.');
       }
-      await touchProject(transaction, projectId, now);
+      await touchProject(transaction, projectId, now, this.graphEvents);
       await this.graphEvents.ticketLabelChanged(
         transaction,
         organizationId,
@@ -114,7 +114,7 @@ export class TicketLabelDrizzleRepository extends TicketLabelRepository {
       if (!row) {
         return null;
       }
-      await touchProject(transaction, projectId, now);
+      await touchProject(transaction, projectId, now, this.graphEvents);
       await this.graphEvents.ticketLabelChanged(
         transaction,
         organizationId,
@@ -161,7 +161,12 @@ export class TicketLabelDrizzleRepository extends TicketLabelRepository {
         .onConflictDoNothing()
         .returning({ ticketId: ticketLabelAssignment.ticketId });
       if (assignment) {
-        await touchProject(transaction, projectId, new Date());
+        await touchProject(
+          transaction,
+          projectId,
+          new Date(),
+          this.graphEvents,
+        );
         await this.graphEvents.ticketChanged(
           transaction,
           organizationId,
@@ -213,7 +218,12 @@ export class TicketLabelDrizzleRepository extends TicketLabelRepository {
         )
         .returning({ ticketId: ticketLabelAssignment.ticketId });
       if (removed) {
-        await touchProject(transaction, projectId, new Date());
+        await touchProject(
+          transaction,
+          projectId,
+          new Date(),
+          this.graphEvents,
+        );
         await this.graphEvents.ticketChanged(
           transaction,
           organizationId,

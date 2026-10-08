@@ -85,7 +85,22 @@ Calendar의 공유 속성 owner는 meeting_room과 meeting_recurrence source다.
 
 두 kind는 Outbox canonical text column의 TypeScript enum metadata에서 파생한다. 새 PostgreSQL enum이나 별도 테이블을 추가한 것이 아니다. 기존 8종 source에 이 둘을 더해 지원 source는 10종이다. 새 구조라며 임의 SQL migration을 작성하지 않는다.
 
-Membership은 조직 생성과 초대 수락의 member-added public event도 전달한다. 실제 Better Auth 원본 commit 후 public event→Jobs bridge→PG desiredSeq/Outbox→KG worker 경로이며 Better Auth transaction과 bridge transaction이 하나라고 주장하지 않는다. 기존 event 발행 실패 처리 정책을 유지하고, 중간 발행 유실·전체 조직 삭제 자동 탐지는 P6의 원본 재조정 대상으로 남는다. 현재 KG worker는 pending membership의 삭제 신호와 공개 owner 원본의 존재 여부가 다르면 현재 desiredSeq를 잠금/CAS로 확인해 새 버전과 Outbox를 기록한다. 오래된 탈퇴 관찰로 재가입한 membership을 삭제하거나, 사라진 membership의 stale changed 신호로 부활시키지 않는다. 그래프의 membership은 현재 인가 판단에 사용하지 않는다.
+Membership은 조직 생성과 초대 수락의 member-added public event도 전달한다. 실제 Better Auth 원본 commit 후 public event→Jobs bridge→PG desiredSeq/Outbox→KG worker 경로이며 Better Auth transaction과 bridge transaction이 하나라고 주장하지 않는다. 중간 의도 유실은 반영 완료된 membership의 현재 owner snapshot digest 관찰로 복구하고, 조직 삭제는 레지스트리 조직의 존재 확인과 tombstone 의도로 복구한다. 현재 KG worker는 pending source의 삭제 신호와 공개 owner 원본의 존재 여부가 다르면 현재 desiredSeq를 잠금/CAS로 확인해 새 버전과 Outbox를 기록한다. 오래된 탈퇴 관찰로 재가입한 membership을 삭제하거나, 사라진 membership의 stale changed 신호로 부활시키지 않는다. 그래프의 membership은 현재 인가 판단에 사용하지 않는다.
+
+## PG 기준 투영 복구
+
+`outbox_aggregate_version`은 desired/applied seq·삭제·적용 snapshot digest·재예약 횟수와 실패 상태를 소유한다. Redis는 실행 큐이며 복구의 기준이 아니다. 재예약은 같은 desired seq로 새 Outbox 의도를 기록하고, 원본 변경 및 확인된 membership 변경만 새 seq를 만든다.
+
+- `pending`은 5분부터 최대 60분까지 증가하는 cooldown 뒤 재예약한다. `applying`은 10분, `retry_scheduled`는 BullMQ backoff와 처리 여유를 포함한 약 27분 정체 뒤에만 재예약한다. DB 시계와 행 잠금/SKIP LOCKED로 여러 Jobs가 작업을 분할한다.
+- `failed`는 자동 재예약이나 중복 전달로 다시 처리하지 않는다. 새 owner 변경이 새 seq/pending으로 접수한다. 재예약 count만으로 pending을 failed로 바꾸지 않는다.
+- `kg_reconciliation_scope`는 조직 발견, owner 초기 접수, membership 관찰, 조직 존재 확인의 cursor·lease를 소유한다. token과 DB 시계의 2분 lease를 같은 의도 기록 transaction에서 확인하고, 만료한 소유자는 cursor나 Outbox를 쓰지 못한다.
+- owner 초기 접수는 조직과 종류별 id keyset을 사용한다. 기존 source의 seq를 늘리지 않는다. membership은 15분, 그 외 owner는 6시간마다 다음 순환을 시작한다.
+- 상시 snapshot 관찰은 반영 완료된 membership만 대상으로 한다. pending 변경은 재예약이 처리한다. 삭제된 membership도 재가입 확인을 위해 관찰하며 원본 조회 실패는 다음 원본 진행을 막지 않는다.
+- 조직 존재 확인은 레지스트리 조직 id를 기준으로 일괄 조회한 뒤 사라진 조직을 개별 재확인한다. missing 수가 배치의 20% 또는 최소 5개를 초과하면 tombstone을 멈추고 고정 anomaly 상태를 남긴다. 확인된 삭제만 source별 tombstone으로 처리하고 해당 조직 owner scope를 정리한다.
+
+Jobs는 부팅 직후와 60초 간격으로 복구를 실행한다. 목적별 batch는 최대 100개, tick은 목적마다 최대 20회와 20초 반복 예산을 사용한다. 한 scope의 순차 처리는 lease 만료 전에 끝내고 완료한 지점까지 cursor를 남긴다. 다른 목적의 실패는 독립 작업을 멈추지 않는다. 통계에는 상태별 backlog·재예약 정체 count·pending age와 비민감 오류 코드만 남긴다.
+
+Neo4j 데이터나 marker 유실은 상시 전수 repair로 처리하지 않는다. 관리자 rebuild와 failed 재시도 명령 API는 후속 운영 기능에서 이 PG 복구 경계를 확장한다. 조직 삭제도 source marker와 tombstone을 보존해 오래된 작업의 부활을 차단하며 전체 그래프 clear를 사용하지 않는다.
 
 실제 원본/Jobs/Neo4j 검사는 `src/knowledge-graph/project-ticket-delivery.integration.ts`, `calendar-delivery.integration.ts`, `membership-delivery.integration.ts`가 소유한다. Neo4j 관계 교체·fence·shared source 검사는 `project-projection.integration.ts`, `ticket-projection.integration.ts`, `calendar-reference-projection.integration.ts`가 소유한다. 조직 삭제 검사는 격리 fixture의 조직 row cascade 후 전달된 이벤트를 처리하는 범위이며 운영 조직 삭제 API나 자동 복구 scheduler 전체를 검증했다는 뜻이 아니다.
 

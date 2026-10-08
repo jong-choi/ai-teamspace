@@ -75,6 +75,9 @@ describeWritable('Neo4j Community의 Wiki 원본 fencing', () => {
       lastAttemptedAt: null,
       appliedAt: null,
       lastError: null,
+      appliedSnapshotDigest: null,
+      lastRequeuedAt: null,
+      requeueCount: 0,
       updatedAt: new Date('2026-10-09T00:00:00.000Z'),
     });
   }

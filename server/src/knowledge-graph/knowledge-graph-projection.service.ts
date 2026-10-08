@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { ConfigType } from '@nestjs/config';
 
 import knowledgeGraphConfig from '@/knowledge-graph/config/knowledge-graph.config';
+import { digestGraphJson } from '@/knowledge-graph/domain/graph-json-digest';
 import { KnowledgeGraphWriter } from '@/knowledge-graph/infrastructure/graph/knowledge-graph-writer.provider';
 import { ProjectionDeliveryRepository } from '@/knowledge-graph/infrastructure/persistence/projection-delivery.repository';
 import { ProjectionStateRepository } from '@/knowledge-graph/infrastructure/persistence/projection-state.repository';
@@ -50,7 +51,10 @@ export class KnowledgeGraphProjectionService {
     if (source.desiredSeq < event.sourceVersion) {
       throw new Error('그래프 이벤트가 PostgreSQL 버전보다 앞서 있습니다.');
     }
-    if (source.appliedSeq >= source.desiredSeq) {
+    if (
+      source.appliedSeq >= source.desiredSeq ||
+      source.projectionStatus === 'failed'
+    ) {
       return;
     }
 
@@ -61,6 +65,7 @@ export class KnowledgeGraphProjectionService {
       source.desiredSeq,
     );
 
+    let snapshotDigest = digestGraphJson(null);
     try {
       // 오래된 이벤트 payload 대신 현재 업무 owner의 확정 데이터만 조회한다.
       if (source.aggregateKind === 'wiki_document') {
@@ -68,6 +73,8 @@ export class KnowledgeGraphProjectionService {
           source.organizationId,
           source.aggregateId,
         );
+        await this.assertSnapshotPresence(source, snapshot);
+        snapshotDigest = digestGraphJson(source.deleted ? null : snapshot);
         await this.applyCurrentSnapshot(source, () =>
           this.writer.applyWiki(source, snapshot),
         );
@@ -76,6 +83,8 @@ export class KnowledgeGraphProjectionService {
           source.organizationId,
           source.aggregateId,
         );
+        await this.assertSnapshotPresence(source, snapshot);
+        snapshotDigest = digestGraphJson(source.deleted ? null : snapshot);
         await this.applyCurrentSnapshot(source, () =>
           this.writer.applyProject(source, snapshot),
         );
@@ -84,6 +93,8 @@ export class KnowledgeGraphProjectionService {
           source.organizationId,
           source.aggregateId,
         );
+        await this.assertSnapshotPresence(source, snapshot);
+        snapshotDigest = digestGraphJson(source.deleted ? null : snapshot);
         await this.applyCurrentSnapshot(source, () =>
           this.writer.applyTicketLabel(source, snapshot),
         );
@@ -92,6 +103,8 @@ export class KnowledgeGraphProjectionService {
           source.organizationId,
           source.aggregateId,
         );
+        await this.assertSnapshotPresence(source, snapshot);
+        snapshotDigest = digestGraphJson(source.deleted ? null : snapshot);
         await this.applyCurrentSnapshot(source, () =>
           this.writer.applyTicket(source, snapshot),
         );
@@ -100,6 +113,8 @@ export class KnowledgeGraphProjectionService {
           source.organizationId,
           source.aggregateId,
         );
+        await this.assertSnapshotPresence(source, snapshot);
+        snapshotDigest = digestGraphJson(source.deleted ? null : snapshot);
         await this.applyCurrentSnapshot(source, () =>
           this.writer.applyMeeting(source, snapshot),
         );
@@ -108,6 +123,8 @@ export class KnowledgeGraphProjectionService {
           source.organizationId,
           source.aggregateId,
         );
+        await this.assertSnapshotPresence(source, snapshot);
+        snapshotDigest = digestGraphJson(source.deleted ? null : snapshot);
         await this.applyCurrentSnapshot(source, () =>
           this.writer.applyMeetingRoom(source, snapshot),
         );
@@ -116,6 +133,8 @@ export class KnowledgeGraphProjectionService {
           source.organizationId,
           source.aggregateId,
         );
+        await this.assertSnapshotPresence(source, snapshot);
+        snapshotDigest = digestGraphJson(source.deleted ? null : snapshot);
         await this.applyCurrentSnapshot(source, () =>
           this.writer.applyMeetingRecurrence(source, snapshot),
         );
@@ -124,12 +143,8 @@ export class KnowledgeGraphProjectionService {
           source.organizationId,
           source.aggregateId,
         );
-        if (source.deleted !== (snapshot === null)) {
-          await this.delivery.recordObservedDeletion(source, snapshot === null);
-          throw new Error(
-            'Membership 원본 상태가 변경되어 최신 버전으로 다시 처리해야 합니다.',
-          );
-        }
+        await this.assertSnapshotPresence(source, snapshot);
+        snapshotDigest = digestGraphJson(source.deleted ? null : snapshot);
         await this.applyCurrentSnapshot(source, () =>
           this.writer.applyMembership(source, snapshot),
         );
@@ -138,6 +153,8 @@ export class KnowledgeGraphProjectionService {
           source.organizationId,
           source.aggregateId,
         );
+        await this.assertSnapshotPresence(source, snapshot);
+        snapshotDigest = digestGraphJson(source.deleted ? null : snapshot);
         await this.applyCurrentSnapshot(source, () =>
           this.writer.applyCuratedNode(source, snapshot),
         );
@@ -146,6 +163,8 @@ export class KnowledgeGraphProjectionService {
           source.organizationId,
           source.aggregateId,
         );
+        await this.assertSnapshotPresence(source, snapshot);
+        snapshotDigest = digestGraphJson(source.deleted ? null : snapshot);
         await this.applyCurrentSnapshot(source, () =>
           this.writer.applyCuratedEdge(source, snapshot),
         );
@@ -168,6 +187,7 @@ export class KnowledgeGraphProjectionService {
       source.aggregateKind,
       source.aggregateId,
       source.desiredSeq,
+      snapshotDigest,
     );
   }
 
@@ -190,6 +210,19 @@ export class KnowledgeGraphProjectionService {
       source.aggregateId,
       source.desiredSeq,
     );
+  }
+  private async assertSnapshotPresence(
+    source: NonNullable<
+      Awaited<ReturnType<ProjectionStateRepository['current']>>
+    >,
+    snapshot: Parameters<typeof digestGraphJson>[0],
+  ): Promise<void> {
+    const deleted =
+      snapshot === null ||
+      ('deletedAt' in snapshot && snapshot.deletedAt !== null);
+    if (source.deleted === deleted) return;
+    await this.delivery.recordObservedDeletion(source, deleted);
+    throw new Error('원본 상태가 변경되어 최신 버전으로 다시 처리해야 합니다.');
   }
   private async applyCurrentSnapshot(
     tracking: NonNullable<

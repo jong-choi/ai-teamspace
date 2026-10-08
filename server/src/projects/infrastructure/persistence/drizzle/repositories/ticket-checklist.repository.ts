@@ -84,7 +84,7 @@ export class TicketChecklistDrizzleRepository extends TicketChecklistRepository 
       if (!row) {
         throw new Error('티켓 체크리스트 생성 결과가 없습니다.');
       }
-      await touchProject(transaction, projectId, now);
+      await touchProject(transaction, projectId, now, this.graphEvents);
       await this.graphEvents.ticketChanged(
         transaction,
         organizationId,
@@ -135,7 +135,7 @@ export class TicketChecklistDrizzleRepository extends TicketChecklistRepository 
           asc(ticketChecklistItem.position),
           asc(ticketChecklistItem.id),
         );
-      await touchProject(transaction, projectId, now);
+      await touchProject(transaction, projectId, now, this.graphEvents);
       await this.graphEvents.ticketChanged(
         transaction,
         organizationId,
@@ -180,7 +180,7 @@ export class TicketChecklistDrizzleRepository extends TicketChecklistRepository 
       }
       const now = new Date();
       await normalizeChecklistOrder(transaction, ticketId, now);
-      await touchProject(transaction, projectId, now);
+      await touchProject(transaction, projectId, now, this.graphEvents);
       await this.graphEvents.ticketChanged(
         transaction,
         organizationId,
@@ -234,7 +234,7 @@ export class TicketChecklistDrizzleRepository extends TicketChecklistRepository 
       if (!row) {
         throw new Error('티켓 체크리스트 항목 생성 결과가 없습니다.');
       }
-      await touchProject(transaction, projectId, now);
+      await touchProject(transaction, projectId, now, this.graphEvents);
       await this.graphEvents.ticketChanged(
         transaction,
         organizationId,
@@ -320,7 +320,7 @@ export class TicketChecklistDrizzleRepository extends TicketChecklistRepository 
         itemId,
       );
       if (result.changed) {
-        await touchProject(transaction, projectId, now);
+        await touchProject(transaction, projectId, now, this.graphEvents);
         await this.graphEvents.ticketChanged(
           transaction,
           organizationId,
@@ -372,7 +372,7 @@ export class TicketChecklistDrizzleRepository extends TicketChecklistRepository 
       }
       const now = new Date();
       await normalizeChecklistItemOrder(transaction, checklistId, now);
-      await touchProject(transaction, projectId, now);
+      await touchProject(transaction, projectId, now, this.graphEvents);
       await this.graphEvents.ticketChanged(
         transaction,
         organizationId,
@@ -421,7 +421,7 @@ export class TicketChecklistDrizzleRepository extends TicketChecklistRepository 
       if (!row) {
         return null;
       }
-      await touchProject(transaction, projectId, now);
+      await touchProject(transaction, projectId, now, this.graphEvents);
       await this.graphEvents.ticketChanged(
         transaction,
         organizationId,

@@ -1,12 +1,20 @@
 import { Test } from '@nestjs/testing';
 
+import { MeetingProjectionQueryService } from '@/calendar/meeting-projection-query.service';
 import knowledgeGraphConfig from '@/knowledge-graph/config/knowledge-graph.config';
 import { KnowledgeGraphWriter } from '@/knowledge-graph/infrastructure/graph/knowledge-graph-writer.provider';
+import { CuratedProjectionSourceRepository } from '@/knowledge-graph/infrastructure/persistence/curated-projection-source.repository';
 import { ProjectionDeliveryRepository } from '@/knowledge-graph/infrastructure/persistence/projection-delivery.repository';
 import { ProjectionStateRepository } from '@/knowledge-graph/infrastructure/persistence/projection-state.repository';
+import { WorkosSourceAdapter } from '@/knowledge-graph/infrastructure/source/workos/workos-source.adapter';
 import { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
 import { KnowledgeGraphProjectionService } from '@/knowledge-graph/knowledge-graph-projection.service';
+import { MembershipProjectionQueryService } from '@/organizations/membership-projection-query.service';
 import { OutboxAggregateEventSchema } from '@/outbox/outbox-aggregate-event.schema';
+import { ProjectProjectionQueryService } from '@/projects/project-projection-query.service';
+import { TicketLabelProjectionQueryService } from '@/projects/ticket-label-projection-query.service';
+import { TicketProjectionQueryService } from '@/projects/ticket-projection-query.service';
+import { WikiProjectionQueryService } from '@/wiki/wiki-projection-query.service';
 
 describe('업무 그래프 투영 처리', () => {
   const tracking = {
@@ -132,8 +140,21 @@ describe('업무 그래프 투영 처리', () => {
       'project',
       'project-one',
       5,
+      expect.stringMatching(/^[0-9a-f]{64}$/),
     );
     expect(writer.applyWiki).not.toHaveBeenCalled();
+  });
+
+  it('종결된 failed source의 중복 전달은 applying으로 되살리지 않는다', async () => {
+    state.current.mockResolvedValue({
+      ...tracking,
+      projectionStatus: 'failed',
+    });
+    await projection.applySourceEvent(payload);
+    expect(state.markApplying).not.toHaveBeenCalled();
+    expect(projectReader.current).not.toHaveBeenCalled();
+    expect(writer.applyProject).not.toHaveBeenCalled();
+    expect(state.markApplied).not.toHaveBeenCalled();
   });
 
   it('이미 최신 버전을 반영한 중복 이벤트는 그래프를 다시 쓰지 않는다', async () => {
@@ -290,13 +311,69 @@ describe('업무 그래프 투영 처리', () => {
           ...payload,
           aggregateKind: 'membership',
         }),
-      ).rejects.toThrow('Membership 원본 상태');
+      ).rejects.toThrow('원본 상태가 변경');
       expect(delivery.recordObservedDeletion).toHaveBeenCalledWith(
         source,
         !deleted,
       );
       expect(writer.applyMembership).not.toHaveBeenCalled();
       expect(state.markApplied).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([false, true])(
+    'U-30/U-31 Membership 삭제 %s의 투영·관찰 digest는 동일한 64자리 값이다',
+    async (deleted) => {
+      const source = { ...tracking, aggregateKind: 'membership', deleted };
+      const snapshot = deleted
+        ? null
+        : {
+            id: 'membership-id',
+            organizationId: 'org-one',
+            userId: 'project-one',
+            role: 'member',
+            createdAt: '2026-10-08T00:00:00.000Z',
+          };
+      state.current.mockResolvedValue(source);
+      membershipReader.current.mockResolvedValue(snapshot);
+      const module = await Test.createTestingModule({
+        providers: [
+          WorkosSourceAdapter,
+          { provide: WikiProjectionQueryService, useValue: wikiReader },
+          { provide: ProjectProjectionQueryService, useValue: projectReader },
+          {
+            provide: TicketLabelProjectionQueryService,
+            useValue: ticketLabelReader,
+          },
+          { provide: TicketProjectionQueryService, useValue: ticketReader },
+          { provide: MeetingProjectionQueryService, useValue: meetingReader },
+          {
+            provide: MembershipProjectionQueryService,
+            useValue: membershipReader,
+          },
+          {
+            provide: CuratedProjectionSourceRepository,
+            useValue: curatedReader,
+          },
+        ],
+      }).compile();
+      const observed = await module
+        .get(WorkosSourceAdapter)
+        .observeMembershipSnapshot(source.organizationId, source.aggregateId);
+      await projection.applySourceEvent({
+        ...payload,
+        aggregateKind: 'membership',
+      });
+      expect(observed.deleted).toBe(deleted);
+      expect(observed.snapshotDigest).toMatch(/^[0-9a-f]{64}$/);
+      expect(state.markApplied).toHaveBeenCalledWith(
+        source.organizationId,
+        source.aggregateKind,
+        source.aggregateId,
+        5,
+        observed.snapshotDigest,
+      );
+      await module.close();
     },
   );
 
@@ -331,6 +408,7 @@ describe('업무 그래프 투영 처리', () => {
         kind,
         'project-one',
         5,
+        expect.stringMatching(/^[0-9a-f]{64}$/),
       );
     },
   );

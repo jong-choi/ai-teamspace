@@ -1,5 +1,3 @@
-import { createHash } from 'node:crypto';
-
 import { Injectable } from '@nestjs/common';
 
 import { DatabaseService } from '@/database/database.service';
@@ -11,6 +9,10 @@ import {
   CuratedGraphRevisionConflictError,
   CuratedGraphWriteForbiddenError,
 } from '@/knowledge-graph/domain/curated-graph.error';
+import {
+  digestGraphJson,
+  stableGraphJson,
+} from '@/knowledge-graph/domain/graph-json-digest';
 import type {
   CreateCuratedEdgeInput,
   CreateCuratedNodeInput,
@@ -114,7 +116,8 @@ export class CuratedGraphDrizzleRepository extends CuratedGraphRepository {
         (parsed.kind === undefined || parsed.kind === current.kind) &&
         (parsed.title === undefined || parsed.title === current.title) &&
         (parsed.properties === undefined ||
-          stableJson(parsed.properties) === stableJson(current.properties))
+          stableGraphJson(parsed.properties) ===
+            stableGraphJson(current.properties))
       ) {
         return curatedNodeSelectSchema.parse(current);
       }
@@ -317,7 +320,8 @@ export class CuratedGraphDrizzleRepository extends CuratedGraphRepository {
         parsed.targetNodeId === current.targetNodeId &&
         parsed.predicate === current.predicate &&
         parsed.directed === current.directed &&
-        stableJson(parsed.properties) === stableJson(current.properties)
+        stableGraphJson(parsed.properties) ===
+          stableGraphJson(current.properties)
       ) {
         return curatedEdgeSelectSchema.parse(current);
       }
@@ -584,31 +588,12 @@ export class CuratedGraphDrizzleRepository extends CuratedGraphRepository {
       targetId: event.targetId,
       operation: event.operation,
       targetRevision: event.targetRevision,
-      beforeDigest: event.before === null ? null : digest(event.before),
-      afterDigest: event.after === null ? null : digest(event.after),
+      beforeDigest:
+        event.before === null ? null : digestGraphJson(event.before),
+      afterDigest: event.after === null ? null : digestGraphJson(event.after),
       occurredAt: event.occurredAt,
     });
   }
-}
-
-function digest(value: unknown): string {
-  return createHash('sha256').update(stableJson(value)).digest('hex');
-}
-
-function stableJson(value: unknown): string {
-  if (value === undefined) return 'null';
-  if (value instanceof Date) return JSON.stringify(value.toISOString());
-  if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`;
-  if (value && typeof value === 'object') {
-    return `{${Object.keys(value)
-      .sort((left, right) => (left < right ? -1 : left > right ? 1 : 0))
-      .map(
-        (key) =>
-          `${JSON.stringify(key)}:${stableJson(Reflect.get(value, key))}`,
-      )
-      .join(',')}}`;
-  }
-  return JSON.stringify(value);
 }
 
 function isActiveEdgeDuplicate(error: unknown): boolean {

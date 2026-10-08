@@ -187,6 +187,49 @@ export class BetterAuthOrganizationAdapter extends OrganizationProvider {
     };
   }
 
+  async listExistingProjectionOrganizationIds(ids: readonly string[]) {
+    if (ids.length === 0) return [];
+    const context = await this.call(() => this.authService.instance.$context);
+    const rows = await this.call(() =>
+      context.adapter.findMany<Pick<AuthOrganization, 'id'>>({
+        model: 'organization',
+        select: ['id'],
+        where: [{ field: 'id', operator: 'in', value: [...ids] }],
+        limit: ids.length,
+      }),
+    );
+    return rows.map(({ id }) => id);
+  }
+  async hasProjectionOrganization(id: string) {
+    const context = await this.call(() => this.authService.instance.$context);
+    const row = await this.call(() =>
+      context.adapter.findOne<Pick<AuthOrganization, 'id'>>({
+        model: 'organization',
+        select: ['id'],
+        where: [{ field: 'id', value: id }],
+      }),
+    );
+    return row !== null;
+  }
+  async listProjectionOrganizationIds(
+    afterId: string | null,
+    limit: number,
+  ): Promise<string[]> {
+    const authContext = await this.call(
+      () => this.authService.instance.$context,
+    );
+    const rows = await this.call(() =>
+      authContext.adapter.findMany<Pick<AuthOrganization, 'id'>>({
+        model: 'organization',
+        select: ['id'],
+        where: afterId ? [{ field: 'id', operator: 'gt', value: afterId }] : [],
+        sortBy: { field: 'id', direction: 'asc' },
+        limit,
+      }),
+    );
+    return rows.map(({ id }) => id);
+  }
+
   async listMembershipProjectionUserIds(
     organizationId: string,
     afterUserId: string | null,

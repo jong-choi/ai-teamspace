@@ -50,6 +50,9 @@ describeWritable('Neo4j curated 원본의 종단·관계 소유권과 삭제 경
       lastAttemptedAt: null,
       appliedAt: null,
       lastError: null,
+      appliedSnapshotDigest: null,
+      lastRequeuedAt: null,
+      requeueCount: 0,
       updatedAt: new Date(),
     });
   }

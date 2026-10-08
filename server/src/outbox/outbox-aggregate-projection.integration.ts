@@ -13,6 +13,9 @@ import { OutboxAggregateProjectionState } from '@/outbox/outbox-aggregate-projec
 
 import { eq } from 'drizzle-orm';
 
+// 적용 snapshot digest 형식(sha256 hex 64자)을 만족하는 테스트 값.
+const APPLIED_DIGEST = 'a'.repeat(64);
+
 describe('그래프 영속 버전 초기 접수와 조건부 재예약', () => {
   const organizationId = `kg-version-test-${randomUUID()}`;
   const sourceId = 'project-one';
@@ -186,6 +189,7 @@ describe('그래프 영속 버전 초기 접수와 조건부 재예약', () => {
       'project',
       sourceId,
       pending.desiredSeq,
+      APPLIED_DIGEST,
     );
     const append = jest.spyOn(outbox, 'add');
     try {
@@ -212,6 +216,7 @@ describe('그래프 영속 버전 초기 접수와 조건부 재예약', () => {
       'project',
       sourceId,
       stale.desiredSeq,
+      APPLIED_DIGEST,
     );
     await state.markFailed(
       organizationId,

@@ -4,8 +4,14 @@ import { Outbox } from '@nestjs/outbox';
 import { DatabaseService } from '@/database/database.service';
 import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 import { OutboxAggregateEventSchema } from '@/outbox/outbox-aggregate-event.schema';
+import {
+  APPLYING_STALL_AFTER_MS,
+  REQUEUE_COOLDOWN_BASE_MS,
+  REQUEUE_COOLDOWN_MAX_MS,
+  RETRY_STALL_AFTER_MS,
+} from '@/outbox/outbox-aggregate-recovery.policy';
 
-import { and, eq, lt, sql } from 'drizzle-orm';
+import { and, asc, eq, lt, ne, or, sql } from 'drizzle-orm';
 
 export const KNOWLEDGE_GRAPH_OUTBOX_TOPIC = 'kg.business-source-changed.v1';
 
@@ -187,7 +193,7 @@ export class OutboxAggregateChangePublisher {
         deleted: operation === 'removed',
         projectionStatus: 'pending',
         lastError: null,
-        updatedAt: now,
+        updatedAt: sql`now()`,
       })
       .onConflictDoNothing({
         target: [
@@ -214,6 +220,64 @@ export class OutboxAggregateChangePublisher {
     return true;
   }
 
+  async requeuePendingBatch(
+    transaction: OwnerTransaction,
+    limit: number,
+  ): Promise<number> {
+    const version = outboxAggregateVersion;
+    const cooldown = sql`least(${REQUEUE_COOLDOWN_BASE_MS} * power(2, least(${version.requeueCount}, 4)), ${REQUEUE_COOLDOWN_MAX_MS}) * interval '1 millisecond'`;
+    const sources = await transaction
+      .select()
+      .from(outboxAggregateVersion)
+      .where(
+        and(
+          lt(
+            outboxAggregateVersion.appliedSeq,
+            outboxAggregateVersion.desiredSeq,
+          ),
+          or(
+            and(
+              eq(version.projectionStatus, 'pending'),
+              lt(
+                sql`coalesce(${version.lastRequeuedAt}, ${version.updatedAt})`,
+                sql`now() - ${cooldown}`,
+              ),
+            ),
+            and(
+              eq(version.projectionStatus, 'applying'),
+              lt(
+                version.lastAttemptedAt,
+                sql`now() - ${APPLYING_STALL_AFTER_MS} * interval '1 millisecond'`,
+              ),
+            ),
+            and(
+              eq(version.projectionStatus, 'retry_scheduled'),
+              lt(
+                version.lastAttemptedAt,
+                sql`now() - ${RETRY_STALL_AFTER_MS} * interval '1 millisecond'`,
+              ),
+            ),
+          ),
+        ),
+      )
+      .orderBy(
+        asc(
+          sql`coalesce(${outboxAggregateVersion.lastRequeuedAt}, 'epoch'::timestamptz)`,
+        ),
+        asc(outboxAggregateVersion.updatedAt),
+        asc(outboxAggregateVersion.organizationId),
+        asc(outboxAggregateVersion.aggregateKind),
+        asc(outboxAggregateVersion.aggregateId),
+      )
+      .limit(limit)
+      .for('update', { skipLocked: true });
+    let requeued = 0;
+    for (const source of sources) {
+      if (await this.requeueCurrent(transaction, source)) requeued += 1;
+    }
+    return requeued;
+  }
+
   async requeueCurrent(
     transaction: OwnerTransaction,
     source: Pick<
@@ -224,11 +288,16 @@ export class OutboxAggregateChangePublisher {
       | 'desiredSeq'
       | 'deleted'
     >,
-  ): Promise<void> {
+  ): Promise<boolean> {
     const now = new Date();
     const [eligible] = await transaction
       .update(outboxAggregateVersion)
-      .set({ projectionStatus: 'pending', lastError: null })
+      .set({
+        projectionStatus: 'pending',
+        lastError: null,
+        lastRequeuedAt: sql`now()`,
+        requeueCount: sql`${outboxAggregateVersion.requeueCount} + 1`,
+      })
       .where(
         and(
           eq(outboxAggregateVersion.organizationId, source.organizationId),
@@ -236,10 +305,11 @@ export class OutboxAggregateChangePublisher {
           eq(outboxAggregateVersion.aggregateId, source.aggregateId),
           eq(outboxAggregateVersion.desiredSeq, source.desiredSeq),
           lt(outboxAggregateVersion.appliedSeq, source.desiredSeq),
+          ne(outboxAggregateVersion.projectionStatus, 'failed'),
         ),
       )
       .returning({ desiredSeq: outboxAggregateVersion.desiredSeq });
-    if (!eligible) return;
+    if (!eligible) return false;
     await this.outbox.add(transaction, {
       topic: KNOWLEDGE_GRAPH_OUTBOX_TOPIC,
       key: JSON.stringify([
@@ -256,6 +326,49 @@ export class OutboxAggregateChangePublisher {
         occurredAt: now.toISOString(),
       }),
     });
+    return true;
+  }
+
+  async recordObservedSnapshot(
+    transaction: OwnerTransaction,
+    source: Pick<
+      typeof outboxAggregateVersion.$inferSelect,
+      'organizationId' | 'aggregateKind' | 'aggregateId' | 'desiredSeq'
+    >,
+    snapshot: Pick<typeof outboxAggregateVersion.$inferSelect, 'deleted'> & {
+      snapshotDigest: NonNullable<
+        typeof outboxAggregateVersion.$inferSelect.appliedSnapshotDigest
+      >;
+    },
+  ): Promise<boolean> {
+    const [current] = await transaction
+      .select()
+      .from(outboxAggregateVersion)
+      .where(
+        and(
+          eq(outboxAggregateVersion.organizationId, source.organizationId),
+          eq(outboxAggregateVersion.aggregateKind, source.aggregateKind),
+          eq(outboxAggregateVersion.aggregateId, source.aggregateId),
+        ),
+      )
+      .for('update')
+      .limit(1);
+    if (
+      !current ||
+      current.desiredSeq !== source.desiredSeq ||
+      current.appliedSeq < current.desiredSeq ||
+      (current.deleted === snapshot.deleted &&
+        current.appliedSnapshotDigest === snapshot.snapshotDigest)
+    )
+      return false;
+    await this.recordChange(
+      transaction,
+      source.organizationId,
+      source.aggregateKind,
+      source.aggregateId,
+      snapshot.deleted ? 'removed' : 'changed',
+    );
+    return true;
   }
 
   async recordObservedDeletion(
@@ -269,7 +382,7 @@ export class OutboxAggregateChangePublisher {
       | 'deleted'
     >,
     deleted: boolean,
-  ): Promise<void> {
+  ): Promise<boolean> {
     const [current] = await transaction
       .select()
       .from(outboxAggregateVersion)
@@ -287,7 +400,7 @@ export class OutboxAggregateChangePublisher {
       current.desiredSeq !== source.desiredSeq ||
       current.deleted === deleted
     )
-      return;
+      return false;
     await this.recordChange(
       transaction,
       source.organizationId,
@@ -295,6 +408,7 @@ export class OutboxAggregateChangePublisher {
       source.aggregateId,
       deleted ? 'removed' : 'changed',
     );
+    return true;
   }
 
   private async recordChange(
@@ -315,7 +429,7 @@ export class OutboxAggregateChangePublisher {
         deleted: operation === 'removed',
         projectionStatus: 'pending',
         lastError: null,
-        updatedAt: now,
+        updatedAt: sql`now()`,
       })
       .onConflictDoUpdate({
         target: [
@@ -328,7 +442,9 @@ export class OutboxAggregateChangePublisher {
           deleted: operation === 'removed',
           projectionStatus: 'pending',
           lastError: null,
-          updatedAt: now,
+          updatedAt: sql`now()`,
+          lastRequeuedAt: null,
+          requeueCount: 0,
         },
       })
       .returning({ desiredSeq: outboxAggregateVersion.desiredSeq });

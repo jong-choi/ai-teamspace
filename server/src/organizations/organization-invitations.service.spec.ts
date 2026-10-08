@@ -21,6 +21,15 @@ import { OrganizationPublicEventsService } from '@/organizations/organization-pu
 import { jest } from '@jest/globals';
 
 class FakeOrganizationProvider extends OrganizationProvider {
+  listProjectionOrganizationIds() {
+    return Promise.resolve([]);
+  }
+  listExistingProjectionOrganizationIds() {
+    return Promise.resolve([]);
+  }
+  hasProjectionOrganization() {
+    return Promise.resolve(false);
+  }
   getMembershipProjection =
     jest.fn<OrganizationProvider['getMembershipProjection']>();
   listMembershipProjectionUserIds =

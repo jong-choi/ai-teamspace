@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { MeetingProjectionQueryService } from '@/calendar/meeting-projection-query.service';
+import { digestGraphJson } from '@/knowledge-graph/domain/graph-json-digest';
 import { CuratedProjectionSourceRepository } from '@/knowledge-graph/infrastructure/persistence/curated-projection-source.repository';
 import { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
 import { MembershipProjectionQueryService } from '@/organizations/membership-projection-query.service';
@@ -21,6 +22,22 @@ export class WorkosSourceAdapter extends WorkosSourceProvider {
     private readonly curatedQuery: CuratedProjectionSourceRepository,
   ) {
     super();
+  }
+  organizationIds(afterId: string | null, limit: number) {
+    return this.membershipQuery.listOrganizationIds(afterId, limit);
+  }
+  existingOrganizationIds(ids: readonly string[]) {
+    return this.membershipQuery.existingOrganizationIds(ids);
+  }
+  organizationExists(id: string) {
+    return this.membershipQuery.organizationExists(id);
+  }
+  async observeMembershipSnapshot(organizationId: string, userId: string) {
+    const snapshot = await this.membershipQuery.current(organizationId, userId);
+    return {
+      deleted: snapshot === null,
+      snapshotDigest: digestGraphJson(snapshot),
+    };
   }
   wiki(organizationId: string, sourceId: string) {
     return this.wikiQuery.current(organizationId, sourceId);

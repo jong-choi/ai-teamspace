@@ -1,0 +1,14 @@
+// BullMQ 시도 정책과 복구 판정이 같은 값을 사용해 정상 backoff 중 중복 job을 피한다.
+export const KNOWLEDGE_GRAPH_JOB_ATTEMPTS = 10;
+export const KNOWLEDGE_GRAPH_JOB_BACKOFF_MS = 1_000;
+
+const RETRY_BACKOFF_TOTAL_MS =
+  KNOWLEDGE_GRAPH_JOB_BACKOFF_MS *
+  (2 ** (KNOWLEDGE_GRAPH_JOB_ATTEMPTS - 1) - 1);
+
+export const APPLYING_STALL_AFTER_MS = 10 * 60_000;
+export const RETRY_STALL_AFTER_MS =
+  2 * RETRY_BACKOFF_TOTAL_MS + APPLYING_STALL_AFTER_MS;
+export const REQUEUE_COOLDOWN_BASE_MS = 5 * 60_000;
+export const REQUEUE_COOLDOWN_MAX_MS = 60 * 60_000;
+export const REQUEUE_STUCK_COUNT = 6;

@@ -16,6 +16,7 @@ import knowledgeGraphConfig from '@/knowledge-graph/config/knowledge-graph.confi
 import { KnowledgeGraphWriter } from '@/knowledge-graph/infrastructure/graph/knowledge-graph-writer.provider';
 import { LangchainNeo4jGraphAdapter } from '@/knowledge-graph/infrastructure/graph/langchain-neo4j-graph.adapter';
 import { CuratedProjectionPersistenceModule } from '@/knowledge-graph/infrastructure/persistence/drizzle/curated-projection-persistence.module';
+import { ReconciliationPersistenceModule } from '@/knowledge-graph/infrastructure/persistence/drizzle/reconciliation-persistence.module';
 import { OutboxProjectionDeliveryAdapter } from '@/knowledge-graph/infrastructure/persistence/outbox/outbox-projection-delivery.adapter';
 import { OutboxProjectionStateAdapter } from '@/knowledge-graph/infrastructure/persistence/outbox/outbox-projection-state.adapter';
 import { ProjectionDeliveryRepository } from '@/knowledge-graph/infrastructure/persistence/projection-delivery.repository';
@@ -24,6 +25,7 @@ import { WorkosSourceAdapter } from '@/knowledge-graph/infrastructure/source/wor
 import { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
 import { KnowledgeGraphBackfillService } from '@/knowledge-graph/knowledge-graph-backfill.service';
 import { KnowledgeGraphProjectionService } from '@/knowledge-graph/knowledge-graph-projection.service';
+import { KnowledgeGraphReconciliationService } from '@/knowledge-graph/knowledge-graph-reconciliation.service';
 import { MembershipProjectionQueryModule } from '@/organizations/membership-projection-query.module';
 import {
   KNOWLEDGE_GRAPH_OUTBOX_TOPIC,
@@ -42,6 +44,7 @@ import { WikiProjectionQueryModule } from '@/wiki/wiki-projection-query.module';
     DatabaseModule,
     MeetingProjectionQueryModule,
     CuratedProjectionPersistenceModule,
+    ReconciliationPersistenceModule,
     MembershipProjectionQueryModule,
     WikiProjectionQueryModule,
     ProjectProjectionQueryModule,
@@ -93,6 +96,7 @@ import { WikiProjectionQueryModule } from '@/wiki/wiki-projection-query.module';
     { provide: WorkosSourceProvider, useClass: WorkosSourceAdapter },
     KnowledgeGraphBackfillService,
     KnowledgeGraphProjectionService,
+    KnowledgeGraphReconciliationService,
     KnowledgeGraphReconciliationScheduler,
     KnowledgeGraphProjectionProcessor,
     {

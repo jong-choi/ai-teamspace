@@ -1,4 +1,5 @@
 import { ConfigModule } from '@nestjs/config';
+import { Outbox } from '@nestjs/outbox';
 import { Test, type TestingModule } from '@nestjs/testing';
 
 import {
@@ -8,6 +9,7 @@ import {
 import databaseConfig from '@/database/config/database.config';
 import { DatabaseModule } from '@/database/database.module';
 import { DatabaseService } from '@/database/database.service';
+import { OutboxAggregateProjectionState } from '@/outbox/outbox-aggregate-projection-state';
 import type { CreateProjectInput } from '@/projects/dto/create-project.dto';
 import { ProjectDrizzlePersistenceModule } from '@/projects/infrastructure/persistence/drizzle/drizzle-persistence.module';
 import { project } from '@/projects/infrastructure/persistence/drizzle/schema/project.schema';
@@ -23,7 +25,7 @@ import { TicketOrderingRepository } from '@/projects/infrastructure/persistence/
 import { TicketProjectionQueryModule } from '@/projects/ticket-projection-query.module';
 import { TicketProjectionQueryService } from '@/projects/ticket-projection-query.service';
 
-import { inArray } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 
 const organizationId = 'ticket-workflow-organization';
 const otherOrganizationId = 'ticket-workflow-other-organization';
@@ -109,6 +111,80 @@ describe('티켓 워크플로 Drizzle 저장소 통합', () => {
   afterAll(async () => {
     await cleanFixtures();
     await moduleRef.close();
+  });
+
+  it('댓글 생성·수정·삭제가 바꾼 Project timestamp마다 같은 트랜잭션에 투영 의도를 기록한다', async () => {
+    const fixture = await createProjectFixture();
+    const column = fixture.columns[0];
+    if (!column) throw new Error('기본 컬럼이 없습니다.');
+    const ticket = await createTicket(
+      fixture.project.id,
+      column.id,
+      '댓글 원자성',
+    );
+    const state = moduleRef.get(OutboxAggregateProjectionState);
+    const current = () =>
+      state.current(organizationId, 'project', fixture.project.id);
+    const before = await current();
+    if (!before) throw new Error('Project 투영 상태가 없습니다.');
+    const comment = await comments.createComment(
+      organizationId,
+      fixture.project.id,
+      ticket.id,
+      actorUserId,
+      { contentMarkdown: '생성' },
+    );
+    if (!comment) throw new Error('댓글이 없습니다.');
+    expect((await current())?.desiredSeq).toBe(before.desiredSeq + 1);
+    await comments.updateComment(
+      organizationId,
+      fixture.project.id,
+      ticket.id,
+      comment.id,
+      { contentMarkdown: '수정' },
+    );
+    expect((await current())?.desiredSeq).toBe(before.desiredSeq + 2);
+    await comments.removeComment(
+      organizationId,
+      fixture.project.id,
+      ticket.id,
+      comment.id,
+    );
+    expect((await current())?.desiredSeq).toBe(before.desiredSeq + 3);
+
+    const timestamp = async () =>
+      (
+        await database
+          .select({ updatedAt: project.updatedAt })
+          .from(project)
+          .where(eq(project.id, fixture.project.id))
+      )[0]?.updatedAt;
+    const saved = await timestamp();
+    const failure = jest
+      .spyOn(moduleRef.get(Outbox), 'add')
+      .mockRejectedValueOnce(new Error('의도 발행 실패 주입'));
+    try {
+      await expect(
+        comments.createComment(
+          organizationId,
+          fixture.project.id,
+          ticket.id,
+          actorUserId,
+          { contentMarkdown: '롤백' },
+        ),
+      ).rejects.toThrow('의도 발행 실패 주입');
+      expect(
+        await comments.listComments(
+          organizationId,
+          fixture.project.id,
+          ticket.id,
+        ),
+      ).toEqual([]);
+      expect((await current())?.desiredSeq).toBe(before.desiredSeq + 3);
+      expect(await timestamp()).toEqual(saved);
+    } finally {
+      failure.mockRestore();
+    }
   });
 
   it('같은 컬럼과 다른 컬럼 이동 모두 서버가 연속 순서를 다시 계산한다', async () => {

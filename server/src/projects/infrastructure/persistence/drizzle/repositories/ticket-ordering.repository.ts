@@ -160,7 +160,7 @@ export class TicketOrderingDrizzleRepository extends TicketOrderingRepository {
       }
 
       if (changed) {
-        await touchProject(transaction, projectId, now);
+        await touchProject(transaction, projectId, now, this.graphEvents);
         for (const id of changedIds) {
           await this.graphEvents.ticketChanged(
             transaction,

@@ -11,6 +11,14 @@ import type { OrganizationActorContext } from '@/organizations/organization-acto
 export type { OrganizationActorContext } from '@/organizations/organization-actor-context';
 
 export abstract class OrganizationProvider {
+  abstract listExistingProjectionOrganizationIds(
+    ids: readonly string[],
+  ): Promise<string[]>;
+  abstract hasProjectionOrganization(id: string): Promise<boolean>;
+  abstract listProjectionOrganizationIds(
+    afterId: string | null,
+    limit: number,
+  ): Promise<string[]>;
   abstract listForActor(
     context: OrganizationActorContext,
   ): Promise<Organization[]>;

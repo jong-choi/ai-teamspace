@@ -76,6 +76,9 @@ describeWritable('실제 Neo4j Calendar 공유 원본의 독립 fence', () => {
       lastAttemptedAt: null,
       appliedAt: null,
       lastError: null,
+      appliedSnapshotDigest: null,
+      lastRequeuedAt: null,
+      requeueCount: 0,
       updatedAt: fixedAt,
     });
   }

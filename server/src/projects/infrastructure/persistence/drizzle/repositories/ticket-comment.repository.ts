@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { DatabaseService } from '@/database/database.service';
+import { OutboxAggregateChangePublisher } from '@/outbox/outbox-aggregate-change.publisher';
 import type { TicketComment } from '@/projects/domain/ticket-comment';
 import type { CreateTicketCommentInput } from '@/projects/dto/create-ticket-comment.dto';
 import type { UpdateTicketCommentInput } from '@/projects/dto/update-ticket-comment.dto';
@@ -21,7 +22,10 @@ import { and, asc, eq } from 'drizzle-orm';
 
 @Injectable()
 export class TicketCommentDrizzleRepository extends TicketCommentRepository {
-  constructor(private readonly database: DatabaseService) {
+  constructor(
+    private readonly database: DatabaseService,
+    private readonly graphEvents: OutboxAggregateChangePublisher,
+  ) {
     super();
   }
 
@@ -96,7 +100,7 @@ export class TicketCommentDrizzleRepository extends TicketCommentRepository {
       if (!row) {
         throw new Error('티켓 댓글 생성 결과가 없습니다.');
       }
-      await touchProject(transaction, projectId, now);
+      await touchProject(transaction, projectId, now, this.graphEvents);
       return toTicketCommentDomain(row);
     });
   }
@@ -138,7 +142,7 @@ export class TicketCommentDrizzleRepository extends TicketCommentRepository {
       if (!row) {
         return null;
       }
-      await touchProject(transaction, projectId, now);
+      await touchProject(transaction, projectId, now, this.graphEvents);
       return toTicketCommentDomain(row);
     });
   }
@@ -172,7 +176,7 @@ export class TicketCommentDrizzleRepository extends TicketCommentRepository {
       if (!row) {
         return false;
       }
-      await touchProject(transaction, projectId, new Date());
+      await touchProject(transaction, projectId, new Date(), this.graphEvents);
       return true;
     });
   }

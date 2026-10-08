@@ -1,32 +1,28 @@
 import { Test } from '@nestjs/testing';
 
 import { ProjectionDeliveryRepository } from '@/knowledge-graph/infrastructure/persistence/projection-delivery.repository';
-import { ProjectionStateRepository } from '@/knowledge-graph/infrastructure/persistence/projection-state.repository';
 import { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
 import { KnowledgeGraphBackfillService } from '@/knowledge-graph/knowledge-graph-backfill.service';
 
 describe('업무 그래프 초기 접수와 재조정', () => {
   const listIds = jest.fn();
   const initializeBatch = jest.fn();
-  const requeue = jest.fn();
-  const listUnapplied = jest.fn();
+  const requeuePendingBatch = jest.fn();
   let service: KnowledgeGraphBackfillService;
 
   beforeEach(async () => {
     jest.resetAllMocks();
     listIds.mockResolvedValue([]);
-    initializeBatch.mockResolvedValue(undefined);
-    requeue.mockResolvedValue(undefined);
-    listUnapplied.mockResolvedValue([]);
+    initializeBatch.mockResolvedValue(true);
+    requeuePendingBatch.mockResolvedValue(0);
     const moduleRef = await Test.createTestingModule({
       providers: [
         KnowledgeGraphBackfillService,
         { provide: WorkosSourceProvider, useValue: { listIds } },
         {
           provide: ProjectionDeliveryRepository,
-          useValue: { initializeBatch, requeue },
+          useValue: { initializeBatch, requeuePendingBatch },
         },
-        { provide: ProjectionStateRepository, useValue: { listUnapplied } },
       ],
     }).compile();
     service = moduleRef.get(KnowledgeGraphBackfillService);
@@ -91,24 +87,22 @@ describe('업무 그래프 초기 접수와 재조정', () => {
     },
   );
 
-  it('재조정은 현재 미적용 버전을 순서대로 전달한다', async () => {
-    const source = {
-      organizationId: 'org-a',
-      aggregateKind: 'project',
-      aggregateId: 'project-a',
-      desiredSeq: 3,
-      deleted: true,
-    };
-    listUnapplied.mockResolvedValueOnce([source]);
+  it('재조정은 전용 persistence capability에서 원자적으로 처리한 개수를 반환한다', async () => {
+    requeuePendingBatch.mockResolvedValueOnce(1);
     await expect(service.requeueUnapplied(5)).resolves.toBe(1);
-    expect(listUnapplied).toHaveBeenCalledWith(5);
-    expect(requeue).toHaveBeenCalledWith(source);
+    expect(requeuePendingBatch).toHaveBeenCalledWith(5);
     expect(initializeBatch).not.toHaveBeenCalled();
   });
 
   it('재예약 실패는 처리된 개수로 숨기지 않는다', async () => {
-    listUnapplied.mockResolvedValueOnce([{ aggregateId: 'project-a' }]);
-    requeue.mockRejectedValueOnce(new Error('재예약 실패'));
+    requeuePendingBatch.mockRejectedValueOnce(new Error('재예약 실패'));
     await expect(service.requeueUnapplied()).rejects.toThrow('재예약 실패');
+  });
+
+  it('접수 거부를 성공한 cursor로 반환하지 않는다', async () => {
+    initializeBatch.mockResolvedValueOnce(false);
+    await expect(
+      service.enqueueSourceBatch('project', 'org-a', null),
+    ).rejects.toThrow('소유권');
   });
 });

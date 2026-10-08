@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { createServer } from 'node:http';
 
-import type { INestApplication } from '@nestjs/common';
+import type { INestApplication, NestApplicationOptions } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import {
@@ -36,6 +36,7 @@ export interface McpActor {
   organizationId: string;
   keyId: string;
   secret: string;
+  sessionCookie: string;
   userPolicyRevision: number;
 }
 
@@ -75,7 +76,10 @@ export class McpIntegrationApp {
 
   /** `environment`는 이 app에만 필요한 환경 변수 override이며 close 때 함께 복원한다. */
   static async start(
-    options: { environment?: Record<string, string> } = {},
+    options: {
+      environment?: Record<string, string>;
+      logger?: NestApplicationOptions['logger'];
+    } = {},
   ): Promise<McpIntegrationApp> {
     const port = await reservePort();
     const baseUrl = `http://127.0.0.1:${port}`;
@@ -94,7 +98,11 @@ export class McpIntegrationApp {
     Object.assign(process.env, overrides);
 
     const moduleFixture = await createAppTestingModule().compile();
-    const app = moduleFixture.createNestApplication({ bodyParser: false });
+    const app = moduleFixture.createNestApplication({
+      bodyParser: false,
+      ...(options.logger === undefined ? {} : { logger: options.logger }),
+    });
+    if (options.logger !== undefined) app.useLogger(options.logger);
     await app.listen(port, '127.0.0.1');
     return new McpIntegrationApp(
       app,
@@ -119,7 +127,7 @@ export class McpIntegrationApp {
    * 회원가입 → 조직 생성 → 조직/개인 MCP policy → Personal Access Key 발급을 실제 REST로 수행한다.
    */
   async createActor(input: { scopes: readonly McpScope[] }): Promise<McpActor> {
-    const { agent, userId } = await this.signUp();
+    const { agent, userId, sessionCookie } = await this.signUp();
     const { organizationId, userPolicyRevision } = await this.addOrganization(
       { agent },
       { scopes: input.scopes },
@@ -149,6 +157,7 @@ export class McpIntegrationApp {
       organizationId,
       keyId: keyResponse.body.key.id,
       secret: keyResponse.body.secret,
+      sessionCookie,
       userPolicyRevision,
     };
   }
@@ -324,6 +333,7 @@ export class McpIntegrationApp {
     agent: TestAgent;
     userId: string;
     username: string;
+    sessionCookie: string;
   }> {
     const id = uniqueId();
     const username = `mcp${id}`;
@@ -340,10 +350,11 @@ export class McpIntegrationApp {
       200,
       '회원가입',
     );
-    agent.set('Cookie', toCookieHeader(signUp.headers['set-cookie']));
+    const sessionCookie = toCookieHeader(signUp.headers['set-cookie']);
+    agent.set('Cookie', sessionCookie);
     const userId: string = signUp.body.user.id;
     this.userIds.add(userId);
-    return { agent, userId, username };
+    return { agent, userId, username, sessionCookie };
   }
 
   /** 개인 MCP policy의 요청 scope를 바꾸고 새 revision을 돌려준다. */

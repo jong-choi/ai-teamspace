@@ -1,6 +1,7 @@
 import { Module, StandardSchemaValidationPipe } from '@nestjs/common';
 import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 
+import { AgentModelModule } from '@/agent/agent-model.module';
 import { AppController } from '@/app.controller';
 import { AppService } from '@/app.service';
 import { AuthModule } from '@/auth/auth.module';
@@ -23,6 +24,7 @@ import { NestProblemDetailsModule } from 'nest-problem-details-filter';
       suppressDetail: ({ status }) => status >= 500,
     }),
     DatabaseModule,
+    AgentModelModule,
     AuthModule,
     CalendarModule,
     ChatModule,

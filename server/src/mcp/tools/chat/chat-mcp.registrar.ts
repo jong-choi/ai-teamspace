@@ -7,6 +7,7 @@ import {
   chatMessageSendTool,
   chatMessagesListTool,
 } from '@/mcp/tools/chat/chat-tool-definitions';
+import { chatMessageReceipt } from '@/mcp/tools/mcp-mutation-receipt.mapper';
 
 type ChatToolsService = Pick<
   ChatService,
@@ -36,8 +37,12 @@ export class ChatMcpRegistrar {
       }),
       bindMcpTool(chatMessageSendTool, async (input, auth) => {
         const { organizationId, conversationId, ...body } = input;
-        void organizationId;
-        return this.chatService.sendMessage(auth.userId, conversationId, body);
+        const result = await this.chatService.sendMessage(
+          auth.userId,
+          conversationId,
+          body,
+        );
+        return { result, mutation: chatMessageReceipt(organizationId, result) };
       }),
     ];
   }

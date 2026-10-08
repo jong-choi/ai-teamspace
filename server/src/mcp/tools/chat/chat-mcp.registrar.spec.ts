@@ -96,6 +96,15 @@ describe('Chat MCP registrar', () => {
     expect(sendMessage).toHaveBeenCalledWith('user-a', conversationId, {
       text: '안녕하세요',
     });
-    expect(output).toMatchObject({ id: messageId, content: { type: 'text' } });
+    expect(output).toMatchObject({
+      result: { id: messageId, content: { type: 'text' } },
+      mutation: {
+        kind: 'chat_message',
+        operation: 'created',
+        organizationId: 'org-a',
+        resourceId: messageId,
+        conversationId,
+      },
+    });
   });
 });

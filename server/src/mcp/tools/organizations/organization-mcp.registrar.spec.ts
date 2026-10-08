@@ -116,8 +116,13 @@ describe('Organizations MCP registrar', () => {
       { recipientUsername: 'member-a', role: 'member' },
     );
     expect(output).toMatchObject({
-      id: 'invitation-a',
-      status: 'pending',
+      result: { id: 'invitation-a', status: 'pending' },
+      mutation: {
+        kind: 'organization_invitation',
+        operation: 'created',
+        organizationId: 'org-a',
+        resourceId: 'invitation-a',
+      },
     });
   });
 });

@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 
 import { bindMcpTool, type BoundMcpTool } from '@/mcp/tools/bound-mcp-tool';
 import { toMcpOrganizationActor } from '@/mcp/tools/mcp-application-actor';
+import { projectTicketReceipt } from '@/mcp/tools/mcp-mutation-receipt.mapper';
 import {
   projectGetTool,
   projectsListTool,
@@ -59,32 +60,62 @@ export class ProjectMcpRegistrar {
       ),
       bindMcpTool(projectTicketCreateTool, async (input, auth) => {
         const { organizationId, projectId, ...body } = input;
-        return this.ticketsService.createTicket(
+        const result = await this.ticketsService.createTicket(
           toMcpOrganizationActor(auth),
           organizationId,
           projectId,
           body,
         );
+        return {
+          result,
+          mutation: projectTicketReceipt({
+            organizationId,
+            projectId: result.projectId,
+            ticketId: result.id,
+            updatedAt: result.updatedAt,
+            operation: 'created',
+          }),
+        };
       }),
       bindMcpTool(projectTicketUpdateTool, async (input, auth) => {
         const { organizationId, projectId, ticketId, ...body } = input;
-        return this.ticketsService.updateTicket(
+        const result = await this.ticketsService.updateTicket(
           toMcpOrganizationActor(auth),
           organizationId,
           projectId,
           ticketId,
           body,
         );
+        return {
+          result,
+          mutation: projectTicketReceipt({
+            organizationId,
+            projectId: result.projectId,
+            ticketId: result.id,
+            updatedAt: result.updatedAt,
+            operation: 'updated',
+          }),
+        };
       }),
       bindMcpTool(projectTicketMoveTool, async (input, auth) => {
         const { organizationId, projectId, ticketId, ...body } = input;
-        return this.ticketOrderingService.moveTicket(
+        const result = await this.ticketOrderingService.moveTicket(
           toMcpOrganizationActor(auth),
           organizationId,
           projectId,
           ticketId,
           body,
         );
+        return {
+          result,
+          mutation: projectTicketReceipt({
+            organizationId,
+            projectId,
+            ticketId: result.ticketId,
+            updatedAt: result.updatedAt,
+            operation: 'moved',
+          }),
+        };
       }),
     ];
   }

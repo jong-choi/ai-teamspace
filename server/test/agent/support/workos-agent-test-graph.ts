@@ -4,12 +4,12 @@ import type { AgentConfig } from '@/agent/config/agent-config.type';
 import { AgentConfiguration } from '@/agent/config/agent-configuration';
 import { DeepAgentBuilder } from '@/agent/infrastructure/deep-agent/deep-agent.builder';
 import { DeepAgentWorkOsGraphAdapter } from '@/agent/infrastructure/deep-agent/deep-agent-workos-graph.adapter';
-import { LangChainWorkOsMcpAdapter } from '@/agent/infrastructure/mcp/langchain/langchain-workos-mcp.adapter';
 import { McpToolApprovalPolicy } from '@/agent/infrastructure/mcp/langchain/mcp-tool-approval.policy';
 import type { McpCredentialProvider } from '@/agent/infrastructure/mcp/mcp-credential.provider';
 import type { AgentModelProvider } from '@/agent/infrastructure/model/agent-model.provider';
 
 import { CredentialBackedWorkOsMcpAuthProviderFactory } from '@test/agent/support/credential-backed-workos-mcp-auth-provider.factory';
+import { HttpWorkOsMcpSessionProvider } from '@test/agent/support/http-workos-mcp-session.provider';
 
 export function createTestWorkOsAgentGraphFactory(input: {
   mcpUrl: string;
@@ -40,7 +40,7 @@ export function createTestWorkOsAgentGraphFactory(input: {
   const configuration = new AgentConfiguration(config, {
     resourceUrl: input.mcpUrl,
   });
-  const sessions = new LangChainWorkOsMcpAdapter(
+  const sessions = new HttpWorkOsMcpSessionProvider(
     new CredentialBackedWorkOsMcpAuthProviderFactory(input.credentialProvider),
     configuration,
     new McpToolApprovalPolicy(),

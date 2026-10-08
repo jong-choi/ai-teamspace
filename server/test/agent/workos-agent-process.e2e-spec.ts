@@ -30,7 +30,7 @@ processDescribe('WorkOS Agent real-process durable acceptance', () => {
     );
     const requiredDist = resolve(
       process.cwd(),
-      'dist/agent/infrastructure/mcp/langchain/langchain-workos-mcp.adapter.js',
+      'dist/agent/infrastructure/deep-agent/deep-agent-workos-graph.adapter.js',
     );
     if (!existsSync(requiredDist)) {
       throw new Error(

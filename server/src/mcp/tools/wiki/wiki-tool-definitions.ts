@@ -1,4 +1,8 @@
 import {
+  mutationToolOutputSchema,
+  WikiDocumentMutationReceiptSchema,
+} from '@/mcp/contracts/agent-mutation-receipt.dto';
+import {
   defineMcpTool,
   readOnlyAnnotations,
   writeAnnotations,
@@ -52,7 +56,10 @@ export const wikiDocumentCreateTool = defineMcpTool({
   description:
     '명시한 조직에 위키 문서를 생성합니다. 기존 Wiki application service의 hierarchy/content validation과 현재 조직 접근 검증을 그대로 적용합니다.',
   inputSchema: CreateWikiDocumentSchema.extend(organizationIdField),
-  outputSchema: WikiDocumentSchema,
+  outputSchema: mutationToolOutputSchema(
+    WikiDocumentSchema,
+    WikiDocumentMutationReceiptSchema,
+  ),
   requiredScope: 'wiki:write',
   classification: 'write',
   annotations: writeAnnotations,
@@ -64,7 +71,10 @@ export const wikiDocumentUpdateTool = defineMcpTool({
   description:
     '명시한 조직의 위키 문서 metadata를 수정합니다. 기존 revision/concurrency 및 hierarchy 규칙을 우회하지 않으며 현재 조직 접근 권한이 필요합니다.',
   inputSchema: UpdateWikiDocumentSchema.safeExtend(documentIdentityFields),
-  outputSchema: WikiDocumentSchema,
+  outputSchema: mutationToolOutputSchema(
+    WikiDocumentSchema,
+    WikiDocumentMutationReceiptSchema,
+  ),
   requiredScope: 'wiki:write',
   classification: 'write',
   annotations: writeAnnotations,

@@ -1,6 +1,8 @@
 import type { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
+import { addExtraSchemas } from '@/openapi-extra-schemas';
+
 import { addProblemDetailsSchema } from 'nest-problem-details-filter/swagger';
 
 const openApiConfig = new DocumentBuilder()
@@ -11,6 +13,7 @@ const openApiConfig = new DocumentBuilder()
 export function createOpenApiDocument(app: INestApplication) {
   const document = SwaggerModule.createDocument(app, openApiConfig);
   addProblemDetailsSchema(document);
+  addExtraSchemas(document);
   return document;
 }
 

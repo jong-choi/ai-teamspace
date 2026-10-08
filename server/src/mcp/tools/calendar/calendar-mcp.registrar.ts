@@ -15,6 +15,10 @@ import {
   calendarMeetingsListTool,
 } from '@/mcp/tools/calendar/calendar-tool-definitions';
 import { toMcpOrganizationActor } from '@/mcp/tools/mcp-application-actor';
+import {
+  calendarMeetingReceipt,
+  calendarMeetingRsvpReceipt,
+} from '@/mcp/tools/mcp-mutation-receipt.mapper';
 
 type CalendarQueryToolsService = Pick<
   CalendarMeetingQueryService,
@@ -76,38 +80,45 @@ export class CalendarMcpRegistrar {
       }),
       bindMcpTool(calendarMeetingCreateTool, async (input, auth) => {
         const { organizationId, ...body } = input;
-        return this.schedulingService.createMeeting(
+        const result = await this.schedulingService.createMeeting(
           toMcpOrganizationActor(auth),
           organizationId,
           body,
         );
+        return { result, mutation: calendarMeetingReceipt(result, 'created') };
       }),
       bindMcpTool(calendarMeetingRescheduleTool, async (input, auth) => {
         const { organizationId, meetingId, ...body } = input;
-        return this.schedulingService.rescheduleMeeting(
+        const result = await this.schedulingService.rescheduleMeeting(
           toMcpOrganizationActor(auth),
           organizationId,
           meetingId,
           body,
         );
+        return { result, mutation: calendarMeetingReceipt(result, 'updated') };
       }),
       bindMcpTool(calendarMeetingCancelTool, async (input, auth) => {
         const { organizationId, meetingId, ...body } = input;
-        return this.schedulingService.cancelMeeting(
+        const result = await this.schedulingService.cancelMeeting(
           toMcpOrganizationActor(auth),
           organizationId,
           meetingId,
           body,
         );
+        return {
+          result,
+          mutation: calendarMeetingReceipt(result, 'cancelled'),
+        };
       }),
       bindMcpTool(calendarMeetingRsvpTool, async (input, auth) => {
         const { organizationId, meetingId, ...body } = input;
-        return this.participationService.updateRsvp(
+        const result = await this.participationService.updateRsvp(
           toMcpOrganizationActor(auth),
           organizationId,
           meetingId,
           body,
         );
+        return { result, mutation: calendarMeetingRsvpReceipt(result) };
       }),
     ];
   }

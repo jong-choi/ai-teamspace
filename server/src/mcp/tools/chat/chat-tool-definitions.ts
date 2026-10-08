@@ -4,6 +4,10 @@ import { ChatMessagePageSchema } from '@/chat/dto/chat-message-page.dto';
 import { QueryChatMessagesSchema } from '@/chat/dto/query-chat-messages.dto';
 import { SendChatMessageSchema } from '@/chat/dto/send-chat-message.dto';
 import {
+  ChatMessageMutationReceiptSchema,
+  mutationToolOutputSchema,
+} from '@/mcp/contracts/agent-mutation-receipt.dto';
+import {
   consequentialWriteAnnotations,
   defineMcpTool,
   readOnlyAnnotations,
@@ -50,7 +54,10 @@ export const chatMessageSendTool = defineMcpTool({
   description:
     '현재 사용자의 이름으로 기존 대화에 텍스트 메시지를 전송하고 실시간 알림을 발생시킵니다. organizationId의 MCP 정책 admission과 현재 대화 참여 권한이 모두 필요합니다.',
   inputSchema: SendChatMessageSchema.extend(conversationIdentityFields),
-  outputSchema: ChatMessageSchema,
+  outputSchema: mutationToolOutputSchema(
+    ChatMessageSchema,
+    ChatMessageMutationReceiptSchema,
+  ),
   requiredScope: 'chat:write',
   classification: 'consequential',
   annotations: consequentialWriteAnnotations,

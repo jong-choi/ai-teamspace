@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import type { AgentGraph } from '@repo/agent-runtime';
 import { WorkOsAgentGraphProvider } from '@/agent/application/workos-agent-graph.provider';
+import { resolveAgentReasoningEffort } from '@/agent/domain/agent-reasoning-effort';
 import { DeepAgentBuilder } from '@/agent/infrastructure/deep-agent/deep-agent.builder';
 import {
   DeepAgentLifecycle,
@@ -28,11 +29,14 @@ export class DeepAgentWorkOsGraphAdapter extends WorkOsAgentGraphProvider {
     configurable: Record<string, unknown> | undefined,
   ): Promise<AgentGraph> {
     const actor = resolveAgentActor(configurable);
+    const reasoningEffort = resolveAgentReasoningEffort(configurable);
     const session = await this.sessions.open(actor);
     const lifecycle = new DeepAgentLifecycle(() => session.close());
 
     try {
-      const models = await this.models.createModels(actor);
+      const models = await this.models.createModels(actor, {
+        reasoningEffort,
+      });
       const agent = this.builder.buildExecution({ models, session });
       return new DeepAgentProtocolAdapter(agent, lifecycle);
     } catch (error) {

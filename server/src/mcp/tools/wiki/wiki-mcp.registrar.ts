@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 
 import { bindMcpTool, type BoundMcpTool } from '@/mcp/tools/bound-mcp-tool';
 import { toMcpOrganizationActor } from '@/mcp/tools/mcp-application-actor';
+import { wikiDocumentReceipt } from '@/mcp/tools/mcp-mutation-receipt.mapper';
 import {
   wikiDocumentCreateTool,
   wikiDocumentGetTool,
@@ -41,20 +42,22 @@ export class WikiMcpRegistrar {
       ),
       bindMcpTool(wikiDocumentCreateTool, async (input, auth) => {
         const { organizationId, ...body } = input;
-        return this.wikiService.createDocument(
+        const result = await this.wikiService.createDocument(
           toMcpOrganizationActor(auth),
           organizationId,
           body,
         );
+        return { result, mutation: wikiDocumentReceipt(result, 'created') };
       }),
       bindMcpTool(wikiDocumentUpdateTool, async (input, auth) => {
         const { organizationId, documentId, ...body } = input;
-        return this.wikiService.updateDocument(
+        const result = await this.wikiService.updateDocument(
           toMcpOrganizationActor(auth),
           organizationId,
           documentId,
           body,
         );
+        return { result, mutation: wikiDocumentReceipt(result, 'updated') };
       }),
     ];
   }

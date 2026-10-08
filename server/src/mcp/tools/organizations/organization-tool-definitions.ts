@@ -1,4 +1,8 @@
 import {
+  mutationToolOutputSchema,
+  OrganizationInvitationMutationReceiptSchema,
+} from '@/mcp/contracts/agent-mutation-receipt.dto';
+import {
   consequentialWriteAnnotations,
   defineMcpTool,
   readOnlyAnnotations,
@@ -49,7 +53,10 @@ export const organizationInvitationCreateTool = defineMcpTool({
   inputSchema: CreateOrganizationInvitationSchema.extend(
     explicitOrganizationIdSchema.shape,
   ),
-  outputSchema: OrganizationInvitationResponseSchema,
+  outputSchema: mutationToolOutputSchema(
+    OrganizationInvitationResponseSchema,
+    OrganizationInvitationMutationReceiptSchema,
+  ),
   requiredScope: 'organizations:write',
   classification: 'consequential',
   annotations: consequentialWriteAnnotations,

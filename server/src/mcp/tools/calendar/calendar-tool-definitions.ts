@@ -12,6 +12,11 @@ import { QueryCalendarMeetingsSchema } from '@/calendar/dto/query-calendar-meeti
 import { RescheduleMeetingSchema } from '@/calendar/dto/reschedule-meeting.dto';
 import { RsvpMeetingSchema } from '@/calendar/dto/rsvp-meeting.dto';
 import {
+  CalendarMeetingMutationReceiptSchema,
+  CalendarMeetingRsvpMutationReceiptSchema,
+  mutationToolOutputSchema,
+} from '@/mcp/contracts/agent-mutation-receipt.dto';
+import {
   consequentialWriteAnnotations,
   defineMcpTool,
   destructiveWriteAnnotations,
@@ -73,7 +78,10 @@ export const calendarMeetingCreateTool = defineMcpTool({
   description:
     '명시한 조직에 회의를 생성합니다. 참석자/회의실/project reference/recurrence/conflict 검증과 reminder 동기화를 기존 scheduling service에서 수행하며 다른 사용자에게 영향을 줄 수 있습니다.',
   inputSchema: CreateMeetingSchema.safeExtend(organizationIdField),
-  outputSchema: MeetingDetailSchema,
+  outputSchema: mutationToolOutputSchema(
+    MeetingDetailSchema,
+    CalendarMeetingMutationReceiptSchema,
+  ),
   requiredScope: 'calendar:write',
   classification: 'consequential',
   annotations: consequentialWriteAnnotations,
@@ -85,7 +93,10 @@ export const calendarMeetingRescheduleTool = defineMcpTool({
   description:
     '기존 회의 또는 recurrence 범위의 일정을 변경합니다. 현재 수정 권한, 시간/장소 규칙, 충돌 검증을 적용하고 참석자 일정에 영향을 줄 수 있습니다.',
   inputSchema: RescheduleMeetingSchema.safeExtend(meetingIdentityFields),
-  outputSchema: MeetingDetailSchema,
+  outputSchema: mutationToolOutputSchema(
+    MeetingDetailSchema,
+    CalendarMeetingMutationReceiptSchema,
+  ),
   requiredScope: 'calendar:write',
   classification: 'consequential',
   annotations: consequentialWriteAnnotations,
@@ -97,7 +108,10 @@ export const calendarMeetingCancelTool = defineMcpTool({
   description:
     '기존 회의 또는 recurrence 범위를 취소합니다. 현재 수정 권한을 검증하고 reminder를 정리하며 취소는 destructive/consequential 작업으로 취급합니다.',
   inputSchema: CancelMeetingSchema.extend(meetingIdentityFields),
-  outputSchema: MeetingDetailSchema,
+  outputSchema: mutationToolOutputSchema(
+    MeetingDetailSchema,
+    CalendarMeetingMutationReceiptSchema,
+  ),
   requiredScope: 'calendar:write',
   classification: 'destructive',
   annotations: destructiveWriteAnnotations,
@@ -109,7 +123,10 @@ export const calendarMeetingRsvpTool = defineMcpTool({
   description:
     '현재 인증된 사용자의 회의 참석 상태를 변경합니다. 다른 userId를 input으로 받을 수 없으며 현재 조직 접근과 attendee 여부를 호출 시점에 검증합니다.',
   inputSchema: RsvpMeetingSchema.extend(meetingIdentityFields),
-  outputSchema: MeetingDetailSchema,
+  outputSchema: mutationToolOutputSchema(
+    MeetingDetailSchema,
+    CalendarMeetingRsvpMutationReceiptSchema,
+  ),
   requiredScope: 'calendar:write',
   classification: 'write',
   annotations: writeAnnotations,

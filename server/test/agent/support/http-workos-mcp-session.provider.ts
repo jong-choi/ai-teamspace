@@ -1,5 +1,3 @@
-import { Injectable } from '@nestjs/common';
-
 import { AgentConfiguration } from '@/agent/config/agent-configuration';
 import type { AgentActor } from '@/agent/domain/agent-actor';
 import { McpToolApprovalPolicy } from '@/agent/infrastructure/mcp/langchain/mcp-tool-approval.policy';
@@ -12,8 +10,11 @@ import {
 
 import { MCPAdapter } from '@langchain/mcp-adapters';
 
-@Injectable()
-export class LangChainWorkOsMcpAdapter extends WorkOsToolSessionProvider {
+/**
+ * protocol-only fixture MCP 서버를 HTTP로 붙이는 테스트 전용 세션 provider.
+ * production built-in 경로는 서버 내부 연결(`FirstPartyWorkOsMcpAdapter`)을 사용한다.
+ */
+export class HttpWorkOsMcpSessionProvider extends WorkOsToolSessionProvider {
   constructor(
     private readonly authProviders: WorkOsMcpAuthProviderFactory,
     private readonly configuration: AgentConfiguration,

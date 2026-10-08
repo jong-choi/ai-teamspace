@@ -9,7 +9,7 @@
 - `config/`: Agent 전용 environment schema와 parsed configuration
 - `infrastructure/auth/`: Better Auth session을 Agent identity로 바꾸는 capability adapter
 - `infrastructure/model/`: model set capability port와 configured adapter
-- `infrastructure/mcp/`: actor-bound OAuth auth provider, MCP transport/session, approval policy
+- `infrastructure/mcp/`: built-in Work OS 내부 MCP 세션, approval policy
 - `infrastructure/deep-agent/`: DeepAgents construction, protocol adaptation, session lifecycle
 - `infrastructure/runtime/`: runtime actor mapping과 durable runtime options assembly
 - `agent.module.ts`: composition root만 담당
@@ -24,9 +24,14 @@ Agent runtime이 검증 뒤 넣은 `langgraph_auth_*` configurable만 `agent-act
 
 WorkOS business capability는 MCP `tools/list` 결과만 사용한다. organization/wiki/chat 등 WorkOS domain service나 Drizzle persistence를 Agent feature가 직접 import하거나 tool schema를 복제하지 않는다.
 
-production MCP 인증 경계는 `WorkOsMcpAuthProviderFactory`다. `LangChainWorkOsMcpAdapter`는 server-verified `AgentActor`마다 `AuthProvider`를 새로 받아 MCP SDK의 `authProvider`에 직접 전달한다. 현재 composition은 `McpAgentDelegationWorkOsAuthProviderFactory`가 encrypted durable delegation token과 refresh lease/CAS를 사용하며, delegation이 없거나 revoke된 actor는 fail-closed한다. `McpCredentialProvider`는 deterministic integration fixture의 legacy/test-only bearer seam으로만 남고 production default wiring에는 참여하지 않는다. 전역 superuser token, anonymous fallback, inbound Better Auth credential 재사용은 하지 않는다.
+built-in Work OS 도구는 별도 OAuth 위임 없이 서버 내부 연결을 사용한다. `FirstPartyWorkOsMcpAdapter`가 runtime이 검증한 `AgentActor`로 MCP feature의 `McpFirstPartyConnectionService`를 호출한다. 이 service는 다음과 같이 동작한다.
 
-`LangChainWorkOsMcpAdapter`는 MCP transport, credential refresh, tool discovery와 session lifecycle을 소유한다. `McpToolApprovalPolicy`는 tool annotation의 `readOnlyHint: true`만 read-only로 인정하고 나머지 tool을 human approval interrupt 대상으로 분류한다.
+- `McpAccessService.resolveFirstPartyAgentScopes`로 멤버십을 확인하고, 기존 기본값으로만 정책을 보장한 뒤 실효 scope를 계산한다.
+- `authMethod: 'first-party-agent'`, `allowedOrganizationIds: [actor.organizationId]` context로 HTTP endpoint와 같은 modern MCP handler를 프로세스 안에서 직접 호출한다.
+
+도구 호출 시점의 조직 정책·사용자 정책·멤버십·조직 범위 검사는 기존 MCP tool 인가 흐름이 그대로 수행한다. 전역 superuser token, anonymous fallback, 브라우저 세션 credential 재사용은 하지 않는다. 외부 MCP 서비스는 `agent-mcp-connections`가 별도 인증으로 연결하고 `CombinedMcpToolSessionAdapter`가 합친다.
+
+`McpToolApprovalPolicy`는 tool annotation의 `readOnlyHint: true`만 read-only로 인정하고 나머지 tool을 human approval interrupt 대상으로 분류한다. HTTP fixture MCP 서버를 쓰는 runtime E2E는 테스트 전용 `test/agent/support/http-workos-mcp-session.provider.ts`를 사용한다.
 
 ## DeepAgent and protocol boundary
 

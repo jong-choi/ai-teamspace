@@ -12,12 +12,12 @@ import {
 import { AIMessage } from '@langchain/core/messages';
 import { fakeModel } from '@langchain/core/testing';
 import { Client } from '@langchain/langgraph-sdk';
+import { MCPAdapter } from '@langchain/mcp-adapters';
 
 import { WorkOsAgentFactory } from '../../../dist/agent/application/workos-agent.factory.js';
 import { AgentConfiguration } from '../../../dist/agent/config/agent-configuration.js';
 import { DeepAgentBuilder } from '../../../dist/agent/infrastructure/deep-agent/deep-agent.builder.js';
 import { DeepAgentWorkOsGraphAdapter } from '../../../dist/agent/infrastructure/deep-agent/deep-agent-workos-graph.adapter.js';
-import { LangChainWorkOsMcpAdapter } from '../../../dist/agent/infrastructure/mcp/langchain/langchain-workos-mcp.adapter.js';
 import { McpToolApprovalPolicy } from '../../../dist/agent/infrastructure/mcp/langchain/mcp-tool-approval.policy.js';
 
 const phase = required('AGENT_PROCESS_PHASE');
@@ -71,11 +71,46 @@ const configuration = new AgentConfiguration(
   { mcpToolTimeoutMs: 5_000 },
   { resourceUrl: mcpUrl },
 );
-const sessions = new LangChainWorkOsMcpAdapter(
-  authProviderFactory,
-  configuration,
-  new McpToolApprovalPolicy(),
-);
+// fixture MCP 서버는 HTTP로만 열려 있으므로 테스트 프로세스가 직접 세션을 연다.
+const approvalPolicy = new McpToolApprovalPolicy();
+const sessions = {
+  async open(actor) {
+    const adapter = new MCPAdapter({
+      prefixToolNameWithServerName: false,
+      defaultToolTimeout: configuration.mcp.toolTimeoutMs,
+      servers: {
+        workos: {
+          transport: 'http',
+          mode: 'modern',
+          url: configuration.mcp.url,
+          authProvider: await authProviderFactory.create(actor),
+        },
+      },
+    });
+    try {
+      const tools = await adapter.listTools('workos');
+      return {
+        tools,
+        readOnlyTools: approvalPolicy.readOnlyTools(tools),
+        interruptOn: approvalPolicy.interruptOn(tools),
+        toolIdentities: new Map(
+          tools.map((tool) => [
+            tool.name,
+            {
+              source: 'workos',
+              namespace: 'workos',
+              originalToolName: tool.name,
+            },
+          ]),
+        ),
+        close: () => adapter.close(),
+      };
+    } catch (error) {
+      await adapter.close();
+      throw error;
+    }
+  },
+};
 const graphs = new DeepAgentWorkOsGraphAdapter(
   modelProvider,
   sessions,

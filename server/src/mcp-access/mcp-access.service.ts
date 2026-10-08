@@ -405,6 +405,31 @@ export class McpAccessService {
     return 'ensured';
   }
 
+  /**
+   * 별도 연결 동의 없이 동작하는 built-in Agent의 실효 scope를 계산한다.
+   * 멤버십을 먼저 확인하고 기존 기본값으로만 정책을 보장하므로 허용 범위를 늘리지 않는다.
+   */
+  async resolveFirstPartyAgentScopes(
+    organizationId: string,
+    userId: string,
+  ): Promise<McpScope[]> {
+    await this.assertMembership(organizationId, userId);
+
+    const organizationPolicy =
+      await this.ensureOrganizationPolicy(organizationId);
+    const userPolicy = await this.ensureUserPolicy(
+      organizationId,
+      userId,
+      organizationPolicy.allowedScopes,
+    );
+
+    return toMcpEffectiveAccess({
+      deploymentScopes: MCP_SCOPES,
+      organizationAllowedScopes: organizationPolicy.allowedScopes,
+      userRequestedScopes: userPolicy.requestedScopes,
+    }).effectiveScopes;
+  }
+
   async assertMembership(
     organizationId: string,
     userId: string,

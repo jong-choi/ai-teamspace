@@ -1,5 +1,5 @@
 import type { AgentActor } from '@/agent/domain/agent-actor';
-import type { LangChainWorkOsMcpAdapter } from '@/agent/infrastructure/mcp/langchain/langchain-workos-mcp.adapter';
+import type { FirstPartyWorkOsMcpAdapter } from '@/agent/infrastructure/mcp/first-party/first-party-workos-mcp.adapter';
 import { CombinedMcpToolSessionAdapter } from '@/agent-mcp-connections/infrastructure/mcp/combined-mcp-tool-session.adapter';
 import type { ExternalMcpToolSessionProvider } from '@/agent-mcp-connections/infrastructure/mcp/external-mcp-tool-session.provider';
 
@@ -39,7 +39,7 @@ describe('Work OS와 external MCP combined session', () => {
         ]),
         close: workOsClose,
       }),
-    } as unknown as LangChainWorkOsMcpAdapter;
+    } as unknown as FirstPartyWorkOsMcpAdapter;
     const external = {
       open: jest.fn().mockRejectedValue(new Error('remote failure')),
     } as unknown as ExternalMcpToolSessionProvider;
@@ -80,7 +80,7 @@ describe('Work OS와 external MCP combined session', () => {
         ]),
         close: jest.fn().mockRejectedValue(new Error('close failure')),
       }),
-    } as unknown as LangChainWorkOsMcpAdapter;
+    } as unknown as FirstPartyWorkOsMcpAdapter;
     const external = {
       open: jest.fn().mockResolvedValue({
         tools: [externalTool],

@@ -1,5 +1,10 @@
 import { randomUUID } from 'node:crypto';
 
+import {
+  mutationToolOutputSchema,
+  ProjectTicketMutationReceiptSchema,
+  WikiDocumentMutationReceiptSchema,
+} from '@/mcp/contracts/agent-mutation-receipt.dto';
 import { MCP_SCOPES, type McpScope } from '@/mcp/contracts/mcp-scope';
 import { v1McpToolDefinitions } from '@/mcp/tools/v1-tool-manifest';
 import { OrganizationListSchema } from '@/organizations/dto/organization-list.dto';
@@ -52,7 +57,18 @@ describe('실제 Work OS MCP transport 통합', () => {
         },
       });
       expect(created.isError).not.toBe(true);
-      const document = WikiDocumentSchema.parse(created.structuredContent);
+      const output = mutationToolOutputSchema(
+        WikiDocumentSchema,
+        WikiDocumentMutationReceiptSchema,
+      ).parse(created.structuredContent);
+      const document = output.result;
+      expect(output.mutation).toMatchObject({
+        kind: 'wiki_document',
+        operation: 'created',
+        organizationId: actor.organizationId,
+        resourceId: document.id,
+        revision: document.revision,
+      });
 
       const authoritative = await actor.agent.get(
         `/organizations/${actor.organizationId}/wiki/documents/${document.id}`,
@@ -321,9 +337,18 @@ describe('실제 Work OS MCP transport 통합', () => {
         },
       });
       expect(created.isError).not.toBe(true);
-      const ticket = TicketSchema.pick({ id: true }).parse(
-        created.structuredContent,
-      );
+      const output = mutationToolOutputSchema(
+        TicketSchema.pick({ id: true }),
+        ProjectTicketMutationReceiptSchema,
+      ).parse(created.structuredContent);
+      const ticket = output.result;
+      expect(output.mutation).toMatchObject({
+        kind: 'project_ticket',
+        operation: 'created',
+        organizationId: actor.organizationId,
+        projectId: project.body.id,
+        resourceId: ticket.id,
+      });
 
       const authoritative = await actor.agent
         .get(

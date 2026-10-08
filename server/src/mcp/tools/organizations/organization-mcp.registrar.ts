@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 
 import { bindMcpTool, type BoundMcpTool } from '@/mcp/tools/bound-mcp-tool';
 import { toMcpOrganizationActor } from '@/mcp/tools/mcp-application-actor';
+import { organizationInvitationReceipt } from '@/mcp/tools/mcp-mutation-receipt.mapper';
 import {
   organizationInvitationCreateTool,
   organizationMembersListTool,
@@ -57,11 +58,15 @@ export class OrganizationMcpRegistrar {
       }),
       bindMcpTool(organizationInvitationCreateTool, async (input, auth) => {
         const { organizationId, ...body } = input;
-        return this.invitationsService.create(
+        const result = await this.invitationsService.create(
           toMcpOrganizationActor(auth),
           organizationId,
           body,
         );
+        return {
+          result,
+          mutation: organizationInvitationReceipt(organizationId, result),
+        };
       }),
     ];
   }

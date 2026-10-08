@@ -1,4 +1,8 @@
 import {
+  mutationToolOutputSchema,
+  ProjectTicketMutationReceiptSchema,
+} from '@/mcp/contracts/agent-mutation-receipt.dto';
+import {
   consequentialWriteAnnotations,
   defineMcpTool,
   readOnlyAnnotations,
@@ -74,7 +78,10 @@ export const projectTicketCreateTool = defineMcpTool({
   description:
     '명시한 조직/프로젝트에 티켓을 생성합니다. archived project, column, assignee membership 등 기존 Work OS invariant를 그대로 적용합니다.',
   inputSchema: CreateTicketSchema.extend(projectIdentityFields),
-  outputSchema: TicketDetailSchema,
+  outputSchema: mutationToolOutputSchema(
+    TicketDetailSchema,
+    ProjectTicketMutationReceiptSchema,
+  ),
   requiredScope: 'projects:write',
   classification: 'write',
   annotations: writeAnnotations,
@@ -86,7 +93,10 @@ export const projectTicketUpdateTool = defineMcpTool({
   description:
     '명시한 조직/프로젝트의 티켓을 수정합니다. 기존 archived/assignee/concurrency 규칙과 현재 조직 접근 검증을 우회하지 않습니다.',
   inputSchema: UpdateTicketSchema.safeExtend(ticketIdentityFields),
-  outputSchema: TicketDetailSchema,
+  outputSchema: mutationToolOutputSchema(
+    TicketDetailSchema,
+    ProjectTicketMutationReceiptSchema,
+  ),
   requiredScope: 'projects:write',
   classification: 'write',
   annotations: writeAnnotations,
@@ -98,7 +108,10 @@ export const projectTicketMoveTool = defineMcpTool({
   description:
     '티켓을 다른 column/position으로 이동합니다. 순서 변경은 다른 카드 위치에 영향을 줄 수 있으므로 consequential write이며 기존 ordering transaction을 사용합니다.',
   inputSchema: MoveTicketSchema.safeExtend(ticketIdentityFields),
-  outputSchema: MoveTicketResultSchema,
+  outputSchema: mutationToolOutputSchema(
+    MoveTicketResultSchema,
+    ProjectTicketMutationReceiptSchema,
+  ),
   requiredScope: 'projects:write',
   classification: 'consequential',
   annotations: consequentialWriteAnnotations,

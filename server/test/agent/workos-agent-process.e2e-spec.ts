@@ -4,11 +4,13 @@ import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import { startWorkOsMcpProcessFixture } from '@test/agent/fixtures/workos-mcp-process.fixture';
+import { deleteRedisTestKeys } from '@test/support/redis-test-keys';
 
+const redisUrl = process.env['AGENT_TEST_REDIS_URL'];
 const processAcceptanceEnabled =
   process.env['AGENT_REAL_PROCESS_ACCEPTANCE'] === 'true' &&
   Boolean(process.env['AGENT_TEST_DATABASE_URL']) &&
-  Boolean(process.env['AGENT_TEST_REDIS_URL']);
+  Boolean(redisUrl);
 const processDescribe = processAcceptanceEnabled ? describe : describe.skip;
 
 jest.setTimeout(60_000);
@@ -68,6 +70,13 @@ processDescribe('WorkOS Agent real-process durable acceptance', () => {
       ]);
     } finally {
       await fixture.close();
+      // child process가 만든 이 test namespace의 Redis key만 정리한다.
+      if (redisUrl) {
+        await deleteRedisTestKeys(redisUrl, [
+          `work-os:test:agent-process:${namespace}:*`,
+          `bull:work-os-test-agent-process-${namespace}*`,
+        ]);
+      }
     }
   });
 });

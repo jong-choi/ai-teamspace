@@ -27,12 +27,15 @@ import {
   waitForRunStatus,
 } from '@test/agent/support/workos-agent.e2e-support';
 import { createTestWorkOsAgentGraphFactory } from '@test/agent/support/workos-agent-test-graph';
+import { deleteRedisTestKeys } from '@test/support/redis-test-keys';
 
 jest.setTimeout(30_000);
 
 const databaseUrl = process.env['AGENT_TEST_DATABASE_URL'];
 const redisUrl = process.env['AGENT_TEST_REDIS_URL'];
 const integrationDescribe = databaseUrl && redisUrl ? describe : describe.skip;
+const REDIS_PREFIX_ROOT = 'work-os:test:agent03';
+const RUN_QUEUE_ROOT = 'work-os-test-agent03';
 
 interface StartedDurableApp {
   app: INestApplication;
@@ -59,8 +62,8 @@ async function startDurableApp(input: {
     {
       postgresUri: databaseUrl,
       redisUri: redisUrl,
-      redisPrefix: `work-os:test:agent03:${input.namespace}`,
-      runQueueName: `work-os-test-agent03-${input.namespace}`,
+      redisPrefix: `${REDIS_PREFIX_ROOT}:${input.namespace}`,
+      runQueueName: `${RUN_QUEUE_ROOT}-${input.namespace}`,
       runConcurrency: 1,
       runTimeoutMs: 10_000,
       overrides: { auth: testAgentAuth },
@@ -123,6 +126,14 @@ function initialHitlModels(): AgentModels {
 }
 
 integrationDescribe('WorkOS DeepAgent durable runtime', () => {
+  afterAll(async () => {
+    if (!redisUrl) return;
+    await deleteRedisTestKeys(redisUrl, [
+      `${REDIS_PREFIX_ROOT}:*`,
+      `bull:${RUN_QUEUE_ROOT}-*`,
+    ]);
+  });
+
   test('DeepAgent checkpoint가 restart 뒤 유지되고 state/history 조회는 MCP outage와 독립적이다', async () => {
     const fixture = await startWorkOsMcpFixture();
     const namespace = `${randomUUID()}`;

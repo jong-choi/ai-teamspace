@@ -334,13 +334,11 @@ async function stopDurableProcess(
 
 integrationDescribe('Agent durable runtime 실제 Postgres/Redis 통합', () => {
   beforeAll(async () => {
-    if (!redisUrl) return;
-    const redis = new Redis(redisUrl);
-    try {
-      await redis.flushdb();
-    } finally {
-      await redis.quit();
-    }
+    await cleanupOwnedRedisKeys();
+  });
+
+  afterAll(async () => {
+    await cleanupOwnedRedisKeys();
   });
 
   test('migration을 외부로 분리해도 PostgreSQL readiness 실패를 bootstrap에서 거부한다', async () => {
@@ -885,3 +883,32 @@ integrationDescribe('Agent durable runtime 실제 Postgres/Redis 통합', () => 
     }
   });
 });
+
+async function cleanupOwnedRedisKeys(): Promise<void> {
+  if (!redisUrl) return;
+  const redis = new Redis(redisUrl);
+  try {
+    // 공유 Redis의 다른 key를 지우지 않도록 이 suite와 durable-process fixture의 namespace만 정리한다.
+    for (const pattern of [
+      `${redisPrefix}:*`,
+      `bull:${runQueueName}*`,
+      'work-os:test:process:*',
+      'bull:work-os-test-process-*',
+    ]) {
+      let cursor = '0';
+      do {
+        const [nextCursor, keys] = await redis.scan(
+          cursor,
+          'MATCH',
+          pattern,
+          'COUNT',
+          200,
+        );
+        cursor = nextCursor;
+        if (keys.length > 0) await redis.unlink(...keys);
+      } while (cursor !== '0');
+    }
+  } finally {
+    await redis.quit();
+  }
+}

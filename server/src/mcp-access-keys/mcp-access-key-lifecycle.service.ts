@@ -419,7 +419,8 @@ export class McpAccessKeyLifecycleService {
       throw new McpAccessKeyExpirationInvalidError();
     }
 
-    return Math.max(1, Math.ceil(remainingMilliseconds / 1000));
+    // Better Auth는 초 단위 상대 만료만 받으므로 내림해 rotate가 원래 만료 시각을 넘지 않게 한다.
+    return Math.max(1, Math.floor(remainingMilliseconds / 1000));
   }
 
   private async reserveOperation(input: {

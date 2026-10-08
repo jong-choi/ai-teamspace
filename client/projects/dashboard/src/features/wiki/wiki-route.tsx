@@ -201,7 +201,33 @@ function WikiWorkspace({
     <View className="relative min-h-0 flex-1 overflow-hidden bg-background">
       {documentId ? (
         <DashboardQueryBoundary
-          fallback={<DashboardLoading label="문서를 불러오는 중..." />}
+          fallback={
+            <View className="min-h-0 flex-1">
+              <WikiHeader
+                tree={tree}
+                activeDocument={tree.documents.find(
+                  (document) => document.id === documentId,
+                )}
+                onOpenTree={() => setDrawerOpen(true)}
+                onOpenWikiRoot={() => void openWikiRoot()}
+              />
+              <View className="min-h-0 flex-1 flex-row">
+                <WikiTree
+                  activeDocumentId={documentId}
+                  drawerOpen={drawerOpen}
+                  onCloseDrawer={() => setDrawerOpen(false)}
+                  onCreateDocument={(parentDocumentId) =>
+                    setCreateRequest({ parentDocumentId })
+                  }
+                  onDeleteItem={setDeleteTarget}
+                  onManageItem={setManageTarget}
+                  onSelectDocument={(id) => void selectDocument(id)}
+                  tree={tree}
+                />
+                <DashboardLoading label="문서 본문을 불러오는 중..." />
+              </View>
+            </View>
+          }
           resetKeys={[organizationId, documentId]}
           title="문서를 불러오지 못했습니다"
         >

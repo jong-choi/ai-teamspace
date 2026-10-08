@@ -79,10 +79,7 @@ export class CalendarMeetingQueryDrizzleRepository extends CalendarMeetingQueryR
           .select({ meetingId: meetingAttendee.meetingId })
           .from(meetingAttendee)
           .where(inArray(meetingAttendee.userId, [...participantUserIds]));
-        const participantCondition = or(
-          inArray(meeting.organizerUserId, [...participantUserIds]),
-          inArray(meeting.id, participantMeetingIds),
-        );
+        const participantCondition = inArray(meeting.id, participantMeetingIds);
         if (participantCondition) searchConditions.push(participantCondition);
       }
       const searchCondition = or(...searchConditions);

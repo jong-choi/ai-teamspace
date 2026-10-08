@@ -33,7 +33,6 @@ type AgentIntegrationsPageProps = {
 export function AgentIntegrationsPage({
   openAuthorization,
 }: AgentIntegrationsPageProps) {
-  const connections = useAgentMcpConnections().data.items;
   const [expandedConnectionId, setExpandedConnectionId] = useState<
     string | null
   >(null);
@@ -55,28 +54,15 @@ export function AgentIntegrationsPage({
         openAuthorization={openAuthorization}
       />
 
-      {connections.length === 0 ? (
-        <DashboardState
-          description="등록한 외부 MCP 연결이 없습니다. 위 폼에서 HTTPS endpoint를 추가해 주세요."
-          title="외부 연결이 없습니다"
+      <DashboardQueryBoundary
+        fallback={<DashboardLoading label="외부 연결 목록을 불러오는 중..." />}
+      >
+        <AgentConnectionList
+          openAuthorization={openAuthorization}
+          expandedConnectionId={expandedConnectionId}
+          onSelect={setExpandedConnectionId}
         />
-      ) : (
-        <View className="gap-3">
-          {connections.map((connection) => (
-            <ConnectionCard
-              connection={connection}
-              expanded={expandedConnectionId === connection.id}
-              key={connection.id}
-              onToggleTools={() =>
-                setExpandedConnectionId((current) =>
-                  current === connection.id ? null : connection.id,
-                )
-              }
-              openAuthorization={openAuthorization}
-            />
-          ))}
-        </View>
-      )}
+      </DashboardQueryBoundary>
     </View>
   );
 }
@@ -522,4 +508,42 @@ function externalToolHints(tool: AgentMcpDiscoveredTool): string[] {
   if (tool.annotations?.idempotentHint) hints.push('멱등성 주장');
   if (tool.annotations?.openWorldHint) hints.push('외부 시스템 접근 주장');
   return hints;
+}
+
+function AgentConnectionList({
+  openAuthorization,
+  expandedConnectionId,
+  onSelect,
+}: {
+  openAuthorization: (url: string) => Promise<void>;
+  expandedConnectionId: string | null;
+  onSelect: (id: string | null) => void;
+}) {
+  const connections = useAgentMcpConnections().data.items;
+  return (
+    <View>
+      {connections.length === 0 ? (
+        <DashboardState
+          description="등록한 외부 MCP 연결이 없습니다. 위 폼에서 HTTPS endpoint를 추가해 주세요."
+          title="외부 연결이 없습니다"
+        />
+      ) : (
+        <View className="gap-3">
+          {connections.map((connection) => (
+            <ConnectionCard
+              connection={connection}
+              expanded={expandedConnectionId === connection.id}
+              key={connection.id}
+              onToggleTools={() =>
+                onSelect(
+                  expandedConnectionId === connection.id ? null : connection.id,
+                )
+              }
+              openAuthorization={openAuthorization}
+            />
+          ))}
+        </View>
+      )}{' '}
+    </View>
+  );
 }

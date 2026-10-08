@@ -56,6 +56,7 @@ function scheduleInput(
     agendaMarkdown: '',
     notesMarkdown: '',
     reminderMinutes: null,
+    attendeeUserIds: [organizerUserId],
     ...input,
   });
 
@@ -171,6 +172,37 @@ describe('캘린더 Drizzle scheduling 저장소 통합', () => {
   afterAll(async () => {
     await cleanup();
     await moduleRef.close();
+  });
+
+  it('주최자도 명시한 참석자 목록에 저장되며 삭제한 뒤 재조회해도 복원되지 않는다', async () => {
+    const scheduled = await schedulingRepository.scheduleMeeting(
+      ...scheduleInput(organizerA),
+    );
+    expect(scheduled.status).toBe('scheduled');
+    if (scheduled.status !== 'scheduled') throw new Error('회의 생성 실패');
+    const id = scheduled.records[0].meeting.id;
+    const before = await queryRepository.findMeetingById(organizationId, id);
+    expect(before?.attendees.map((item) => item.userId)).toEqual([organizerA]);
+    const removed = await participationRepository.replaceMeetingAttendees(
+      organizationId,
+      id,
+      { attendeeUserIds: [] },
+      [],
+    );
+    expect(removed.status).toBe('updated');
+    const after = await queryRepository.findMeetingById(organizationId, id);
+    expect(after?.meeting.organizerUserId).toBe(organizerA);
+    expect(after?.attendees).toEqual([]);
+  });
+
+  it('참석자에서 제외한 주최자는 같은 시간에 다른 회의를 만들어도 참석 충돌이 없다', async () => {
+    const input = scheduleInput(organizerA, { attendeeUserIds: [] });
+    const first = await schedulingRepository.scheduleMeeting(...input);
+    const second = await schedulingRepository.scheduleMeeting(
+      ...scheduleInput(organizerA, { attendeeUserIds: [] }),
+    );
+    expect(first.status).toBe('scheduled');
+    expect(second.status).toBe('scheduled');
   });
 
   it('같은 participant의 겹치는 Meeting 동시 생성은 하나만 성공한다', async () => {

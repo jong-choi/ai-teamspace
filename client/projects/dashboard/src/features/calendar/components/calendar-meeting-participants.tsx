@@ -1,6 +1,9 @@
+import { useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 
+import { useCalendarControllerReplaceAttendees } from '@repo/client/api-client';
 import { getProblemDetails } from '@repo/client/api-client/runtime';
+import type { OrganizationUserSummary } from '@repo/client/api-client/schemas';
 import {
   type MeetingAttendee,
   type MeetingDetail,
@@ -12,10 +15,18 @@ import {
   AvatarFallback,
   AvatarImage,
 } from '@repo/client/rnr/components/ui/avatar';
+import { Button } from '@repo/client/rnr/components/ui/button';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
+import {
+  invalidateCalendarRanges,
+  setCalendarMeetingDetail,
+} from '@core/features/calendar/calendar-cache-policy';
 import { useCalendarRsvp } from '@core/features/calendar/calendar-scheduling-mutations';
+import { CalendarAttendeePicker } from '@core/features/calendar/components/calendar-attendee-picker';
+
+import { useQueryClient } from '@tanstack/react-query';
 
 const rsvpOptions = RsvpMeetingSchema.shape.status.options;
 type RsvpStatus = RsvpMeeting['status'];
@@ -29,6 +40,20 @@ export function CalendarMeetingParticipants({
   meeting: MeetingDetail;
   organizationId: string;
 }) {
+  const [editing, setEditing] = useState(false);
+  const [selectedMembers, setSelectedMembers] = useState<
+    OrganizationUserSummary[]
+  >([]);
+  const queryClient = useQueryClient();
+  const attendeesMutation = useCalendarControllerReplaceAttendees({
+    mutation: {
+      onSuccess: async (updated) => {
+        setCalendarMeetingDetail(queryClient, organizationId, updated);
+        await invalidateCalendarRanges(queryClient, organizationId);
+        setEditing(false);
+      },
+    },
+  });
   const ownAttendee = meeting.attendees.find(
     (attendee) => attendee.user.id === currentUserId,
   );
@@ -80,18 +105,88 @@ export function CalendarMeetingParticipants({
         </View>
       ) : null}
 
+      {meeting.organizer.id === currentUserId && !meeting.canceledAt ? (
+        <View className="gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onPress={() => {
+              setSelectedMembers(
+                meeting.attendees.map((attendee) => attendee.user),
+              );
+              setEditing(true);
+            }}
+          >
+            <Text className="text-xs">참석자 편집</Text>
+          </Button>
+          {editing ? (
+            <View className="gap-2">
+              <CalendarAttendeePicker
+                currentUserId={currentUserId}
+                organizationId={organizationId}
+                selectedMembers={selectedMembers}
+                onChange={setSelectedMembers}
+              />
+              <View className="flex-row justify-end gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={attendeesMutation.isPending}
+                  onPress={() => setEditing(false)}
+                >
+                  <Text>취소</Text>
+                </Button>
+                <Button
+                  size="sm"
+                  disabled={attendeesMutation.isPending}
+                  onPress={() =>
+                    attendeesMutation.mutate(
+                      {
+                        organizationId,
+                        meetingId: meeting.id,
+                        data: {
+                          attendeeUserIds: selectedMembers.map(
+                            (member) => member.id,
+                          ),
+                        },
+                      },
+                      {
+                        onError: (error) =>
+                          notifyError({
+                            title: '참석자를 변경하지 못했습니다',
+                            description:
+                              getProblemDetails(error)?.detail ??
+                              '다시 시도해 주세요.',
+                          }),
+                      },
+                    )
+                  }
+                >
+                  <Text className="text-primary-foreground">참석자 저장</Text>
+                </Button>
+              </View>
+            </View>
+          ) : null}
+        </View>
+      ) : null}
       <View className="border-t border-border/60 pt-2">
         <Text className="mb-1.5 text-[11px] text-muted-foreground">
-          참석자 현황
+          참석자 현황 · {meeting.attendees.length}명
         </Text>
+        <PersonStatusRow
+          email={meeting.organizer.email}
+          image={meeting.organizer.image}
+          name={meeting.organizer.name}
+          role={
+            meeting.attendees.some(
+              (attendee) => attendee.user.id === meeting.organizer.id,
+            )
+              ? '주최자'
+              : '주최자 · 참석 제외'
+          }
+        />
         <ScrollView className="max-h-32" nestedScrollEnabled>
           <View className="gap-1">
-            <PersonStatusRow
-              email={meeting.organizer.email}
-              image={meeting.organizer.image}
-              name={meeting.organizer.name}
-              role="주최자"
-            />
             {meeting.attendees.map((attendee) => (
               <AttendeeStatusRow attendee={attendee} key={attendee.user.id} />
             ))}

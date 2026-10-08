@@ -32,12 +32,29 @@ export function ExpoDashboardPlatformProvider({
 function ExpoDashboardPlatformBridge({ children }: { children: ReactNode }) {
   const session = authClient.useSession();
   const currentUserId = session.data?.user.id ?? null;
+  const userName = session.data?.user.name ?? '';
+  const userEmail = session.data?.user.email ?? '';
+  const userImage = session.data?.user.image ?? null;
+  const currentUser = useMemo(
+    () =>
+      currentUserId
+        ? {
+            id: currentUserId,
+            name: userName,
+            email: userEmail,
+            image: userImage,
+          }
+        : null,
+    [currentUserId, userName, userEmail, userImage],
+  );
   const { notifyError, notifySuccess } = useDashboardNotifications();
 
   const value = useMemo<DashboardPlatformValue>(
     () => ({
       authentication: authClient,
       currentUserId,
+      currentUser,
+      sessionError: Boolean(session.error),
       sessionPending: session.isPending,
       copyText: async (text: string) => {
         await Clipboard.setStringAsync(text);
@@ -59,7 +76,14 @@ function ExpoDashboardPlatformBridge({ children }: { children: ReactNode }) {
       notifyError,
       notifySuccess,
     }),
-    [currentUserId, notifyError, notifySuccess, session.isPending],
+    [
+      currentUserId,
+      notifyError,
+      notifySuccess,
+      session.isPending,
+      currentUser,
+      session.error,
+    ],
   );
 
   return (

@@ -14,6 +14,7 @@ import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
 import { getConversationDisplay } from '@core/features/chat/chat-presenter';
 import { useChatConversations } from '@core/features/chat/chat-query';
+import { ChatLoading, ChatQueryBoundary } from '@core/features/chat/chat-state';
 
 import { LegendList } from '@legendapp/list/react-native';
 import { Bell, Hash, Plus, Search } from 'lucide-react-native';
@@ -47,12 +48,7 @@ export function ChatConversationSidebar({
   onCloseDrawer,
   onSelectConversation,
 }: ConversationSidebarProps) {
-  const conversations = useChatConversations().data;
   const [search, setSearch] = useState('');
-  const items = useMemo(
-    () => buildSidebarItems(conversations, currentUserId, search),
-    [conversations, currentUserId, search],
-  );
 
   return (
     <View
@@ -85,38 +81,17 @@ export function ChatConversationSidebar({
         </Button>
       </View>
 
-      <View className="min-h-0 flex-1">
-        {items.length === 0 ? (
-          <View className="px-3 py-10">
-            <Text className="text-center text-xs text-muted-foreground">
-              표시할 대화가 없습니다.
-            </Text>
-          </View>
-        ) : (
-          <LegendList
-            contentContainerStyle={{ padding: 8, paddingBottom: 20 }}
-            data={items}
-            getItemType={(item) => item.type}
-            keyExtractor={(item) => item.id}
-            recycleItems
-            renderItem={({ item }) =>
-              item.type === 'section' ? (
-                <Text className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  {item.label}
-                </Text>
-              ) : (
-                <ConversationRow
-                  active={item.conversation.id === activeConversationId}
-                  conversation={item.conversation}
-                  currentUserId={currentUserId}
-                  onSelect={onSelectConversation}
-                />
-              )
-            }
-          />
-        )}
-      </View>
-
+      <ChatQueryBoundary
+        fallback={<ChatLoading label="대화 목록을 불러오는 중..." />}
+        title="대화 목록을 불러오지 못했습니다"
+      >
+        <ConversationSidebarList
+          search={search}
+          activeConversationId={activeConversationId}
+          currentUserId={currentUserId}
+          onSelectConversation={onSelectConversation}
+        />
+      </ChatQueryBoundary>
       <View className="shrink-0 items-end border-t border-border bg-muted/30 p-3 md:hidden">
         <Button
           accessibilityLabel="채널 목록 닫기"
@@ -262,5 +237,54 @@ function appendSection(
       type: 'conversation' as const,
       conversation,
     })),
+  );
+}
+
+function ConversationSidebarList({
+  search,
+  activeConversationId,
+  currentUserId,
+  onSelectConversation,
+}: Pick<
+  ConversationSidebarProps,
+  'activeConversationId' | 'currentUserId' | 'onSelectConversation'
+> & { search: string }) {
+  const conversations = useChatConversations().data;
+  const items = useMemo(
+    () => buildSidebarItems(conversations, currentUserId, search),
+    [conversations, currentUserId, search],
+  );
+  return (
+    <View className="min-h-0 flex-1">
+      {items.length === 0 ? (
+        <View className="px-3 py-10">
+          <Text className="text-center text-xs text-muted-foreground">
+            표시할 대화가 없습니다.
+          </Text>
+        </View>
+      ) : (
+        <LegendList
+          contentContainerStyle={{ padding: 8, paddingBottom: 20 }}
+          data={items}
+          getItemType={(item) => item.type}
+          keyExtractor={(item) => item.id}
+          recycleItems
+          renderItem={({ item }) =>
+            item.type === 'section' ? (
+              <Text className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                {item.label}
+              </Text>
+            ) : (
+              <ConversationRow
+                active={item.conversation.id === activeConversationId}
+                conversation={item.conversation}
+                currentUserId={currentUserId}
+                onSelect={onSelectConversation}
+              />
+            )
+          }
+        />
+      )}
+    </View>
   );
 }

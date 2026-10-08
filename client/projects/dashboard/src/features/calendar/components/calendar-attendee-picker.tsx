@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 
-import type { OrganizationMember } from '@repo/client/api-client/schemas';
+import type {
+  OrganizationMember,
+  OrganizationUserSummary,
+} from '@repo/client/api-client/schemas';
 import {
   Avatar,
   AvatarFallback,
@@ -25,9 +28,9 @@ export function CalendarAttendeePicker({
   selectedMembers,
 }: {
   currentUserId: string;
-  onChange: (members: OrganizationMember[]) => void;
+  onChange: (members: OrganizationUserSummary[]) => void;
   organizationId: string;
-  selectedMembers: OrganizationMember[];
+  selectedMembers: OrganizationUserSummary[];
 }) {
   const [search, setSearch] = useState('');
   const normalizedSearch = search.trim();
@@ -54,27 +57,21 @@ export function CalendarAttendeePicker({
         ) : (
           selectedMembers.map((member) => (
             <Pressable
-              accessibilityLabel={`${member.user.name} 참여자에서 제거`}
+              accessibilityLabel={`${member.name} 참여자에서 제거`}
               className="flex-row items-center gap-1.5 rounded-md border border-border bg-background px-2 py-1 shadow-sm shadow-black/5"
-              key={member.userId}
+              key={member.id}
               onPress={() =>
                 onChange(
                   selectedMembers.filter(
-                    (selected) => selected.userId !== member.userId,
+                    (selected) => selected.id !== member.id,
                   ),
                 )
               }
             >
-              <MemberAvatar
-                compact
-                image={member.user.image}
-                name={member.user.name}
-              />
-              <Text className="text-[10px] font-medium">
-                {member.user.name}
-              </Text>
+              <MemberAvatar compact image={member.image} name={member.name} />
+              <Text className="text-[10px] font-medium">{member.name}</Text>
               <Text className="text-[9px] text-muted-foreground">
-                ({memberRoleLabel(member.role)})
+                {member.id === currentUserId ? '(본인)' : ''}
               </Text>
               <Icon as={X} className="size-3 text-muted-foreground" />
             </Pressable>
@@ -110,9 +107,8 @@ export function CalendarAttendeePicker({
           title="멤버 검색을 불러오지 못했습니다"
         >
           <CalendarAttendeeSearchResults
-            currentUserId={currentUserId}
             onSelect={(member) => {
-              onChange([...selectedMembers, member]);
+              onChange([...selectedMembers, member.user]);
               setSearch('');
             }}
             organizationId={organizationId}
@@ -126,23 +122,20 @@ export function CalendarAttendeePicker({
 }
 
 function CalendarAttendeeSearchResults({
-  currentUserId,
   onSelect,
   organizationId,
   search,
   selectedMembers,
 }: {
-  currentUserId: string;
   onSelect: (member: OrganizationMember) => void;
   organizationId: string;
   search: string;
-  selectedMembers: readonly OrganizationMember[];
+  selectedMembers: readonly OrganizationUserSummary[];
 }) {
   const members = useCalendarMembers(organizationId, search).data.items;
   const selectableMembers = members.filter(
     (member) =>
-      member.userId !== currentUserId &&
-      !selectedMembers.some((selected) => selected.userId === member.userId),
+      !selectedMembers.some((selected) => selected.id === member.userId),
   );
 
   return (
@@ -173,12 +166,6 @@ function CalendarAttendeeSearchResults({
       ) : null}
     </View>
   );
-}
-
-function memberRoleLabel(role: OrganizationMember['role']): string {
-  if (role === 'owner') return '소유자';
-  if (role === 'admin') return '관리자';
-  return '멤버';
 }
 
 function MemberAvatar({

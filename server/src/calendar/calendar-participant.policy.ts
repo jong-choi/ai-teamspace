@@ -16,13 +16,8 @@ export class CalendarParticipantPolicy {
     private readonly organizationsService: CalendarParticipantDirectory,
   ) {}
 
-  normalizeAttendeeUserIds(
-    attendeeUserIds: readonly string[],
-    organizerUserId: string,
-  ): string[] {
-    return [...new Set(attendeeUserIds)].filter(
-      (userId) => userId !== organizerUserId,
-    );
+  normalizeAttendeeUserIds(attendeeUserIds: readonly string[]): string[] {
+    return [...new Set(attendeeUserIds)];
   }
 
   async assertMembers(

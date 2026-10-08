@@ -98,16 +98,10 @@ function AuthenticatedCalendarRoute({
           title="활성 조직이 없습니다"
         />
       ) : (
-        <DashboardQueryBoundary
-          fallback={<DashboardLoading label="회의일정을 불러오는 중..." />}
-          resetKeys={[activeOrganization.organization.id]}
-          title="회의일정을 불러오지 못했습니다"
-        >
-          <CalendarWorkspace
-            currentUserId={currentUserId}
-            organizationId={activeOrganization.organization.id}
-          />
-        </DashboardQueryBoundary>
+        <CalendarWorkspace
+          currentUserId={currentUserId}
+          organizationId={activeOrganization.organization.id}
+        />
       )}
     </DashboardShell>
   );
@@ -141,33 +135,6 @@ function CalendarWorkspace({
     currentDateKey,
     timeZone,
   );
-  const roomTimelineRange = getCalendarQueryRange(
-    'day',
-    currentDateKey,
-    timeZone,
-  );
-  const meetings = useCalendarMeetings(organizationId, {
-    from: range.from,
-    to: range.to,
-    category,
-    roomId: roomId ?? undefined,
-    search: deferredSearch,
-  }).data.items;
-  const miniCalendarMeetings = useCalendarMeetings(organizationId, {
-    from: miniCalendarRange.from,
-    to: miniCalendarRange.to,
-    category,
-    roomId: roomId ?? undefined,
-    search: deferredSearch,
-  }).data.items;
-  const roomTimelineMeetings = useCalendarMeetings(organizationId, {
-    from: roomTimelineRange.from,
-    to: roomTimelineRange.to,
-    category: 'all',
-    search: '',
-  }).data.items;
-  const rooms = useCalendarRooms(organizationId).data.items;
-
   const openCreate = (dateKey = currentDateKey, startTime?: string) => {
     setCreateRequest({ dateKey, startTime });
   };
@@ -179,6 +146,24 @@ function CalendarWorkspace({
     setView('day');
   };
 
+  const meetingViewProps = {
+    view,
+    currentDateKey,
+    onCreateMeeting: openCreate,
+    onOpenMeeting: setSelectedMeetingId,
+    onSelectDay: selectDay,
+    timeZone,
+    todayDateKey: today,
+  };
+  const miniPanelProps = {
+    organizationId,
+    currentDateKey,
+    onOpenMeeting: setSelectedMeetingId,
+    onOpenRooms: () => setRoomDialogOpen(true),
+    onSelectDate: setCurrentDateKey,
+    timeZone,
+    todayDateKey: today,
+  };
   return (
     <View className="min-h-0 flex-1 bg-background">
       <CalendarHeader
@@ -202,7 +187,7 @@ function CalendarWorkspace({
         onToday={() => setCurrentDateKey(today)}
         periodTitle={range.title}
         roomId={roomId}
-        rooms={rooms}
+        organizationId={organizationId}
         search={search}
       />
 
@@ -212,16 +197,27 @@ function CalendarWorkspace({
           contentContainerClassName="p-4"
           showsVerticalScrollIndicator={false}
         >
-          <CalendarMiniPanel
-            currentDateKey={currentDateKey}
-            meetings={miniCalendarMeetings}
-            onOpenMeeting={setSelectedMeetingId}
-            onOpenRooms={() => setRoomDialogOpen(true)}
-            onSelectDate={setCurrentDateKey}
-            rooms={rooms}
-            timeZone={timeZone}
-            todayDateKey={today}
-          />
+          <DashboardQueryBoundary
+            fallback={
+              <CalendarMiniPanel
+                {...miniPanelProps}
+                meetings={[]}
+                rooms={[]}
+                loading
+              />
+            }
+            resetKeys={[organizationId, miniCalendarRange.from]}
+            title="보조 일정을 불러오지 못했습니다"
+          >
+            <CalendarMiniPanelContent
+              {...miniPanelProps}
+              organizationId={organizationId}
+              range={miniCalendarRange}
+              category={category}
+              roomId={roomId}
+              search={deferredSearch}
+            />
+          </DashboardQueryBoundary>
         </ScrollView>
 
         <ScrollView
@@ -229,42 +225,33 @@ function CalendarWorkspace({
           contentContainerClassName="p-4 sm:p-6"
           showsVerticalScrollIndicator={false}
         >
-          {view === 'month' ? (
-            <CalendarMonthView
-              currentDateKey={currentDateKey}
-              meetings={meetings}
-              onCreateMeeting={openCreate}
-              onOpenMeeting={setSelectedMeetingId}
-              onSelectDay={selectDay}
-              timeZone={timeZone}
-              todayDateKey={today}
+          <DashboardQueryBoundary
+            fallback={
+              <CalendarMeetingViews
+                {...meetingViewProps}
+                meetings={[]}
+                loading
+              />
+            }
+            resetKeys={[
+              organizationId,
+              range.from,
+              range.to,
+              category,
+              roomId,
+              deferredSearch,
+            ]}
+            title="회의일정을 불러오지 못했습니다"
+          >
+            <CalendarMeetingContent
+              {...meetingViewProps}
+              organizationId={organizationId}
+              range={range}
+              category={category}
+              roomId={roomId}
+              search={deferredSearch}
             />
-          ) : view === 'week' ? (
-            <CalendarWeekView
-              currentDateKey={currentDateKey}
-              meetings={meetings}
-              onCreateMeeting={openCreate}
-              onOpenMeeting={setSelectedMeetingId}
-              timeZone={timeZone}
-              todayDateKey={today}
-            />
-          ) : view === 'day' ? (
-            <CalendarDayView
-              currentDateKey={currentDateKey}
-              meetings={meetings}
-              onCreateMeeting={openCreate}
-              onOpenMeeting={setSelectedMeetingId}
-              timeZone={timeZone}
-              todayDateKey={today}
-            />
-          ) : (
-            <CalendarListView
-              meetings={meetings}
-              onOpenMeeting={setSelectedMeetingId}
-              timeZone={timeZone}
-              todayDateKey={today}
-            />
-          )}
+          </DashboardQueryBoundary>
         </ScrollView>
       </View>
 
@@ -277,48 +264,207 @@ function CalendarWorkspace({
             className="max-h-[72vh]"
             showsVerticalScrollIndicator={false}
           >
-            <CalendarMiniPanel
-              currentDateKey={currentDateKey}
-              meetings={miniCalendarMeetings}
-              onOpenMeeting={(meetingId) => {
-                setPanelDialogOpen(false);
-                setSelectedMeetingId(meetingId);
-              }}
-              onOpenRooms={() => {
-                setPanelDialogOpen(false);
-                setRoomDialogOpen(true);
-              }}
-              onSelectDate={(dateKey) => {
-                setCurrentDateKey(dateKey);
-                setPanelDialogOpen(false);
-              }}
-              rooms={rooms}
-              timeZone={timeZone}
-              todayDateKey={today}
-            />
+            <DashboardQueryBoundary
+              fallback={
+                <CalendarMiniPanel
+                  {...miniPanelProps}
+                  meetings={[]}
+                  rooms={[]}
+                  loading
+                />
+              }
+              resetKeys={[organizationId, miniCalendarRange.from]}
+              title="보조 일정을 불러오지 못했습니다"
+            >
+              {panelDialogOpen ? (
+                <CalendarMiniPanelContent
+                  {...miniPanelProps}
+                  organizationId={organizationId}
+                  range={miniCalendarRange}
+                  category={category}
+                  roomId={roomId}
+                  search={deferredSearch}
+                />
+              ) : null}
+            </DashboardQueryBoundary>
           </ScrollView>
         </DialogContent>
       </Dialog>
 
-      <CalendarRoomsDialog
-        currentDateKey={currentDateKey}
-        meetings={roomTimelineMeetings}
-        onCreateMeeting={openCreateRequest}
-        onOpenChange={setRoomDialogOpen}
-        open={roomDialogOpen}
-        rooms={rooms}
-        timeZone={timeZone}
-      />
-      <CalendarMeetingDetailDialog
-        currentUserId={currentUserId}
-        meetingId={selectedMeetingId}
-        onOpenChange={(open) => !open && setSelectedMeetingId(null)}
-        open={selectedMeetingId !== null}
-        organizationId={organizationId}
-        rooms={rooms}
-      />
+      {roomDialogOpen || selectedMeetingId || createRequest ? (
+        <DashboardQueryBoundary
+          fallback={
+            <Dialog
+              open
+              onOpenChange={() => {
+                setRoomDialogOpen(false);
+                setSelectedMeetingId(null);
+                setCreateRequest(null);
+              }}
+            >
+              <DialogContent>
+                <DashboardLoading label="회의 화면을 준비하는 중..." />
+              </DialogContent>
+            </Dialog>
+          }
+          resetKeys={[organizationId]}
+          title="회의실 정보를 불러오지 못했습니다"
+        >
+          <CalendarDialogs
+            organizationId={organizationId}
+            currentDateKey={currentDateKey}
+            timeZone={timeZone}
+            currentUserId={currentUserId}
+            roomDialogOpen={roomDialogOpen}
+            setRoomDialogOpen={setRoomDialogOpen}
+            selectedMeetingId={selectedMeetingId}
+            setSelectedMeetingId={setSelectedMeetingId}
+            createRequest={createRequest}
+            setCreateRequest={setCreateRequest}
+            openCreateRequest={openCreateRequest}
+          />
+        </DashboardQueryBoundary>
+      ) : null}
+    </View>
+  );
+}
+
+function CalendarMeetingViews({
+  view,
+  ...props
+}: React.ComponentProps<typeof CalendarMonthView> & {
+  view: CalendarViewMode;
+}) {
+  if (view === 'month') return <CalendarMonthView {...props} />;
+  if (view === 'week') return <CalendarWeekView {...props} />;
+  if (view === 'day') return <CalendarDayView {...props} />;
+  if (props.loading)
+    return <DashboardLoading label="회의 일정을 불러오는 중..." />;
+  return <CalendarListView {...props} />;
+}
+
+function CalendarMeetingContent({
+  organizationId,
+  range,
+  category,
+  roomId,
+  search,
+  ...props
+}: Omit<React.ComponentProps<typeof CalendarMeetingViews>, 'meetings'> & {
+  organizationId: string;
+  range: ReturnType<typeof getCalendarQueryRange>;
+  category: CalendarCategory | 'all';
+  roomId: string | null;
+  search: string;
+}) {
+  const meetings = useCalendarMeetings(organizationId, {
+    from: range.from,
+    to: range.to,
+    category,
+    roomId: roomId ?? undefined,
+    search,
+  }).data.items;
+  return <CalendarMeetingViews {...props} meetings={meetings} />;
+}
+
+function CalendarMiniPanelContent({
+  organizationId,
+  range,
+  category,
+  roomId,
+  search,
+  ...props
+}: Omit<
+  React.ComponentProps<typeof CalendarMiniPanel>,
+  'meetings' | 'rooms'
+> & {
+  organizationId: string;
+  range: ReturnType<typeof getCalendarQueryRange>;
+  category: CalendarCategory | 'all';
+  roomId: string | null;
+  search: string;
+}) {
+  const meetings = useCalendarMeetings(organizationId, {
+    from: range.from,
+    to: range.to,
+    category,
+    roomId: roomId ?? undefined,
+    search,
+  }).data.items;
+  return (
+    <CalendarMiniPanel
+      {...props}
+      organizationId={organizationId}
+      meetings={meetings}
+      rooms={[]}
+    />
+  );
+}
+
+function CalendarDialogs({
+  organizationId,
+  currentDateKey,
+  timeZone,
+  currentUserId,
+  roomDialogOpen,
+  setRoomDialogOpen,
+  selectedMeetingId,
+  setSelectedMeetingId,
+  createRequest,
+  setCreateRequest,
+  openCreateRequest,
+}: {
+  organizationId: string;
+  currentDateKey: string;
+  timeZone: string;
+  currentUserId: string;
+  roomDialogOpen: boolean;
+  setRoomDialogOpen: (value: boolean) => void;
+  selectedMeetingId: string | null;
+  setSelectedMeetingId: (value: string | null) => void;
+  createRequest: CalendarCreateRequest | null;
+  setCreateRequest: (value: CalendarCreateRequest | null) => void;
+  openCreateRequest: (value: CalendarCreateRequest) => void;
+}) {
+  const rooms = useCalendarRooms(organizationId).data.items;
+  return (
+    <>
+      {roomDialogOpen ? (
+        <DashboardQueryBoundary
+          fallback={
+            <Dialog open onOpenChange={setRoomDialogOpen}>
+              <DialogContent>
+                <DashboardLoading label="회의실 일정을 불러오는 중..." />
+              </DialogContent>
+            </Dialog>
+          }
+          resetKeys={[organizationId, currentDateKey]}
+          title="회의실 일정을 불러오지 못했습니다"
+        >
+          <CalendarRoomsContent
+            organizationId={organizationId}
+            currentDateKey={currentDateKey}
+            rooms={rooms}
+            timeZone={timeZone}
+            open
+            onOpenChange={setRoomDialogOpen}
+            onCreateMeeting={openCreateRequest}
+          />
+        </DashboardQueryBoundary>
+      ) : null}
+      {selectedMeetingId ? (
+        <CalendarMeetingDetailDialog
+          currentUserId={currentUserId}
+          meetingId={selectedMeetingId}
+          onOpenChange={(open) => !open && setSelectedMeetingId(null)}
+          open
+          organizationId={organizationId}
+          rooms={rooms}
+        />
+      ) : null}
       {createRequest ? (
         <CalendarCreateDialog
+          key={JSON.stringify(createRequest)}
           currentUserId={currentUserId}
           onCreated={(meeting) => setSelectedMeetingId(meeting.id)}
           onOpenChange={(open) => !open && setCreateRequest(null)}
@@ -329,6 +475,26 @@ function CalendarWorkspace({
           timeZone={timeZone}
         />
       ) : null}
-    </View>
+    </>
   );
+}
+
+function CalendarRoomsContent({
+  organizationId,
+  ...props
+}: Omit<React.ComponentProps<typeof CalendarRoomsDialog>, 'meetings'> & {
+  organizationId: string;
+}) {
+  const range = getCalendarQueryRange(
+    'day',
+    props.currentDateKey,
+    props.timeZone,
+  );
+  const meetings = useCalendarMeetings(organizationId, {
+    from: range.from,
+    to: range.to,
+    category: 'all',
+    search: '',
+  }).data.items;
+  return <CalendarRoomsDialog {...props} meetings={meetings} />;
 }

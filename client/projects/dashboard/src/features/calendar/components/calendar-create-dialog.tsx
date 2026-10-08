@@ -9,7 +9,7 @@ import {
   CreateMeeting as CreateMeetingSchema,
   type MeetingDetail,
   type MeetingRoom,
-  type OrganizationMember,
+  type OrganizationUserSummary,
 } from '@repo/client/api-client/schemas';
 import { Button } from '@repo/client/rnr/components/ui/button';
 import {
@@ -93,7 +93,7 @@ export function CalendarCreateDialog({
   rooms: readonly MeetingRoom[];
   timeZone: string;
 }) {
-  const { notifyError, notifySuccess } = useDashboardPlatform();
+  const { notifyError, notifySuccess, currentUser } = useDashboardPlatform();
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<CalendarCategory>('team');
   const [dateKey, setDateKey] = useState(request.dateKey);
@@ -114,9 +114,9 @@ export function CalendarCreateDialog({
   const [recurrence, setRecurrence] = useState<CalendarRecurrenceDraft>(
     createDefaultRecurrenceDraft,
   );
-  const [selectedMembers, setSelectedMembers] = useState<OrganizationMember[]>(
-    [],
-  );
+  const [selectedMembers, setSelectedMembers] = useState<
+    OrganizationUserSummary[]
+  >(() => (currentUser ? [currentUser] : []));
   const [formError, setFormError] = useState<string | null>(null);
   const availability = useCalendarAvailabilityPreview(organizationId);
   const mutation = useCreateCalendarMeeting(organizationId, (meeting) => {
@@ -143,10 +143,11 @@ export function CalendarCreateDialog({
     setAgendaMarkdown('');
     setReminderMinutes(10);
     setRecurrence(createDefaultRecurrenceDraft());
-    setSelectedMembers([]);
+    setSelectedMembers(currentUser ? [currentUser] : []);
     setFormError(null);
   }, [
     open,
+    currentUser,
     request.dateKey,
     request.endTime,
     request.meetingRoomId,
@@ -155,13 +156,10 @@ export function CalendarCreateDialog({
   ]);
 
   const activeRooms = rooms.filter((room) => room.active);
-  const attendeeUserIds = selectedMembers.map((member) => member.userId);
+  const attendeeUserIds = selectedMembers.map((member) => member.id);
   const attendeeKey = [...attendeeUserIds].sort().join('|');
   const participantLabels = useMemo(
-    () =>
-      new Map(
-        selectedMembers.map((member) => [member.userId, member.user.name]),
-      ),
+    () => new Map(selectedMembers.map((member) => [member.id, member.name])),
     [selectedMembers],
   );
 

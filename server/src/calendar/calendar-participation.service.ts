@@ -58,7 +58,6 @@ export class CalendarParticipationService {
 
     const attendeeUserIds = this.participantPolicy.normalizeAttendeeUserIds(
       input.attendeeUserIds,
-      current.meeting.organizerUserId,
     );
     await this.participantPolicy.assertMembers(context, organizationId, [
       current.meeting.organizerUserId,

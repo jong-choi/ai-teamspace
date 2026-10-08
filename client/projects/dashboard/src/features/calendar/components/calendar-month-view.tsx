@@ -1,6 +1,7 @@
 import { Pressable, ScrollView, View } from 'react-native';
 
 import type { MeetingSummary } from '@repo/client/api-client/schemas';
+import { Skeleton } from '@repo/client/rnr/components/ui/skeleton';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
 import { MeetingEvent } from '@core/features/calendar/components/meeting-event';
@@ -17,6 +18,7 @@ const minimumCalendarWidth = 720;
 export function CalendarMonthView({
   currentDateKey,
   meetings,
+  loading = false,
   onCreateMeeting,
   onOpenMeeting,
   onSelectDay,
@@ -25,6 +27,7 @@ export function CalendarMonthView({
 }: {
   currentDateKey: string;
   meetings: readonly MeetingSummary[];
+  loading?: boolean;
   onCreateMeeting: (dateKey: string) => void;
   onOpenMeeting: (meetingId: string) => void;
   onSelectDay: (dateKey: string) => void;
@@ -111,6 +114,7 @@ export function CalendarMonthView({
                     </Pressable>
                   </View>
                   <View className="gap-1">
+                    {loading ? <Skeleton className="mt-1 h-8 w-full" /> : null}
                     {dayMeetings.slice(0, 3).map((meeting) => (
                       <MeetingEvent
                         compact

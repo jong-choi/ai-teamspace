@@ -28,9 +28,15 @@ type ChatMessageDetailRouteProps = {
 
 export function ChatMessageDetailRoute(props: ChatMessageDetailRouteProps) {
   const { currentUserId, sessionPending } = useDashboardPlatform();
+  const router = useRouter();
 
   return (
     <DashboardShell>
+      <ChatMessageRouteHeader
+        description={`안정적인 메시지 링크 · ${props.messageId}`}
+        onBack={() => router.back()}
+        title="메시지 상세"
+      />
       {sessionPending ? (
         <ChatLoading label="세션을 확인하는 중..." />
       ) : !currentUserId ? (
@@ -67,12 +73,6 @@ function ChatMessageDetailContent({
 
   return (
     <View className="min-h-0 flex-1 bg-background">
-      <ChatMessageRouteHeader
-        description={`안정적인 메시지 링크 · ${messageId}`}
-        onBack={() => router.back()}
-        title="메시지 상세"
-      />
-
       <View className="flex-1 items-center justify-center px-4 py-8 sm:px-8">
         <View className="w-full max-w-2xl gap-5">
           <View className="gap-1 border-b border-border pb-4">

@@ -150,8 +150,9 @@ function SelectLabel({
 function SelectItem({
   className,
   children,
+  textClassName,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Item>) {
+}: React.ComponentProps<typeof SelectPrimitive.Item> & { textClassName?: string }) {
   return (
     <SelectPrimitive.Item
       className={cn(
@@ -168,7 +169,7 @@ function SelectItem({
           <Icon as={Check} className="text-muted-foreground size-4 shrink-0" />
         </SelectPrimitive.ItemIndicator>
       </View>
-      <SelectPrimitive.ItemText className="text-foreground group-active:text-accent-foreground select-none text-sm" />
+      <SelectPrimitive.ItemText className={cn("text-foreground group-active:text-accent-foreground select-none text-sm", textClassName)} />
     </SelectPrimitive.Item>
   );
 }

@@ -37,7 +37,6 @@ export class CalendarAvailabilityService {
     await this.organizationsService.getDetail(context, organizationId);
     const attendeeUserIds = this.participantPolicy.normalizeAttendeeUserIds(
       input.attendeeUserIds,
-      context.userId,
     );
     await this.participantPolicy.assertMembers(context, organizationId, [
       context.userId,
@@ -51,7 +50,7 @@ export class CalendarAvailabilityService {
     }
     return this.buildAvailability({
       organizationId,
-      participantUserIds: [context.userId, ...attendeeUserIds],
+      participantUserIds: attendeeUserIds,
       meetingRoomId: input.meetingRoomId,
       startAt: new Date(input.startAt),
       endAt: new Date(input.endAt),
@@ -86,7 +85,7 @@ export class CalendarAvailabilityService {
     }
     return this.buildAvailability({
       organizationId,
-      participantUserIds: [current.meeting.organizerUserId, ...attendeeUserIds],
+      participantUserIds: attendeeUserIds,
       meetingRoomId: input.meetingRoomId,
       startAt: new Date(input.startAt),
       endAt: new Date(input.endAt),

@@ -2,6 +2,7 @@ import { Pressable, ScrollView, View } from 'react-native';
 
 import type { MeetingSummary } from '@repo/client/api-client/schemas';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
+import { Skeleton } from '@repo/client/rnr/components/ui/skeleton';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
 import { CALENDAR_CATEGORY_META } from '@core/features/calendar/lib/calendar-category';
@@ -47,6 +48,7 @@ export function CalendarDayView(props: TimelineViewProps) {
 type TimelineViewProps = {
   currentDateKey: string;
   meetings: readonly MeetingSummary[];
+  loading?: boolean;
   onCreateMeeting: (dateKey: string, time?: string) => void;
   onOpenMeeting: (meetingId: string) => void;
   timeZone: string;
@@ -57,6 +59,7 @@ function TimelineView({
   currentDateKey,
   dates,
   meetings,
+  loading = false,
   onCreateMeeting,
   onOpenMeeting,
   timeZone,
@@ -141,8 +144,9 @@ function TimelineView({
                   {CALENDAR_WEEKDAYS_KO[weekdayIndex(currentDateKey)]}요일)
                 </Text>
                 <Text className="mt-0.5 text-xs text-muted-foreground">
-                  총 {currentDayMeetings.length}개의 회의 일정이 등록되어
-                  있습니다.
+                  {loading
+                    ? '회의 일정을 불러오는 중...'
+                    : `총 ${currentDayMeetings.length}개의 회의 일정이 등록되어 있습니다.`}
                 </Text>
               </View>
             </View>
@@ -185,6 +189,9 @@ function TimelineView({
                 key={dateKey}
                 style={{ height: timelineHeight }}
               >
+                {loading ? (
+                  <Skeleton className="absolute inset-x-2 top-2 z-10 h-24" />
+                ) : null}
                 {hours.map((hour) => {
                   const hourLabel = `${String(hour).padStart(2, '0')}:00`;
                   return (

@@ -400,7 +400,7 @@ describe('캘린더 scheduling 서비스', () => {
       availabilityRepository.findParticipantBusyIntervals,
     ).toHaveBeenCalledWith(
       expect.objectContaining({
-        userIds: ['organizer-user', 'accepted-user'],
+        userIds: ['accepted-user'],
         excludeMeetingIds: [current.meeting.id],
       }),
     );
@@ -417,7 +417,7 @@ describe('캘린더 scheduling 서비스', () => {
       context,
       'organization-a',
       current.meeting.id,
-      { attendeeUserIds: ['existing-user', 'organizer-user'] },
+      { attendeeUserIds: ['existing-user', 'existing-user'] },
     );
 
     expect(

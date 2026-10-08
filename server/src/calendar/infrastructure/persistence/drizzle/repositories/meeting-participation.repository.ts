@@ -71,9 +71,7 @@ export class MeetingParticipationDrizzleRepository extends MeetingParticipationR
       if (!record) return { status: 'not_found' };
       if (record.meeting.canceledAt) return { status: 'canceled' };
 
-      const conflictUserIds = [...new Set(conflictUserIdsInput)].filter(
-        (userId) => userId !== record.meeting.organizerUserId,
-      );
+      const conflictUserIds = [...new Set(conflictUserIdsInput)];
       if (conflictUserIds.length > 0) {
         const participantConflicts = await findParticipantBusyIntervals(
           transaction,
@@ -92,9 +90,7 @@ export class MeetingParticipationDrizzleRepository extends MeetingParticipationR
         }
       }
 
-      const attendeeUserIds = [...new Set(input.attendeeUserIds)].filter(
-        (userId) => userId !== record.meeting.organizerUserId,
-      );
+      const attendeeUserIds = [...new Set(input.attendeeUserIds)];
       if (attendeeUserIds.length === 0) {
         await transaction
           .delete(meetingAttendee)

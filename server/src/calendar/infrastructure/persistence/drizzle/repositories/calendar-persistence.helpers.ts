@@ -129,17 +129,6 @@ export async function findParticipantBusyIntervals(
   const excluded = exclusionCondition(excludeMeetingIds);
   if (excluded) baseConditions.push(excluded);
 
-  const organizerRows = await executor
-    .select({
-      meetingId: meeting.id,
-      userId: meeting.organizerUserId,
-      startAt: meeting.startAt,
-      endAt: meeting.endAt,
-    })
-    .from(meeting)
-    .where(
-      and(...baseConditions, inArray(meeting.organizerUserId, uniqueUserIds)),
-    );
   const attendeeRows = await executor
     .select({
       meetingId: meeting.id,
@@ -158,12 +147,6 @@ export async function findParticipantBusyIntervals(
     );
 
   const intervals = new Map<string, ParticipantBusyInterval>();
-  for (const row of organizerRows) {
-    intervals.set(`${row.meetingId}:${row.userId}`, {
-      ...row,
-      sourceType: 'organizer',
-    });
-  }
   for (const row of attendeeRows) {
     const key = `${row.meetingId}:${row.userId}`;
     if (!intervals.has(key)) {

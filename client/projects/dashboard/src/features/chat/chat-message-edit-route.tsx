@@ -30,9 +30,15 @@ type ChatMessageEditRouteProps = {
 
 export function ChatMessageEditRoute(props: ChatMessageEditRouteProps) {
   const { currentUserId, sessionPending } = useDashboardPlatform();
+  const router = useRouter();
 
   return (
     <DashboardShell>
+      <ChatMessageRouteHeader
+        description="본인이 작성한 일반 텍스트 메시지만 수정할 수 있습니다."
+        onBack={() => router.back()}
+        title="메시지 수정"
+      />
       {sessionPending ? (
         <ChatLoading label="세션을 확인하는 중..." />
       ) : !currentUserId ? (
@@ -66,12 +72,6 @@ function ChatMessageEditContent({
 
   return (
     <View className="min-h-0 flex-1 bg-background">
-      <ChatMessageRouteHeader
-        description="본인이 작성한 일반 텍스트 메시지만 수정할 수 있습니다."
-        onBack={() => router.back()}
-        title="메시지 수정"
-      />
-
       {!editableContent ? (
         <ChatState
           title="수정할 수 없는 메시지입니다"

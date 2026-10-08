@@ -1,5 +1,7 @@
 import { createContext, type ReactNode, useContext } from 'react';
 
+import type { OrganizationUserSummary } from '@repo/client/api-client/schemas';
+
 import type { createAuthClient } from 'better-auth/react';
 
 export type DashboardNotification = {
@@ -24,6 +26,8 @@ export type DashboardPlatformValue = {
     'signIn' | 'signUp'
   >;
   currentUserId: string | null;
+  currentUser: OrganizationUserSummary | null;
+  sessionError: boolean;
   sessionPending: boolean;
   copyText: (value: string) => Promise<void>;
   createAppUrl: (path: string) => string;

@@ -81,8 +81,6 @@ function AuthenticatedMcpAccessRoute({
 }
 
 function McpAccessPage({ organizationId }: { organizationId: string }) {
-  const access = useMcpAccess(organizationId).data;
-
   return (
     <ScrollView className="min-h-0 flex-1" showsVerticalScrollIndicator={false}>
       <View className="mx-auto w-full max-w-5xl gap-5 p-4 sm:p-6 lg:p-8">
@@ -93,10 +91,59 @@ function McpAccessPage({ organizationId }: { organizationId: string }) {
             title="MCP 권한"
           />
         </View>
-        <McpAccessSummary access={access} />
-        <McpPersonalPermissions access={access} />
-        <McpOrganizationPolicy access={access} />
+        <DashboardQueryBoundary
+          fallback={
+            <DashboardLoading
+              className="min-h-28 flex-none"
+              label="권한 요약"
+            />
+          }
+          resetKeys={[organizationId]}
+        >
+          <McpPolicyContent organizationId={organizationId} section="summary" />
+        </DashboardQueryBoundary>
+        <DashboardQueryBoundary
+          fallback={
+            <DashboardLoading
+              className="min-h-48 flex-none"
+              label="내 MCP 권한"
+            />
+          }
+          resetKeys={[organizationId]}
+        >
+          <McpPolicyContent
+            organizationId={organizationId}
+            section="personal"
+          />
+        </DashboardQueryBoundary>
+        <DashboardQueryBoundary
+          fallback={
+            <DashboardLoading
+              className="min-h-48 flex-none"
+              label="조직 MCP 정책"
+            />
+          }
+          resetKeys={[organizationId]}
+        >
+          <McpPolicyContent
+            organizationId={organizationId}
+            section="organization"
+          />
+        </DashboardQueryBoundary>
       </View>
     </ScrollView>
   );
+}
+
+function McpPolicyContent({
+  organizationId,
+  section,
+}: {
+  organizationId: string;
+  section: 'summary' | 'personal' | 'organization';
+}) {
+  const access = useMcpAccess(organizationId).data;
+  if (section === 'summary') return <McpAccessSummary access={access} />;
+  if (section === 'personal') return <McpPersonalPermissions access={access} />;
+  return <McpOrganizationPolicy access={access} />;
 }

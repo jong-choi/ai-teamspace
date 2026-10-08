@@ -77,5 +77,5 @@ export function getMeetingTimeLabel(
 }
 
 export function getMeetingAttendeeCount(meeting: MeetingSummary): number {
-  return meeting.attendeeCount + 1;
+  return meeting.attendeeCount;
 }

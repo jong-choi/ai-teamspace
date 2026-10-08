@@ -1,6 +1,7 @@
 import { Pressable, ScrollView, View } from 'react-native';
 import { type Href, useRouter } from 'expo-router';
 
+import { useOrganizationsControllerGetActiveSuspense } from '@repo/client/api-client';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,33 +13,36 @@ import {
 import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
+import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 import { ThemeToggle } from '@core/app/shell/theme-toggle';
+import { DashboardQueryBoundary } from '@core/app/state/dashboard-query-state';
 
 import {
-  Bot,
   Building2,
   CalendarDays,
-  CheckSquare,
   ChevronsUpDown,
   FileText,
   FolderKanban,
-  LayoutDashboard,
+  MessageSquare,
   Search,
   Settings,
-  Shapes,
   Sparkles,
   UserRound,
   Users,
 } from 'lucide-react-native';
 
+const CHAT_NAVIGATION_ITEM = {
+  id: 'chat',
+  label: '채팅',
+  icon: MessageSquare,
+} as const;
+
 const NAVIGATION_ITEMS = [
-  { id: 'home', label: '홈', icon: LayoutDashboard },
   { id: 'members', label: '멤버', icon: Users },
-  { id: 'teams', label: '팀', icon: Shapes },
   { id: 'projects', label: '프로젝트', icon: FolderKanban },
   { id: 'calendar', label: '회의일정', icon: CalendarDays },
-  { id: 'tasks', label: '업무', icon: CheckSquare },
   { id: 'wiki', label: '위키', icon: FileText },
+  CHAT_NAVIGATION_ITEM,
   { id: 'ai', label: 'AI', icon: Sparkles, badge: 'AGENT' },
   { id: 'settings', label: '설정', icon: Settings },
 ] as const;
@@ -48,14 +52,14 @@ export type DashboardNavigationItemId = (typeof NAVIGATION_ITEMS)[number]['id'];
 type DashboardNavigationContentProps = {
   activeItem?: DashboardNavigationItemId;
   organizationName?: string;
+  onNavigate?: () => void;
 };
 
 export function DashboardNavigationContent({
-  activeItem = 'home',
+  activeItem = 'projects',
   organizationName,
+  onNavigate,
 }: DashboardNavigationContentProps) {
-  const router = useRouter();
-
   return (
     <View className="min-h-0 flex-1">
       <ScrollView
@@ -63,7 +67,7 @@ export function DashboardNavigationContent({
         contentContainerStyle={{ paddingBottom: 12 }}
         showsVerticalScrollIndicator={false}
       >
-        <OrganizationSwitcher organizationName={organizationName} />
+        <SidebarOrganizationSwitcher organizationName={organizationName} />
 
         <View className="hidden lg:flex">
           <QuickSearch />
@@ -76,72 +80,49 @@ export function DashboardNavigationContent({
         </View>
 
         <View className="gap-1 lg:gap-0.5">
-          {NAVIGATION_ITEMS.map((item) => {
+          {NAVIGATION_ITEMS.filter((item) => item.id !== 'chat').map((item) => {
             const active = item.id === activeItem;
-            const aiItem = item.id === 'ai';
+            if (item.id === 'members')
+              return (
+                <MembersNavigationItem
+                  key={item.id}
+                  item={item}
+                  active={active}
+                  onNavigate={onNavigate}
+                />
+              );
             const route =
               item.id === 'projects'
                 ? '/projects'
-                : item.id === 'wiki'
-                  ? '/wiki'
-                  : item.id === 'calendar'
-                    ? '/calendar'
+                : item.id === 'calendar'
+                  ? '/calendar'
+                  : item.id === 'wiki'
+                    ? '/wiki'
                     : item.id === 'ai'
                       ? '/ai'
-                      : item.id === 'settings'
-                        ? '/settings/mcp'
-                        : null;
-
+                      : '/settings/mcp';
             return (
-              <Pressable
-                accessibilityRole={route ? 'link' : undefined}
-                disabled={!route}
+              <NavigationItem
                 key={item.id}
-                onPress={route ? () => router.push(route as Href) : undefined}
-                className={cn(
-                  'flex-row items-center justify-between rounded-md px-3 py-2 lg:px-2.5 lg:py-1.5',
-                  active && 'bg-accent',
-                  route && !active && 'web:hover:bg-accent/60',
-                )}
-              >
-                <View className="flex-row items-center gap-2.5">
-                  <Icon
-                    as={item.icon}
-                    className={cn(
-                      'size-4 shrink-0',
-                      aiItem
-                        ? 'text-violet-500 dark:text-violet-400'
-                        : 'text-muted-foreground',
-                      active && 'text-accent-foreground',
-                    )}
-                  />
-                  <Text
-                    className={cn(
-                      'text-xs',
-                      active
-                        ? 'font-medium text-accent-foreground'
-                        : 'text-muted-foreground',
-                    )}
-                  >
-                    {item.label}
-                  </Text>
-                </View>
-
-                {'badge' in item ? (
-                  <View className="rounded border border-violet-500/20 bg-violet-500/10 px-1.5 py-0.5">
-                    <Text className="text-[10px] font-semibold text-violet-600 dark:text-violet-400">
-                      {item.badge}
-                    </Text>
-                  </View>
-                ) : null}
-              </Pressable>
+                item={item}
+                active={active}
+                route={route}
+                onNavigate={onNavigate}
+              />
             );
           })}
         </View>
       </ScrollView>
 
-      <View className="hidden shrink-0 gap-2 border-t border-border pt-3 lg:flex">
-        <AiStatus />
+      <View className="shrink-0 gap-2 border-t border-border pt-3">
+        <View className="rounded-lg border border-border bg-card p-1">
+          <NavigationItem
+            item={CHAT_NAVIGATION_ITEM}
+            active={activeItem === 'chat'}
+            route="/chat"
+            onNavigate={onNavigate}
+          />
+        </View>
         <AccountFooter />
       </View>
     </View>
@@ -210,24 +191,18 @@ function QuickSearch() {
   );
 }
 
-function AiStatus() {
-  return (
-    <View className="rounded-lg border border-border bg-card p-2">
-      <View className="flex-row items-center justify-between">
-        <View className="flex-row items-center gap-1.5">
-          <View className="size-1.5 rounded-full bg-muted-foreground" />
-          <Text className="text-[11px] font-medium">AI 엔진</Text>
-        </View>
-        <Icon as={Bot} className="size-3.5 text-muted-foreground" />
-      </View>
-      <Text className="mt-1 text-[10px] text-muted-foreground">
-        상태 정보 연결 전
-      </Text>
-    </View>
-  );
-}
-
 function AccountFooter() {
+  const { currentUser, sessionPending, sessionError } = useDashboardPlatform();
+  const title = sessionPending
+    ? '계정 확인 중'
+    : sessionError
+      ? '계정 확인 실패'
+      : (currentUser?.name ?? '로그인 필요');
+  const description = sessionPending
+    ? '로그인 상태를 확인하는 중...'
+    : sessionError
+      ? '로그인 정보를 다시 확인해 주세요.'
+      : (currentUser?.email ?? '로그인해 주세요.');
   return (
     <View className="flex-row items-center justify-between pt-1">
       <View className="min-w-0 flex-1 flex-row items-center gap-2.5">
@@ -235,13 +210,142 @@ function AccountFooter() {
           <Icon as={UserRound} className="size-4 text-secondary-foreground" />
         </View>
         <View className="min-w-0 flex-1">
-          <Text className="truncate text-xs font-semibold">계정</Text>
+          <Text className="truncate text-xs font-semibold">{title}</Text>
           <Text className="truncate text-[10px] text-muted-foreground">
-            사용자 정보 연결 전
+            {description}
           </Text>
         </View>
       </View>
       <ThemeToggle />
     </View>
+  );
+}
+
+function SidebarOrganizationSwitcher({
+  organizationName,
+}: {
+  organizationName?: string;
+}) {
+  const { currentUserId } = useDashboardPlatform();
+  if (organizationName || !currentUserId)
+    return <OrganizationSwitcher organizationName={organizationName} />;
+  return (
+    <DashboardQueryBoundary
+      fallback={<OrganizationSwitcher />}
+      resetKeys={[currentUserId]}
+      title="활성 조직을 불러오지 못했습니다"
+    >
+      <ResolvedOrganizationSwitcher />
+    </DashboardQueryBoundary>
+  );
+}
+function ResolvedOrganizationSwitcher() {
+  const { data } = useOrganizationsControllerGetActiveSuspense();
+  return (
+    <OrganizationSwitcher
+      organizationName={data.activeOrganization?.organization.name}
+    />
+  );
+}
+
+function NavigationItem({
+  item,
+  active,
+  route,
+  onNavigate,
+}: {
+  item: (typeof NAVIGATION_ITEMS)[number];
+  active: boolean;
+  route?: Href;
+  onNavigate?: () => void;
+}) {
+  const router = useRouter();
+  const aiItem = item.id === 'ai';
+  return (
+    <Pressable
+      accessibilityRole={route ? 'link' : undefined}
+      disabled={!route}
+      onPress={
+        route
+          ? () => {
+              onNavigate?.();
+              router.push(route);
+            }
+          : undefined
+      }
+      className={cn(
+        'flex-row items-center justify-between rounded-md px-3 py-2 lg:px-2.5 lg:py-1.5',
+        active && 'bg-accent',
+        route && !active && 'web:hover:bg-accent/60',
+      )}
+    >
+      <View className="flex-row items-center gap-2.5">
+        <Icon
+          as={item.icon}
+          className={cn(
+            'size-4 shrink-0',
+            aiItem
+              ? 'text-violet-500 dark:text-violet-400'
+              : 'text-muted-foreground',
+            active && 'text-accent-foreground',
+          )}
+        />
+        <Text
+          className={cn(
+            'text-xs',
+            active
+              ? 'font-medium text-accent-foreground'
+              : 'text-muted-foreground',
+          )}
+        >
+          {item.label}
+        </Text>
+      </View>
+
+      {'badge' in item ? (
+        <View className="rounded border border-violet-500/20 bg-violet-500/10 px-1.5 py-0.5">
+          <Text className="text-[10px] font-semibold text-violet-600 dark:text-violet-400">
+            {item.badge}
+          </Text>
+        </View>
+      ) : null}
+    </Pressable>
+  );
+}
+function MembersNavigationItem(
+  props: Pick<
+    React.ComponentProps<typeof NavigationItem>,
+    'item' | 'active' | 'onNavigate'
+  >,
+) {
+  const { currentUserId } = useDashboardPlatform();
+  if (!currentUserId) return <NavigationItem {...props} />;
+  return (
+    <DashboardQueryBoundary
+      fallback={<NavigationItem {...props} />}
+      resetKeys={[currentUserId]}
+      title="멤버 관리 경로를 불러오지 못했습니다"
+    >
+      <ResolvedMembersNavigationItem {...props} />
+    </DashboardQueryBoundary>
+  );
+}
+function ResolvedMembersNavigationItem(
+  props: React.ComponentProps<typeof MembersNavigationItem>,
+) {
+  const { data } = useOrganizationsControllerGetActiveSuspense();
+  const organizationId = data.activeOrganization?.organization.id;
+  return (
+    <NavigationItem
+      {...props}
+      route={
+        organizationId
+          ? {
+              pathname: '/organizations/[organizationId]/members',
+              params: { organizationId },
+            }
+          : undefined
+      }
+    />
   );
 }

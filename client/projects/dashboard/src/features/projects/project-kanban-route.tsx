@@ -5,7 +5,12 @@ import { useRouter } from 'expo-router';
 import type { ProjectsControllerListTicketsParams } from '@repo/client/api-client/schemas';
 import { Button } from '@repo/client/rnr/components/ui/button';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
+import { Skeleton } from '@repo/client/rnr/components/ui/skeleton';
 import { Text } from '@repo/client/rnr/components/ui/text';
+import {
+  DashboardLoading,
+  DashboardQueryBoundary,
+} from '@core/app/state/dashboard-query-state';
 import { CreateTicketDialog } from '@core/features/projects/components/create-ticket-dialog';
 import { KanbanBoard } from '@core/features/projects/components/kanban-board';
 import { ProjectToolbar } from '@core/features/projects/components/project-toolbar';
@@ -60,10 +65,6 @@ function ProjectWorkspace({
 }) {
   const router = useRouter();
   const [, startFilterTransition] = useTransition();
-  const project = useProject(organizationId, projectId).data;
-  const projects = useProjects(organizationId).data.items;
-  const columns = useProjectColumns(organizationId, projectId).data.items;
-  const members = useProjectMembers(organizationId);
   const [search, setSearch] = useState('');
   const deferredSearch = useDeferredValue(search.trim());
   const [columnId, setColumnId] = useState<string | undefined>();
@@ -80,16 +81,8 @@ function ProjectWorkspace({
       ...(assigneeUserId ? { assigneeUserId } : {}),
       ...(priority ? { priority } : {}),
     }),
-    [assigneeUserId, columnId, deferredSearch, priority],
+    [deferredSearch, columnId, assigneeUserId, priority],
   );
-  const tickets = useProjectTickets(organizationId, projectId, params).data
-    .items;
-  const moveMutation = useMoveTicketMutation({
-    organizationId,
-    projectId,
-    params,
-  });
-
   const navigateView = (nextView: ProjectView) => {
     if (nextView === 'overview') {
       router.push('/projects');
@@ -100,16 +93,173 @@ function ProjectWorkspace({
       params: { projectId, view: nextView },
     });
   };
-  const changeProject = (nextProjectId: string) => {
+  const changeProject = (nextProjectId: string) =>
     router.replace({
       pathname: '/projects/[projectId]',
       params: { projectId: nextProjectId, view },
     });
-  };
   const openCreateTicket = (targetColumnId?: string) => {
-    setCreateColumnId(targetColumnId ?? columns[0]?.id);
+    setCreateColumnId(targetColumnId);
     setCreateOpen(true);
   };
+  return (
+    <View className="min-h-0 flex-1 bg-background">
+      <View className="shrink-0 flex-row items-center justify-between gap-3 border-b border-border px-4 py-3 lg:px-6">
+        <View className="min-w-0 flex-1 flex-row items-center gap-1.5">
+          <Text className="text-xs text-muted-foreground">프로젝트</Text>
+          <Text className="text-xs text-muted-foreground">/</Text>
+          <DashboardQueryBoundary
+            fallback={<Skeleton className="h-4 w-28" />}
+            resetKeys={[organizationId, projectId]}
+          >
+            <ProjectName
+              organizationId={organizationId}
+              projectId={projectId}
+            />
+          </DashboardQueryBoundary>
+          <Text className="hidden text-xs text-muted-foreground sm:flex">
+            /
+          </Text>
+          <Text className="hidden text-xs text-muted-foreground sm:flex">
+            {view === 'board' ? '보드' : '목록'}
+          </Text>
+        </View>
+        <View className="flex-row items-center gap-2">
+          <ProjectViewSwitcher activeView={view} onSelectView={navigateView} />
+          <Button onPress={() => openCreateTicket()} size="sm">
+            <Icon as={Plus} className="size-3.5 text-primary-foreground" />
+            <Text className="text-xs text-primary-foreground">새 이슈</Text>
+          </Button>
+        </View>
+      </View>
+      <DashboardQueryBoundary
+        fallback={
+          <ProjectToolbar
+            projects={[]}
+            columns={[]}
+            members={[]}
+            projectId={projectId}
+            search={search}
+            onSearchChange={setSearch}
+            onProjectChange={changeProject}
+            onColumnChange={setColumnId}
+            onAssigneeChange={setAssigneeUserId}
+            onPriorityChange={setPriority}
+          />
+        }
+        resetKeys={[organizationId, projectId]}
+        title="프로젝트 필터를 불러오지 못했습니다"
+      >
+        <ProjectToolbarContent
+          organizationId={organizationId}
+          projectId={projectId}
+          assigneeUserId={assigneeUserId}
+          columnId={columnId}
+          priority={priority}
+          search={search}
+          onSearchChange={setSearch}
+          onProjectChange={changeProject}
+          onColumnChange={(value) =>
+            startFilterTransition(() => setColumnId(value))
+          }
+          onAssigneeChange={(value) =>
+            startFilterTransition(() => setAssigneeUserId(value))
+          }
+          onPriorityChange={(value) =>
+            startFilterTransition(() => setPriority(value))
+          }
+        />
+      </DashboardQueryBoundary>
+      <DashboardQueryBoundary
+        fallback={<DashboardLoading label="이슈를 불러오는 중..." />}
+        resetKeys={[organizationId, projectId, params]}
+      >
+        <ProjectTicketsContent
+          organizationId={organizationId}
+          projectId={projectId}
+          params={params}
+          view={view}
+          onCreateTicket={openCreateTicket}
+          onOpenTicket={setSelectedTicketId}
+        />
+      </DashboardQueryBoundary>
+      {createOpen || selectedTicketId ? (
+        <DashboardQueryBoundary
+          fallback={<DashboardLoading label="이슈 정보를 불러오는 중..." />}
+          resetKeys={[organizationId, projectId]}
+        >
+          <ProjectDialogs
+            organizationId={organizationId}
+            projectId={projectId}
+            createOpen={createOpen}
+            createColumnId={createColumnId}
+            setCreateOpen={setCreateOpen}
+            selectedTicketId={selectedTicketId}
+            setSelectedTicketId={setSelectedTicketId}
+          />
+        </DashboardQueryBoundary>
+      ) : null}
+    </View>
+  );
+}
+
+function ProjectName({
+  organizationId,
+  projectId,
+}: {
+  organizationId: string;
+  projectId: string;
+}) {
+  const project = useProject(organizationId, projectId).data;
+  return (
+    <Text className="max-w-48 truncate text-xs font-semibold">
+      {project.name}
+    </Text>
+  );
+}
+function ProjectToolbarContent({
+  organizationId,
+  ...props
+}: Omit<
+  React.ComponentProps<typeof ProjectToolbar>,
+  'projects' | 'columns' | 'members'
+> & { organizationId: string }) {
+  const projects = useProjects(organizationId).data.items;
+  const columns = useProjectColumns(organizationId, props.projectId).data.items;
+  const members = useProjectMembers(organizationId);
+  return (
+    <ProjectToolbar
+      {...props}
+      projects={projects}
+      columns={columns}
+      members={members}
+    />
+  );
+}
+function ProjectTicketsContent({
+  organizationId,
+  projectId,
+  params,
+  view,
+  onCreateTicket,
+  onOpenTicket,
+}: {
+  organizationId: string;
+  projectId: string;
+  params: ProjectsControllerListTicketsParams;
+  view: 'board' | 'list';
+  onCreateTicket: (columnId?: string) => void;
+  onOpenTicket: (id: string) => void;
+}) {
+  const project = useProject(organizationId, projectId).data;
+  const columns = useProjectColumns(organizationId, projectId).data.items;
+  const tickets = useProjectTickets(organizationId, projectId, params).data
+    .items;
+  const moveMutation = useMoveTicketMutation({
+    organizationId,
+    projectId,
+    params,
+  });
   const moveTicket = (intent: KanbanDropIntent) => {
     moveMutation.move(intent.ticketId, {
       targetColumnId: intent.targetColumnId,
@@ -118,77 +268,47 @@ function ProjectWorkspace({
     });
   };
 
+  return view === 'board' ? (
+    <KanbanBoard
+      columns={columns}
+      disabled={moveMutation.isPending}
+      onCreateTicket={onCreateTicket}
+      onDropIntent={moveTicket}
+      onOpenTicket={onOpenTicket}
+      projectKey={project.key}
+      tickets={tickets}
+    />
+  ) : (
+    <TicketList
+      columns={columns}
+      onOpenTicket={onOpenTicket}
+      projectName={project.name}
+      tickets={tickets}
+    />
+  );
+}
+function ProjectDialogs({
+  organizationId,
+  projectId,
+  createOpen,
+  createColumnId,
+  setCreateOpen,
+  selectedTicketId,
+  setSelectedTicketId,
+}: {
+  organizationId: string;
+  projectId: string;
+  createOpen: boolean;
+  createColumnId?: string;
+  setCreateOpen: (open: boolean) => void;
+  selectedTicketId: string | null;
+  setSelectedTicketId: (id: string | null) => void;
+}) {
+  const project = useProject(organizationId, projectId).data;
+  const columns = useProjectColumns(organizationId, projectId).data.items;
+  const members = useProjectMembers(organizationId);
   return (
-    <View className="min-h-0 flex-1 bg-background">
-      <View className="shrink-0 flex-row items-center justify-between gap-3 border-b border-border px-4 py-3 lg:px-6">
-        <View className="min-w-0 flex-1 flex-row items-center gap-1.5">
-          <Text className="text-xs text-muted-foreground">프로젝트</Text>
-          <Text className="text-xs text-muted-foreground">/</Text>
-          <Text className="max-w-48 truncate text-xs font-semibold">
-            {project.name}
-          </Text>
-          <Text className="hidden text-xs text-muted-foreground sm:flex">
-            /
-          </Text>
-          <Text className="hidden text-xs text-muted-foreground sm:flex">
-            {view === 'board' ? '보드' : '목록'}
-          </Text>
-        </View>
-
-        <View className="flex-row items-center gap-2">
-          <ProjectViewSwitcher activeView={view} onSelectView={navigateView} />
-          <Button
-            disabled={columns.length === 0}
-            onPress={() => openCreateTicket()}
-            size="sm"
-          >
-            <Icon as={Plus} className="size-3.5 text-primary-foreground" />
-            <Text className="text-xs text-primary-foreground">새 이슈</Text>
-          </Button>
-        </View>
-      </View>
-
-      <ProjectToolbar
-        assigneeUserId={assigneeUserId}
-        columnId={columnId}
-        columns={columns}
-        members={members}
-        onAssigneeChange={(value) =>
-          startFilterTransition(() => setAssigneeUserId(value))
-        }
-        onColumnChange={(value) =>
-          startFilterTransition(() => setColumnId(value))
-        }
-        onPriorityChange={(value) =>
-          startFilterTransition(() => setPriority(value))
-        }
-        onProjectChange={changeProject}
-        onSearchChange={setSearch}
-        priority={priority}
-        projectId={projectId}
-        projects={projects}
-        search={search}
-      />
-
-      {view === 'board' ? (
-        <KanbanBoard
-          columns={columns}
-          disabled={moveMutation.isPending}
-          onCreateTicket={openCreateTicket}
-          onDropIntent={moveTicket}
-          onOpenTicket={setSelectedTicketId}
-          projectKey={project.key}
-          tickets={tickets}
-        />
-      ) : (
-        <TicketList
-          columns={columns}
-          onOpenTicket={setSelectedTicketId}
-          projectName={project.name}
-          tickets={tickets}
-        />
-      )}
-
+    <>
       <CreateTicketDialog
         columns={columns}
         initialColumnId={createColumnId}
@@ -212,6 +332,6 @@ function ProjectWorkspace({
         projectName={project.name}
         ticketId={selectedTicketId}
       />
-    </View>
+    </>
   );
 }

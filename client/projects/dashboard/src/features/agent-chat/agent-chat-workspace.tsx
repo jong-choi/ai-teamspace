@@ -28,7 +28,6 @@ export function AgentChatWorkspace({
   userId: string;
 }) {
   const router = useRouter();
-  const threads = useAgentThreads(userId, organizationId).data;
 
   const openThread = (nextThreadId: string) => {
     router.push({
@@ -39,12 +38,23 @@ export function AgentChatWorkspace({
 
   return (
     <View className="min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
-      <AgentThreadSidebar
-        activeThreadId={threadId}
-        onCreateNew={() => router.push('/ai')}
-        onSelectThread={openThread}
-        threads={threads}
-      />
+      <DashboardQueryBoundary
+        fallback={
+          <View className="min-h-20 md:w-64">
+            <DashboardLoading label="대화 목록" />
+          </View>
+        }
+        resetKeys={[organizationId, userId]}
+        title="대화 목록을 불러오지 못했습니다"
+      >
+        <AgentThreadList
+          activeThreadId={threadId}
+          onCreateNew={() => router.push('/ai')}
+          onSelectThread={openThread}
+          userId={userId}
+          organizationId={organizationId}
+        />
+      </DashboardQueryBoundary>
       <View className="min-h-0 min-w-0 flex-1">
         {threadId ? (
           <DashboardQueryBoundary
@@ -101,4 +111,16 @@ function AgentThreadConversation({
       userId={userId}
     />
   );
+}
+
+function AgentThreadList({
+  userId,
+  organizationId,
+  ...props
+}: Omit<React.ComponentProps<typeof AgentThreadSidebar>, 'threads'> & {
+  userId: string;
+  organizationId: string;
+}) {
+  const threads = useAgentThreads(userId, organizationId).data;
+  return <AgentThreadSidebar {...props} threads={threads} />;
 }

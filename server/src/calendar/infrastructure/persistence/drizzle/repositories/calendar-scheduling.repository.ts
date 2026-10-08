@@ -100,10 +100,8 @@ export class CalendarSchedulingDrizzleRepository extends CalendarSchedulingRepos
         return { status: 'room_unavailable' };
       }
 
-      const attendeeUserIds = [...new Set(attendeeUserIdsInput)].filter(
-        (userId) => userId !== organizerUserId,
-      );
-      const participants = [organizerUserId, ...attendeeUserIds];
+      const attendeeUserIds = [...new Set(attendeeUserIdsInput)];
+      const participants = attendeeUserIds;
       const internalConflict = this.findCandidateConflict(
         occurrences.map((occurrence) => ({
           meetingId: '',
@@ -240,7 +238,6 @@ export class CalendarSchedulingDrizzleRepository extends CalendarSchedulingRepos
             startAt: update.startAt,
             endAt: update.endAt,
             participantUserIds: [
-              record.meeting.organizerUserId,
               ...record.attendees
                 .filter((item) => item.status !== 'declined')
                 .map((item) => item.userId),

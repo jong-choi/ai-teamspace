@@ -54,7 +54,6 @@ export function ProjectsRouteFrame({
 
 function AuthenticatedProjectsFrame({
   children,
-  resetKeys,
 }: {
   children: (organizationId: string) => ReactNode;
   resetKeys: unknown[];
@@ -72,13 +71,7 @@ function AuthenticatedProjectsFrame({
           title="활성 조직이 없습니다"
         />
       ) : (
-        <DashboardQueryBoundary
-          fallback={<DashboardLoading label="프로젝트를 불러오는 중..." />}
-          resetKeys={[activeOrganization.organization.id, ...resetKeys]}
-          title="프로젝트를 불러오지 못했습니다"
-        >
-          {children(activeOrganization.organization.id)}
-        </DashboardQueryBoundary>
+        children(activeOrganization.organization.id)
       )}
     </DashboardShell>
   );

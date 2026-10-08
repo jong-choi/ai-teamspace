@@ -1,6 +1,5 @@
 import { Pressable, ScrollView, View } from 'react-native';
 
-import type { MeetingRoom } from '@repo/client/api-client/schemas';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Input } from '@repo/client/rnr/components/ui/input';
 import {
@@ -10,8 +9,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@repo/client/rnr/components/ui/select';
+import { Skeleton } from '@repo/client/rnr/components/ui/skeleton';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
+import { DashboardQueryBoundary } from '@core/app/state/dashboard-query-state';
+import { useCalendarRooms } from '@core/features/calendar/calendar-queries';
 import {
   CALENDAR_CATEGORIES,
   CALENDAR_CATEGORY_META,
@@ -30,7 +32,7 @@ export function CalendarToolbar({
   onToday,
   periodTitle,
   roomId,
-  rooms,
+  organizationId,
   search,
 }: {
   category: CalendarCategory | 'all';
@@ -42,13 +44,9 @@ export function CalendarToolbar({
   onToday: () => void;
   periodTitle: string;
   roomId: string | null;
-  rooms: readonly MeetingRoom[];
+  organizationId: string;
   search: string;
 }) {
-  const selectedRoom = roomId
-    ? (rooms.find((room) => room.id === roomId) ?? null)
-    : null;
-
   return (
     <View className="shrink-0 gap-3 border-b border-border bg-muted/20 px-4 py-2.5 md:flex-row md:items-center md:justify-between sm:px-6">
       <View className="flex-row items-center gap-2">
@@ -88,7 +86,7 @@ export function CalendarToolbar({
           />
           <Input
             accessibilityLabel="회의 일정 검색"
-            className="h-8 pl-8 text-xs"
+            className="h-8 py-1 pl-8 text-xs sm:h-8 md:text-xs"
             maxLength={100}
             onChangeText={onSearchChange}
             placeholder="회의명, 참석자, 장소 검색..."
@@ -116,39 +114,22 @@ export function CalendarToolbar({
             />
           ))}
         </ScrollView>
-        <View className="min-w-[150px] md:w-44">
-          <Select
-            onValueChange={(option) =>
-              onRoomChange(
-                !option?.value || option.value === 'all' ? null : option.value,
-              )
-            }
-            value={
-              selectedRoom
-                ? { label: selectedRoom.name, value: selectedRoom.id }
-                : { label: '모든 회의실', value: 'all' }
-            }
-          >
-            <SelectTrigger
-              accessibilityLabel="회의실 필터"
-              className="w-full"
-              size="sm"
-            >
-              <SelectValue placeholder="회의실" />
-            </SelectTrigger>
-            <SelectContent side="bottom">
-              <SelectItem label="모든 회의실" value="all">
-                모든 회의실
-              </SelectItem>
-              {rooms.map((room) => (
-                <SelectItem key={room.id} label={room.name} value={room.id}>
-                  {room.name}
-                  {room.active ? '' : ' · 비활성'}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </View>
+        <DashboardQueryBoundary
+          fallback={
+            <Skeleton
+              accessibilityLabel="회의실 목록을 불러오는 중..."
+              className="h-8 w-44"
+            />
+          }
+          resetKeys={[organizationId]}
+          title="회의실 목록을 불러오지 못했습니다"
+        >
+          <CalendarRoomFilter
+            organizationId={organizationId}
+            roomId={roomId}
+            onRoomChange={onRoomChange}
+          />
+        </DashboardQueryBoundary>
       </View>
     </View>
   );
@@ -190,5 +171,66 @@ function FilterChip({
         {label}
       </Text>
     </Pressable>
+  );
+}
+
+function CalendarRoomFilter({
+  organizationId,
+  roomId,
+  onRoomChange,
+}: {
+  organizationId: string;
+  roomId: string | null;
+  onRoomChange: (value: string | null) => void;
+}) {
+  const rooms = useCalendarRooms(organizationId).data.items;
+  const selectedRoom = rooms.find((room) => room.id === roomId) ?? null;
+  return (
+    <View className="min-w-[150px] md:w-44">
+      <Select
+        onValueChange={(option) =>
+          onRoomChange(
+            !option?.value || option.value === 'all' ? null : option.value,
+          )
+        }
+        value={
+          selectedRoom
+            ? { label: selectedRoom.name, value: selectedRoom.id }
+            : { label: '모든 회의실', value: 'all' }
+        }
+      >
+        <SelectTrigger
+          accessibilityLabel="회의실 필터"
+          className="h-8 w-full px-2 py-1 sm:h-8 sm:py-1"
+          size="sm"
+        >
+          <SelectValue className="text-xs" placeholder="회의실" />
+        </SelectTrigger>
+        <SelectContent side="bottom">
+          <SelectItem
+            className="py-1 sm:py-1"
+            textClassName="text-xs"
+            label="모든 회의실"
+            value="all"
+          >
+            <Text className="text-xs">모든 회의실</Text>
+          </SelectItem>
+          {rooms.map((room) => (
+            <SelectItem
+              className="py-1 sm:py-1"
+              textClassName="text-xs"
+              key={room.id}
+              label={room.name}
+              value={room.id}
+            >
+              <Text className="text-xs">
+                {room.name}
+                {room.active ? '' : ' · 비활성'}
+              </Text>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </View>
   );
 }

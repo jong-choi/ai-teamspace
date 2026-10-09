@@ -9,6 +9,10 @@ import { CalendarModule } from '@/calendar/calendar.module';
 import { ChatModule } from '@/chat/chat.module';
 import { ProblemDetailsFilter } from '@/common/http/problem-details.filter';
 import { DatabaseModule } from '@/database/database.module';
+import { KnowledgeGraphCommandModule } from '@/knowledge-graph/knowledge-graph-command.module';
+import { KnowledgeGraphOperationsModule } from '@/knowledge-graph/knowledge-graph-operations.module';
+import { KnowledgeGraphReadModule } from '@/knowledge-graph/knowledge-graph-read.module';
+import { KnowledgeGraphSearchModule } from '@/knowledge-graph/knowledge-graph-search.module';
 import { McpModule } from '@/mcp/mcp.module';
 import { OrganizationsModule } from '@/organizations/organizations.module';
 import { ProjectsModule } from '@/projects/projects.module';
@@ -23,6 +27,10 @@ import { NestProblemDetailsModule } from 'nest-problem-details-filter';
       suppressDetail: ({ status }) => status >= 500,
     }),
     DatabaseModule,
+    KnowledgeGraphCommandModule,
+    KnowledgeGraphOperationsModule,
+    KnowledgeGraphReadModule,
+    KnowledgeGraphSearchModule,
     AgentModelModule,
     AuthModule,
     CalendarModule,

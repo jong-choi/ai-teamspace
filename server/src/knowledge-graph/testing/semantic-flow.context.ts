@@ -50,7 +50,7 @@ export const describeSemanticFlow =
     ? describe
     : describe.skip;
 
-class TestSemanticExtractor extends SemanticGraphExtractor {
+export class TestSemanticExtractor extends SemanticGraphExtractor {
   readonly calls: string[] = [];
   readonly failures = new Map<string, Error>();
   readonly emptyGraphs = new Set<string>();
@@ -76,7 +76,7 @@ class TestSemanticExtractor extends SemanticGraphExtractor {
   }
 }
 
-class TestSemanticEmbedder extends SemanticEmbedder {
+export class TestSemanticEmbedder extends SemanticEmbedder {
   readonly calls: string[][] = [];
   private vector() {
     return [1, ...Array.from({ length: 767 }, () => 0)];

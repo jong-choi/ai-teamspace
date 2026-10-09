@@ -45,6 +45,7 @@ describe('MCP tool registry', () => {
     registrar(allTools.slice(6, 10)) as never,
     registrar(allTools.slice(10, 16)) as never,
     registrar(allTools.slice(16, 23)) as never,
+    registrar(allTools.slice(23, 25)) as never,
     authorizationService,
   );
 
@@ -52,7 +53,7 @@ describe('MCP tool registry', () => {
     jest.clearAllMocks();
   });
 
-  it('canonical manifest와 동일한 23개 registrar 순서를 요구한다', () => {
+  it('canonical manifest와 동일한 25개 registrar 순서를 요구한다', () => {
     expect(
       registry.toolsForAuth({
         ...auth,
@@ -69,7 +70,7 @@ describe('MCP tool registry', () => {
           'calendar:write',
         ],
       }),
-    ).toHaveLength(23);
+    ).toHaveLength(25);
   });
 
   it('credential scope가 없는 tool은 discovery surface에서 제외한다', () => {
@@ -88,6 +89,8 @@ describe('MCP tool registry', () => {
       'calendar_meetings_list',
       'calendar_meeting_get',
       'calendar_availability_check',
+      'knowledge_search',
+      'knowledge_get_context',
     ]);
   });
 

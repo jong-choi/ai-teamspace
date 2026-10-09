@@ -23,6 +23,7 @@ import type {
   CuratedEdge,
   CuratedNode,
 } from '@/knowledge-graph/domain/curated-graph';
+import { graphSourceKey as sourceKey } from '@/knowledge-graph/domain/graph-source-key';
 import { KnowledgeGraphWriter } from '@/knowledge-graph/infrastructure/graph/knowledge-graph-writer.provider';
 import type { ProjectionStateRepository } from '@/knowledge-graph/infrastructure/persistence/projection-state.repository';
 import {
@@ -102,10 +103,6 @@ WITH DISTINCT marker
 SET marker.appliedSeq = $sourceVersion, marker.deleted = true
 RETURN marker.appliedSeq AS appliedSeq
 `;
-
-function sourceKey(kind: string, organizationId: string, id: string): string {
-  return JSON.stringify([kind, organizationId, id]);
-}
 
 function projectKey(organizationId: string, projectId: string): string {
   return sourceKey('project', organizationId, projectId);

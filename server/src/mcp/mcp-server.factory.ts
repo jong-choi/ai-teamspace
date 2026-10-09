@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
+import { ApplicationError } from '@/application.error';
 import type { McpAuthContext } from '@/mcp/contracts/mcp-auth-context';
 import { getMcpAuthContext } from '@/mcp/infrastructure/auth/better-auth/better-auth-mcp-auth.mapper';
 import { McpToolRegistryService } from '@/mcp/tools/mcp-tool-registry.service';
@@ -41,21 +42,40 @@ export class WorkOsMcpServerFactory {
           scopeChallenge: requireScopes(definition.requiredScope),
         },
         async (input) => {
-          const output = await this.toolRegistry.invoke(
-            definition.name,
-            input,
-            auth,
-          );
+          try {
+            const output = await this.toolRegistry.invoke(
+              definition.name,
+              input,
+              auth,
+            );
 
-          return {
-            content: [
-              {
-                type: 'text' as const,
-                text: JSON.stringify(output),
-              },
-            ],
-            structuredContent: output,
-          };
+            return {
+              content: [
+                {
+                  type: 'text' as const,
+                  text: JSON.stringify(output),
+                },
+              ],
+              structuredContent: output,
+            };
+          } catch (error) {
+            const failure =
+              error instanceof ApplicationError
+                ? { errorCode: error.code, message: error.message }
+                : {
+                    errorCode: 'INTERNAL_ERROR',
+                    message: 'MCP 도구 실행 중 오류가 발생했습니다.',
+                  };
+            return {
+              content: [
+                {
+                  type: 'text' as const,
+                  text: JSON.stringify(failure),
+                },
+              ],
+              isError: true,
+            };
+          }
         },
       );
     }

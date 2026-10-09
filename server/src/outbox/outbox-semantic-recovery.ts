@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { DatabaseService } from '@/database/database.service';
+import { SEMANTIC_QUIET_MS } from '@/knowledge-graph/domain/semantic-timing';
 import {
   type SemanticRecoveryCandidate,
   SemanticRecoveryCandidateSchema,
@@ -189,6 +190,66 @@ export class OutboxSemanticRecovery {
     if (!row) throw new Error('SEMANTIC_RECOVERY_STATS_MISSING');
     return row;
   }
+  async organizationStats(organizationId: string, fingerprint: string) {
+    const gap = sql`${state.indexedSeq} < ${version.desiredSeq} or ${state.indexedManualSeq} < ${state.manualRequestSeq} or ${state.indexedFingerprint} is distinct from ${fingerprint}`;
+    const terminal = sql`${state.runStatus} in ('failed', 'validation_failed') and ${state.attemptSeq} = ${version.desiredSeq} and ${state.attemptManualSeq} = ${state.manualRequestSeq} and ${state.attemptFingerprint} = ${fingerprint}`;
+    const running = sql`${state.runStatus} = 'running' and ${state.leaseExpiresAt} > clock_timestamp()`;
+    const manualGap = sql`${state.indexedManualSeq} < ${state.manualRequestSeq}`;
+    const accepted = sql`(${manualGap}) and ${state.manualDeliveredSeq} < ${state.manualRequestSeq}`;
+    const queued = sql`((${manualGap}) and ${state.manualDeliveredSeq} >= ${state.manualRequestSeq}) or (${state.runStatus} = 'retry_waiting' and (${gap}))`;
+    const quiet = sql`${state.observedAt} is null or ${state.observedAt} + (${SEMANTIC_QUIET_MS} * interval '1 millisecond') > clock_timestamp()`;
+    const desiredOrFingerprint = sql`${state.indexedSeq} < ${version.desiredSeq} or ${state.indexedFingerprint} is distinct from ${fingerprint}`;
+    const eligibleGap = sql`(${desiredOrFingerprint}) and not (${manualGap}) and not (${running}) and not (${terminal})`;
+    const [row] = await this.database.db
+      .select({
+        notIndexed:
+          sql<number>`count(*) filter (where ${version.deleted} = false and ${state.activeGenerationId} is null and not (${running}) and not (${terminal}) and not (${accepted}) and not (${queued}) and (not (${eligibleGap}) or not (${quiet})))`.mapWith(
+            Number,
+          ),
+        waiting:
+          sql<number>`count(*) filter (where ${version.deleted} = false and (${eligibleGap}) and (${quiet}))`.mapWith(
+            Number,
+          ),
+        accepted:
+          sql<number>`count(*) filter (where ${version.deleted} = false and not (${running}) and not (${terminal}) and (${accepted}))`.mapWith(
+            Number,
+          ),
+        queued:
+          sql<number>`count(*) filter (where ${version.deleted} = false and not (${running}) and not (${terminal}) and not (${accepted}) and (${queued}))`.mapWith(
+            Number,
+          ),
+        running:
+          sql<number>`count(*) filter (where ${version.deleted} = false and (${running}))`.mapWith(
+            Number,
+          ),
+        stale:
+          sql<number>`count(*) filter (where ${version.deleted} = false and ${state.activeGenerationId} is not null and (${eligibleGap}) and not (${quiet}))`.mapWith(
+            Number,
+          ),
+        failed:
+          sql<number>`count(*) filter (where ${version.deleted} = false and (${terminal}))`.mapWith(
+            Number,
+          ),
+        upToDate:
+          sql<number>`count(*) filter (where ${version.deleted} = false and ${state.activeGenerationId} is not null and not (${gap}) and not (${running}))`.mapWith(
+            Number,
+          ),
+        oldestAcceptedAt:
+          sql<Date | null>`min(${state.manualRequestedAt}) filter (where ${version.deleted} = false and (${accepted}))`.mapWith(
+            state.manualRequestedAt,
+          ),
+        pending:
+          sql<number>`count(*) filter (where ${version.deleted} = false and (${gap}) and not (${terminal}) and not (${running}))`.mapWith(
+            Number,
+          ),
+      })
+      .from(state)
+      .innerJoin(version, this.joinCondition())
+      .where(eq(state.organizationId, organizationId));
+    if (!row) throw new Error('SEMANTIC_ORGANIZATION_STATS_MISSING');
+    return row;
+  }
+
   async releaseDeliveryFailure(claimed: SemanticRecoveryCandidate) {
     if (!claimed.state.lastRequeuedAt) return false;
     const changed = await this.database.db

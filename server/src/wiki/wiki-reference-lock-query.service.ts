@@ -7,4 +7,7 @@ export class WikiReferenceLockQueryService {
   lockDocument(organizationId: string, id: string) {
     return this.repository.lockDocument(organizationId, id);
   }
+  lockDocumentVersion(organizationId: string, id: string) {
+    return this.repository.lockDocumentVersion(organizationId, id);
+  }
 }

@@ -11,6 +11,8 @@ import { KnowledgeGraphOutboxTransport } from '@/jobs/knowledge-graph/knowledge-
 import { KnowledgeGraphOutboxTransportModule } from '@/jobs/knowledge-graph/knowledge-graph-outbox-transport.module';
 import { KNOWLEDGE_GRAPH_PROJECTION_QUEUE } from '@/jobs/knowledge-graph/knowledge-graph-projection.job';
 import { KnowledgeGraphProjectionProcessor } from '@/jobs/knowledge-graph/knowledge-graph-projection.processor';
+import { KnowledgeGraphRebuildOutboxTransport } from '@/jobs/knowledge-graph/knowledge-graph-rebuild-outbox.transport';
+import { KnowledgeGraphRebuildOutboxTransportModule } from '@/jobs/knowledge-graph/knowledge-graph-rebuild-outbox-transport.module';
 import { KnowledgeGraphReconciliationScheduler } from '@/jobs/knowledge-graph/knowledge-graph-reconciliation.scheduler';
 import { KnowledgeGraphSemanticOutboxTransport } from '@/jobs/knowledge-graph/knowledge-graph-semantic-outbox.transport';
 import { KnowledgeGraphSemanticOutboxTransportModule } from '@/jobs/knowledge-graph/knowledge-graph-semantic-outbox-transport.module';
@@ -34,6 +36,7 @@ import {
   OutboxAggregateChangePublisher,
 } from '@/outbox/outbox-aggregate-change.publisher';
 import { OutboxAggregateProjectionState } from '@/outbox/outbox-aggregate-projection-state';
+import { KNOWLEDGE_GRAPH_REBUILD_REQUESTED_TOPIC } from '@/outbox/outbox-graph-rebuild-event.schema';
 import {
   KNOWLEDGE_GRAPH_SEMANTIC_CHANGED_TOPIC,
   KNOWLEDGE_GRAPH_SEMANTIC_MANUAL_TOPIC,
@@ -63,16 +66,19 @@ import { WikiProjectionQueryModule } from '@/wiki/wiki-projection-query.module';
       imports: [
         ConfigModule.forFeature(knowledgeGraphConfig),
         KnowledgeGraphOutboxTransportModule,
+        KnowledgeGraphRebuildOutboxTransportModule,
         KnowledgeGraphSemanticOutboxTransportModule,
       ],
       inject: [
         knowledgeGraphConfig.KEY,
         KnowledgeGraphOutboxTransport,
+        KnowledgeGraphRebuildOutboxTransport,
         KnowledgeGraphSemanticOutboxTransport,
       ],
       useFactory: (
         config: ConfigType<typeof knowledgeGraphConfig>,
         transport: KnowledgeGraphOutboxTransport,
+        rebuildTransport: KnowledgeGraphRebuildOutboxTransport,
         semanticTransport: KnowledgeGraphSemanticOutboxTransport,
       ) => ({
         relay: {
@@ -86,12 +92,15 @@ import { WikiProjectionQueryModule } from '@/wiki/wiki-projection-query.module';
         route: (message: { topic: string }) =>
           message.topic === KNOWLEDGE_GRAPH_OUTBOX_TOPIC
             ? 'knowledgeGraph'
-            : message.topic === KNOWLEDGE_GRAPH_SEMANTIC_CHANGED_TOPIC ||
-                message.topic === KNOWLEDGE_GRAPH_SEMANTIC_MANUAL_TOPIC
-              ? 'knowledgeGraphSemantic'
-              : 'local',
+            : message.topic === KNOWLEDGE_GRAPH_REBUILD_REQUESTED_TOPIC
+              ? 'knowledgeGraphRebuild'
+              : message.topic === KNOWLEDGE_GRAPH_SEMANTIC_CHANGED_TOPIC ||
+                  message.topic === KNOWLEDGE_GRAPH_SEMANTIC_MANUAL_TOPIC
+                ? 'knowledgeGraphSemantic'
+                : 'local',
         transports: {
           knowledgeGraph: transport,
+          knowledgeGraphRebuild: rebuildTransport,
           knowledgeGraphSemantic: semanticTransport,
         },
       }),

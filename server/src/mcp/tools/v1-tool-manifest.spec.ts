@@ -28,11 +28,13 @@ const expectedToolNames = [
   'calendar_meeting_reschedule',
   'calendar_meeting_cancel',
   'calendar_meeting_rsvp',
+  'knowledge_search',
+  'knowledge_get_context',
 ] as const;
 
 describe('MCP v1 tool manifest', () => {
-  it('acceptance surface를 정확히 23개와 계획 순서로 고정한다', () => {
-    expect(v1McpToolDefinitions).toHaveLength(23);
+  it('acceptance surface를 정확히 25개와 계획 순서로 고정한다', () => {
+    expect(v1McpToolDefinitions).toHaveLength(25);
     expect(v1McpToolDefinitions.map(({ name }) => name)).toEqual(
       expectedToolNames,
     );

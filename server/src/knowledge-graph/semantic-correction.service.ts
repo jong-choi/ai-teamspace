@@ -137,6 +137,171 @@ export class SemanticCorrectionService {
     return { outcome: 'created' as const, ...stored };
   }
 
+  async createLabelOverrideInCurrentTransaction(
+    scope: SemanticSourceScope,
+    expectedGenerationId: string,
+    targetEntityKey: string,
+    label: string,
+    actorUserId: string,
+  ) {
+    const active = await this.expectedGraph(scope, expectedGenerationId);
+    if (!active) return { outcome: 'view_changed' as const };
+    const target = active.entities.find(
+      (entity) => entity.key === targetEntityKey,
+    );
+    if (!target) return { outcome: 'ambiguous_review' as const };
+    const match = matchSemanticCorrection(target.anchor, active);
+    if (match.state !== 'matched')
+      return { outcome: 'ambiguous_review' as const };
+    const stored = await this.corrections.createInCurrentTransaction({
+      organizationId: scope.organizationId,
+      sourceKind: scope.aggregateKind,
+      sourceId: scope.aggregateId,
+      correctionTargetId: semanticCorrectionTargetId('entity', target.anchor),
+      targetKind: 'entity',
+      action: 'label_override',
+      anchor: target.anchor,
+      value: SemanticCorrectionValueSchema.parse({ label }),
+      createdByUserId: actorUserId,
+    });
+    if (!(await this.isActiveGeneration(scope, expectedGenerationId)))
+      return { outcome: 'view_changed' as const };
+    return { outcome: 'created' as const, ...stored };
+  }
+
+  async createSuppressInCurrentTransaction(
+    scope: SemanticSourceScope,
+    expectedGenerationId: string,
+    targetKind: 'entity' | 'relation',
+    targetKey: string,
+    actorUserId: string,
+  ) {
+    const active = await this.expectedGraph(scope, expectedGenerationId);
+    if (!active) return { outcome: 'view_changed' as const };
+    const target =
+      targetKind === 'entity'
+        ? active.entities.find((entity) => entity.key === targetKey)
+        : active.relations.find((relation) => relation.key === targetKey);
+    if (!target) return { outcome: 'ambiguous_review' as const };
+    const match = matchSemanticCorrection(target.anchor, active);
+    if (match.state !== 'matched')
+      return { outcome: 'ambiguous_review' as const };
+    const stored = await this.corrections.createInCurrentTransaction({
+      organizationId: scope.organizationId,
+      sourceKind: scope.aggregateKind,
+      sourceId: scope.aggregateId,
+      correctionTargetId: semanticCorrectionTargetId(targetKind, target.anchor),
+      targetKind,
+      action: 'suppress',
+      anchor: target.anchor,
+      value: null,
+      createdByUserId: actorUserId,
+    });
+    if (!(await this.isActiveGeneration(scope, expectedGenerationId)))
+      return { outcome: 'view_changed' as const };
+    return { outcome: 'created' as const, ...stored };
+  }
+
+  async correctPredicateInCurrentTransaction(
+    scope: SemanticSourceScope,
+    expectedGenerationId: string,
+    relationKey: string,
+    predicateInput: string,
+    actorUserId: string,
+  ) {
+    const active = await this.expectedGraph(scope, expectedGenerationId);
+    if (!active) return { outcome: 'view_changed' as const };
+    const relation = active.relations.find(
+      (candidate) => candidate.key === relationKey,
+    );
+    if (!relation) return { outcome: 'ambiguous_review' as const };
+    const match = matchSemanticCorrection(relation.anchor, active);
+    if (match.state !== 'matched')
+      return { outcome: 'ambiguous_review' as const };
+    const predicate =
+      SemanticRelationAnchorSchema.shape.predicate.parse(predicateInput);
+    const assertedAnchor = { ...relation.anchor, predicate };
+    const stored = await this.corrections.createLinkedPairInCurrentTransaction(
+      {
+        organizationId: scope.organizationId,
+        sourceKind: scope.aggregateKind,
+        sourceId: scope.aggregateId,
+        correctionTargetId: semanticCorrectionTargetId(
+          'relation',
+          relation.anchor,
+        ),
+        targetKind: 'relation',
+        action: 'suppress',
+        anchor: relation.anchor,
+        value: null,
+        createdByUserId: actorUserId,
+      },
+      {
+        organizationId: scope.organizationId,
+        sourceKind: scope.aggregateKind,
+        sourceId: scope.aggregateId,
+        correctionTargetId: semanticCorrectionTargetId(
+          'relation',
+          assertedAnchor,
+        ),
+        targetKind: 'relation',
+        action: 'asserted_relation',
+        anchor: assertedAnchor,
+        value: SemanticCorrectionValueSchema.parse({
+          predicate,
+          source: relation.anchor.source,
+          target: relation.anchor.target,
+        }),
+        createdByUserId: actorUserId,
+      },
+    );
+    if (!(await this.isActiveGeneration(scope, expectedGenerationId)))
+      return { outcome: 'view_changed' as const };
+    return { outcome: 'created' as const, ...stored };
+  }
+
+  findById(organizationId: string, correctionId: string) {
+    return this.corrections.findById(organizationId, correctionId);
+  }
+
+  cancelByIdInCurrentTransaction(
+    organizationId: string,
+    correctionId: string,
+    actorUserId: string,
+  ) {
+    return this.corrections.cancelByIdInCurrentTransaction(
+      organizationId,
+      correctionId,
+      actorUserId,
+    );
+  }
+
+  replaceLabelOverrideByIdInCurrentTransaction(
+    organizationId: string,
+    correctionId: string,
+    label: string,
+    actorUserId: string,
+  ) {
+    return this.corrections.replaceLabelOverrideByIdInCurrentTransaction(
+      organizationId,
+      correctionId,
+      label,
+      actorUserId,
+    );
+  }
+
+  async isActiveGeneration(
+    scope: SemanticSourceScope,
+    expectedGenerationId: string,
+  ) {
+    const current = await this.state.current(scope);
+    return Boolean(
+      current &&
+      !current.version.deleted &&
+      current.state?.activeGenerationId === expectedGenerationId,
+    );
+  }
+
   cancel(
     scope: SemanticSourceScope,
     correctionId: string,
@@ -172,6 +337,15 @@ export class SemanticCorrectionService {
         state: matchSemanticCorrectionRecord(correction, graph).state,
       })),
     );
+  }
+
+  private async expectedGraph(
+    scope: SemanticSourceScope,
+    expectedGenerationId: string,
+  ) {
+    if (!(await this.isActiveGeneration(scope, expectedGenerationId)))
+      return null;
+    return this.graphReader.readGeneration(scope, expectedGenerationId);
   }
 
   private async activeGraph(scope: SemanticSourceScope) {

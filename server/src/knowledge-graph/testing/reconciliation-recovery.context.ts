@@ -19,6 +19,7 @@ import { KnowledgeGraphReconciliationScheduler } from '@/jobs/knowledge-graph/kn
 import knowledgeGraphConfig from '@/knowledge-graph/config/knowledge-graph.config';
 import { CuratedGraphModule } from '@/knowledge-graph/curated-graph.module';
 import { reconciliationScope } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/reconciliation-scope.schema';
+import { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
 import { KnowledgeGraphReconciliationService } from '@/knowledge-graph/knowledge-graph-reconciliation.service';
 import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 import { OutboxAggregateProjectionState } from '@/outbox/outbox-aggregate-projection-state';
@@ -86,6 +87,10 @@ export function createReconciliationRecoveryContext() {
     jobs
       .select(KnowledgeGraphJobsModule)
       .get(OutboxAggregateProjectionState, { strict: true });
+  const sources = () =>
+    jobs
+      .select(KnowledgeGraphJobsModule)
+      .get(WorkosSourceProvider, { strict: true });
   const scheduler = (app = jobs) =>
     app.get(KnowledgeGraphReconciliationScheduler);
   const auth = () => jobs.get(AuthService<Auth>).instance;
@@ -108,6 +113,17 @@ export function createReconciliationRecoveryContext() {
     await queue.pause();
     jobs = await startJobs();
     database = jobs.get(DatabaseService).db;
+    // 조직에 귀속되지 않는 전역 cursor는 각 복구 시나리오가 독립적으로 소유한다.
+    await database
+      .delete(reconciliationScope)
+      .where(
+        inArray(reconciliationScope.id, [
+          'organizations',
+          'membership_sources',
+          'organization_presence',
+        ]),
+      );
+    await jobs.get(KnowledgeGraphReconciliationService).initialize();
     const config = knowledgeGraphConfig();
     if (!config.url || !config.username || !config.password)
       throw new Error('전용 Neo4j 설정이 없습니다.');
@@ -356,6 +372,7 @@ export function createReconciliationRecoveryContext() {
     startJobs,
     relay,
     state,
+    sources,
     scheduler,
     auth,
     actor,

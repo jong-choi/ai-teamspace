@@ -127,4 +127,19 @@ describe('Gemini SDK 입력별 Content와 N→N768 계약', () => {
     });
     expect(sizes).toEqual([16, 4]);
   });
+
+  it('의미 기능이 꺼진 앱은 부팅되고 실제 embedding 호출만 거부한다', async () => {
+    const app = await Test.createTestingModule({
+      providers: [
+        GeminiEmbedding2Adapter,
+        { provide: knowledgeGraphConfig.KEY, useValue: { semantic: null } },
+      ],
+    }).compile();
+
+    await expect(
+      app
+        .get(GeminiEmbedding2Adapter)
+        .embedQuery('검색어', new AbortController().signal),
+    ).rejects.toMatchObject({ code: 'PROVIDER_UNAUTHORIZED' });
+  });
 });

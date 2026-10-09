@@ -13,7 +13,9 @@ import * as chatParticipantSchema from '@/chat/infrastructure/persistence/drizzl
 import * as curatedEdgeSchema from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/curated-edge.schema';
 import * as curatedEditAuditSchema from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/curated-edit-audit.schema';
 import * as curatedNodeSchema from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/curated-node.schema';
+import * as graphRebuildRequestSchema from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/graph-rebuild-request.schema';
 import * as reconciliationScopeSchema from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/reconciliation-scope.schema';
+import * as requestQuotaSchema from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/request-quota.schema';
 import * as semanticCorrectionSchema from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/semantic-correction.schema';
 import * as mcpOrganizationPolicySchema from '@/mcp-access/infrastructure/persistence/drizzle/schema/mcp-organization-policy.schema';
 import * as mcpUserPolicySchema from '@/mcp-access/infrastructure/persistence/drizzle/schema/mcp-user-policy.schema';
@@ -52,7 +54,9 @@ export const databaseSchema = {
   ...curatedNodeSchema,
   ...curatedEdgeSchema,
   ...curatedEditAuditSchema,
+  ...graphRebuildRequestSchema,
   ...reconciliationScopeSchema,
+  ...requestQuotaSchema,
   ...semanticCorrectionSchema,
   ...mcpOrganizationPolicySchema,
   ...mcpUserPolicySchema,

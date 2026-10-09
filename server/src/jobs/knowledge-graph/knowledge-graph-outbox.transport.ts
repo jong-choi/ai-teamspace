@@ -74,7 +74,10 @@ export class KnowledgeGraphOutboxTransport
   }
 
   async onApplicationShutdown(): Promise<void> {
-    this.connection.disconnect();
-    await this.queue.close();
+    try {
+      await this.queue.close();
+    } finally {
+      this.connection.disconnect();
+    }
   }
 }

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { DatabaseService } from '@/database/database.service';
 import { OutboxAggregateChangePublisher } from '@/outbox/outbox-aggregate-change.publisher';
+import { toLikeContainsPattern } from '@/utils/like-pattern';
 import {
   WikiCollaborationStateCorruptedError,
   WikiDocumentHistoryCorruptedError,
@@ -777,9 +778,4 @@ function uniqueCollaborators(
     }
   }
   return result;
-}
-
-function toLikeContainsPattern(query: string): string {
-  const escaped = query.replace(/[\\%_]/g, '\\$&');
-  return `%${escaped}%`;
 }

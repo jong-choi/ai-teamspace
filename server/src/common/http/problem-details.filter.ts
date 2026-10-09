@@ -8,6 +8,7 @@ import {
   Injectable,
   Logger,
 } from '@nestjs/common';
+import { HttpAdapterHost } from '@nestjs/core';
 
 import {
   ApplicationError,
@@ -26,6 +27,8 @@ const statusByKind = {
   forbidden: HttpStatus.FORBIDDEN,
   internal: HttpStatus.INTERNAL_SERVER_ERROR,
   not_found: HttpStatus.NOT_FOUND,
+  rate_limited: HttpStatus.TOO_MANY_REQUESTS,
+  unavailable: HttpStatus.SERVICE_UNAVAILABLE,
 } as const satisfies Record<ApplicationErrorKind, number>;
 
 @Catch()
@@ -36,6 +39,7 @@ export class ProblemDetailsFilter implements ExceptionFilter {
   constructor(
     @Inject(HTTP_EXCEPTION_FILTER_KEY)
     private readonly httpExceptionFilter: HttpExceptionFilter,
+    private readonly httpAdapterHost: HttpAdapterHost,
   ) {}
 
   catch(exception: unknown, host: ArgumentsHost): void {
@@ -47,6 +51,13 @@ export class ProblemDetailsFilter implements ExceptionFilter {
 
     if (exception instanceof ApplicationError) {
       const status = statusByKind[exception.kind];
+      if (exception.retryAfterSeconds !== undefined) {
+        this.httpAdapterHost.httpAdapter.setHeader(
+          host.switchToHttp().getResponse(),
+          'Retry-After',
+          String(Math.max(1, Math.ceil(exception.retryAfterSeconds))),
+        );
+      }
       if (status >= 500) {
         this.logFailure(exception.code, status, exception.cause, host);
       }

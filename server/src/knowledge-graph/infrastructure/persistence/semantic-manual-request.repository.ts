@@ -6,6 +6,10 @@ export abstract class SemanticManualRequestRepository {
     scope: SemanticSourceScope,
     actorUserId: string,
   ): ReturnType<OutboxSemanticManualRequest['request']>;
+  abstract requestInTransaction(
+    scope: SemanticSourceScope,
+    actorUserId: string,
+  ): ReturnType<OutboxSemanticManualRequest['requestInTransaction']>;
   abstract markDelivered(
     scope: SemanticSourceScope,
     manualRequestSeq: number,

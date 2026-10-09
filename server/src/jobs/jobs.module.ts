@@ -7,6 +7,7 @@ import cacheConfig from '@/chat/config/cache.config';
 import databaseConfig from '@/database/config/database.config';
 import { KnowledgeGraphJobsModule } from '@/jobs/knowledge-graph/knowledge-graph-jobs.module';
 import { KnowledgeGraphMembershipBridge } from '@/jobs/knowledge-graph/knowledge-graph-membership-bridge';
+import { KnowledgeGraphRebuildJobsModule } from '@/jobs/knowledge-graph/knowledge-graph-rebuild-jobs.module';
 import { KnowledgeGraphSemanticJobsModule } from '@/jobs/knowledge-graph/knowledge-graph-semantic-jobs.module';
 import { MCP_ACCESS_KEY_RECONCILIATION_QUEUE } from '@/jobs/mcp-access-key-reconciliation.job';
 import { McpAccessKeyReconciliationProcessor } from '@/jobs/mcp-access-key-reconciliation.processor';
@@ -46,6 +47,7 @@ import { RedisWikiCollaborationInvalidationPublisherModule } from '@/wiki/infras
       { name: MCP_ACCESS_KEY_RECONCILIATION_QUEUE },
     ),
     KnowledgeGraphJobsModule,
+    KnowledgeGraphRebuildJobsModule,
     ConditionalModule.registerWhen(
       KnowledgeGraphSemanticJobsModule,
       (environment) => environment.KG_SEMANTIC_ENABLED === 'true',

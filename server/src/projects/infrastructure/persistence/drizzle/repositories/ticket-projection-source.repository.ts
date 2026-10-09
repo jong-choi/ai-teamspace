@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { DatabaseService } from '@/database/database.service';
+import { TicketGraphSourceSchema } from '@/projects/domain/project-graph-source';
 import { TicketProjectionSourceSchema } from '@/projects/domain/ticket-projection-source';
 import { ticket } from '@/projects/infrastructure/persistence/drizzle/schema/ticket.schema';
 import { ticketChecklist } from '@/projects/infrastructure/persistence/drizzle/schema/ticket-checklist.schema';
@@ -8,8 +9,9 @@ import { ticketChecklistItem } from '@/projects/infrastructure/persistence/drizz
 import { ticketLabel } from '@/projects/infrastructure/persistence/drizzle/schema/ticket-label.schema';
 import { ticketLabelAssignment } from '@/projects/infrastructure/persistence/drizzle/schema/ticket-label-assignment.schema';
 import { TicketProjectionSourceRepository } from '@/projects/infrastructure/persistence/ticket-projection-source.repository';
+import { toLikeContainsPattern } from '@/utils/like-pattern';
 
-import { and, asc, eq, gt, inArray } from 'drizzle-orm';
+import { and, asc, eq, gt, ilike, inArray, or } from 'drizzle-orm';
 
 @Injectable()
 export class TicketProjectionSourceDrizzleRepository extends TicketProjectionSourceRepository {
@@ -121,5 +123,57 @@ export class TicketProjectionSourceDrizzleRepository extends TicketProjectionSou
       )
       .orderBy(asc(ticket.id))
       .limit(limit);
+  }
+  async currentManyForGraph(organizationId: string, ids: readonly string[]) {
+    if (ids.length === 0) return [];
+    const rows = await this.database.db
+      .select({
+        id: ticket.id,
+        projectId: ticket.projectId,
+        title: ticket.title,
+        archivedAt: ticket.archivedAt,
+        updatedAt: ticket.updatedAt,
+      })
+      .from(ticket)
+      .where(
+        and(
+          eq(ticket.organizationId, organizationId),
+          inArray(ticket.id, [...ids].slice(0, 100)),
+        ),
+      );
+    return TicketGraphSourceSchema.array().parse(rows);
+  }
+  async listForGraph(
+    organizationId: string,
+    query: Parameters<TicketProjectionSourceRepository['listForGraph']>[1],
+  ) {
+    const pattern = query.q ? toLikeContainsPattern(query.q) : null;
+    const rows = await this.database.db
+      .select({
+        id: ticket.id,
+        projectId: ticket.projectId,
+        title: ticket.title,
+        archivedAt: ticket.archivedAt,
+        updatedAt: ticket.updatedAt,
+      })
+      .from(ticket)
+      .where(
+        and(
+          eq(ticket.organizationId, organizationId),
+          pattern ? ilike(ticket.title, pattern) : undefined,
+          query.after
+            ? or(
+                gt(ticket.title, query.after.title),
+                and(
+                  eq(ticket.title, query.after.title),
+                  gt(ticket.id, query.after.id),
+                ),
+              )
+            : undefined,
+        ),
+      )
+      .orderBy(asc(ticket.title), asc(ticket.id))
+      .limit(query.limit);
+    return TicketGraphSourceSchema.array().parse(rows);
   }
 }

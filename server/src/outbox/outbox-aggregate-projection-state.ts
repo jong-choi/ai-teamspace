@@ -4,7 +4,7 @@ import { DatabaseService } from '@/database/database.service';
 import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 import { REQUEUE_STUCK_COUNT } from '@/outbox/outbox-aggregate-recovery.policy';
 
-import { and, asc, eq, gt, lt, ne, or, sql } from 'drizzle-orm';
+import { and, asc, eq, gt, inArray, lt, ne, or, sql } from 'drizzle-orm';
 
 @Injectable()
 export class OutboxAggregateProjectionState {
@@ -27,6 +27,91 @@ export class OutboxAggregateProjectionState {
       )
       .limit(1);
     return source ?? null;
+  }
+
+  async projectionFreshnessBatch(
+    organizationId: string,
+    sources: readonly {
+      aggregateKind: typeof outboxAggregateVersion.$inferSelect.aggregateKind;
+      aggregateId: string;
+    }[],
+  ) {
+    if (sources.length === 0) return [];
+    const rows = await this.database.db
+      .select({
+        kind: outboxAggregateVersion.aggregateKind,
+        id: outboxAggregateVersion.aggregateId,
+        desiredSeq: outboxAggregateVersion.desiredSeq,
+        appliedSeq: outboxAggregateVersion.appliedSeq,
+        deleted: outboxAggregateVersion.deleted,
+        projectionStatus: outboxAggregateVersion.projectionStatus,
+        sourceUpdatedAt: outboxAggregateVersion.updatedAt,
+      })
+      .from(outboxAggregateVersion)
+      .where(
+        and(
+          eq(outboxAggregateVersion.organizationId, organizationId),
+          or(
+            ...sources.map((source) =>
+              and(
+                eq(outboxAggregateVersion.aggregateKind, source.aggregateKind),
+                eq(outboxAggregateVersion.aggregateId, source.aggregateId),
+              ),
+            ),
+          ),
+        ),
+      );
+    const byKey = new Map(
+      rows.map((row) => [`${row.kind}:${row.id}`, row] as const),
+    );
+    return sources.map((source) => {
+      const row = byKey.get(`${source.aggregateKind}:${source.aggregateId}`);
+      const fresh = Boolean(
+        row && !row.deleted && row.appliedSeq >= row.desiredSeq,
+      );
+      return {
+        kind: source.aggregateKind,
+        id: source.aggregateId,
+        desiredSeq: row?.desiredSeq ?? null,
+        appliedSeq: row?.appliedSeq ?? null,
+        deleted: row?.deleted ?? true,
+        projectionStatus: row?.projectionStatus ?? null,
+        sourceUpdatedAt: row?.sourceUpdatedAt ?? null,
+        fresh,
+        pending: !fresh,
+      };
+    });
+  }
+
+  async organizationProgress(
+    organizationId: string,
+    kinds: readonly (typeof outboxAggregateVersion.$inferSelect.aggregateKind)[],
+  ) {
+    const version = outboxAggregateVersion;
+    const scope = and(
+      eq(version.organizationId, organizationId),
+      eq(version.deleted, false),
+      kinds.length ? inArray(version.aggregateKind, [...kinds]) : undefined,
+    );
+    const [row] = await this.database.db
+      .select({
+        pending:
+          sql<number>`count(*) filter (where ${version.appliedSeq} < ${version.desiredSeq} and ${version.projectionStatus} <> 'failed')`.mapWith(
+            Number,
+          ),
+        failed:
+          sql<number>`count(*) filter (where ${version.projectionStatus} = 'failed')`.mapWith(
+            Number,
+          ),
+        oldestPendingAt:
+          sql<Date | null>`min(${version.updatedAt}) filter (where ${version.appliedSeq} < ${version.desiredSeq} and ${version.projectionStatus} <> 'failed')`.mapWith(
+            version.updatedAt,
+          ),
+      })
+      .from(version)
+      .where(scope);
+    if (!row) throw new Error('KNOWLEDGE_GRAPH_ORGANIZATION_PROGRESS_MISSING');
+    return row;
   }
 
   listMembershipObservationBatch(

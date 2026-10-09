@@ -18,9 +18,11 @@ import { outboxSemanticSourceState as state } from '@/outbox/infrastructure/pers
 
 import {
   and,
+  asc,
   eq,
   gt,
   inArray,
+  isNotNull,
   isNull,
   lte,
   ne,
@@ -32,6 +34,77 @@ import {
 @Injectable()
 export class OutboxSemanticSourceState {
   constructor(private readonly database: DatabaseService) {}
+
+  async listSearchableSources(
+    organizationId: string,
+    fingerprint: string,
+    limit: number,
+  ) {
+    return this.database.db
+      .select({
+        aggregateId: state.aggregateId,
+        deleted: version.deleted,
+        activeGenerationId: state.activeGenerationId,
+        indexedSignature: state.indexedSignature,
+        indexedSourceUpdatedAt: state.indexedSourceUpdatedAt,
+        indexedFingerprint: state.indexedFingerprint,
+      })
+      .from(state)
+      .innerJoin(
+        version,
+        and(
+          eq(version.organizationId, state.organizationId),
+          eq(version.aggregateKind, state.aggregateKind),
+          eq(version.aggregateId, state.aggregateId),
+        ),
+      )
+      .where(
+        and(
+          eq(state.organizationId, organizationId),
+          eq(state.aggregateKind, 'wiki_document'),
+          isNotNull(state.activeGenerationId),
+          eq(state.indexedFingerprint, fingerprint),
+          eq(version.deleted, false),
+        ),
+      )
+      .orderBy(asc(state.aggregateId))
+      .limit(limit);
+  }
+
+  async currentBatch(
+    organizationId: string,
+    kind: 'wiki_document',
+    ids: readonly string[],
+  ) {
+    if (ids.length === 0) return [];
+    return this.database.db
+      .select({
+        aggregateId: version.aggregateId,
+        desiredSeq: version.desiredSeq,
+        deleted: version.deleted,
+        updatedAt: version.updatedAt,
+        activeGenerationId: state.activeGenerationId,
+        indexedSignature: state.indexedSignature,
+        indexedSourceUpdatedAt: state.indexedSourceUpdatedAt,
+        indexedFingerprint: state.indexedFingerprint,
+      })
+      .from(version)
+      .leftJoin(
+        state,
+        and(
+          eq(state.organizationId, version.organizationId),
+          eq(state.aggregateKind, version.aggregateKind),
+          eq(state.aggregateId, version.aggregateId),
+        ),
+      )
+      .where(
+        and(
+          eq(version.organizationId, organizationId),
+          eq(version.aggregateKind, kind),
+          inArray(version.aggregateId, [...new Set(ids)]),
+        ),
+      );
+  }
 
   async current(scope: SemanticSourceScope) {
     const [row] = await this.database.db

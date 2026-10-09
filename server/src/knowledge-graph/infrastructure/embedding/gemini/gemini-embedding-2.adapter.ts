@@ -19,21 +19,22 @@ import type { EmbeddingsInterface } from '@langchain/core/embeddings';
 
 @Injectable()
 export class GeminiEmbedding2Adapter extends SemanticEmbedder {
-  private readonly client: GoogleGenAI;
+  private readonly client: GoogleGenAI | null;
   constructor(
     @Inject(knowledgeGraphConfig.KEY)
     config: ConfigType<typeof knowledgeGraphConfig>,
   ) {
     super();
-    if (!config.semantic)
-      throw new SemanticProviderError('PROVIDER_UNAUTHORIZED');
-    this.client = new GoogleGenAI({
-      apiKey: config.semantic.geminiApiKey,
-      httpOptions: { timeout: 90_000, retryOptions: { attempts: 1 } },
-    });
+    this.client = config.semantic
+      ? new GoogleGenAI({
+          apiKey: config.semantic.geminiApiKey,
+          httpOptions: { timeout: 90_000, retryOptions: { attempts: 1 } },
+        })
+      : null;
   }
   async embedDocuments(texts: readonly string[], signal: AbortSignal) {
     assertSemanticEmbeddingInputs(texts);
+    const client = this.requireClient();
     const vectors: number[][] = [];
     for (let index = 0; index < texts.length; index += 16) {
       if (signal.aborted) throw new SemanticLeaseLostError();
@@ -41,7 +42,7 @@ export class GeminiEmbedding2Adapter extends SemanticEmbedder {
       if (batch.some((text) => !text.trim()))
         throw new SemanticProviderError('EMBEDDING_INVALID');
       try {
-        const response = await this.client.models.embedContent({
+        const response = await client.models.embedContent({
           model: semanticPipelineDescriptor.embedding.model,
           contents: batch.map((text) => ({ parts: [{ text }] })),
           config: { outputDimensionality: 768, abortSignal: signal },
@@ -80,5 +81,10 @@ export class GeminiEmbedding2Adapter extends SemanticEmbedder {
         this.embedDocuments(texts, new AbortController().signal),
       embedQuery: (text) => this.embedQuery(text, new AbortController().signal),
     };
+  }
+
+  private requireClient(): GoogleGenAI {
+    if (!this.client) throw new SemanticProviderError('PROVIDER_UNAUTHORIZED');
+    return this.client;
   }
 }

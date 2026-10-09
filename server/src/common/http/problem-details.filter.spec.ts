@@ -2,8 +2,10 @@ import type { ArgumentsHost } from '@nestjs/common';
 import { Logger } from '@nestjs/common';
 import type { HttpAdapterHost } from '@nestjs/core';
 
+import { ApplicationError } from '@/application.error';
 import { CalendarIcsGenerationError } from '@/calendar/domain/calendar.error';
 import { ProblemDetailsFilter } from '@/common/http/problem-details.filter';
+import { CuratedGraphRevisionConflictError } from '@/knowledge-graph/domain/curated-graph.error';
 import {
   OrganizationNotFoundError,
   OrganizationProviderFailureError,
@@ -29,7 +31,7 @@ function createFixture() {
     ({ status }) => status >= 500,
     true,
   );
-  const filter = new ProblemDetailsFilter(delegate);
+  const filter = new ProblemDetailsFilter(delegate, httpAdapterHost);
   const host = {
     switchToHttp: () => ({
       getRequest: () => ({ method: 'POST' }),
@@ -144,6 +146,38 @@ describe('공용 Problem Details 처리', () => {
         detail: 'request entity too large',
       },
       413,
+    );
+  });
+
+  it('rate limit 오류는 429와 Retry-After를 함께 반환한다', () => {
+    const { filter, host, reply, response, setHeader } = createFixture();
+
+    filter.catch(
+      new ApplicationError(
+        'KG_RATE_LIMITED',
+        'rate_limited',
+        '요청 한도를 초과했습니다.',
+        { retryAfterSeconds: 1.2 },
+      ),
+      host,
+    );
+
+    expect(setHeader).toHaveBeenCalledWith(response, 'Retry-After', '2');
+    expect(reply.mock.calls[0]?.[2]).toBe(429);
+  });
+
+  it('curated 충돌 오류를 공용 Problem Details로 변환한다', () => {
+    const { filter, host, reply } = createFixture();
+
+    filter.catch(new CuratedGraphRevisionConflictError(), host);
+
+    expect(reply).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        status: 409,
+        errorCode: 'KG_CURATED_REVISION_CONFLICT',
+      }),
+      409,
     );
   });
 

@@ -11,6 +11,11 @@ export class OutboxSemanticManualRequestAdapter extends SemanticManualRequestRep
   request(...args: Parameters<SemanticManualRequestRepository['request']>) {
     return this.requests.request(...args);
   }
+  requestInTransaction(
+    ...args: Parameters<SemanticManualRequestRepository['requestInTransaction']>
+  ) {
+    return this.requests.requestInTransaction(...args);
+  }
   markDelivered(
     ...args: Parameters<SemanticManualRequestRepository['markDelivered']>
   ) {

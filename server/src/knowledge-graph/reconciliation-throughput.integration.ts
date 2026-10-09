@@ -6,7 +6,6 @@ import {
 } from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
 import { digestGraphJson } from '@/knowledge-graph/domain/graph-json-digest';
 import { reconciliationScope } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/reconciliation-scope.schema';
-import { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
 import {
   createReconciliationRecoveryContext,
   describeRecovery,
@@ -61,10 +60,7 @@ describeRecovery('실제 membership 관찰·조직 삭제의 1K 처리량', () =
         }),
       })),
     );
-    const observed = jest.spyOn(
-      context.jobs.get(WorkosSourceProvider),
-      'observeMembershipSnapshot',
-    );
+    const observed = jest.spyOn(context.sources(), 'observeMembershipSnapshot');
     await context.due('membership_sources');
     const startedAt = Date.now();
     await context.tick();

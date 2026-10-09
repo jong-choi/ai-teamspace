@@ -4,6 +4,7 @@ import type { McpAuthContext } from '@/mcp/contracts/mcp-auth-context';
 import type { BoundMcpTool } from '@/mcp/tools/bound-mcp-tool';
 import { CalendarMcpRegistrar } from '@/mcp/tools/calendar/calendar-mcp.registrar';
 import { ChatMcpRegistrar } from '@/mcp/tools/chat/chat-mcp.registrar';
+import { KnowledgeGraphMcpRegistrar } from '@/mcp/tools/knowledge-graph/knowledge-graph-mcp.registrar';
 import { McpToolNotFoundError } from '@/mcp/tools/mcp-tool.error';
 import { McpToolAuthorizationService } from '@/mcp/tools/mcp-tool-authorization.service';
 import { OrganizationMcpRegistrar } from '@/mcp/tools/organizations/organization-mcp.registrar';
@@ -22,6 +23,7 @@ export class McpToolRegistryService {
     wikiRegistrar: WikiMcpRegistrar,
     projectRegistrar: ProjectMcpRegistrar,
     calendarRegistrar: CalendarMcpRegistrar,
+    knowledgeGraphRegistrar: KnowledgeGraphMcpRegistrar,
     private readonly authorizationService: McpToolAuthorizationService,
   ) {
     this.tools = [
@@ -30,6 +32,7 @@ export class McpToolRegistryService {
       ...wikiRegistrar.tools(),
       ...projectRegistrar.tools(),
       ...calendarRegistrar.tools(),
+      ...knowledgeGraphRegistrar.tools(),
     ];
 
     const expectedNames = v1McpToolDefinitions.map(({ name }) => name);

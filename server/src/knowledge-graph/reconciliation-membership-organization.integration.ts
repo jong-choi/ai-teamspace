@@ -4,7 +4,6 @@ import { CalendarSchedulingRepository } from '@/calendar/infrastructure/persiste
 import { KnowledgeGraphMembershipBridge } from '@/jobs/knowledge-graph/knowledge-graph-membership-bridge';
 import { CuratedGraphService } from '@/knowledge-graph/curated-graph.service';
 import { reconciliationScope } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/reconciliation-scope.schema';
-import { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
 import { KnowledgeGraphReconciliationService } from '@/knowledge-graph/knowledge-graph-reconciliation.service';
 import {
   createReconciliationRecoveryContext,
@@ -195,7 +194,7 @@ describeRecovery('회원 변경·조직 삭제의 실제 그래프 복구', () =
     }
     await context.queue.resume();
     for (const org of context.organizations) await context.converged(org, 1);
-    const sources = context.jobs.get(WorkosSourceProvider);
+    const sources = context.sources();
     jest.spyOn(sources, 'existingOrganizationIds').mockResolvedValue([]);
     await context.due('organization_presence');
     await context.tick();

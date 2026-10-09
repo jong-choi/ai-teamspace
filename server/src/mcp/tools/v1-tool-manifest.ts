@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 
 import { calendarToolDefinitions } from '@/mcp/tools/calendar/calendar-tool-definitions';
 import { chatToolDefinitions } from '@/mcp/tools/chat/chat-tool-definitions';
+import { knowledgeGraphToolDefinitions } from '@/mcp/tools/knowledge-graph/knowledge-graph-tool-definitions';
 import type { McpToolDefinition } from '@/mcp/tools/mcp-tool-definition';
 import { organizationToolDefinitions } from '@/mcp/tools/organizations/organization-tool-definitions';
 import { projectToolDefinitions } from '@/mcp/tools/projects/project-tool-definitions';
@@ -15,6 +16,7 @@ export const v1McpToolDefinitions = [
   ...wikiToolDefinitions,
   ...projectToolDefinitions,
   ...calendarToolDefinitions,
+  ...knowledgeGraphToolDefinitions,
 ] as const;
 
 export type V1McpToolName = (typeof v1McpToolDefinitions)[number]['name'];

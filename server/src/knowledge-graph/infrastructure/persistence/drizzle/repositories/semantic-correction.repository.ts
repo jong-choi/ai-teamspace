@@ -10,6 +10,7 @@ import {
   SemanticCorrectionSchema,
   SemanticCorrectionSourceSchema,
 } from '@/knowledge-graph/domain/semantic-correction';
+import { SemanticCorrectionValueSchema } from '@/knowledge-graph/domain/semantic-correction-anchor';
 import {
   semanticCorrection,
   semanticCorrectionSource,
@@ -93,6 +94,81 @@ export class SemanticCorrectionDrizzleRepository extends SemanticCorrectionRepos
     });
   }
 
+  async createInCurrentTransaction(input: SemanticCorrectionCreate) {
+    const transaction = this.database.requireTransaction();
+    const parsed = SemanticCorrectionCreateSchema.parse(input);
+    const revision = await this.nextRevision(transaction, parsed);
+    const [row] = await transaction
+      .insert(semanticCorrection)
+      .values(
+        SemanticCorrectionInsertSchema.parse({
+          ...parsed,
+          createdRevision: revision,
+        }),
+      )
+      .returning();
+    if (!row) throw new Error('의미 보정 저장 결과가 없습니다.');
+    return {
+      editRevision: revision,
+      corrections: [SemanticCorrectionSchema.parse(row)],
+    };
+  }
+
+  async createLinkedPairInCurrentTransaction(
+    firstInput: SemanticCorrectionCreate,
+    secondInput: SemanticCorrectionCreate,
+  ) {
+    const transaction = this.database.requireTransaction();
+    const first = SemanticCorrectionCreateSchema.parse(firstInput);
+    const second = SemanticCorrectionCreateSchema.parse(secondInput);
+    if (
+      first.organizationId !== second.organizationId ||
+      first.sourceKind !== second.sourceKind ||
+      first.sourceId !== second.sourceId
+    )
+      throw new Error('짝 보정의 원본 범위가 다릅니다.');
+    const revision = await this.nextRevision(transaction, first);
+    const firstId = randomUUID();
+    const secondId = randomUUID();
+    const rows = await transaction
+      .insert(semanticCorrection)
+      .values([
+        SemanticCorrectionInsertSchema.parse({
+          ...first,
+          id: firstId,
+          linkedCorrectionId: secondId,
+          createdRevision: revision,
+        }),
+        SemanticCorrectionInsertSchema.parse({
+          ...second,
+          id: secondId,
+          linkedCorrectionId: firstId,
+          createdRevision: revision,
+        }),
+      ])
+      .returning();
+    if (rows.length !== 2)
+      throw new Error('짝 의미 보정 저장 결과가 완전하지 않습니다.');
+    return {
+      editRevision: revision,
+      corrections: rows.map((row) => SemanticCorrectionSchema.parse(row)),
+    };
+  }
+
+  async findById(organizationId: string, correctionId: string) {
+    const [row] = await this.database.db
+      .select()
+      .from(semanticCorrection)
+      .where(
+        and(
+          eq(semanticCorrection.organizationId, organizationId),
+          eq(semanticCorrection.id, correctionId),
+        ),
+      )
+      .limit(1);
+    return row ? SemanticCorrectionSchema.parse(row) : null;
+  }
+
   cancel(
     scope: SemanticSourceScope,
     correctionId: string,
@@ -148,6 +224,139 @@ export class SemanticCorrectionDrizzleRepository extends SemanticCorrectionRepos
         corrections: rows.map((row) => SemanticCorrectionSchema.parse(row)),
       };
     });
+  }
+
+  async cancelByIdInCurrentTransaction(
+    organizationId: string,
+    correctionId: string,
+    actorUserId: string,
+  ) {
+    const transaction = this.database.requireTransaction();
+    const [current] = await transaction
+      .select()
+      .from(semanticCorrection)
+      .where(
+        and(
+          eq(semanticCorrection.organizationId, organizationId),
+          eq(semanticCorrection.id, correctionId),
+        ),
+      )
+      .for('update');
+    if (!current) return { outcome: 'not_found' as const };
+    if (current.status !== 'active') return { outcome: 'not_active' as const };
+    const scope = {
+      organizationId,
+      aggregateKind: current.sourceKind,
+      aggregateId: current.sourceId,
+    } satisfies SemanticSourceScope;
+    const [source] = await transaction
+      .select()
+      .from(semanticCorrectionSource)
+      .where(this.sourceWhere(scope))
+      .for('update');
+    if (!source) return { outcome: 'not_found' as const };
+    const revision = source.editRevision + 1;
+    const ids = current.linkedCorrectionId
+      ? [current.id, current.linkedCorrectionId]
+      : [current.id];
+    const rows = await transaction
+      .update(semanticCorrection)
+      .set({
+        status: 'cancelled',
+        cancelledRevision: revision,
+        cancelledByUserId: actorUserId,
+        cancelledAt: new Date(),
+      })
+      .where(
+        and(
+          this.correctionScopeWhere(scope),
+          inArray(semanticCorrection.id, ids),
+          eq(semanticCorrection.status, 'active'),
+        ),
+      )
+      .returning();
+    if (rows.length === 0) return { outcome: 'not_active' as const };
+    await this.setRevision(transaction, scope, source.editRevision, revision);
+    return {
+      outcome: 'cancelled' as const,
+      editRevision: revision,
+      corrections: rows.map((row) => SemanticCorrectionSchema.parse(row)),
+    };
+  }
+
+  async replaceLabelOverrideByIdInCurrentTransaction(
+    organizationId: string,
+    correctionId: string,
+    label: string,
+    actorUserId: string,
+  ) {
+    const transaction = this.database.requireTransaction();
+    const [current] = await transaction
+      .select()
+      .from(semanticCorrection)
+      .where(
+        and(
+          eq(semanticCorrection.organizationId, organizationId),
+          eq(semanticCorrection.id, correctionId),
+        ),
+      )
+      .for('update');
+    if (!current) return { outcome: 'not_found' as const };
+    if (current.status !== 'active' || current.action !== 'label_override')
+      return { outcome: 'not_active' as const };
+    const scope = {
+      organizationId,
+      aggregateKind: current.sourceKind,
+      aggregateId: current.sourceId,
+    } satisfies SemanticSourceScope;
+    const [source] = await transaction
+      .select()
+      .from(semanticCorrectionSource)
+      .where(this.sourceWhere(scope))
+      .for('update');
+    if (!source) return { outcome: 'not_found' as const };
+    const revision = source.editRevision + 1;
+    const [cancelled] = await transaction
+      .update(semanticCorrection)
+      .set({
+        status: 'cancelled',
+        cancelledRevision: revision,
+        cancelledByUserId: actorUserId,
+        cancelledAt: new Date(),
+      })
+      .where(
+        and(
+          this.correctionScopeWhere(scope),
+          eq(semanticCorrection.id, correctionId),
+          eq(semanticCorrection.status, 'active'),
+        ),
+      )
+      .returning();
+    if (!cancelled) return { outcome: 'not_active' as const };
+    const [created] = await transaction
+      .insert(semanticCorrection)
+      .values(
+        SemanticCorrectionInsertSchema.parse({
+          organizationId,
+          sourceKind: current.sourceKind,
+          sourceId: current.sourceId,
+          correctionTargetId: current.correctionTargetId,
+          targetKind: current.targetKind,
+          action: 'label_override',
+          anchor: current.anchor,
+          value: SemanticCorrectionValueSchema.parse({ label }),
+          createdByUserId: actorUserId,
+          createdRevision: revision,
+        }),
+      )
+      .returning();
+    if (!created) throw new Error('의미 보정 대체 저장 결과가 없습니다.');
+    await this.setRevision(transaction, scope, source.editRevision, revision);
+    return {
+      outcome: 'replaced' as const,
+      editRevision: revision,
+      corrections: [SemanticCorrectionSchema.parse(created)],
+    };
   }
 
   async listActive(scope: SemanticSourceScope) {

@@ -177,6 +177,66 @@ export class OutboxAggregateChangePublisher {
     );
   }
 
+  async recordOperatorIntent(
+    transaction: OwnerTransaction,
+    organizationId: string,
+    aggregateKind: KnowledgeGraphAggregateKind,
+    aggregateId: string,
+  ): Promise<boolean> {
+    const condition = and(
+      eq(outboxAggregateVersion.organizationId, organizationId),
+      eq(outboxAggregateVersion.aggregateKind, aggregateKind),
+      eq(outboxAggregateVersion.aggregateId, aggregateId),
+    );
+    const [current] = await transaction
+      .select({
+        desiredSeq: outboxAggregateVersion.desiredSeq,
+        deleted: outboxAggregateVersion.deleted,
+      })
+      .from(outboxAggregateVersion)
+      .where(condition)
+      .for('update')
+      .limit(1);
+
+    if (!current) {
+      return this.backfillIfMissing(
+        transaction,
+        organizationId,
+        aggregateKind,
+        aggregateId,
+      );
+    }
+    if (current.deleted) return false;
+
+    const [updated] = await transaction
+      .update(outboxAggregateVersion)
+      .set({
+        desiredSeq: sql`${outboxAggregateVersion.desiredSeq} + 1`,
+        projectionStatus: 'pending',
+        lastError: null,
+        requeueCount: 0,
+        lastRequeuedAt: null,
+        updatedAt: sql`now()`,
+      })
+      .where(condition)
+      .returning({ desiredSeq: outboxAggregateVersion.desiredSeq });
+    if (!updated) throw new Error('KNOWLEDGE_GRAPH_OPERATOR_INTENT_MISSING');
+
+    await this.outbox.add(transaction, {
+      topic: KNOWLEDGE_GRAPH_OUTBOX_TOPIC,
+      key: JSON.stringify([aggregateKind, organizationId, aggregateId]),
+      payload: OutboxAggregateEventSchema.parse({
+        organizationId,
+        aggregateKind,
+        aggregateId,
+        operation: 'changed',
+        sourceVersion: updated.desiredSeq,
+        occurredAt: new Date().toISOString(),
+      }),
+    });
+    return true;
+  }
+
   async backfillIfMissing(
     transaction: OwnerTransaction,
     organizationId: string,

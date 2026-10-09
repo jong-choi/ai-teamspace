@@ -90,7 +90,10 @@ export class KnowledgeGraphSemanticQueueAdapter
   }
   async onApplicationShutdown() {
     if (!this.resources) return;
-    this.resources.connection.disconnect();
-    await this.resources.queue.close();
+    try {
+      await this.resources.queue.close();
+    } finally {
+      this.resources.connection.disconnect();
+    }
   }
 }

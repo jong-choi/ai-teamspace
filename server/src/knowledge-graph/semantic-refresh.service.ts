@@ -19,4 +19,18 @@ export class SemanticRefreshService {
       actorUserId,
     );
   }
+  requestManualRefreshInTransaction(
+    organizationId: string,
+    documentId: string,
+    actorUserId: string,
+  ) {
+    return this.requests.requestInTransaction(
+      {
+        organizationId,
+        aggregateKind: 'wiki_document',
+        aggregateId: documentId,
+      },
+      actorUserId,
+    );
+  }
 }

@@ -11,9 +11,12 @@ export class WikiReferenceLockDrizzleRepository extends WikiReferenceLockReposit
     super();
   }
   async lockDocument(organizationId: string, id: string) {
+    return (await this.lockDocumentVersion(organizationId, id)) !== null;
+  }
+  async lockDocumentVersion(organizationId: string, id: string) {
     const [row] = await this.database
       .requireTransaction()
-      .select({ id: wikiDocument.id })
+      .select({ updatedAt: wikiDocument.updatedAt })
       .from(wikiDocument)
       .where(
         and(
@@ -22,6 +25,6 @@ export class WikiReferenceLockDrizzleRepository extends WikiReferenceLockReposit
         ),
       )
       .for('share');
-    return row !== undefined;
+    return row ?? null;
   }
 }

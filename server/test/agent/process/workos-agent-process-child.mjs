@@ -41,7 +41,7 @@ const { McpToolApprovalPolicy } = await import(
 );
 
 const phase = required('AGENT_PROCESS_PHASE');
-const databaseUrl = required('AGENT_TEST_DATABASE_URL');
+const databaseUrl = required('DATABASE_URL');
 const redisUrl = required('AGENT_TEST_REDIS_URL');
 const namespace = required('AGENT_PROCESS_NAMESPACE');
 const mcpUrl = required('AGENT_PROCESS_MCP_URL');

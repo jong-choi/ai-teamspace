@@ -25,7 +25,7 @@ import { AGENT_RUNTIME } from '#agent-runtime/nest/agent-runtime.tokens.js';
 
 jest.setTimeout(60_000);
 
-const databaseUrl = process.env['AGENT_TEST_DATABASE_URL'];
+const databaseUrl = process.env['DATABASE_URL'];
 const redisUrl = process.env['AGENT_TEST_REDIS_URL'];
 const integrationDescribe = databaseUrl && redisUrl ? describe : describe.skip;
 const redisPrefix = 'work-os:test:agent-runtime';
@@ -268,7 +268,7 @@ async function startDurableProcess(
     cwd: process.cwd(),
     env: {
       ...process.env,
-      AGENT_TEST_DATABASE_URL: databaseUrl,
+      DATABASE_URL: databaseUrl,
       AGENT_TEST_REDIS_URL: redisUrl,
       AGENT_PROCESS_TEST_NAMESPACE: namespace,
     },

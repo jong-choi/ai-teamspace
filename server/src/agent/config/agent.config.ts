@@ -26,7 +26,7 @@ const optionalHttpUrlSchema = z.preprocess(
 
 const agentConfigSchema = z
   .object({
-    AGENT_DATABASE_URL: databaseUrlSchema,
+    DATABASE_URL: databaseUrlSchema,
     AGENT_REDIS_URL: redisUrlSchema,
     AGENT_REDIS_PREFIX: z.string().trim().min(1),
     AGENT_MODEL: z.string().trim().min(1),
@@ -121,7 +121,7 @@ export default registerAs<AgentConfig>('agent', () => {
   const environment = validateConfig(process.env, agentConfigSchema);
 
   return {
-    databaseUrl: environment.AGENT_DATABASE_URL,
+    databaseUrl: environment.DATABASE_URL,
     redisUrl: environment.AGENT_REDIS_URL,
     redisPrefix: environment.AGENT_REDIS_PREFIX,
     model: {

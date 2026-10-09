@@ -16,7 +16,7 @@ import {
   StateGraph,
 } from '@langchain/langgraph';
 
-const databaseUrl = process.env.AGENT_TEST_DATABASE_URL;
+const databaseUrl = process.env.DATABASE_URL;
 const redisUrl = process.env.AGENT_TEST_REDIS_URL;
 const namespace = process.env.AGENT_PROCESS_TEST_NAMESPACE;
 

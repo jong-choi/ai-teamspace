@@ -31,7 +31,7 @@ import { deleteRedisTestKeys } from '@test/support/redis-test-keys';
 
 jest.setTimeout(30_000);
 
-const databaseUrl = process.env['AGENT_TEST_DATABASE_URL'];
+const databaseUrl = process.env['DATABASE_URL'];
 const redisUrl = process.env['AGENT_TEST_REDIS_URL'];
 const integrationDescribe = databaseUrl && redisUrl ? describe : describe.skip;
 const REDIS_PREFIX_ROOT = 'work-os:test:agent03';

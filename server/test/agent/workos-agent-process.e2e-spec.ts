@@ -9,7 +9,7 @@ import { deleteRedisTestKeys } from '@test/support/redis-test-keys';
 const redisUrl = process.env['AGENT_TEST_REDIS_URL'];
 const processAcceptanceEnabled =
   process.env['AGENT_REAL_PROCESS_ACCEPTANCE'] === 'true' &&
-  Boolean(process.env['AGENT_TEST_DATABASE_URL']) &&
+  Boolean(process.env['DATABASE_URL']) &&
   Boolean(redisUrl);
 const processDescribe = processAcceptanceEnabled ? describe : describe.skip;
 

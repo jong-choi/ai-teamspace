@@ -6,7 +6,7 @@ describe('Agent 설정', () => {
   beforeEach(() => {
     process.env = {
       ...originalEnvironment,
-      AGENT_DATABASE_URL: 'postgresql://localhost/agent-test',
+      DATABASE_URL: 'postgresql://localhost/agent-test',
       AGENT_REDIS_URL: 'redis://localhost:6379',
       AGENT_REDIS_PREFIX: 'agent-test',
       AGENT_MODEL: 'gpt-oss:120b',
@@ -29,9 +29,10 @@ describe('Agent 설정', () => {
     process.env = originalEnvironment;
   });
 
-  it('Ollama production model 설정을 정규화한다', async () => {
+  it('공용 DATABASE_URL과 Ollama production model 설정을 정규화한다', async () => {
     const config = await loadAgentConfig();
 
+    expect(config.databaseUrl).toBe('postgresql://localhost/agent-test');
     expect(config.model).toEqual({
       name: 'gpt-oss:120b',
       baseUrl: 'https://ollama.com',

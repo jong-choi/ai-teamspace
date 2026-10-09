@@ -35,7 +35,7 @@ export default defineConfig({
         PORT: String(apiPort),
         BETTER_AUTH_URL: apiURL,
         APP_TRUSTED_ORIGINS: webURL,
-        AGENT_MIGRATE_ON_STARTUP: 'false',
+        AGENT_MIGRATE_ON_STARTUP: 'true',
         KG_QUERY_ENABLED: 'true',
       },
       reuseExistingServer: true,

@@ -14,6 +14,7 @@ import * as curatedEdgeSchema from '@/knowledge-graph/infrastructure/persistence
 import * as curatedEditAuditSchema from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/curated-edit-audit.schema';
 import * as curatedNodeSchema from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/curated-node.schema';
 import * as reconciliationScopeSchema from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/reconciliation-scope.schema';
+import * as semanticCorrectionSchema from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/semantic-correction.schema';
 import * as mcpOrganizationPolicySchema from '@/mcp-access/infrastructure/persistence/drizzle/schema/mcp-organization-policy.schema';
 import * as mcpUserPolicySchema from '@/mcp-access/infrastructure/persistence/drizzle/schema/mcp-user-policy.schema';
 import * as mcpAccessKeyAllocationSchema from '@/mcp-access-keys/infrastructure/persistence/drizzle/schema/mcp-access-key-allocation.schema';
@@ -21,6 +22,7 @@ import * as mcpAccessKeyOperationSchema from '@/mcp-access-keys/infrastructure/p
 import * as mcpAgentDelegationSchema from '@/mcp-agent-delegations/infrastructure/persistence/drizzle/schema/mcp-agent-delegation.schema';
 import * as mcpAgentOauthFlowSchema from '@/mcp-agent-delegations/infrastructure/persistence/drizzle/schema/mcp-agent-oauth-flow.schema';
 import * as outboxAggregateVersionSchema from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
+import * as outboxSemanticSourceStateSchema from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-semantic-source-state.schema';
 import * as projectSchema from '@/projects/infrastructure/persistence/drizzle/schema/project.schema';
 import * as projectColumnSchema from '@/projects/infrastructure/persistence/drizzle/schema/project-column.schema';
 import * as ticketSchema from '@/projects/infrastructure/persistence/drizzle/schema/ticket.schema';
@@ -51,6 +53,7 @@ export const databaseSchema = {
   ...curatedEdgeSchema,
   ...curatedEditAuditSchema,
   ...reconciliationScopeSchema,
+  ...semanticCorrectionSchema,
   ...mcpOrganizationPolicySchema,
   ...mcpUserPolicySchema,
   ...mcpAccessKeyAllocationSchema,
@@ -58,6 +61,7 @@ export const databaseSchema = {
   ...mcpAgentDelegationSchema,
   ...mcpAgentOauthFlowSchema,
   ...outboxAggregateVersionSchema,
+  ...outboxSemanticSourceStateSchema,
   ...projectColumnSchema,
   ...projectSchema,
   ...ticketChecklistItemSchema,

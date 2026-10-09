@@ -6,6 +6,7 @@ import {
 } from '@nestjs/outbox';
 
 import { KNOWLEDGE_GRAPH_SOURCE_CHANGED_JOB } from '@/jobs/knowledge-graph/knowledge-graph-projection.job';
+import { awaitOutboxPublish } from '@/jobs/knowledge-graph/outbox-publish';
 import { KNOWLEDGE_GRAPH_OUTBOX_TOPIC } from '@/outbox/outbox-aggregate-change.publisher';
 import { OutboxAggregateEventSchema } from '@/outbox/outbox-aggregate-event.schema';
 import {
@@ -69,25 +70,7 @@ export class KnowledgeGraphOutboxTransport
         backoff: { type: 'exponential', delay: KNOWLEDGE_GRAPH_JOB_BACKOFF_MS },
       },
     );
-    let onAbort: () => void = () => {};
-    try {
-      await Promise.race([
-        publish,
-        new Promise<never>((_, reject) => {
-          onAbort = () =>
-            reject(new Error('KNOWLEDGE_GRAPH_OUTBOX_PUBLISH_ABORTED'));
-          signal.addEventListener('abort', onAbort, { once: true });
-          if (signal.aborted) onAbort();
-        }),
-      ]);
-    } catch {
-      // broker 주소·credential 등이 Outbox 오류 history에 노출되지 않게 고정 오류만 전달한다.
-      if (signal.aborted)
-        throw new Error('KNOWLEDGE_GRAPH_OUTBOX_PUBLISH_ABORTED');
-      throw new Error('KNOWLEDGE_GRAPH_OUTBOX_PUBLISH_FAILED');
-    } finally {
-      signal.removeEventListener('abort', onAbort);
-    }
+    await awaitOutboxPublish(publish, signal, 'KNOWLEDGE_GRAPH_OUTBOX');
   }
 
   async onApplicationShutdown(): Promise<void> {

@@ -12,6 +12,8 @@ import { KnowledgeGraphOutboxTransportModule } from '@/jobs/knowledge-graph/know
 import { KNOWLEDGE_GRAPH_PROJECTION_QUEUE } from '@/jobs/knowledge-graph/knowledge-graph-projection.job';
 import { KnowledgeGraphProjectionProcessor } from '@/jobs/knowledge-graph/knowledge-graph-projection.processor';
 import { KnowledgeGraphReconciliationScheduler } from '@/jobs/knowledge-graph/knowledge-graph-reconciliation.scheduler';
+import { KnowledgeGraphSemanticOutboxTransport } from '@/jobs/knowledge-graph/knowledge-graph-semantic-outbox.transport';
+import { KnowledgeGraphSemanticOutboxTransportModule } from '@/jobs/knowledge-graph/knowledge-graph-semantic-outbox-transport.module';
 import knowledgeGraphConfig from '@/knowledge-graph/config/knowledge-graph.config';
 import { KnowledgeGraphWriter } from '@/knowledge-graph/infrastructure/graph/knowledge-graph-writer.provider';
 import { LangchainNeo4jGraphAdapter } from '@/knowledge-graph/infrastructure/graph/langchain-neo4j-graph.adapter';
@@ -32,6 +34,10 @@ import {
   OutboxAggregateChangePublisher,
 } from '@/outbox/outbox-aggregate-change.publisher';
 import { OutboxAggregateProjectionState } from '@/outbox/outbox-aggregate-projection-state';
+import {
+  KNOWLEDGE_GRAPH_SEMANTIC_CHANGED_TOPIC,
+  KNOWLEDGE_GRAPH_SEMANTIC_MANUAL_TOPIC,
+} from '@/outbox/outbox-semantic-event.schema';
 import { ProjectProjectionQueryModule } from '@/projects/project-projection-query.module';
 import { TicketLabelProjectionQueryModule } from '@/projects/ticket-label-projection-query.module';
 import { TicketProjectionQueryModule } from '@/projects/ticket-projection-query.module';
@@ -57,11 +63,17 @@ import { WikiProjectionQueryModule } from '@/wiki/wiki-projection-query.module';
       imports: [
         ConfigModule.forFeature(knowledgeGraphConfig),
         KnowledgeGraphOutboxTransportModule,
+        KnowledgeGraphSemanticOutboxTransportModule,
       ],
-      inject: [knowledgeGraphConfig.KEY, KnowledgeGraphOutboxTransport],
+      inject: [
+        knowledgeGraphConfig.KEY,
+        KnowledgeGraphOutboxTransport,
+        KnowledgeGraphSemanticOutboxTransport,
+      ],
       useFactory: (
         config: ConfigType<typeof knowledgeGraphConfig>,
         transport: KnowledgeGraphOutboxTransport,
+        semanticTransport: KnowledgeGraphSemanticOutboxTransport,
       ) => ({
         relay: {
           enabled: config.enabled,
@@ -74,9 +86,13 @@ import { WikiProjectionQueryModule } from '@/wiki/wiki-projection-query.module';
         route: (message: { topic: string }) =>
           message.topic === KNOWLEDGE_GRAPH_OUTBOX_TOPIC
             ? 'knowledgeGraph'
-            : 'local',
+            : message.topic === KNOWLEDGE_GRAPH_SEMANTIC_CHANGED_TOPIC ||
+                message.topic === KNOWLEDGE_GRAPH_SEMANTIC_MANUAL_TOPIC
+              ? 'knowledgeGraphSemantic'
+              : 'local',
         transports: {
           knowledgeGraph: transport,
+          knowledgeGraphSemantic: semanticTransport,
         },
       }),
     }),
@@ -109,6 +125,10 @@ import { WikiProjectionQueryModule } from '@/wiki/wiki-projection-query.module';
         ),
     },
   ],
-  exports: [OutboxAggregateChangePublisher, KnowledgeGraphBackfillService],
+  exports: [
+    OutboxAggregateChangePublisher,
+    KnowledgeGraphBackfillService,
+    WorkosSourceProvider,
+  ],
 })
 export class KnowledgeGraphJobsModule {}

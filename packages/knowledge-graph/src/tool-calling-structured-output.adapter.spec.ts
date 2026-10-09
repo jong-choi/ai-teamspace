@@ -3,7 +3,10 @@ import { AIMessage } from '@langchain/core/messages';
 import { RunnableLambda } from '@langchain/core/runnables';
 import { FakeListChatModel } from '@langchain/core/utils/testing';
 
-import { createToolCallingGraphTransformer } from '#knowledge-graph/tool-calling-structured-output.adapter.js';
+import {
+  createToolCallingGraphTransformer,
+  ToolCallingGraphExtractionError,
+} from '#knowledge-graph/tool-calling-structured-output.adapter.js';
 
 function messageWithGraph(args: Record<string, unknown>) {
   return new AIMessage({
@@ -169,5 +172,70 @@ describe('Structured Output 미지원 모델의 Tool Calling 어댑터', () => {
     await expect(
       transformer.processResponse(new Document({ pageContent: '지윤' })),
     ).rejects.toThrow('그래프 스키마를 통과하지 못했습니다.');
+  });
+  it.each([
+    {
+      reason: 'no_tool_call',
+      response: new AIMessage({ content: '일반 텍스트' }),
+    },
+    {
+      reason: 'unexpected_tool_calls',
+      response: new AIMessage({
+        content: '',
+        tool_calls: [{ id: '다른호출', name: 'other_tool', args: validGraph }],
+      }),
+    },
+    {
+      reason: 'invalid_arguments',
+      response: new AIMessage({
+        content: '',
+        invalid_tool_calls: [
+          {
+            id: '잘못된호출',
+            name: 'extract_graph',
+            args: '{',
+            error: 'invalid_json',
+          },
+        ],
+      }),
+    },
+    { reason: 'schema_mismatch', response: messageWithGraph({ nodes: [] }) },
+  ])(
+    'U7-33 $reason은 한 번 재시도하고 고정 reason 오류로 구분한다',
+    async ({ reason, response }) => {
+      const fake = fakeToolCallingModel([response]);
+      const transformer = createToolCallingGraphTransformer({
+        llm: fake.model,
+        maxToolCallRetries: 1,
+      });
+      const pending = transformer.processResponse(
+        new Document({ pageContent: '입력' }),
+      );
+      await expect(pending).rejects.toBeInstanceOf(
+        ToolCallingGraphExtractionError,
+      );
+      await expect(pending).rejects.toMatchObject({ reason });
+      expect(fake.getInvocations()).toBe(2);
+    },
+  );
+  it('U7-10 유효한 빈 응답과 동시 두 문서 호출은 서로 독립적으로 변환한다', async () => {
+    const fake = fakeToolCallingModel([
+      messageWithGraph(validGraph),
+      messageWithGraph({ nodes: [], relationships: [] }),
+    ]);
+    const transformer = createToolCallingGraphTransformer({ llm: fake.model });
+    const docs = [
+      new Document({ pageContent: '첫 문서' }),
+      new Document({ pageContent: '둘째 문서' }),
+    ];
+    const results = await Promise.all(
+      docs.map((doc) => transformer.processResponse(doc)),
+    );
+    expect(results[0].source).toBe(docs[0]);
+    expect(results[0].nodes).toHaveLength(2);
+    expect(results[1].source).toBe(docs[1]);
+    expect(results[1].nodes).toHaveLength(0);
+    expect(results[1].relationships).toHaveLength(0);
+    expect(fake.getInvocations()).toBe(2);
   });
 });

@@ -208,6 +208,18 @@ export default tseslint.config(
           capture: ['feature'],
         },
         {
+          type: 'domain',
+          pattern: 'server/src/*/domain/**',
+          mode: 'full',
+          capture: ['feature'],
+        },
+        {
+          type: 'schema',
+          pattern: 'server/src/*/infrastructure/persistence/drizzle/schema/**',
+          mode: 'full',
+          capture: ['feature'],
+        },
+        {
           type: 'server-infra',
           pattern: 'server/src/{auth,config,database,jobs,outbox,queue}/**',
           mode: 'full',
@@ -220,12 +232,6 @@ export default tseslint.config(
         },
         { type: 'service', pattern: 'server/src/app.service.ts', mode: 'full' },
         {
-          type: 'domain',
-          pattern: 'server/src/*/domain/**',
-          mode: 'full',
-          capture: ['feature'],
-        },
-        {
           type: 'port',
           pattern: 'server/src/*/infrastructure/persistence/*.repository.ts',
           mode: 'full',
@@ -234,12 +240,6 @@ export default tseslint.config(
         {
           type: 'port',
           pattern: 'server/src/*/infrastructure/*/*.provider.ts',
-          mode: 'full',
-          capture: ['feature'],
-        },
-        {
-          type: 'schema',
-          pattern: 'server/src/*/infrastructure/persistence/drizzle/schema/**',
           mode: 'full',
           capture: ['feature'],
         },

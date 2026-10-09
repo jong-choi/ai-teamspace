@@ -9,6 +9,20 @@ import { LLMGraphTransformer } from '#knowledge-graph/llm-graph-transformer.js';
 
 const GRAPH_EXTRACTION_TOOL_NAME = 'extract_graph';
 
+export class ToolCallingGraphExtractionError extends Error {
+  constructor(
+    readonly reason:
+      | 'no_tool_call'
+      | 'unexpected_tool_calls'
+      | 'invalid_arguments'
+      | 'schema_mismatch',
+    detail: string,
+  ) {
+    super(`Tool Calling 그래프 추출 실패: ${detail}`);
+    this.name = 'ToolCallingGraphExtractionError';
+  }
+}
+
 export type ToolCallingGraphTransformerOptions = Omit<
   LLMGraphTransformerProps,
   'llm' | 'structuredOutputAdapter'
@@ -60,12 +74,14 @@ export function createToolCallingGraphTransformer({
 
       return RunnableLambda.from(async (input: BaseLanguageModelInput) => {
         let lastFailure = '도구가 호출되지 않았습니다.';
+        let reason: ToolCallingGraphExtractionError['reason'] = 'no_tool_call';
 
         for (let attempt = 0; attempt <= maxToolCallRetries; attempt += 1) {
           const message = await toolModel.invoke(input);
           const calls = message.tool_calls ?? [];
           if (message.invalid_tool_calls?.length) {
             lastFailure = '도구 호출 인수를 파싱할 수 없습니다.';
+            reason = 'invalid_arguments';
             continue;
           }
 
@@ -74,6 +90,8 @@ export function createToolCallingGraphTransformer({
           );
           if (calls.length !== 1 || matchingCalls.length !== 1) {
             lastFailure = 'extract_graph 도구를 정확히 한 번 호출해야 합니다.';
+            reason =
+              calls.length === 0 ? 'no_tool_call' : 'unexpected_tool_calls';
             continue;
           }
 
@@ -82,9 +100,10 @@ export function createToolCallingGraphTransformer({
             return validation.data;
           }
           lastFailure = '도구 호출 인수가 그래프 스키마를 통과하지 못했습니다.';
+          reason = 'schema_mismatch';
         }
 
-        throw new Error(`Tool Calling 그래프 추출 실패: ${lastFailure}`);
+        throw new ToolCallingGraphExtractionError(reason, lastFailure);
       });
     },
   });

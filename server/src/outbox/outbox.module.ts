@@ -6,6 +6,9 @@ import { DatabaseModule } from '@/database/database.module';
 import { DatabaseService } from '@/database/database.service';
 import { OutboxAggregateChangePublisher } from '@/outbox/outbox-aggregate-change.publisher';
 import { OutboxAggregateProjectionState } from '@/outbox/outbox-aggregate-projection-state';
+import { OutboxSemanticManualRequest } from '@/outbox/outbox-semantic-manual-request';
+import { OutboxSemanticRecovery } from '@/outbox/outbox-semantic-recovery';
+import { OutboxSemanticSourceState } from '@/outbox/outbox-semantic-source-state';
 
 @Module({
   imports: [
@@ -19,6 +22,9 @@ import { OutboxAggregateProjectionState } from '@/outbox/outbox-aggregate-projec
   providers: [
     OutboxAggregateChangePublisher,
     OutboxAggregateProjectionState,
+    OutboxSemanticSourceState,
+    OutboxSemanticManualRequest,
+    OutboxSemanticRecovery,
     {
       provide: PostgresOutboxStore,
       inject: [DatabaseService, OutboxStorage],
@@ -36,6 +42,9 @@ import { OutboxAggregateProjectionState } from '@/outbox/outbox-aggregate-projec
     OutboxModule,
     OutboxAggregateChangePublisher,
     OutboxAggregateProjectionState,
+    OutboxSemanticSourceState,
+    OutboxSemanticManualRequest,
+    OutboxSemanticRecovery,
   ],
 })
 export class OutboxInfrastructureModule {}

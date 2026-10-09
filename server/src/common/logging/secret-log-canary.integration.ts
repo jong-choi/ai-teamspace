@@ -183,6 +183,7 @@ describe('structured log secret canary 검증', () => {
       'CREDENTIAL_ENCRYPTION_KEYS',
       'COLLABORATION_JWT_SECRET',
       'OLLAMA_API_KEY',
+      'GEMINI_API_KEY',
     ]) {
       const value = process.env[environmentKey];
       if (value) secrets.push({ name: environmentKey, value });

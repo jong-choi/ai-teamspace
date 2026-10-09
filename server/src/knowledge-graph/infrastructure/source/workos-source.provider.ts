@@ -12,9 +12,14 @@ import type { ProjectProjectionSource } from '@/projects/domain/project-projecti
 import type { TicketLabelProjectionSource } from '@/projects/domain/ticket-label-projection-source';
 import type { TicketProjectionSource } from '@/projects/domain/ticket-projection-source';
 import type { WikiProjectionSource } from '@/wiki/domain/wiki-projection-source';
+import type { WikiSemanticSource } from '@/wiki/domain/wiki-semantic-source';
 
 import type { z } from 'zod';
 export abstract class WorkosSourceProvider {
+  abstract wikiSemantic(
+    organizationId: string,
+    sourceId: string,
+  ): Promise<WikiSemanticSource | null>;
   abstract existingOrganizationIds(ids: readonly string[]): Promise<string[]>;
   abstract organizationExists(id: string): Promise<boolean>;
   abstract organizationIds(

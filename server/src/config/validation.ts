@@ -1,5 +1,38 @@
 import { z } from 'zod';
 
+const LOOPBACK_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]']);
+
+export function isHttpsOrLoopbackHttp(url: URL): boolean {
+  return (
+    url.protocol === 'https:' ||
+    (url.protocol === 'http:' && LOOPBACK_HOSTNAMES.has(url.hostname))
+  );
+}
+
+export const ollamaOriginUrlSchema = z
+  .url()
+  .transform((value) => new URL(value))
+  .superRefine((url, context) => {
+    if (!isHttpsOrLoopbackHttp(url))
+      context.addIssue({
+        code: 'custom',
+        message:
+          'OLLAMA_BASE_URL은 HTTPS여야 하며 로컬 개발에서는 loopback HTTP만 허용됩니다.',
+      });
+    if (url.username || url.password || url.search || url.hash)
+      context.addIssue({
+        code: 'custom',
+        message:
+          'OLLAMA_BASE_URL에는 credential, query 또는 fragment를 포함할 수 없습니다.',
+      });
+    if (url.pathname !== '/' && url.pathname !== '')
+      context.addIssue({
+        code: 'custom',
+        message: 'OLLAMA_BASE_URL은 origin URL이어야 합니다.',
+      });
+  })
+  .transform((url) => url.origin);
+
 export function urlWithProtocols(
   protocols: readonly string[],
   message: string,

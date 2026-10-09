@@ -4,6 +4,8 @@ import type { AgentConfig } from '@/agent/config/agent-config.type';
 import {
   databaseUrlSchema,
   httpUrlSchema,
+  isHttpsOrLoopbackHttp,
+  ollamaOriginUrlSchema,
   redisUrlSchema,
 } from '@/config/validation';
 import validateConfig from '@/utils/validate-config';
@@ -22,16 +24,6 @@ const optionalHttpUrlSchema = z.preprocess(
   httpUrlSchema.optional(),
 );
 
-const LOOPBACK_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]']);
-
-// 외부 provider에는 credential이 실리므로 HTTPS만 허용하고, 로컬 개발용 loopback만 HTTP를 허용한다.
-function isHttpsOrLoopbackHttp(url: URL): boolean {
-  return (
-    url.protocol === 'https:' ||
-    (url.protocol === 'http:' && LOOPBACK_HOSTNAMES.has(url.hostname))
-  );
-}
-
 const agentConfigSchema = z
   .object({
     AGENT_DATABASE_URL: databaseUrlSchema,
@@ -39,34 +31,7 @@ const agentConfigSchema = z
     AGENT_REDIS_PREFIX: z.string().trim().min(1),
     AGENT_MODEL: z.string().trim().min(1),
     OLLAMA_API_KEY: z.string().trim().min(1),
-    OLLAMA_BASE_URL: z
-      .url()
-      .transform((value) => new URL(value))
-      .superRefine((url, context) => {
-        if (!isHttpsOrLoopbackHttp(url)) {
-          context.addIssue({
-            code: 'custom',
-            message:
-              'OLLAMA_BASE_URL은 HTTPS여야 하며 로컬 개발에서는 loopback HTTP만 허용됩니다.',
-          });
-        }
-
-        if (url.username || url.password || url.search || url.hash) {
-          context.addIssue({
-            code: 'custom',
-            message:
-              'OLLAMA_BASE_URL에는 credential, query 또는 fragment를 포함할 수 없습니다.',
-          });
-        }
-
-        if (url.pathname !== '/' && url.pathname !== '') {
-          context.addIssue({
-            code: 'custom',
-            message: 'OLLAMA_BASE_URL은 origin URL이어야 합니다.',
-          });
-        }
-      })
-      .transform((url) => url.origin),
+    OLLAMA_BASE_URL: ollamaOriginUrlSchema,
     AGENT_MCP_TOOL_TIMEOUT_MS: z.coerce.number().int().min(1).default(30_000),
     AGENT_RUN_QUEUE_NAME: z
       .string()

@@ -3,6 +3,7 @@ import { Outbox } from '@nestjs/outbox';
 
 import { DatabaseService } from '@/database/database.service';
 import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
+import { semanticSourceKinds } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-semantic-source-state.schema';
 import { OutboxAggregateEventSchema } from '@/outbox/outbox-aggregate-event.schema';
 import {
   APPLYING_STALL_AFTER_MS,
@@ -10,6 +11,7 @@ import {
   REQUEUE_COOLDOWN_MAX_MS,
   RETRY_STALL_AFTER_MS,
 } from '@/outbox/outbox-aggregate-recovery.policy';
+import { KNOWLEDGE_GRAPH_SEMANTIC_CHANGED_TOPIC } from '@/outbox/outbox-semantic-event.schema';
 
 import { and, asc, eq, lt, ne, or, sql } from 'drizzle-orm';
 
@@ -453,17 +455,26 @@ export class OutboxAggregateChangePublisher {
       throw new Error('그래프 이벤트의 원본 변경 순서를 저장하지 못했습니다.');
     }
 
+    const payload = OutboxAggregateEventSchema.parse({
+      organizationId,
+      aggregateKind,
+      aggregateId,
+      operation,
+      sourceVersion: source.desiredSeq,
+      occurredAt: now.toISOString(),
+    });
+    const key = JSON.stringify([aggregateKind, organizationId, aggregateId]);
     await this.outbox.add(transaction, {
       topic: KNOWLEDGE_GRAPH_OUTBOX_TOPIC,
-      key: JSON.stringify([aggregateKind, organizationId, aggregateId]),
-      payload: OutboxAggregateEventSchema.parse({
-        organizationId,
-        aggregateKind,
-        aggregateId,
-        operation,
-        sourceVersion: source.desiredSeq,
-        occurredAt: now.toISOString(),
-      }),
+      key,
+      payload,
     });
+    if (semanticSourceKinds.some((kind) => kind === aggregateKind)) {
+      await this.outbox.add(transaction, {
+        topic: KNOWLEDGE_GRAPH_SEMANTIC_CHANGED_TOPIC,
+        key,
+        payload,
+      });
+    }
   }
 }

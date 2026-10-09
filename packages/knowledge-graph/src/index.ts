@@ -12,4 +12,7 @@ export {
 export { createNeo4jGraph } from '#knowledge-graph/neo4j-graph.client.js';
 export { Neo4jVectorStore } from '#knowledge-graph/neo4j-vector.client.js';
 export type { ToolCallingGraphTransformerOptions } from '#knowledge-graph/tool-calling-structured-output.adapter.js';
-export { createToolCallingGraphTransformer } from '#knowledge-graph/tool-calling-structured-output.adapter.js';
+export {
+  createToolCallingGraphTransformer,
+  ToolCallingGraphExtractionError,
+} from '#knowledge-graph/tool-calling-structured-output.adapter.js';

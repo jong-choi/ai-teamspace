@@ -8,6 +8,9 @@ export class WikiProjectionQueryService {
   current(organizationId: string, sourceId: string) {
     return this.sources.current(organizationId, sourceId);
   }
+  currentSemantic(organizationId: string, sourceId: string) {
+    return this.sources.currentSemantic(organizationId, sourceId);
+  }
   listIds(organizationId: string, afterId: string | null, limit: number) {
     return this.sources.listIds(organizationId, afterId, limit);
   }

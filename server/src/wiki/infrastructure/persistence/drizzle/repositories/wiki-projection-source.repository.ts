@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { DatabaseService } from '@/database/database.service';
 import { WikiProjectionSourceSchema } from '@/wiki/domain/wiki-projection-source';
+import { WikiSemanticSourceSchema } from '@/wiki/domain/wiki-semantic-source';
 import { wikiDocument } from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-document.schema';
 import { WikiProjectionSourceRepository } from '@/wiki/infrastructure/persistence/wiki-projection-source.repository';
 
@@ -46,5 +47,27 @@ export class WikiProjectionSourceDrizzleRepository extends WikiProjectionSourceR
       )
       .orderBy(asc(wikiDocument.id))
       .limit(limit);
+  }
+  async currentSemantic(organizationId: string, documentId: string) {
+    const [source] = await this.database.db
+      .select({
+        id: wikiDocument.id,
+        organizationId: wikiDocument.organizationId,
+        collectionId: wikiDocument.collectionId,
+        parentDocumentId: wikiDocument.parentDocumentId,
+        title: wikiDocument.title,
+        position: wikiDocument.position,
+        contentMarkdown: wikiDocument.contentMarkdown,
+        updatedAt: wikiDocument.updatedAt,
+      })
+      .from(wikiDocument)
+      .where(
+        and(
+          eq(wikiDocument.organizationId, organizationId),
+          eq(wikiDocument.id, documentId),
+        ),
+      )
+      .limit(1);
+    return source ? WikiSemanticSourceSchema.parse(source) : null;
   }
 }

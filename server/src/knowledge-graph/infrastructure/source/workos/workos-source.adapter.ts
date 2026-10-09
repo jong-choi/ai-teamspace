@@ -42,6 +42,9 @@ export class WorkosSourceAdapter extends WorkosSourceProvider {
   wiki(organizationId: string, sourceId: string) {
     return this.wikiQuery.current(organizationId, sourceId);
   }
+  wikiSemantic(organizationId: string, sourceId: string) {
+    return this.wikiQuery.currentSemantic(organizationId, sourceId);
+  }
   project(organizationId: string, sourceId: string) {
     return this.projectQuery.current(organizationId, sourceId);
   }

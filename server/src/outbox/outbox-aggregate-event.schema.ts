@@ -1,11 +1,8 @@
-import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
+import { outboxAggregateVersionSelectSchema } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.zod';
 
-import { createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
-export const OutboxAggregateVersionSchema = createSelectSchema(
-  outboxAggregateVersion,
-);
+export const OutboxAggregateVersionSchema = outboxAggregateVersionSelectSchema;
 
 export const OutboxAggregateEventSchema = OutboxAggregateVersionSchema.pick({
   organizationId: true,

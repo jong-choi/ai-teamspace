@@ -1,12 +1,13 @@
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConditionalModule, ConfigModule } from '@nestjs/config';
 
 import authConfig from '@/auth/config/auth.config';
 import cacheConfig from '@/chat/config/cache.config';
 import databaseConfig from '@/database/config/database.config';
 import { KnowledgeGraphJobsModule } from '@/jobs/knowledge-graph/knowledge-graph-jobs.module';
 import { KnowledgeGraphMembershipBridge } from '@/jobs/knowledge-graph/knowledge-graph-membership-bridge';
+import { KnowledgeGraphSemanticJobsModule } from '@/jobs/knowledge-graph/knowledge-graph-semantic-jobs.module';
 import { MCP_ACCESS_KEY_RECONCILIATION_QUEUE } from '@/jobs/mcp-access-key-reconciliation.job';
 import { McpAccessKeyReconciliationProcessor } from '@/jobs/mcp-access-key-reconciliation.processor';
 import { McpAccessKeyReconciliationScheduler } from '@/jobs/mcp-access-key-reconciliation.scheduler';
@@ -45,6 +46,11 @@ import { RedisWikiCollaborationInvalidationPublisherModule } from '@/wiki/infras
       { name: MCP_ACCESS_KEY_RECONCILIATION_QUEUE },
     ),
     KnowledgeGraphJobsModule,
+    ConditionalModule.registerWhen(
+      KnowledgeGraphSemanticJobsModule,
+      (environment) => environment.KG_SEMANTIC_ENABLED === 'true',
+      { debug: false },
+    ),
     MembershipProjectionQueryModule,
     McpAccessModule,
     McpAccessKeysModule,

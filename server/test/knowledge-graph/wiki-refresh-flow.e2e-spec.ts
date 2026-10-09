@@ -45,6 +45,8 @@ describeKnowledgeGraph('위키 갱신 접수 → Jobs 색인 전체 흐름 E2E',
     // 투영·의미 색인 Jobs 결선은 기능 플래그에 달려 있으므로 실행 셸 환경에 기대지 않고 명시한다.
     process.env.KG_PROJECTION_ENABLED = 'true';
     process.env.KG_SEMANTIC_ENABLED = 'true';
+    // 대역 provider를 쓰면 실제 key를 호출하지 않지만 설정 검증은 통과해야 하므로 자리값을 둔다.
+    process.env.GEMINI_API_KEY ||= 'wiki-refresh-flow-test-placeholder';
     fx = await KnowledgeGraphHttpFixture.boot(prefix);
     process.env.BULLMQ_PREFIX = `p8-flow-${randomUUID()}`;
     graph = await createNeo4jGraph({

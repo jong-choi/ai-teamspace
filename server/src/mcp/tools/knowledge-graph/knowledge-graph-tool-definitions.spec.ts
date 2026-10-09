@@ -29,52 +29,64 @@ describe('KnowledgeContextInputSchema REST explore 계약 동치', () => {
   it.each([
     ['최소 길이', 'a'],
     ['최대 길이', 'a'.repeat(512)],
-  ])('focusId %s는 REST explore와 MCP context가 모두 허용한다', (_label, focusId) => {
-    const focus = { focusKind: 'wiki_document', focusId, depth: 1 };
+  ])(
+    'focusId %s는 REST explore와 MCP context가 모두 허용한다',
+    (_label, focusId) => {
+      const focus = { focusKind: 'wiki_document', focusId, depth: 1 };
 
-    expect(restAccepts(focus)).toBe(true);
-    expect(mcpAccepts(focus)).toBe(true);
-  });
+      expect(restAccepts(focus)).toBe(true);
+      expect(mcpAccepts(focus)).toBe(true);
+    },
+  );
 
   it.each([
     ['빈 값', ''],
     ['상한 초과', 'a'.repeat(513)],
-  ])('focusId %s는 REST explore와 MCP context가 모두 거부한다', (_label, focusId) => {
-    const focus = { focusKind: 'wiki_document', focusId, depth: 1 };
+  ])(
+    'focusId %s는 REST explore와 MCP context가 모두 거부한다',
+    (_label, focusId) => {
+      const focus = { focusKind: 'wiki_document', focusId, depth: 1 };
 
-    expect(restAccepts(focus)).toBe(false);
-    expect(mcpAccepts(focus)).toBe(false);
-  });
+      expect(restAccepts(focus)).toBe(false);
+      expect(mcpAccepts(focus)).toBe(false);
+    },
+  );
 
   it.each([
     ['최솟값', 1],
     ['최댓값', 2],
     ['최댓값 문자열 coercion', '2'],
-  ])('depth %s은 REST explore와 MCP context가 모두 허용한다', (_label, depth) => {
-    const focus = {
-      focusKind: 'wiki_document',
-      focusId: 'node-a',
-      depth,
-    };
+  ])(
+    'depth %s은 REST explore와 MCP context가 모두 허용한다',
+    (_label, depth) => {
+      const focus = {
+        focusKind: 'wiki_document',
+        focusId: 'node-a',
+        depth,
+      };
 
-    expect(restAccepts(focus)).toBe(true);
-    expect(mcpAccepts(focus)).toBe(true);
-  });
+      expect(restAccepts(focus)).toBe(true);
+      expect(mcpAccepts(focus)).toBe(true);
+    },
+  );
 
   it.each([
     ['하한 미만', 0],
     ['상한 초과', 3],
     ['정수가 아님', 1.5],
-  ])('depth %s은 REST explore와 MCP context가 모두 거부한다', (_label, depth) => {
-    const focus = {
-      focusKind: 'wiki_document',
-      focusId: 'node-a',
-      depth,
-    };
+  ])(
+    'depth %s은 REST explore와 MCP context가 모두 거부한다',
+    (_label, depth) => {
+      const focus = {
+        focusKind: 'wiki_document',
+        focusId: 'node-a',
+        depth,
+      };
 
-    expect(restAccepts(focus)).toBe(false);
-    expect(mcpAccepts(focus)).toBe(false);
-  });
+      expect(restAccepts(focus)).toBe(false);
+      expect(mcpAccepts(focus)).toBe(false);
+    },
+  );
 
   it('depth 생략 시 REST explore와 MCP context가 모두 1을 기본값으로 사용한다', () => {
     const focus = {

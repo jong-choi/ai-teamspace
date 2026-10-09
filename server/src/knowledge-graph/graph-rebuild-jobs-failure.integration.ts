@@ -8,38 +8,31 @@ import {
 } from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
 import { DatabaseService } from '@/database/database.service';
 import {
-  deriveGraphCompleteness,
-} from '@/knowledge-graph/domain/graph-completeness';
-import {
-  GraphRebuildRequestSchema,
-} from '@/knowledge-graph/domain/graph-rebuild';
-import { semanticPipelineFingerprint } from '@/knowledge-graph/domain/semantic-pipeline';
-import { GraphRebuildWorkflowService } from '@/knowledge-graph/graph-rebuild-workflow.service';
-import { GraphRebuildWorkerDrizzleRepository } from '@/knowledge-graph/infrastructure/persistence/drizzle/repositories/graph-rebuild-worker.repository';
-import { graphRebuildRequest } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/graph-rebuild-request.schema';
-import type { GraphSourceAccessProvider } from '@/knowledge-graph/infrastructure/source-access/graph-source-access.provider';
-import type { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
-import type { SemanticRefreshService } from '@/knowledge-graph/semantic-refresh.service';
-import {
   KNOWLEDGE_GRAPH_REBUILD_JOB,
   KNOWLEDGE_GRAPH_REBUILD_QUEUE,
   knowledgeGraphRebuildJobId,
 } from '@/jobs/knowledge-graph/knowledge-graph-rebuild.job';
 import { KnowledgeGraphRebuildReconciliationScheduler } from '@/jobs/knowledge-graph/knowledge-graph-rebuild-reconciliation.scheduler';
+import { deriveGraphCompleteness } from '@/knowledge-graph/domain/graph-completeness';
+import { GraphRebuildRequestSchema } from '@/knowledge-graph/domain/graph-rebuild';
+import { semanticPipelineFingerprint } from '@/knowledge-graph/domain/semantic-pipeline';
+import { GraphRebuildWorkflowService } from '@/knowledge-graph/graph-rebuild-workflow.service';
+import { GraphRebuildWorkerDrizzleRepository } from '@/knowledge-graph/infrastructure/persistence/drizzle/repositories/graph-rebuild-worker.repository';
+import { graphRebuildRequest } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/graph-rebuild-request.schema';
+import type { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
+import type { GraphSourceAccessProvider } from '@/knowledge-graph/infrastructure/source-access/graph-source-access.provider';
+import type { SemanticRefreshService } from '@/knowledge-graph/semantic-refresh.service';
 import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 import { OutboxAggregateChangePublisher } from '@/outbox/outbox-aggregate-change.publisher';
 import { OutboxAggregateProjectionState } from '@/outbox/outbox-aggregate-projection-state';
-import {
-  createProducerRedisOptions,
-} from '@/queue/queue.config';
+import { createProducerRedisOptions } from '@/queue/queue.config';
 
 import { Queue } from 'bullmq';
 import { and, eq, inArray } from 'drizzle-orm';
 
 const redisUrl = process.env.REDIS_QUEUE_URL;
 const localRedis =
-  redisUrl &&
-  ['127.0.0.1', 'localhost'].includes(new URL(redisUrl).hostname);
+  redisUrl && ['127.0.0.1', 'localhost'].includes(new URL(redisUrl).hostname);
 
 const describeIsolated =
   process.env.KG_TEST_ALLOW_WRITE === '1' &&
@@ -179,11 +172,7 @@ describeIsolated('F8-06 rebuild Jobs 장애 복구 전체 흐름', () => {
   }
 
   it('두 worker 인스턴스에서 page commit 직후 crash 후 takeover가 fence를 올리고 저장 cursor 다음부터 이어간다', async () => {
-    const ids = [
-      `${prefix}-page-a`,
-      `${prefix}-page-b`,
-      `${prefix}-page-c`,
-    ];
+    const ids = [`${prefix}-page-a`, `${prefix}-page-b`, `${prefix}-page-c`];
     for (const id of ids) await seedProject(id);
 
     const request = await seedRequest();
@@ -220,7 +209,9 @@ describeIsolated('F8-06 rebuild Jobs 장애 복구 전체 흐름', () => {
       { requestId: request.id },
       { jobId: knowledgeGraphRebuildJobId(request.id) },
     );
-    expect(await queue.getJob(knowledgeGraphRebuildJobId(request.id))).not.toBeNull();
+    expect(
+      await queue.getJob(knowledgeGraphRebuildJobId(request.id)),
+    ).not.toBeNull();
 
     await queue.obliterate({ force: true });
     expect(
@@ -253,12 +244,11 @@ describeIsolated('F8-06 rebuild Jobs 장애 복구 전체 흐름', () => {
       {
         isAdministrator: async () => true,
       } as unknown as GraphSourceAccessProvider,
-      projectionState,
       {
-        organizationStats: async () => ({
-          pending: 0,
-          failed: 0,
-        }),
+        projection: (
+          ...args: Parameters<typeof projectionState.organizationProgress>
+        ) => projectionState.organizationProgress(...args),
+        semantic: async () => ({ pending: 0, failed: 0 }),
       } as never,
     );
 
@@ -296,12 +286,11 @@ describeIsolated('F8-06 rebuild Jobs 장애 복구 전체 흐름', () => {
       {
         isAdministrator: async () => true,
       } as unknown as GraphSourceAccessProvider,
-      projectionState,
       {
-        organizationStats: async () => ({
-          pending: 0,
-          failed: 0,
-        }),
+        projection: (
+          ...args: Parameters<typeof projectionState.organizationProgress>
+        ) => projectionState.organizationProgress(...args),
+        semantic: async () => ({ pending: 0, failed: 0 }),
       } as never,
     );
 

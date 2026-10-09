@@ -65,11 +65,7 @@ describe('U8-11 explore 상한', () => {
     for (let index = 100; index < 350; index++) {
       const target = (index % 99) + 1;
       edges.push(
-        edge(
-          index,
-          nodes[target]!.id,
-          nodes[((target + 1) % 99) + 1]!.id,
-        ),
+        edge(index, nodes[target]!.id, nodes[((target + 1) % 99) + 1]!.id),
       );
     }
 

@@ -3,11 +3,17 @@ import type { ConfigType } from '@nestjs/config';
 
 import { ApplicationError } from '@/application.error';
 import knowledgeGraphConfig from '@/knowledge-graph/config/knowledge-graph.config';
-import type { CuratedEdge, CuratedNode } from '@/knowledge-graph/domain/curated-graph';
+import type {
+  CuratedEdge,
+  CuratedNode,
+} from '@/knowledge-graph/domain/curated-graph';
 import type { GraphCompleteness } from '@/knowledge-graph/domain/graph-completeness';
 import { KnowledgeGraphAuthorizationUnavailableError } from '@/knowledge-graph/domain/graph-query.error';
 import { assertKnowledgeGraphQueryEnabled } from '@/knowledge-graph/domain/graph-read.error';
-import type { GraphEdge, GraphNode } from '@/knowledge-graph/dto/graph-snapshot.dto';
+import type {
+  GraphEdge,
+  GraphNode,
+} from '@/knowledge-graph/dto/graph-snapshot.dto';
 import { GraphCuratedAssemblerService } from '@/knowledge-graph/graph-curated-assembler.service';
 import { GraphOwnerReadService } from '@/knowledge-graph/graph-owner-read.service';
 import { type GraphNodeKind } from '@/knowledge-graph/graph-read-support';
@@ -69,12 +75,7 @@ export class GraphReadAssemblerService {
     }[],
     completeness: GraphCompleteness,
   ): Promise<GraphNode[]> {
-    return this.owners.sourceNodes(
-      actor,
-      organizationId,
-      refs,
-      completeness,
-    );
+    return this.owners.sourceNodes(actor, organizationId, refs, completeness);
   }
 
   curatedNode(

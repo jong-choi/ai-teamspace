@@ -197,7 +197,9 @@ describeA2('R8-15 projectionFreshnessBatch PostgreSQL 통합', () => {
         query.includes('"aggregate_id"'),
     );
     if (!selection)
-      throw new Error('projectionFreshnessBatch ORM SQL을 관찰하지 못했습니다.');
+      throw new Error(
+        'projectionFreshnessBatch ORM SQL을 관찰하지 못했습니다.',
+      );
 
     const result = await pool.query(
       'EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) ' + selection[0],

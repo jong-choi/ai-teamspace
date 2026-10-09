@@ -62,17 +62,13 @@ describeIsolated('F8-05 rebuild 중 live write 최신 CAS', () => {
     publisher = new OutboxAggregateChangePublisher({
       add: async () => undefined,
     } as never);
-    worker = new GraphRebuildWorkerDrizzleRepository(
-      database,
-      publisher,
-      {
-        requestManualRefreshInTransaction: async () => ({
-          outcome: 'accepted',
-          requestId: randomUUID(),
-          coalesced: false,
-        }),
-      } as unknown as SemanticRefreshService,
-    );
+    worker = new GraphRebuildWorkerDrizzleRepository(database, publisher, {
+      requestManualRefreshInTransaction: async () => ({
+        outcome: 'accepted',
+        requestId: randomUUID(),
+        coalesced: false,
+      }),
+    } as unknown as SemanticRefreshService);
   });
 
   beforeEach(async () => {

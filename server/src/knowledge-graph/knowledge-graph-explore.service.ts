@@ -107,8 +107,7 @@ export class KnowledgeGraphExploreService {
             ),
           );
         } catch (error) {
-          if (!(error instanceof KnowledgeGraphNodeNotFoundError))
-            throw error;
+          if (!(error instanceof KnowledgeGraphNodeNotFoundError)) throw error;
         }
       }
       return this.uniqueNodes(nodes);

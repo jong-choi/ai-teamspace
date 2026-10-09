@@ -9,7 +9,7 @@ import { outboxSemanticSourceState } from '@/outbox/infrastructure/persistence/d
 import { OutboxAggregateProjectionState } from '@/outbox/outbox-aggregate-projection-state';
 import { OutboxSemanticRecovery } from '@/outbox/outbox-semantic-recovery';
 
-import { eq, inArray } from 'drizzle-orm';
+import { inArray } from 'drizzle-orm';
 
 const describeIsolated =
   process.env.KG_TEST_ALLOW_WRITE === '1' &&

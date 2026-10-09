@@ -100,11 +100,7 @@ describe('U8-10 지식 그래프 보정 overlay', () => {
     };
     const ambiguousGraph = {
       ...graph,
-      entities: [
-        alpha,
-        { ...alpha, key: '4'.repeat(64) },
-        beta,
-      ],
+      entities: [alpha, { ...alpha, key: '4'.repeat(64) }, beta],
     };
     const ambiguous = {
       ...base,
@@ -115,10 +111,9 @@ describe('U8-10 지식 그래프 보정 overlay', () => {
     };
 
     const pendingResult = applyGraphCorrectionOverlay(graph, [pending]);
-    const ambiguousResult = applyGraphCorrectionOverlay(
-      ambiguousGraph,
-      [ambiguous],
-    );
+    const ambiguousResult = applyGraphCorrectionOverlay(ambiguousGraph, [
+      ambiguous,
+    ]);
 
     expect(pendingResult.entities[0]?.displayName).toBe('알파');
     expect(ambiguousResult.entities[0]?.displayName).toBe('알파');

@@ -1,6 +1,10 @@
 import { randomUUID } from 'node:crypto';
 
-import { createNeo4jGraph, Neo4jGraph, Neo4jVectorStore } from '@repo/knowledge-graph';
+import {
+  createNeo4jGraph,
+  Neo4jGraph,
+  Neo4jVectorStore,
+} from '@repo/knowledge-graph';
 import {
   organization,
   user,
@@ -12,16 +16,16 @@ import { graphSourceKey } from '@/knowledge-graph/domain/graph-source-key';
 import { semanticPipelineFingerprint } from '@/knowledge-graph/domain/semantic-pipeline';
 import { GraphOwnerReadService } from '@/knowledge-graph/graph-owner-read.service';
 import { LangchainNeo4jGraphStructureReaderAdapter } from '@/knowledge-graph/infrastructure/graph/langchain-neo4j-graph-structure-reader.adapter';
-import {
-  READ_SEMANTIC_ENTITIES_FOR_SCOPES,
-  READ_STRUCTURE_EDGES,
-  READ_STRUCTURE_NEIGHBORS,
-} from '@/knowledge-graph/knowledge-graph-read-queries';
 import { CuratedGraphQueryDrizzleRepository } from '@/knowledge-graph/infrastructure/persistence/drizzle/repositories/curated-graph-query.repository';
 import { curatedEdge } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/curated-edge.schema';
 import { curatedNode } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/curated-node.schema';
 import { OutboxProjectionFreshnessAdapter } from '@/knowledge-graph/infrastructure/persistence/outbox/outbox-projection-freshness.adapter';
 import type { GraphSourceSnapshotProvider } from '@/knowledge-graph/infrastructure/source-snapshot/graph-source-snapshot.provider';
+import {
+  READ_SEMANTIC_ENTITIES_FOR_SCOPES,
+  READ_STRUCTURE_EDGES,
+  READ_STRUCTURE_NEIGHBORS,
+} from '@/knowledge-graph/knowledge-graph-read-queries';
 import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 import { outboxSemanticSourceState } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-semantic-source-state.schema';
 import { OutboxAggregateProjectionState } from '@/outbox/outbox-aggregate-projection-state';
@@ -166,9 +170,7 @@ describeA2('N8-03·04·05·08·09 A2 구조 조회 통합', () => {
       await db
         .delete(outboxAggregateVersion)
         .where(eq(outboxAggregateVersion.organizationId, organizationId));
-      await db
-        .delete(organization)
-        .where(eq(organization.id, organizationId));
+      await db.delete(organization).where(eq(organization.id, organizationId));
       await db.delete(user).where(eq(user.id, actorUserId));
       await graph.query(
         `MATCH (node)
@@ -236,7 +238,9 @@ describeA2('N8-03·04·05·08·09 A2 구조 조회 통합', () => {
         }),
       );
       expect(
-        result.nodes.some((node) => node.kind === ('projection_source' as never)),
+        result.nodes.some(
+          (node) => node.kind === ('projection_source' as never),
+        ),
       ).toBe(false);
 
       const detail = await reader.nodeDetail({
@@ -489,11 +493,7 @@ describeA2('N8-03·04·05·08·09 A2 구조 조회 통합', () => {
       db,
     } as DatabaseService);
     expect(
-      await curatedRepository.listConnectedEdges(
-        organizationId,
-        leftId,
-        10,
-      ),
+      await curatedRepository.listConnectedEdges(organizationId, leftId, 10),
     ).toHaveLength(1);
     expect(
       await graph.query(
@@ -505,13 +505,11 @@ describeA2('N8-03·04·05·08·09 A2 구조 조회 통합', () => {
 
   it('N8-08 structural edge keyset 전체 순회에서 중복·누락이 없다', async () => {
     const seen = new Set<string>();
-    let after:
-      | {
-          relation: 'project_lead';
-          sourceNodeId: string;
-          targetNodeId: string;
-        }
-      | null = null;
+    let after: {
+      relation: 'project_lead';
+      sourceNodeId: string;
+      targetNodeId: string;
+    } | null = null;
 
     while (true) {
       const page = await reader.listStructuralEdges({
@@ -568,9 +566,7 @@ describeA2('N8-03·04·05·08·09 A2 구조 조회 통합', () => {
     );
     const labels = new Set(
       rows.flatMap((row) =>
-        Array.isArray(row.labelsOrTypes)
-          ? row.labelsOrTypes.map(String)
-          : [],
+        Array.isArray(row.labelsOrTypes) ? row.labelsOrTypes.map(String) : [],
       ),
     );
     for (const label of [

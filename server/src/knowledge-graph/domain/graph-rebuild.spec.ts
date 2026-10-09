@@ -55,8 +55,10 @@ describe('U8-14 rebuild 상태 전이', () => {
   );
 
   it('cancel은 accepted/running/catching_up에서만 요청할 수 있다', () => {
-    expect(
-      statuses.filter((status) => canCancelGraphRebuild(status)),
-    ).toEqual(['accepted', 'running', 'catching_up']);
+    expect(statuses.filter((status) => canCancelGraphRebuild(status))).toEqual([
+      'accepted',
+      'running',
+      'catching_up',
+    ]);
   });
 });

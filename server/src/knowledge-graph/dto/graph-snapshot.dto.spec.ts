@@ -10,18 +10,24 @@ describe('U8-07 A2 조회 DTO strict 계약', () => {
       focusKind: 'wiki_document',
       focusId: 'opaque-node',
     };
-    expect(ExploreQuerySchema.safeParse({ ...base, depth: 1, limit: 1 }).success)
-      .toBe(true);
-    expect(ExploreQuerySchema.safeParse({ ...base, depth: 2, limit: 100 }).success)
-      .toBe(true);
-    expect(ExploreQuerySchema.safeParse({ ...base, depth: 0 }).success)
-      .toBe(false);
-    expect(ExploreQuerySchema.safeParse({ ...base, depth: 3 }).success)
-      .toBe(false);
-    expect(ExploreQuerySchema.safeParse({ ...base, limit: 0 }).success)
-      .toBe(false);
-    expect(ExploreQuerySchema.safeParse({ ...base, limit: 101 }).success)
-      .toBe(false);
+    expect(
+      ExploreQuerySchema.safeParse({ ...base, depth: 1, limit: 1 }).success,
+    ).toBe(true);
+    expect(
+      ExploreQuerySchema.safeParse({ ...base, depth: 2, limit: 100 }).success,
+    ).toBe(true);
+    expect(ExploreQuerySchema.safeParse({ ...base, depth: 0 }).success).toBe(
+      false,
+    );
+    expect(ExploreQuerySchema.safeParse({ ...base, depth: 3 }).success).toBe(
+      false,
+    );
+    expect(ExploreQuerySchema.safeParse({ ...base, limit: 0 }).success).toBe(
+      false,
+    );
+    expect(ExploreQuerySchema.safeParse({ ...base, limit: 101 }).success).toBe(
+      false,
+    );
   });
 
   it.each(['cypher', 'label', 'model'])(
@@ -51,9 +57,11 @@ describe('U8-07 A2 조회 DTO strict 계약', () => {
         model: 'x',
       }).success,
     ).toBe(false);
-    expect(GraphNodeListQuerySchema.safeParse({ limit: 101 }).success)
-      .toBe(false);
-    expect(GraphEdgeListQuerySchema.safeParse({ limit: 0 }).success)
-      .toBe(false);
+    expect(GraphNodeListQuerySchema.safeParse({ limit: 101 }).success).toBe(
+      false,
+    );
+    expect(GraphEdgeListQuerySchema.safeParse({ limit: 0 }).success).toBe(
+      false,
+    );
   });
 });

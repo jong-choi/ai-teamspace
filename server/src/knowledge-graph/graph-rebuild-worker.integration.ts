@@ -11,14 +11,14 @@ import { semanticPipelineFingerprint } from '@/knowledge-graph/domain/semantic-p
 import { GraphRebuildWorkflowService } from '@/knowledge-graph/graph-rebuild-workflow.service';
 import { GraphRebuildWorkerDrizzleRepository } from '@/knowledge-graph/infrastructure/persistence/drizzle/repositories/graph-rebuild-worker.repository';
 import { graphRebuildRequest } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/graph-rebuild-request.schema';
-import type { GraphSourceAccessProvider } from '@/knowledge-graph/infrastructure/source-access/graph-source-access.provider';
 import type { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
+import type { GraphSourceAccessProvider } from '@/knowledge-graph/infrastructure/source-access/graph-source-access.provider';
 import type { SemanticRefreshService } from '@/knowledge-graph/semantic-refresh.service';
 import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 import { OutboxAggregateChangePublisher } from '@/outbox/outbox-aggregate-change.publisher';
 
 import { jest } from '@jest/globals';
-import { and, eq, inArray, sql } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 const describeIsolated =
   process.env.KG_TEST_ALLOW_WRITE === '1' &&
@@ -32,9 +32,7 @@ describeIsolated('R8-09~13 rebuild worker PostgreSQL', () => {
   const organizationId = `${prefix}-org`;
   const requesterId = `${prefix}-requester`;
   let database: DatabaseService;
-  const outboxAdd = jest.fn(
-    async (_transaction: unknown, _message: unknown) => undefined,
-  );
+  const outboxAdd = jest.fn(async () => undefined);
   let publisher: OutboxAggregateChangePublisher;
   let worker: GraphRebuildWorkerDrizzleRepository;
 
@@ -201,11 +199,13 @@ describeIsolated('R8-09~13 rebuild worker PostgreSQL', () => {
     const takeover = await worker.claim(request.id);
     if (typeof takeover === 'string') throw new Error(takeover);
     expect(takeover.cursorAfterId).toBe(ids[1]);
-    expect(await worker.commitProjectionPage(takeover, 'project', [ids[2]!])).toBe(
-      true,
-    );
     expect(
-      await Promise.all(ids.map(async (id) => (await registry(id))?.desiredSeq)),
+      await worker.commitProjectionPage(takeover, 'project', [ids[2]!]),
+    ).toBe(true);
+    expect(
+      await Promise.all(
+        ids.map(async (id) => (await registry(id))?.desiredSeq),
+      ),
     ).toEqual([2, 2, 2]);
   });
 
@@ -238,7 +238,10 @@ describeIsolated('R8-09~13 rebuild worker PostgreSQL', () => {
       desiredSeq: 2,
       projectionStatus: 'pending',
     });
-    expect(await registry(deleted)).toMatchObject({ desiredSeq: 1, deleted: true });
+    expect(await registry(deleted)).toMatchObject({
+      desiredSeq: 1,
+      deleted: true,
+    });
     expect(await registry(failed)).toMatchObject({
       desiredSeq: 5,
       projectionStatus: 'pending',
@@ -251,7 +254,9 @@ describeIsolated('R8-09~13 rebuild worker PostgreSQL', () => {
     expect(outboxAdd).toHaveBeenCalledTimes(3);
     for (const call of outboxAdd.mock.calls) {
       expect(call[1]).toMatchObject({ topic: 'kg.business-source-changed.v1' });
-      expect(call[1]).not.toMatchObject({ topic: 'kg.semantic-source-changed.v1' });
+      expect(call[1]).not.toMatchObject({
+        topic: 'kg.semantic-source-changed.v1',
+      });
     }
   });
 
@@ -268,8 +273,7 @@ describeIsolated('R8-09~13 rebuild worker PostgreSQL', () => {
       worker,
       sources,
       adminAccess,
-      { organizationProgress: jest.fn() } as never,
-      { organizationStats: jest.fn() } as never,
+      { projection: jest.fn(), semantic: jest.fn() } as never,
     );
     await expect(workflow.run(cancelled.id)).resolves.toEqual({ kind: 'done' });
     expect(sources.listIds).not.toHaveBeenCalled();
@@ -282,11 +286,13 @@ describeIsolated('R8-09~13 rebuild worker PostgreSQL', () => {
       )[0]?.status,
     ).toBe('cancelled');
 
-    await database.db.delete(graphRebuildRequest).where(
-      eq(graphRebuildRequest.organizationId, organizationId),
-    );
+    await database.db
+      .delete(graphRebuildRequest)
+      .where(eq(graphRebuildRequest.organizationId, organizationId));
     const deleted = await seedRequest();
-    await database.db.delete(organization).where(eq(organization.id, organizationId));
+    await database.db
+      .delete(organization)
+      .where(eq(organization.id, organizationId));
     await expect(workflow.run(deleted.id)).resolves.toEqual({ kind: 'done' });
     expect(sources.listIds).not.toHaveBeenCalled();
 
@@ -303,8 +309,7 @@ describeIsolated('R8-09~13 rebuild worker PostgreSQL', () => {
       {
         isAdministrator: jest.fn(async () => false),
       } as unknown as GraphSourceAccessProvider,
-      { organizationProgress: jest.fn() } as never,
-      { organizationStats: jest.fn() } as never,
+      { projection: jest.fn(), semantic: jest.fn() } as never,
     );
     await expect(demotedWorkflow.run(demoted.id)).resolves.toEqual({
       kind: 'done',

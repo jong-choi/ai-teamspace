@@ -5,11 +5,10 @@ import type {
   RebuildClaim,
 } from '@/knowledge-graph/domain/graph-rebuild';
 import { semanticPipelineFingerprint } from '@/knowledge-graph/domain/semantic-pipeline';
+import { GraphRebuildProgressRepository } from '@/knowledge-graph/infrastructure/persistence/graph-rebuild-progress.repository';
 import { GraphRebuildWorkerRepository } from '@/knowledge-graph/infrastructure/persistence/graph-rebuild-request.repository';
 import { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
 import { GraphSourceAccessProvider } from '@/knowledge-graph/infrastructure/source-access/graph-source-access.provider';
-import { OutboxAggregateProjectionState } from '@/outbox/outbox-aggregate-projection-state';
-import { OutboxSemanticRecovery } from '@/outbox/outbox-semantic-recovery';
 
 const PROJECTION_KINDS: readonly GraphRebuildKind[] = [
   'wiki_document',
@@ -40,8 +39,7 @@ export class GraphRebuildWorkflowService {
     private readonly repository: GraphRebuildWorkerRepository,
     private readonly sources: WorkosSourceProvider,
     private readonly access: GraphSourceAccessProvider,
-    private readonly projectionState: OutboxAggregateProjectionState,
-    private readonly semanticRecovery: OutboxSemanticRecovery,
+    private readonly progress: GraphRebuildProgressRepository,
   ) {}
 
   async run(requestId: string): Promise<GraphRebuildWorkflowResult> {
@@ -203,14 +201,14 @@ export class GraphRebuildWorkflowService {
     const projection =
       claim.mode === 'semantic_reindex'
         ? { pending: 0, failed: 0 }
-        : await this.projectionState.organizationProgress(
+        : await this.progress.projection(
             claim.organizationId,
             PROJECTION_KINDS,
           );
     const semantic =
       claim.mode === 'projection_repair'
         ? { pending: 0, failed: 0 }
-        : await this.semanticRecovery.organizationStats(
+        : await this.progress.semantic(
             claim.organizationId,
             semanticPipelineFingerprint,
           );

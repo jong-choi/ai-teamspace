@@ -34,11 +34,7 @@ describeIsolated('N8-07 projection_repair stale-delete resurrection', () => {
   const requesterId = `${organizationId}-requester`;
   const documentId = randomUUID();
   const collectionId = randomUUID();
-  const sourceKey = graphSourceKey(
-    'wiki_document',
-    organizationId,
-    documentId,
-  );
+  const sourceKey = graphSourceKey('wiki_document', organizationId, documentId);
   let database: DatabaseService;
   let graph: Awaited<ReturnType<typeof createNeo4jGraph>>;
   let writer: LangchainNeo4jGraphAdapter;

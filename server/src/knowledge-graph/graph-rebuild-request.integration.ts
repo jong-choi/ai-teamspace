@@ -11,8 +11,8 @@ import knowledgeGraphConfig from '@/knowledge-graph/config/knowledge-graph.confi
 import { GraphRebuildRequestDrizzleRepository } from '@/knowledge-graph/infrastructure/persistence/drizzle/repositories/graph-rebuild-request.repository';
 import { RequestQuotaDrizzleRepository } from '@/knowledge-graph/infrastructure/persistence/drizzle/repositories/request-quota.repository';
 import { graphRebuildRequest } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/graph-rebuild-request.schema';
-import type { GraphSourceAccessProvider } from '@/knowledge-graph/infrastructure/source-access/graph-source-access.provider';
 import { requestQuota } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/request-quota.schema';
+import type { GraphSourceAccessProvider } from '@/knowledge-graph/infrastructure/source-access/graph-source-access.provider';
 
 import { jest } from '@jest/globals';
 import { eq, inArray } from 'drizzle-orm';
@@ -99,10 +99,9 @@ describeIsolated('R8-08 rebuild 접수 PostgreSQL single-flight', () => {
     expect(right.outcome).toBe('accepted');
     if (left.outcome !== 'accepted' || right.outcome !== 'accepted') return;
     expect(left.acceptance.id).toBe(right.acceptance.id);
-    expect([left.acceptance.coalesced, right.acceptance.coalesced].sort()).toEqual([
-      false,
-      true,
-    ]);
+    expect(
+      [left.acceptance.coalesced, right.acceptance.coalesced].sort(),
+    ).toEqual([false, true]);
     expect(
       await database.db
         .select()

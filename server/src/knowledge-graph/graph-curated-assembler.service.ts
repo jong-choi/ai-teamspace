@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 
-import type { CuratedEdge, CuratedNode } from '@/knowledge-graph/domain/curated-graph';
+import type {
+  CuratedEdge,
+  CuratedNode,
+} from '@/knowledge-graph/domain/curated-graph';
 import type { GraphCompleteness } from '@/knowledge-graph/domain/graph-completeness';
 import { graphPermissions } from '@/knowledge-graph/domain/graph-read-contract';
 import type {
@@ -73,8 +76,18 @@ export class GraphCuratedAssemblerService {
     completeness: GraphCompleteness,
   ): Promise<GraphEdge | null> {
     const [source, target, projectionState] = await Promise.all([
-      this.endpoint(actor, organizationId, row.sourceNodeKind, row.sourceNodeId),
-      this.endpoint(actor, organizationId, row.targetNodeKind, row.targetNodeId),
+      this.endpoint(
+        actor,
+        organizationId,
+        row.sourceNodeKind,
+        row.sourceNodeId,
+      ),
+      this.endpoint(
+        actor,
+        organizationId,
+        row.targetNodeKind,
+        row.targetNodeId,
+      ),
       this.projectionState(
         row.organizationId,
         'curated_edge',

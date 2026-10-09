@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 
 import type { GraphCompleteness } from '@/knowledge-graph/domain/graph-completeness';
 import { GRAPH_EXPLORE_LIMITS } from '@/knowledge-graph/domain/graph-explore-limits';
-import type { GraphEdge, GraphNode } from '@/knowledge-graph/dto/graph-snapshot.dto';
+import type {
+  GraphEdge,
+  GraphNode,
+} from '@/knowledge-graph/dto/graph-snapshot.dto';
 import { GraphReadAssemblerService } from '@/knowledge-graph/graph-read-assembler.service';
 import {
   decodeNodeIdOrNotFound,
@@ -37,20 +40,8 @@ export class GraphExploreTraversalService {
     completeness: GraphCompleteness,
   ): Promise<ExploreTraversalResult> {
     const [structure, curated, semantic] = await Promise.all([
-      this.structureForSeed(
-        actor,
-        organizationId,
-        seed,
-        depth,
-        completeness,
-      ),
-      this.curatedForSeed(
-        actor,
-        organizationId,
-        seed,
-        depth,
-        completeness,
-      ),
+      this.structureForSeed(actor, organizationId, seed, depth, completeness),
+      this.curatedForSeed(actor, organizationId, seed, depth, completeness),
       this.semanticForSeed(organizationId, seed, completeness),
     ]);
     return {
@@ -64,8 +55,7 @@ export class GraphExploreTraversalService {
         ...curated.edges,
         ...semantic.edges,
       ]),
-      truncated:
-        structure.truncated || curated.truncated || semantic.truncated,
+      truncated: structure.truncated || curated.truncated || semantic.truncated,
       projectionPending:
         structure.projectionPending ||
         [...curated.nodes, ...curated.edges].some(
@@ -220,8 +210,7 @@ export class GraphExploreTraversalService {
           ? identity[3]
           : null;
     if (!sourceId) return this.emptyTraversal();
-    const expectedGenerationId =
-      identity[1] === 'e' ? identity[4] : undefined;
+    const expectedGenerationId = identity[1] === 'e' ? identity[4] : undefined;
     const view = await this.semantic.view(
       organizationId,
       sourceId,
@@ -269,11 +258,7 @@ export class GraphExploreTraversalService {
     if (identity[1] === 'c') {
       const row = await this.curated.nodeById(organizationId, identity[2]);
       return row
-        ? this.assembler.curatedNode(
-            row,
-            canManageCurated,
-            completeness,
-          )
+        ? this.assembler.curatedNode(row, canManageCurated, completeness)
         : null;
     }
     const view = await this.semantic.view(

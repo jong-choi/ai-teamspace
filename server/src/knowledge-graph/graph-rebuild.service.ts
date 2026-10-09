@@ -12,11 +12,10 @@ import type {
 } from '@/knowledge-graph/dto/graph-rebuild.dto';
 import { GraphCompletenessService } from '@/knowledge-graph/graph-completeness.service';
 import { GraphOperationsRepository } from '@/knowledge-graph/infrastructure/persistence/graph-operations.repository';
+import { GraphRebuildProgressRepository } from '@/knowledge-graph/infrastructure/persistence/graph-rebuild-progress.repository';
 import { GraphRebuildRequestRepository } from '@/knowledge-graph/infrastructure/persistence/graph-rebuild-request.repository';
 import { GraphSourceAccessProvider } from '@/knowledge-graph/infrastructure/source-access/graph-source-access.provider';
 import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
-import { OutboxAggregateProjectionState } from '@/outbox/outbox-aggregate-projection-state';
-import { OutboxSemanticRecovery } from '@/outbox/outbox-semantic-recovery';
 
 const ageSeconds = (at: Date | null): number | null =>
   at ? Math.max(0, Math.floor((Date.now() - at.getTime()) / 1000)) : null;
@@ -27,8 +26,7 @@ export class GraphRebuildService {
     private readonly requests: GraphRebuildRequestRepository,
     private readonly access: GraphSourceAccessProvider,
     private readonly completeness: GraphCompletenessService,
-    private readonly projectionState: OutboxAggregateProjectionState,
-    private readonly semanticRecovery: OutboxSemanticRecovery,
+    private readonly progress: GraphRebuildProgressRepository,
     private readonly operations: GraphOperationsRepository,
   ) {}
 
@@ -106,11 +104,8 @@ export class GraphRebuildService {
       await Promise.all([
         this.completeness.forOrganization(organizationId),
         this.requests.active(organizationId),
-        this.projectionState.organizationProgress(organizationId, []),
-        this.semanticRecovery.organizationStats(
-          organizationId,
-          semanticPipelineFingerprint,
-        ),
+        this.progress.projection(organizationId, []),
+        this.progress.semantic(organizationId, semanticPipelineFingerprint),
         this.operations.quotaUsage(organizationId),
       ]);
 

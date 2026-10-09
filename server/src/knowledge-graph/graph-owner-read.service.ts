@@ -79,9 +79,7 @@ export class GraphOwnerReadService {
     return current.map((row) =>
       this.currentSourceNode(
         row,
-        projectionByKey.get(
-          `${this.projectionKind(row.kind)}:${row.id}`,
-        ),
+        projectionByKey.get(`${this.projectionKind(row.kind)}:${row.id}`),
         completeness,
       ),
     );
@@ -143,9 +141,7 @@ export class GraphOwnerReadService {
         predicate: row.predicate,
         factClass: 'authoritative',
         sourceRef: this.sourceRef(
-          currentByKey.get(
-            `${row.ownerKind}:${row.ownerSourceId}`,
-          ) ?? null,
+          currentByKey.get(`${row.ownerKind}:${row.ownerSourceId}`) ?? null,
         ),
         permissions: graphPermissions({
           factClass: 'authoritative',
@@ -266,9 +262,7 @@ export class GraphOwnerReadService {
     const kind =
       endpoint === 'source' ? row.sourceNodeKind : row.targetNodeKind;
     const id =
-      endpoint === 'source'
-        ? row.sourceNodeSourceId
-        : row.targetNodeSourceId;
+      endpoint === 'source' ? row.sourceNodeSourceId : row.targetNodeSourceId;
     if (!id || kind === 'curated_node' || kind === 'semantic_entity')
       return null;
     const source = current.get(`${kind}:${id}`);
@@ -284,9 +278,7 @@ export class GraphOwnerReadService {
     return { kind, id } as const;
   }
 
-  private sourceRef(
-    current: CurrentGraphSource | null,
-  ): GraphSourceRef | null {
+  private sourceRef(current: CurrentGraphSource | null): GraphSourceRef | null {
     return current
       ? {
           kind: current.kind,
@@ -297,9 +289,7 @@ export class GraphOwnerReadService {
       : null;
   }
 
-  private projectionState(
-    row: ProjectionFreshness,
-  ): GraphProjectionState {
+  private projectionState(row: ProjectionFreshness): GraphProjectionState {
     return {
       status: row.fresh
         ? 'applied'
@@ -322,9 +312,7 @@ export class GraphOwnerReadService {
     refs: readonly T[],
   ) {
     return [
-      ...new Map(
-        refs.map((ref) => [`${ref.kind}:${ref.id}`, ref]),
-      ).values(),
+      ...new Map(refs.map((ref) => [`${ref.kind}:${ref.id}`, ref])).values(),
     ];
   }
 }

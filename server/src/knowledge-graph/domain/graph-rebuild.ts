@@ -1,5 +1,5 @@
 import { GraphRebuildRequestSelectSchema } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/graph-rebuild-request.zod';
-import { OutboxAggregateVersionSchema } from '@/outbox/outbox-aggregate-event.schema';
+import { OutboxAggregateKindSchema } from '@/outbox/domain/aggregate-kind';
 
 import { z } from 'zod';
 
@@ -11,8 +11,7 @@ export const GraphRebuildPhaseSchema =
   GraphRebuildRequestSelectSchema.shape.phase.unwrap();
 export const GraphRebuildErrorCodeSchema =
   GraphRebuildRequestSelectSchema.shape.lastErrorCode.unwrap();
-export const GraphRebuildKindSchema =
-  OutboxAggregateVersionSchema.shape.aggregateKind;
+export const GraphRebuildKindSchema = OutboxAggregateKindSchema;
 
 export const GraphRebuildRequestSchema = GraphRebuildRequestSelectSchema.extend(
   {

@@ -43,16 +43,14 @@ describe('U8-15 graph completeness', () => {
     expect(deriveGraphCompleteness(null)).toBe('complete');
   });
 
-  it.each([
-    'accepted',
-    'running',
-    'catching_up',
-    'cancel_requested',
-  ] as const)('활성 상태 %s는 rebuilding이다', (status) => {
-    expect(deriveGraphCompleteness(requestWithStatus(status))).toBe(
-      'rebuilding',
-    );
-  });
+  it.each(['accepted', 'running', 'catching_up', 'cancel_requested'] as const)(
+    '활성 상태 %s는 rebuilding이다',
+    (status) => {
+      expect(deriveGraphCompleteness(requestWithStatus(status))).toBe(
+        'rebuilding',
+      );
+    },
+  );
 
   it('succeeded는 complete다', () => {
     expect(deriveGraphCompleteness(requestWithStatus('succeeded'))).toBe(
@@ -60,12 +58,7 @@ describe('U8-15 graph completeness', () => {
     );
   });
 
-  it.each(['failed', 'cancelled'] as const)(
-    '%s는 degraded다',
-    (status) => {
-      expect(deriveGraphCompleteness(requestWithStatus(status))).toBe(
-        'degraded',
-      );
-    },
-  );
+  it.each(['failed', 'cancelled'] as const)('%s는 degraded다', (status) => {
+    expect(deriveGraphCompleteness(requestWithStatus(status))).toBe('degraded');
+  });
 });

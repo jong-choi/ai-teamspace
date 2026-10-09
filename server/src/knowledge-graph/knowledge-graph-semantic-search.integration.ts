@@ -51,8 +51,7 @@ describeWritable('N8-01·06 실제 Neo4j 의미 검색', () => {
       database: process.env.NEO4J_DATABASE || undefined,
     });
 
-    for (const query of SEMANTIC_GRAPH_INITIALIZATION)
-      await session.run(query);
+    for (const query of SEMANTIC_GRAPH_INITIALIZATION) await session.run(query);
 
     await session.run(
       `
@@ -173,7 +172,9 @@ DETACH DELETE n`,
         returned: hits.length,
       }),
     );
-    expect(operators.some((operator) => operator.startsWith('NodeIndexSeek'))).toBe(true);
+    expect(
+      operators.some((operator) => operator.startsWith('NodeIndexSeek')),
+    ).toBe(true);
   });
 
   it('N8-06 없는 index와 3차원 자기 index를 거부하고 공용 vector index 정의는 바꾸지 않는다', async () => {
@@ -209,9 +210,9 @@ OPTIONS { indexConfig: {
       expect.objectContaining({ reason: 'KG_VECTOR_INDEX_NOT_READY' }),
     );
 
-    expect(
-      await vectorIndexDefinition(SEMANTIC_CHUNK_VECTOR_INDEX),
-    ).toEqual(canonicalBefore);
+    expect(await vectorIndexDefinition(SEMANTIC_CHUNK_VECTOR_INDEX)).toEqual(
+      canonicalBefore,
+    );
   });
 
   function chunk(input: {

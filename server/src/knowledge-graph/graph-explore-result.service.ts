@@ -44,10 +44,7 @@ export class GraphExploreResultService {
       input.edges,
       input.depth,
     );
-    const decodedAfter = decodeExploreAfter(
-      input.organizationId,
-      input.query,
-    );
+    const decodedAfter = decodeExploreAfter(input.organizationId, input.query);
     const after = decodedAfter
       ? { ...decodedAfter, hop: decodedAfter.hop as 1 | 2 }
       : null;
@@ -56,10 +53,7 @@ export class GraphExploreResultService {
       .sort((left, right) => this.compareReach(left, right))
       .filter((row) => !after || this.afterCursor(row, after));
 
-    const maxNodes = Math.min(
-      input.query.limit,
-      GRAPH_EXPLORE_LIMITS.maxNodes,
-    );
+    const maxNodes = Math.min(input.query.limit, GRAPH_EXPLORE_LIMITS.maxNodes);
     const fixedSeeds = input.seeds.slice(0, maxNodes);
     const selectedNeighbors = ordered.slice(
       0,
@@ -86,9 +80,7 @@ export class GraphExploreResultService {
       bounded.truncated;
     const lastReach = [...selectedNeighbors]
       .reverse()
-      .find((row) =>
-        bounded.nodes.some((node) => node.id === row.node.id),
-      );
+      .find((row) => bounded.nodes.some((node) => node.id === row.node.id));
 
     return {
       nodes: bounded.nodes,
@@ -105,9 +97,7 @@ export class GraphExploreResultService {
           : null,
       completeness: input.completeness,
       degradedReasons: [
-        ...(input.projectionPending
-          ? (['projection_pending'] as const)
-          : []),
+        ...(input.projectionPending ? (['projection_pending'] as const) : []),
         ...(input.completeness === 'complete'
           ? []
           : (['partial_rebuild'] as const)),
@@ -142,11 +132,7 @@ export class GraphExploreResultService {
         relation: 'wiki_parent',
       }),
     );
-    for (
-      let hop = 1 as 1 | 2;
-      hop <= depth;
-      hop = (hop + 1) as 1 | 2
-    ) {
+    for (let hop = 1 as 1 | 2; hop <= depth; hop = (hop + 1) as 1 | 2) {
       const next: string[] = [];
       const frontierSet = new Set(frontier);
       for (const edge of edges) {
@@ -172,8 +158,7 @@ export class GraphExploreResultService {
       left.hop - right.hop ||
       graphEdgeRelationRank(left.relation) -
         graphEdgeRelationRank(right.relation) ||
-      graphNodeKindRank(left.node.kind) -
-        graphNodeKindRank(right.node.kind) ||
+      graphNodeKindRank(left.node.kind) - graphNodeKindRank(right.node.kind) ||
       left.node.id.localeCompare(right.node.id)
     );
   }
@@ -205,16 +190,14 @@ export class GraphExploreResultService {
     let keptEdges = [...edges];
     let truncated = false;
     while (
-      Buffer.byteLength(
-        JSON.stringify({ nodes: kept, edges: keptEdges }),
-      ) > GRAPH_EXPLORE_LIMITS.maxResponseBytes &&
+      Buffer.byteLength(JSON.stringify({ nodes: kept, edges: keptEdges })) >
+        GRAPH_EXPLORE_LIMITS.maxResponseBytes &&
       kept.length > 1
     ) {
       const removed = kept.pop()!;
       keptEdges = keptEdges.filter(
         (edge) =>
-          edge.sourceNodeId !== removed.id &&
-          edge.targetNodeId !== removed.id,
+          edge.sourceNodeId !== removed.id && edge.targetNodeId !== removed.id,
       );
       truncated = true;
     }

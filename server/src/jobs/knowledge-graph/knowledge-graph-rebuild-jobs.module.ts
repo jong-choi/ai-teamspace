@@ -8,11 +8,11 @@ import { KnowledgeGraphRebuildReconciliationScheduler } from '@/jobs/knowledge-g
 import { GraphRebuildWorkflowService } from '@/knowledge-graph/graph-rebuild-workflow.service';
 import { CuratedProjectionPersistenceModule } from '@/knowledge-graph/infrastructure/persistence/drizzle/curated-projection-persistence.module';
 import { GraphRebuildPersistenceModule } from '@/knowledge-graph/infrastructure/persistence/drizzle/graph-rebuild-persistence.module';
+import { GraphRebuildProgressPersistenceModule } from '@/knowledge-graph/infrastructure/persistence/outbox/graph-rebuild-progress-persistence.module';
 import { WorkosSourceAdapter } from '@/knowledge-graph/infrastructure/source/workos/workos-source.adapter';
 import { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
 import { WorkosGraphSourceAccessModule } from '@/knowledge-graph/infrastructure/source-access/workos/workos-graph-source-access.module';
 import { MembershipProjectionQueryModule } from '@/organizations/membership-projection-query.module';
-import { OutboxInfrastructureModule } from '@/outbox/outbox.module';
 import { ProjectProjectionQueryModule } from '@/projects/project-projection-query.module';
 import { TicketLabelProjectionQueryModule } from '@/projects/ticket-label-projection-query.module';
 import { TicketProjectionQueryModule } from '@/projects/ticket-projection-query.module';
@@ -24,9 +24,9 @@ import { WikiProjectionQueryModule } from '@/wiki/wiki-projection-query.module';
     BullModule.registerQueue({ name: KNOWLEDGE_GRAPH_REBUILD_QUEUE }),
     CuratedProjectionPersistenceModule,
     GraphRebuildPersistenceModule,
+    GraphRebuildProgressPersistenceModule,
     MeetingProjectionQueryModule,
     MembershipProjectionQueryModule,
-    OutboxInfrastructureModule,
     ProjectProjectionQueryModule,
     QueueModule.forWorker(),
     TicketLabelProjectionQueryModule,

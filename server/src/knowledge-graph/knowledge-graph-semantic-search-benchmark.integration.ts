@@ -47,8 +47,7 @@ describeWritable('N8-02 exact/approximate recall·latency benchmark', () => {
     session = driver.session({
       database: process.env.NEO4J_DATABASE || undefined,
     });
-    for (const query of SEMANTIC_GRAPH_INITIALIZATION)
-      await session.run(query);
+    for (const query of SEMANTIC_GRAPH_INITIALIZATION) await session.run(query);
 
     await seedActiveSources();
     await seedOtherOrganizationNoise();
@@ -126,7 +125,9 @@ DETACH DELETE c`,
       ];
       const recallAtK =
         [...exactTop].filter((sourceId) =>
-          uniqueAccepted.slice(0, topK).some((hit) => hit.sourceId === sourceId),
+          uniqueAccepted
+            .slice(0, topK)
+            .some((hit) => hit.sourceId === sourceId),
         ).length / exactTop.size;
       const unauthorizedAfterFilter = uniqueAccepted.filter(
         (hit) =>

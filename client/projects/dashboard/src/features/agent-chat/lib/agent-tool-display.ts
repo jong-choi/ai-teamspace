@@ -45,6 +45,7 @@ const toolLabels: Record<string, string> = {
   wiki_document_update: '위키 문서 수정',
   projects_list: '프로젝트 목록 확인',
   project_get: '프로젝트 확인',
+  project_columns_list: '업무 단계 확인',
   project_ticket_get: '업무 확인',
   project_ticket_create: '업무 생성',
   project_ticket_update: '업무 수정',

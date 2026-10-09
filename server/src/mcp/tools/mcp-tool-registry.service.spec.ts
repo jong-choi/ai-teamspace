@@ -1,12 +1,21 @@
 import type { McpAuthContext } from '@/mcp/contracts/mcp-auth-context';
 import type { BoundMcpTool } from '@/mcp/tools/bound-mcp-tool';
+import { calendarToolDefinitions } from '@/mcp/tools/calendar/calendar-tool-definitions';
+import { chatToolDefinitions } from '@/mcp/tools/chat/chat-tool-definitions';
+import { knowledgeGraphToolDefinitions } from '@/mcp/tools/knowledge-graph/knowledge-graph-tool-definitions';
 import type { McpToolAuthorizationService } from '@/mcp/tools/mcp-tool-authorization.service';
 import type { McpToolDefinition } from '@/mcp/tools/mcp-tool-definition';
 import { McpToolRegistryService } from '@/mcp/tools/mcp-tool-registry.service';
+import { organizationToolDefinitions } from '@/mcp/tools/organizations/organization-tool-definitions';
+import { projectToolDefinitions } from '@/mcp/tools/projects/project-tool-definitions';
 import { v1McpToolDefinitions } from '@/mcp/tools/v1-tool-manifest';
+import { wikiToolDefinitions } from '@/mcp/tools/wiki/wiki-tool-definitions';
 
-function registrar(tools: readonly BoundMcpTool[]) {
-  return { tools: () => [...tools] };
+function registrar(definitions: readonly McpToolDefinition[]) {
+  const tools: BoundMcpTool[] = definitions.map((definition) =>
+    boundTool(definition),
+  );
+  return { tools: () => tools };
 }
 
 function boundTool(definition: McpToolDefinition): BoundMcpTool {
@@ -32,20 +41,26 @@ const auth: McpAuthContext = {
 };
 
 describe('MCP tool registry', () => {
-  const allTools = v1McpToolDefinitions.map((definition) =>
-    boundTool(definition),
-  );
+  const registrars = [
+    registrar(organizationToolDefinitions),
+    registrar(chatToolDefinitions),
+    registrar(wikiToolDefinitions),
+    registrar(projectToolDefinitions),
+    registrar(calendarToolDefinitions),
+    registrar(knowledgeGraphToolDefinitions),
+  ] as const;
+  const allTools = registrars.flatMap((item) => item.tools());
   const authorizationService = {
     authorize: jest.fn().mockResolvedValue(undefined),
   } as unknown as McpToolAuthorizationService;
 
   const registry = new McpToolRegistryService(
-    registrar(allTools.slice(0, 3)) as never,
-    registrar(allTools.slice(3, 6)) as never,
-    registrar(allTools.slice(6, 10)) as never,
-    registrar(allTools.slice(10, 16)) as never,
-    registrar(allTools.slice(16, 23)) as never,
-    registrar(allTools.slice(23, 25)) as never,
+    registrars[0] as never,
+    registrars[1] as never,
+    registrars[2] as never,
+    registrars[3] as never,
+    registrars[4] as never,
+    registrars[5] as never,
     authorizationService,
   );
 
@@ -53,24 +68,26 @@ describe('MCP tool registry', () => {
     jest.clearAllMocks();
   });
 
-  it('canonical manifest와 동일한 25개 registrar 순서를 요구한다', () => {
+  it('모든 scope가 있으면 canonical manifest 전체를 같은 순서로 노출한다', () => {
     expect(
-      registry.toolsForAuth({
-        ...auth,
-        scopes: [
-          'organizations:read',
-          'organizations:write',
-          'chat:read',
-          'chat:write',
-          'wiki:read',
-          'wiki:write',
-          'projects:read',
-          'projects:write',
-          'calendar:read',
-          'calendar:write',
-        ],
-      }),
-    ).toHaveLength(25);
+      registry
+        .toolsForAuth({
+          ...auth,
+          scopes: [
+            'organizations:read',
+            'organizations:write',
+            'chat:read',
+            'chat:write',
+            'wiki:read',
+            'wiki:write',
+            'projects:read',
+            'projects:write',
+            'calendar:read',
+            'calendar:write',
+          ],
+        })
+        .map(({ definition }) => definition.name),
+    ).toEqual(v1McpToolDefinitions.map(({ name }) => name));
   });
 
   it('credential scope가 없는 tool은 discovery surface에서 제외한다', () => {
@@ -85,6 +102,7 @@ describe('MCP tool registry', () => {
       'wiki_document_get',
       'projects_list',
       'project_get',
+      'project_columns_list',
       'project_ticket_get',
       'calendar_meetings_list',
       'calendar_meeting_get',

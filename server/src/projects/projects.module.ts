@@ -47,6 +47,7 @@ import { TicketsService } from '@/projects/tickets.service';
   exports: [
     ProjectReferenceQueryService,
     ProjectsService,
+    ProjectColumnsService,
     TicketsService,
     TicketOrderingService,
   ],

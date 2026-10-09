@@ -12,7 +12,8 @@ type BuilderInternals = {
   applicationConfig: ApplicationConfig;
 };
 
-const compile = TestingModuleBuilder.prototype.compile;
+// 원래 compile은 아래에서 builder를 this로 넘겨 호출하므로 bind하지 않고 원본 함수만 보관한다.
+const compile = Reflect.get(TestingModuleBuilder.prototype, 'compile');
 
 TestingModuleBuilder.prototype.compile = async function compileOrClose(
   this: TestingModuleBuilder,

@@ -3,14 +3,14 @@ import {
   getKnowledgeGraphOperationsControllerStatusUrl,
   getKnowledgeGraphSearchControllerSearchUrl,
   getWikiKnowledgeGraphControllerStatusUrl,
-} from './generated/work-os';
+} from '@repo/client/api-client';
 import {
   GraphEditTarget,
   GraphNode,
   ProblemDetails,
   RefreshKnowledgeGraphAccepted,
   WikiKnowledgeGraphStatus,
-} from './generated/schemas';
+} from '@repo/client/api-client/schemas';
 
 const id = '10000000-0000-4000-8000-000000000001';
 const at = '2026-10-09T00:00:00.000Z';
@@ -20,9 +20,9 @@ describe('H8-20 Orval 지식 그래프 계약', () => {
     expect(getWikiKnowledgeGraphControllerStatusUrl('org', id)).toContain(
       '/knowledge-graph/status',
     );
-    expect(getKnowledgeGraphSearchControllerSearchUrl('org')).toContain(
-      '/knowledge-graph/search',
-    );
+    expect(
+      getKnowledgeGraphSearchControllerSearchUrl('org', { q: '설계' }),
+    ).toContain('/knowledge-graph/search?q=');
     expect(getKnowledgeGraphControllerExploreUrl('org')).toContain(
       '/knowledge-graph/explore',
     );

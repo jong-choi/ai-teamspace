@@ -412,6 +412,47 @@ integrationDescribe('Agent durable runtime 실제 Postgres/Redis 통합', () => 
     }
   });
 
+  test('Redis 버스와 Postgres 저장을 거친 메시지도 LangGraph API 와이어 형식으로 내려간다', async () => {
+    const instance = await startInstance();
+    try {
+      const client = instance.client();
+      const thread = await client.threads.create();
+
+      const chunks: { event: string; data: unknown }[] = [];
+      for await (const chunk of client.runs.stream(thread.thread_id, 'agent', {
+        input: { messages: [{ role: 'user', content: 'wire' }] },
+        streamMode: ['values', 'messages-tuple'],
+      })) {
+        chunks.push(chunk);
+      }
+
+      // `useStream`은 `type`이 human/ai인 평탄화 dict만 메시지로 읽는다. Redis를 거치며
+      // `{ lc, type: "constructor", kwargs }` 형식으로 굳으면 화면에서 메시지가 사라진다.
+      expect(JSON.stringify(chunks)).not.toContain('"constructor"');
+      const lastValues = chunks.filter(({ event }) => event === 'values').at(-1)
+        ?.data as { messages: { type: string; content: unknown }[] };
+      expect(
+        lastValues.messages.map(({ type, content }) => [type, content]),
+      ).toEqual([
+        ['human', 'wire'],
+        ['ai', 'echo: wire'],
+      ]);
+
+      const stored = await client.threads.get<{
+        messages: { type: string; content: unknown }[];
+      }>(thread.thread_id);
+      expect(JSON.stringify(stored.values)).not.toContain('"constructor"');
+      expect(
+        stored.values.messages.map(({ type, content }) => [type, content]),
+      ).toEqual([
+        ['human', 'wire'],
+        ['ai', 'echo: wire'],
+      ]);
+    } finally {
+      await instance.close();
+    }
+  });
+
   test('Redis에 대기 중인 background run이 worker restart 뒤 처리된다', async () => {
     const first = await startInstance();
     const firstClient = first.client();

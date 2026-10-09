@@ -6,7 +6,7 @@
 // and a body sent from another — which fails only on the receiving end, only for some payloads, and
 // looks like a key problem rather than a serialization one.
 
-import type { Delivery } from '@repo/agent-runtime/core';
+import { type Delivery, serializeWireJson } from '@repo/agent-runtime/core';
 
 import { signDelivery } from '#agent-runtime/agent-protocol/crypto/sign-delivery.js';
 import { toDeliveryBody } from '#agent-runtime/agent-protocol/deliveries/delivery-payload.js';
@@ -33,7 +33,10 @@ export function toDeliveryRequest(input: {
   const payload = toDeliveryBody(input.delivery, input.sentAt.toISOString());
   // Serialized once, here, and carried through to the dispatcher. Everything downstream sends these
   // bytes rather than re-deriving them.
-  const body = JSON.stringify(payload);
+  // in-memory store는 `values`에 LangChain 메시지 인스턴스를 그대로 들고 있으므로 `serializeWireJson`으로
+  // LangGraph API 와이어 형식(`{ ...data, type }`)을 보낸다. 맨 `JSON.stringify`면 수신 측이
+  // `{ lc, type: "constructor", kwargs }` 형식을 받는다. 서명도 이 bytes 기준이라 두 경로가 일치한다.
+  const body = serializeWireJson(payload);
   const [signingKey] = input.secrets ?? [];
   const signature = signingKey
     ? signDelivery({

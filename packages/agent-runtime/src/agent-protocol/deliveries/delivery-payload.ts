@@ -6,11 +6,12 @@
 // `run_status` so the body can never contradict the run row, and `webhook_sent_at`, which describes
 // the attempt rather than the run.
 
-import type {
-  DefaultValues,
-  Delivery,
-  Interrupt,
-  Run,
+import {
+  type DefaultValues,
+  type Delivery,
+  type Interrupt,
+  type Run,
+  serializeWireJson,
 } from '@repo/agent-runtime/core';
 
 import { DEFAULT_MAX_PAYLOAD_BYTES } from '#agent-runtime/agent-protocol/deliveries/delivery-config.js';
@@ -86,7 +87,9 @@ export function buildDeliveryPayload(
     ...(input.reply !== undefined ? { reply: input.reply } : {}),
   };
   const cap = input.maxPayloadBytes ?? DEFAULT_MAX_PAYLOAD_BYTES;
-  const bytes = byteLength(JSON.stringify(payload));
+  // 실제 전송 body(`toDeliveryRequest`)와 같은 직렬화로 크기를 잰다. 메시지를 constructor 형식으로
+  // 재면 실제 body보다 크게 계산되어 잘리지 않아도 될 `values`가 잘린다.
+  const bytes = byteLength(serializeWireJson(payload));
   if (bytes <= cap) return { payload, truncated: false, bytes };
 
   // `values` is sacrificed first, and `interrupts` only if the body is still over the cap afterwards.
@@ -94,7 +97,7 @@ export function buildDeliveryPayload(
   // one an interrupted run cannot be acted on without. Dropping the question to keep the state would
   // strand exactly the conversations this field exists to unstrand, so state goes first.
   const truncatedValues = { ...payload, values: marker('values', bytes, cap) };
-  const afterValues = byteLength(JSON.stringify(truncatedValues));
+  const afterValues = byteLength(serializeWireJson(truncatedValues));
   if (!hasInterrupts || afterValues <= cap) {
     return { payload: truncatedValues, truncated: true, bytes };
   }

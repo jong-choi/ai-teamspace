@@ -48,6 +48,7 @@ import {
   type RunRepo,
   type RunStatus,
   type SearchItem,
+  serializeWireJson,
   SkeinHttpError,
   type SkeinStore,
   type SkeinStoreSnapshot,
@@ -278,6 +279,19 @@ function requireIndexableDimensions(dims: number | undefined): number {
 }
 
 const toIsoString = (date: Date): string => date.toISOString();
+
+/**
+ * graph 상태(values·interrupts)나 응답 본문처럼 LangChain 메시지를 담을 수 있는 값을 jsonb 문자열로 만든다.
+ *
+ * 맨 `JSON.stringify`는 메시지를 `BaseMessage.toJSON()`의 `{ lc, type: "constructor", kwargs }`
+ * 형식으로 저장한다. 이 값은 DB에서 평범한 객체로 읽히므로 HTTP 응답 단계의 `serializeWireJson`이
+ * 다시 평탄화하지 못하고, `GET /threads/{id}`·thread 검색·idempotency 재응답·webhook이 LangGraph
+ * SDK가 읽지 못하는 형식으로 나간다. 저장 시점에 LangGraph API 와이어 형식(`{ ...data, type }`)으로
+ * 고정해 in-memory store와 같은 응답을 보장한다.
+ */
+function toWireJsonb(value: unknown): string {
+  return serializeWireJson(value);
+}
 
 /** Format a number[] as a pgvector literal, e.g. `[0.1,0.2]`. */
 function toVectorLiteral(vector: number[]): string {
@@ -536,7 +550,7 @@ async function insertDelivery(
       runId,
       input.thread_id,
       input.url,
-      JSON.stringify(input.payload ?? null),
+      toWireJsonb(input.payload ?? null),
       input.payload_truncated ?? false,
       runStatus,
       input.next_attempt_at,
@@ -1380,8 +1394,8 @@ export class PostgresSkeinStore implements SkeinStore {
             thread.thread_id,
             thread.status ?? 'idle',
             JSON.stringify(thread.metadata ?? {}),
-            JSON.stringify(thread.values ?? {}),
-            JSON.stringify(thread.interrupts ?? {}),
+            toWireJsonb(thread.values ?? {}),
+            toWireJsonb(thread.interrupts ?? {}),
             typeof thread.error === 'string' ? thread.error : null,
             thread.created_at,
             thread.updated_at,
@@ -1821,10 +1835,8 @@ export class PostgresSkeinStore implements SkeinStore {
           threadId,
           patch.metadata === undefined ? null : JSON.stringify(patch.metadata),
           patch.status ?? null,
-          patch.values === undefined ? null : JSON.stringify(patch.values),
-          patch.interrupts === undefined
-            ? null
-            : JSON.stringify(patch.interrupts),
+          patch.values === undefined ? null : toWireJsonb(patch.values),
+          patch.interrupts === undefined ? null : toWireJsonb(patch.interrupts),
           // `error` is tri-state, so COALESCE can't express it: absent leaves the column alone,
           // `null` clears it, a string sets it. The boolean says "the patch mentioned error".
           patch.error !== undefined,
@@ -2626,7 +2638,7 @@ export class PostgresSkeinStore implements SkeinStore {
           scope,
           key,
           claimId,
-          JSON.stringify({
+          toWireJsonb({
             status: recorded.status,
             body: recorded.body,
             ...(recorded.headers ? { headers: recorded.headers } : {}),

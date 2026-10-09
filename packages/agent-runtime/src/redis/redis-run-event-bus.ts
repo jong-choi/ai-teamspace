@@ -4,7 +4,11 @@
 // SUBSCRIBE before replaying the stream, then dedupe by `seq`, so no frame slips through the gap
 // between the snapshot and the live feed (see docs/streaming.md).
 
-import type { RunEventBus, RunFrame } from '@repo/agent-runtime/core';
+import {
+  type RunEventBus,
+  type RunFrame,
+  serializeWireJson,
+} from '@repo/agent-runtime/core';
 
 import { Redis, type RedisOptions } from 'ioredis';
 
@@ -260,10 +264,16 @@ export class RedisRunEventBus implements RunEventBus {
    * granularity the old three-await version cost three round trips per token, with the graph unable
    * to advance until all three landed. `XADD` and `PUBLISH` are pipelined together and the frame is
    * serialized once for both.
+   *
+   * 프레임은 `serializeWireJson`으로 직렬화한다. 맨 `JSON.stringify`는 LangChain 메시지를
+   * `BaseMessage.toJSON()`의 `{ lc, type: "constructor", kwargs }` 형식으로 바꾸고, Redis에서 다시
+   * 읽은 프레임은 평범한 객체라 SSE 출력 단계의 `serializeWireJson`이 더는 평탄화하지 못한다. 그러면
+   * `useStream`이 메시지를 인식하지 못해 화면에 아무것도 표시되지 않는다. 그래서 Redis에 넣기 전에
+   * in-memory 버스 경로와 같은 LangGraph API 와이어 형식(`{ ...data, type }`)으로 고정한다.
    */
   async publish(runId: string, frame: RunFrame): Promise<void> {
     const streamKey = this.#streamKey(runId);
-    const encoded = JSON.stringify(frame);
+    const encoded = serializeWireJson(frame);
     const pipeline = this.#commands.pipeline();
 
     if (this.#streamMaxLen > 0) {
@@ -287,7 +297,7 @@ export class RedisRunEventBus implements RunEventBus {
     // say) to outlive its own TTL, at which point the next XADD recreates the key with no expiry at
     // all and the stream leaks in Redis permanently.
     pipeline.expire(streamKey, this.#streamTtlSeconds);
-    // Concatenated rather than re-stringified: `JSON.stringify` always returns well-formed JSON, so
+    // Concatenated rather than re-stringified: `serializeWireJson` always returns well-formed JSON, so
     // embedding it in a value position is safe and saves encoding the frame a second time.
     pipeline.publish(
       this.#channelKey(runId),

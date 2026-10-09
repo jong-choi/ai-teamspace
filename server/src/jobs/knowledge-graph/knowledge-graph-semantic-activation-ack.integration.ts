@@ -1,12 +1,10 @@
-import {
-  createSemanticFlowContext,
-  describeSemanticFlow,
-} from '@/knowledge-graph/testing/semantic-flow.context';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
+import { createSemanticFlowContext } from '@/knowledge-graph/testing/semantic-flow.context';
 import { OutboxSemanticSourceState } from '@/outbox/outbox-semantic-source-state';
 
 jest.setTimeout(60_000);
 
-describeSemanticFlow('실제 PG commit 뒤 활성화 응답 유실과 세대 보존', () => {
+describeKnowledgeGraph('실제 PG commit 뒤 활성화 응답 유실과 세대 보존', () => {
   const context = createSemanticFlowContext();
   afterEach(() => jest.restoreAllMocks());
   it('F7-14 활성화 응답이 유실돼도 PG에서 승인한 실제 Neo4j chunk·entity를 지우지 않는다', async () => {

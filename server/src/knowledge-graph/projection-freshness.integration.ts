@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 
 import { DatabaseService } from '@/database/database.service';
 import { databaseSchema } from '@/database/schema';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 import { OutboxAggregateProjectionState } from '@/outbox/outbox-aggregate-projection-state';
 
@@ -10,14 +11,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import { z } from 'zod';
 
-const describeA2 =
-  process.env.KG_TEST_ALLOW_WRITE === '1' &&
-  process.env.DATABASE_URL &&
-  new URL(process.env.DATABASE_URL).pathname === '/graph_p8_a2'
-    ? describe
-    : describe.skip;
-
-describeA2('R8-15 projectionFreshnessBatch PostgreSQL 통합', () => {
+describeKnowledgeGraph('R8-15 projectionFreshnessBatch PostgreSQL 통합', () => {
   jest.setTimeout(120_000);
 
   const organizationId = `p8a2-fresh-${randomUUID()}`;

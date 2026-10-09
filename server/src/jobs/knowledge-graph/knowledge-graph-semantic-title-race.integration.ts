@@ -1,14 +1,12 @@
 import { KnowledgeGraphSemanticReconciliationScheduler } from '@/jobs/knowledge-graph/knowledge-graph-semantic-reconciliation.scheduler';
-import {
-  createSemanticFlowContext,
-  describeSemanticFlow,
-} from '@/knowledge-graph/testing/semantic-flow.context';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
+import { createSemanticFlowContext } from '@/knowledge-graph/testing/semantic-flow.context';
 import { OutboxSemanticSourceState } from '@/outbox/outbox-semantic-source-state';
 
 import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
 
 jest.setTimeout(60_000);
-describeSemanticFlow(
+describeKnowledgeGraph(
   '수동 실행 중 제목 변경과 다른 조직 동명 원본 보존',
   () => {
     const context = createSemanticFlowContext();

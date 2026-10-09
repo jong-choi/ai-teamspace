@@ -1,9 +1,7 @@
 import { KnowledgeGraphProjectionProcessor } from '@/jobs/knowledge-graph/knowledge-graph-projection.processor';
 import { KnowledgeGraphSemanticProcessor } from '@/jobs/knowledge-graph/knowledge-graph-semantic.processor';
-import {
-  createSemanticFlowContext,
-  describeSemanticFlow,
-} from '@/knowledge-graph/testing/semantic-flow.context';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
+import { createSemanticFlowContext } from '@/knowledge-graph/testing/semantic-flow.context';
 import { outboxAggregateVersion as version } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 import { OutboxSemanticSourceState } from '@/outbox/outbox-semantic-source-state';
 
@@ -11,7 +9,7 @@ import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
 import { and, eq } from 'drizzle-orm';
 
 jest.setTimeout(60_000);
-describeSemanticFlow('구조 투영과 의미 실행 worker의 독립 전달', () => {
+describeKnowledgeGraph('구조 투영과 의미 실행 worker의 독립 전달', () => {
   const context = createSemanticFlowContext();
   it('Q7-07 한 worker를 정지해도 다른 queue의 업무는 전달·완료된다', async () => {
     const structural = context.app.get(

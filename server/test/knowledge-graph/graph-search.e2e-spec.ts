@@ -5,9 +5,9 @@ import type { TestingModuleBuilder } from '@nestjs/testing';
 
 import knowledgeGraphConfig from '@/knowledge-graph/config/knowledge-graph.config';
 import { KnowledgeGraphSemanticSearchUnavailableError } from '@/knowledge-graph/domain/graph-search.error';
+import { SemanticProviderError } from '@/knowledge-graph/domain/semantic-error';
 import { semanticPipelineFingerprint } from '@/knowledge-graph/domain/semantic-pipeline';
 import { computeSemanticSourceSignature } from '@/knowledge-graph/domain/semantic-source-signature';
-import { SemanticProviderError } from '@/knowledge-graph/domain/semantic-error';
 import { GraphCompletenessService } from '@/knowledge-graph/graph-completeness.service';
 import { SemanticEmbedder } from '@/knowledge-graph/infrastructure/embedding/semantic-embedder.provider';
 import { KnowledgeGraphSemanticSearchReader } from '@/knowledge-graph/infrastructure/graph/knowledge-graph-semantic-search-reader.provider';
@@ -18,18 +18,12 @@ import { KnowledgeGraphDetailService } from '@/knowledge-graph/knowledge-graph-d
 import { KnowledgeGraphEdgeListService } from '@/knowledge-graph/knowledge-graph-edge-list.service';
 import { KnowledgeGraphExploreService } from '@/knowledge-graph/knowledge-graph-explore.service';
 import { KnowledgeGraphNodeListService } from '@/knowledge-graph/knowledge-graph-node-list.service';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 
 import {
   createRunPrefix,
   KnowledgeGraphHttpFixture,
 } from '@test/knowledge-graph/support/knowledge-graph-http.fixture';
-
-const describeA3Search =
-  process.env.KG_TEST_ALLOW_WRITE === '1' &&
-  process.env.DATABASE_URL &&
-  new URL(process.env.DATABASE_URL).pathname === '/graph_p8_a3'
-    ? describe
-    : describe.skip;
 
 const CANDIDATE_TEXT = 'P8A3_SECRET_NEO4J_CANDIDATE_BODY';
 const DRIVER_SECRET_CANARY = 'H8_DRIVER_SECRET_CANARY';
@@ -47,7 +41,7 @@ interface SearchState {
   indexedFingerprint: string | null;
 }
 
-describeA3Search('H8-12·14·15 지식 그래프 검색 HTTP E2E', () => {
+describeKnowledgeGraph('H8-12·14·15 지식 그래프 검색 HTTP E2E', () => {
   jest.setTimeout(90_000);
 
   const prefix = createRunPrefix('a3-search');

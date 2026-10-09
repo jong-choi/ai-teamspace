@@ -7,6 +7,7 @@ import { databaseSchema } from '@/database/schema';
 import { semanticPipelineFingerprint } from '@/knowledge-graph/domain/semantic-pipeline';
 import { OutboxSemanticSearchStateAdapter } from '@/knowledge-graph/infrastructure/persistence/outbox/outbox-semantic-search-state.adapter';
 import { SemanticSearchStateRepository } from '@/knowledge-graph/infrastructure/persistence/semantic-search-state.repository';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import { outboxAggregateVersion as version } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 import { outboxSemanticSourceState as state } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-semantic-source-state.schema';
 import { OutboxSemanticSourceState } from '@/outbox/outbox-semantic-source-state';
@@ -16,14 +17,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import { z } from 'zod';
 
-const describeIsolated =
-  process.env.KG_TEST_ALLOW_WRITE === '1' &&
-  process.env.DATABASE_URL &&
-  new URL(process.env.DATABASE_URL).pathname === '/graph_p8_a3'
-    ? describe
-    : describe.skip;
-
-describeIsolated('R8-15 검색용 의미 상태 PostgreSQL 통합', () => {
+describeKnowledgeGraph('R8-15 검색용 의미 상태 PostgreSQL 통합', () => {
   jest.setTimeout(90_000);
 
   const organizationId = `p8a3-search-${randomUUID()}`;

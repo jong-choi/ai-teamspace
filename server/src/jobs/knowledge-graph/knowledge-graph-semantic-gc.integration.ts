@@ -1,16 +1,14 @@
 import { SemanticGraphStore } from '@/knowledge-graph/infrastructure/graph/semantic-graph-store.provider';
 import { SemanticIngestionService } from '@/knowledge-graph/semantic-ingestion.service';
-import {
-  createSemanticFlowContext,
-  describeSemanticFlow,
-} from '@/knowledge-graph/testing/semantic-flow.context';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
+import { createSemanticFlowContext } from '@/knowledge-graph/testing/semantic-flow.context';
 import { outboxSemanticSourceState as stateTable } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-semantic-source-state.schema';
 import { OutboxSemanticSourceState } from '@/outbox/outbox-semantic-source-state';
 
 import { eq } from 'drizzle-orm';
 
 jest.setTimeout(60_000);
-describeSemanticFlow(
+describeKnowledgeGraph(
   '실제 의미 GC 실패와 lease takeover 뒤 최신 세대 보존',
   () => {
     const context = createSemanticFlowContext();

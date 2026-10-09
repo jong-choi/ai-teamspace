@@ -5,34 +5,28 @@ import { Logger } from '@nestjs/common';
 import { apikey } from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
 import type { GraphNodeKind } from '@/knowledge-graph/domain/graph-read-contract';
 import {
-  SearchResponseSchema,
   type SearchMode,
   type SearchResponse,
+  SearchResponseSchema,
 } from '@/knowledge-graph/dto/graph-search.dto';
 import {
-  GraphSnapshotSchema,
   type GraphEdge,
   type GraphNode,
   type GraphSnapshot,
+  GraphSnapshotSchema,
 } from '@/knowledge-graph/dto/graph-snapshot.dto';
 import { sourceNodeId } from '@/knowledge-graph/graph-read-support';
 import { KnowledgeGraphExploreService } from '@/knowledge-graph/knowledge-graph-explore.service';
 import { KnowledgeGraphSearchService } from '@/knowledge-graph/knowledge-graph-search.service';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import type { McpScope } from '@/mcp/contracts/mcp-scope';
 
 import {
   type McpActor,
-  type McpMember,
   McpIntegrationApp,
+  type McpMember,
 } from '@test/support/mcp-integration.fixture';
 import { eq } from 'drizzle-orm';
-
-const describeGraphMcp =
-  process.env.KG_TEST_ALLOW_WRITE === '1' &&
-  process.env.DATABASE_URL &&
-  new URL(process.env.DATABASE_URL).pathname === '/graph_p8_query'
-    ? describe
-    : describe.skip;
 
 const WIKI_ONLY_KINDS = [
   'wiki_document',
@@ -47,7 +41,7 @@ const WIKI_PROJECT_SCOPES = [
 
 const MCP_INTERNAL_CANARY = 'M8_INTERNAL_SECRET_CANARY';
 
-describeGraphMcp('M8-02~08 지식 그래프 MCP E2E', () => {
+describeKnowledgeGraph('M8-02~08 지식 그래프 MCP E2E', () => {
   jest.setTimeout(120_000);
 
   let target: McpIntegrationApp;

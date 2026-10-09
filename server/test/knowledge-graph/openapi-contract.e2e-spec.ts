@@ -1,14 +1,8 @@
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import { createOpenApiDocument } from '@/openapi';
 
 import { KnowledgeGraphHttpFixture } from '@test/knowledge-graph/support/knowledge-graph-http.fixture';
 import { z } from 'zod';
-
-const describeOpenApiContract =
-  process.env.KG_TEST_ALLOW_WRITE === '1' &&
-  process.env.DATABASE_URL &&
-  new URL(process.env.DATABASE_URL).pathname === '/graph_p8_query'
-    ? describe
-    : describe.skip;
 
 const OperationSchema = z
   .object({
@@ -25,7 +19,7 @@ const PathSchema = z
   })
   .passthrough();
 
-describeOpenApiContract('H8-20 지식 그래프 OpenAPI 계약', () => {
+describeKnowledgeGraph('H8-20 지식 그래프 OpenAPI 계약', () => {
   let fixture: KnowledgeGraphHttpFixture;
 
   beforeAll(async () => {

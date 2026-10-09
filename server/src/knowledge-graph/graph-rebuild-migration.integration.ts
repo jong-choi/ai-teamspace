@@ -1,5 +1,5 @@
-import { readFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
 
 import { ConfigService } from '@nestjs/config';
 
@@ -10,17 +10,11 @@ import {
 import { DatabaseService } from '@/database/database.service';
 import { semanticPipelineFingerprint } from '@/knowledge-graph/domain/semantic-pipeline';
 import { graphRebuildRequest } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/graph-rebuild-request.schema';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 
 import { eq, sql } from 'drizzle-orm';
 
-const describeIsolated =
-  process.env.KG_TEST_ALLOW_WRITE === '1' &&
-  process.env.DATABASE_URL &&
-  new URL(process.env.DATABASE_URL).pathname === '/graph_p8_a5'
-    ? describe
-    : describe.skip;
-
-describeIsolated('R8-14 rebuild migration 0025', () => {
+describeKnowledgeGraph('R8-14 rebuild migration 0025', () => {
   const prefix = `kg-p8-a5-migration-${randomUUID().slice(0, 8)}`;
   const organizationId = `${prefix}-org`;
   const userId = `${prefix}-user`;

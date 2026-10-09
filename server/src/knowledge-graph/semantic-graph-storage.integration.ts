@@ -12,14 +12,11 @@ import knowledgeGraphConfig from '@/knowledge-graph/config/knowledge-graph.confi
 import type { SemanticStageInput } from '@/knowledge-graph/domain/semantic-generation';
 import { SemanticEmbedder } from '@/knowledge-graph/infrastructure/embedding/semantic-embedder.provider';
 import { LangchainNeo4jSemanticGraphAdapter } from '@/knowledge-graph/infrastructure/graph/langchain-neo4j-semantic-graph.adapter';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 
 import { Document } from '@langchain/core/documents';
 import type { EmbeddingsInterface } from '@langchain/core/embeddings';
 
-const describeWritable =
-  process.env.KG_TEST_ALLOW_WRITE === '1' && process.env.NEO4J_URI
-    ? describe
-    : describe.skip;
 jest.setTimeout(60_000);
 class StorageEmbeddingFixture extends SemanticEmbedder {
   private vector() {
@@ -39,7 +36,7 @@ class StorageEmbeddingFixture extends SemanticEmbedder {
   }
 }
 
-describeWritable(
+describeKnowledgeGraph(
   '실제 CE 의미 staging의 source namespace와 GC 소유 범위',
   () => {
     const orgA = `p7-storage-a-${randomUUID()}`;

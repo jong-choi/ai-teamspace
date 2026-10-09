@@ -13,18 +13,12 @@ import { RequestQuotaDrizzleRepository } from '@/knowledge-graph/infrastructure/
 import { graphRebuildRequest } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/graph-rebuild-request.schema';
 import { requestQuota } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/request-quota.schema';
 import type { GraphSourceAccessProvider } from '@/knowledge-graph/infrastructure/source-access/graph-source-access.provider';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 
 import { jest } from '@jest/globals';
 import { eq, inArray } from 'drizzle-orm';
 
-const describeIsolated =
-  process.env.KG_TEST_ALLOW_WRITE === '1' &&
-  process.env.DATABASE_URL &&
-  new URL(process.env.DATABASE_URL).pathname === '/graph_p8_a5'
-    ? describe
-    : describe.skip;
-
-describeIsolated('R8-08 rebuild 접수 PostgreSQL single-flight', () => {
+describeKnowledgeGraph('R8-08 rebuild 접수 PostgreSQL single-flight', () => {
   const prefix = `kg-p8-a5-request-${randomUUID().slice(0, 8)}`;
   const organizationId = `${prefix}-org`;
   const adminA = `${prefix}-admin-a`;

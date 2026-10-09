@@ -11,20 +11,14 @@ import { KnowledgeGraphRateLimitedError } from '@/knowledge-graph/domain/graph-q
 import { RequestQuotaPersistenceModule } from '@/knowledge-graph/infrastructure/persistence/drizzle/request-quota-persistence.module';
 import { requestQuota } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/request-quota.schema';
 import { RequestQuotaRepository } from '@/knowledge-graph/infrastructure/persistence/request-quota.repository';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 
 import { and, eq } from 'drizzle-orm';
 
 const organizationId = 'kg-p8-quota-organization';
 const actorUserId = 'kg-p8-quota-actor';
 
-const describeIsolated =
-  process.env.KG_TEST_ALLOW_WRITE === '1' &&
-  process.env.DATABASE_URL &&
-  new URL(process.env.DATABASE_URL).pathname === '/graph_p8_query'
-    ? describe
-    : describe.skip;
-
-describeIsolated('R8-04 지식 그래프 요청 한도 PostgreSQL 통합', () => {
+describeKnowledgeGraph('R8-04 지식 그래프 요청 한도 PostgreSQL 통합', () => {
   let moduleRef: TestingModule;
   let databaseService: DatabaseService;
   let quota: RequestQuotaRepository;

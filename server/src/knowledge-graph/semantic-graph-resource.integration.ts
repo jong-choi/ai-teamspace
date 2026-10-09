@@ -14,16 +14,13 @@ import { SemanticEmbedder } from '@/knowledge-graph/infrastructure/embedding/sem
 import { LangchainNeo4jSemanticGraphAdapter } from '@/knowledge-graph/infrastructure/graph/langchain-neo4j-semantic-graph.adapter';
 import { READ_SEMANTIC_VECTOR_INDEX } from '@/knowledge-graph/infrastructure/graph/semantic-vector-index';
 import { deleteSemanticNodesQuery } from '@/knowledge-graph/semantic-graph-queries';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 
 import { Document } from '@langchain/core/documents';
 import type { EmbeddingsInterface } from '@langchain/core/embeddings';
 import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
 import { z } from 'zod';
 
-const describeWritable =
-  process.env.KG_TEST_ALLOW_WRITE === '1' && process.env.NEO4J_URI
-    ? describe
-    : describe.skip;
 const vector = () => [1, ...Array.from({ length: 767 }, () => 0)];
 class ResourceEmbeddingFixture extends SemanticEmbedder {
   async embedDocuments(texts: readonly string[]) {
@@ -54,7 +51,7 @@ function inUseCounts(store: Neo4jVectorStore) {
     .parse(Reflect.get(current, '_activeResourceCounts'));
 }
 
-describeWritable('실제 CE의 대량 벡터 저장과 연결 자원·검색 범위', () => {
+describeKnowledgeGraph('실제 CE의 대량 벡터 저장과 연결 자원·검색 범위', () => {
   jest.setTimeout(60_000);
   const orgA = `p7-resource-a-${randomUUID()}`;
   const orgB = `p7-resource-b-${randomUUID()}`;

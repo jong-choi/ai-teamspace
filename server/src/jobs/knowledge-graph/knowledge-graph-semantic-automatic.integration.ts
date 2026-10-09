@@ -10,10 +10,8 @@ import { KnowledgeGraphSemanticOutboxTransport } from '@/jobs/knowledge-graph/kn
 import { deriveSemanticIndexStatus } from '@/knowledge-graph/domain/semantic-index-status';
 import { semanticPipelineFingerprint } from '@/knowledge-graph/domain/semantic-pipeline';
 import { computeSemanticSourceSignature } from '@/knowledge-graph/domain/semantic-source-signature';
-import {
-  createSemanticFlowContext,
-  describeSemanticFlow,
-} from '@/knowledge-graph/testing/semantic-flow.context';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
+import { createSemanticFlowContext } from '@/knowledge-graph/testing/semantic-flow.context';
 import { outboxSemanticSourceState } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-semantic-source-state.schema';
 import { KNOWLEDGE_GRAPH_SEMANTIC_CHANGED_TOPIC } from '@/outbox/outbox-semantic-event.schema';
 import { OutboxSemanticSourceState } from '@/outbox/outbox-semantic-source-state';
@@ -23,7 +21,7 @@ import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
 import { eq } from 'drizzle-orm';
 
 jest.setTimeout(60_000);
-describeSemanticFlow(
+describeKnowledgeGraph(
   '실제 자동 의미 색인의 quiet·relay 관측·재기동 복구',
   () => {
     const context = createSemanticFlowContext();

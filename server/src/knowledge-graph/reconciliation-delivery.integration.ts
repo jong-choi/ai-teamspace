@@ -1,10 +1,8 @@
 import { KnowledgeGraphProjectionProcessor } from '@/jobs/knowledge-graph/knowledge-graph-projection.processor';
 import { KnowledgeGraphReconciliationScheduler } from '@/jobs/knowledge-graph/knowledge-graph-reconciliation.scheduler';
 import { KnowledgeGraphWriter } from '@/knowledge-graph/infrastructure/graph/knowledge-graph-writer.provider';
-import {
-  createReconciliationRecoveryContext,
-  describeRecovery,
-} from '@/knowledge-graph/testing/reconciliation-recovery.context';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
+import { createReconciliationRecoveryContext } from '@/knowledge-graph/testing/reconciliation-recovery.context';
 import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 import { ProjectRepository } from '@/projects/infrastructure/persistence/project.repository';
 
@@ -13,7 +11,7 @@ import { and, eq } from 'drizzle-orm';
 
 jest.setTimeout(120_000);
 
-describeRecovery('전달 장애에서 실제 PG·Redis·Jobs·Neo4j 복구', () => {
+describeKnowledgeGraph('전달 장애에서 실제 PG·Redis·Jobs·Neo4j 복구', () => {
   const context = createReconciliationRecoveryContext();
 
   it('F-01 relay ack 뒤 자기 Redis queue가 유실돼도 PG 기준으로 30개 원본이 수렴한다', async () => {

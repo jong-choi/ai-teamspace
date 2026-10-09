@@ -15,6 +15,7 @@ import { LangchainNeo4jGraphAdapter } from '@/knowledge-graph/infrastructure/gra
 import { GraphRebuildWorkerDrizzleRepository } from '@/knowledge-graph/infrastructure/persistence/drizzle/repositories/graph-rebuild-worker.repository';
 import { graphRebuildRequest } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/graph-rebuild-request.schema';
 import type { SemanticRefreshService } from '@/knowledge-graph/semantic-refresh.service';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 import { OutboxAggregateChangePublisher } from '@/outbox/outbox-aggregate-change.publisher';
 import { OutboxAggregateVersionSchema } from '@/outbox/outbox-aggregate-event.schema';
@@ -22,14 +23,7 @@ import { WikiProjectionSourceSchema } from '@/wiki/domain/wiki-projection-source
 
 import { and, eq } from 'drizzle-orm';
 
-const enabled =
-  process.env.KG_TEST_ALLOW_WRITE === '1' &&
-  process.env.DATABASE_URL &&
-  new URL(process.env.DATABASE_URL).pathname === '/graph_p8_a5' &&
-  Boolean(process.env.NEO4J_URI);
-const describeIsolated = enabled ? describe : describe.skip;
-
-describeIsolated('F8-05 rebuild 중 live write 최신 CAS', () => {
+describeKnowledgeGraph('F8-05 rebuild 중 live write 최신 CAS', () => {
   const orgA = `kg-p8-a5-f805-a-${randomUUID()}`;
   const orgB = `kg-p8-a5-f805-b-${randomUUID()}`;
   const requesterId = `${orgA}-requester`;

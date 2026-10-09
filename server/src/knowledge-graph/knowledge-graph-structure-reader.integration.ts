@@ -26,6 +26,7 @@ import {
   READ_STRUCTURE_EDGES,
   READ_STRUCTURE_NEIGHBORS,
 } from '@/knowledge-graph/knowledge-graph-read-queries';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 import { outboxSemanticSourceState } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-semantic-source-state.schema';
 import { OutboxAggregateProjectionState } from '@/outbox/outbox-aggregate-projection-state';
@@ -35,17 +36,7 @@ import { and, eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 
-const describeA2 =
-  process.env.KG_TEST_ALLOW_WRITE === '1' &&
-  process.env.DATABASE_URL &&
-  new URL(process.env.DATABASE_URL).pathname === '/graph_p8_a2' &&
-  process.env.NEO4J_URI &&
-  process.env.NEO4J_USERNAME &&
-  process.env.NEO4J_PASSWORD
-    ? describe
-    : describe.skip;
-
-describeA2('N8-03·04·05·08·09 A2 구조 조회 통합', () => {
+describeKnowledgeGraph('N8-03·04·05·08·09 A2 구조 조회 통합', () => {
   jest.setTimeout(90_000);
 
   const organizationId = `p8a2-reader-${randomUUID()}`;

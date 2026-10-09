@@ -629,6 +629,8 @@ server/
 - Electron adapter test는 renderer에 raw privileged API가 노출되지 않는지 확인한다.
 - 기존 테스트가 실패할 때 구현에 맞춰 테스트를 먼저 약화하거나 삭제하지 않는다.
 - 실제 contract 변경인지 regression인지 확인한 뒤 수정한다.
+- integration/E2E test가 여는 Nest module·Redis·DB·Neo4j 연결은 setup 실패를 포함한 모든 경로에서 닫아 Jest가 `forceExit` 없이 종료되게 하고, 기능 플래그·환경 값은 셸에 기대지 않고 test 안에서 명시한 뒤 복원한다.
+- 실제 저장소에 쓰는 test는 suite별 전용 DB·gate를 만들지 않고 공용 opt-in gate를 사용해 단일 검증 환경에서 순차 실행되게 하며, 환경이 맞지 않으면 조용히 skip하지 않고 실패시킨다.
 
 # architecture 검사
 

@@ -6,17 +6,15 @@ import {
 } from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
 import { digestGraphJson } from '@/knowledge-graph/domain/graph-json-digest';
 import { reconciliationScope } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/reconciliation-scope.schema';
-import {
-  createReconciliationRecoveryContext,
-  describeRecovery,
-} from '@/knowledge-graph/testing/reconciliation-recovery.context';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
+import { createReconciliationRecoveryContext } from '@/knowledge-graph/testing/reconciliation-recovery.context';
 import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 
 import { eq } from 'drizzle-orm';
 
 jest.setTimeout(120_000);
 
-describeRecovery('실제 membership 관찰·조직 삭제의 1K 처리량', () => {
+describeKnowledgeGraph('실제 membership 관찰·조직 삭제의 1K 처리량', () => {
   const context = createReconciliationRecoveryContext();
 
   it('membership 1K의 실제 Better Auth 관찰은 의도가 없으면 seq를 유지하고 순환한다', async () => {

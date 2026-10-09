@@ -2,17 +2,15 @@ import { Logger } from '@nestjs/common';
 
 import { KnowledgeGraphSemanticReconciliationScheduler } from '@/jobs/knowledge-graph/knowledge-graph-semantic-reconciliation.scheduler';
 import { SemanticProviderError } from '@/knowledge-graph/domain/semantic-error';
-import {
-  createSemanticFlowContext,
-  describeSemanticFlow,
-} from '@/knowledge-graph/testing/semantic-flow.context';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
+import { createSemanticFlowContext } from '@/knowledge-graph/testing/semantic-flow.context';
 import { OutboxSemanticSourceState } from '@/outbox/outbox-semantic-source-state';
 
 import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
 
 jest.setTimeout(60_000);
 
-describeSemanticFlow(
+describeKnowledgeGraph(
   '공급자 실패의 실제 Jobs 시도 상한과 기존 활성 세대 보존',
   () => {
     const context = createSemanticFlowContext();

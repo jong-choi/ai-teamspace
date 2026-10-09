@@ -16,7 +16,6 @@ import {
 } from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
 import databaseConfig from '@/database/config/database.config';
 import { DatabaseService } from '@/database/database.service';
-import { JobsModule } from '@/jobs/jobs.module';
 import { KnowledgeGraphReconciliationScheduler } from '@/jobs/knowledge-graph/knowledge-graph-reconciliation.scheduler';
 import { KNOWLEDGE_GRAPH_SEMANTIC_QUEUE } from '@/jobs/knowledge-graph/knowledge-graph-semantic.job';
 import { KnowledgeGraphSemanticReconciliationScheduler } from '@/jobs/knowledge-graph/knowledge-graph-semantic-reconciliation.scheduler';
@@ -41,14 +40,6 @@ import type { EmbeddingsInterface } from '@langchain/core/embeddings';
 import { Queue } from 'bullmq';
 import { eq } from 'drizzle-orm';
 import * as Y from 'yjs';
-
-export const describeSemanticFlow =
-  process.env.KG_TEST_ALLOW_WRITE === '1' &&
-  process.env.NEO4J_URI &&
-  process.env.DATABASE_URL &&
-  new URL(process.env.DATABASE_URL).pathname === '/graph_p7_semantic'
-    ? describe
-    : describe.skip;
 
 export class TestSemanticExtractor extends SemanticGraphExtractor {
   readonly calls: string[] = [];
@@ -111,9 +102,21 @@ export function createSemanticFlowContext(liveProviders = false) {
   let queue: Queue;
   const contexts = new Set<TestingModule>();
   const originalPrefix = process.env.BULLMQ_PREFIX;
+  const flagKeys = [
+    'KG_PROJECTION_ENABLED',
+    'KG_SEMANTIC_ENABLED',
+    'GEMINI_API_KEY',
+  ] as const;
+  const originalFlags = flagKeys.map((key) => process.env[key]);
 
   beforeAll(async () => {
     process.env.BULLMQ_PREFIX = `kg-p7-flow-${randomUUID()}`;
+    // 의미 색인 Jobs 결선은 기능 플래그에 달려 있으므로 실행 셸 환경에 기대지 않고 명시한다.
+    process.env.KG_PROJECTION_ENABLED = 'true';
+    process.env.KG_SEMANTIC_ENABLED = 'true';
+    // 대역 provider를 쓰면 실제 key를 호출하지 않지만 설정 검증은 통과해야 하므로 자리값을 둔다.
+    if (!liveProviders)
+      process.env.GEMINI_API_KEY ||= 'semantic-flow-test-placeholder';
     app = await startJobs();
     database = app.get(DatabaseService).db;
     wiki = app.get(WikiRepository);
@@ -142,6 +145,8 @@ export function createSemanticFlowContext(liveProviders = false) {
     });
   });
   async function startJobs() {
+    // KnowledgeGraphSemanticJobsModule은 ConditionalModule로 jobs.module 로드 시점에 결선이 정해지므로 플래그를 켠 뒤 불러온다.
+    const { JobsModule } = await import('@/jobs/jobs.module');
     const builder = Test.createTestingModule({
       imports: [
         JobsModule,
@@ -156,7 +161,14 @@ export function createSemanticFlowContext(liveProviders = false) {
     }
     const next = await builder.compile();
     contexts.add(next);
-    await next.init();
+    try {
+      await next.init();
+    } catch (error) {
+      // 초기화 실패 시 이미 열린 Redis·DB 연결이 남아 jest가 끝나지 않으므로 바로 닫는다.
+      contexts.delete(next);
+      await next.close();
+      throw error;
+    }
     await next.get(KnowledgeGraphReconciliationScheduler).onModuleDestroy();
     await next
       .get(KnowledgeGraphSemanticReconciliationScheduler)
@@ -236,6 +248,11 @@ export function createSemanticFlowContext(liveProviders = false) {
     }
     if (originalPrefix === undefined) delete process.env.BULLMQ_PREFIX;
     else process.env.BULLMQ_PREFIX = originalPrefix;
+    flagKeys.forEach((key, index) => {
+      const value = originalFlags[index];
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    });
   });
   async function indexed(
     documentId: string,

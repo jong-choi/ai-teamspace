@@ -5,10 +5,8 @@ import {
   SemanticJobDataSchema,
 } from '@/jobs/knowledge-graph/knowledge-graph-semantic.job';
 import { KnowledgeGraphSemanticProcessor } from '@/jobs/knowledge-graph/knowledge-graph-semantic.processor';
-import {
-  createSemanticFlowContext,
-  describeSemanticFlow,
-} from '@/knowledge-graph/testing/semantic-flow.context';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
+import { createSemanticFlowContext } from '@/knowledge-graph/testing/semantic-flow.context';
 import { outboxSemanticSourceState as stateTable } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-semantic-source-state.schema';
 import { OutboxSemanticSourceState } from '@/outbox/outbox-semantic-source-state';
 import { wikiDocument } from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-document.schema';
@@ -17,7 +15,7 @@ import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
 import { eq } from 'drizzle-orm';
 
 jest.setTimeout(60_000);
-describeSemanticFlow(
+describeKnowledgeGraph(
   'waiting 자동 작업의 최신 PG 재조회와 quiet 자기 재예약',
   () => {
     const context = createSemanticFlowContext();

@@ -3,14 +3,12 @@ import { randomUUID } from 'node:crypto';
 import { semanticCorrection } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/semantic-correction.schema';
 import { SemanticCorrectionInsertSchema } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/semantic-correction.zod';
 import { SemanticCorrectionService } from '@/knowledge-graph/semantic-correction.service';
-import {
-  createSemanticFlowContext,
-  describeSemanticFlow,
-} from '@/knowledge-graph/testing/semantic-flow.context';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
+import { createSemanticFlowContext } from '@/knowledge-graph/testing/semantic-flow.context';
 
 jest.setTimeout(60_000);
 
-describeSemanticFlow('의미 보정의 조직 격리와 삭제 fail closed', () => {
+describeKnowledgeGraph('의미 보정의 조직 격리와 삭제 fail closed', () => {
   const context = createSemanticFlowContext();
 
   it('F7-18 다른 조직에는 보정을 적용하지 않고 삭제 원본의 보정은 보존하되 노출하지 않는다', async () => {

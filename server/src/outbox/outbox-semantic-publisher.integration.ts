@@ -6,6 +6,7 @@ import { Test, type TestingModule } from '@nestjs/testing';
 
 import databaseConfig from '@/database/config/database.config';
 import { DatabaseService } from '@/database/database.service';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 import { OutboxInfrastructureModule } from '@/outbox/outbox.module';
 import { OutboxAggregateChangePublisher } from '@/outbox/outbox-aggregate-change.publisher';
@@ -14,14 +15,7 @@ import { KNOWLEDGE_GRAPH_SEMANTIC_CHANGED_TOPIC } from '@/outbox/outbox-semantic
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
-const describeIsolated =
-  process.env.KG_TEST_ALLOW_WRITE === '1' &&
-  process.env.DATABASE_URL &&
-  new URL(process.env.DATABASE_URL).pathname === '/graph_p7_semantic'
-    ? describe
-    : describe.skip;
-
-describeIsolated('그래프 변경 publisher의 의미 메시지 소유 범위', () => {
+describeKnowledgeGraph('그래프 변경 publisher의 의미 메시지 소유 범위', () => {
   const organizationId = `p7-publisher-${randomUUID()}`;
   let moduleRef: TestingModule;
   let database: DatabaseService['db'];

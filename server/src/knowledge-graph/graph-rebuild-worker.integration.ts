@@ -14,25 +14,20 @@ import { graphRebuildRequest } from '@/knowledge-graph/infrastructure/persistenc
 import type { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
 import type { GraphSourceAccessProvider } from '@/knowledge-graph/infrastructure/source-access/graph-source-access.provider';
 import type { SemanticRefreshService } from '@/knowledge-graph/semantic-refresh.service';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 import { OutboxAggregateChangePublisher } from '@/outbox/outbox-aggregate-change.publisher';
 
 import { jest } from '@jest/globals';
 import { and, eq } from 'drizzle-orm';
 
-const describeIsolated =
-  process.env.KG_TEST_ALLOW_WRITE === '1' &&
-  process.env.DATABASE_URL &&
-  new URL(process.env.DATABASE_URL).pathname === '/graph_p8_a5'
-    ? describe
-    : describe.skip;
-
-describeIsolated('R8-09~13 rebuild worker PostgreSQL', () => {
+describeKnowledgeGraph('R8-09~13 rebuild worker PostgreSQL', () => {
   const prefix = `kg-p8-a5-worker-${randomUUID().slice(0, 8)}`;
   const organizationId = `${prefix}-org`;
   const requesterId = `${prefix}-requester`;
   let database: DatabaseService;
-  const outboxAdd = jest.fn(async () => undefined);
+  const outboxAdd =
+    jest.fn<(transaction: unknown, message: unknown) => Promise<undefined>>();
   let publisher: OutboxAggregateChangePublisher;
   let worker: GraphRebuildWorkerDrizzleRepository;
 

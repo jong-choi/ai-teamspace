@@ -1,15 +1,13 @@
 import { KnowledgeGraphSemanticReconciliationScheduler } from '@/jobs/knowledge-graph/knowledge-graph-semantic-reconciliation.scheduler';
-import {
-  createSemanticFlowContext,
-  describeSemanticFlow,
-} from '@/knowledge-graph/testing/semantic-flow.context';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
+import { createSemanticFlowContext } from '@/knowledge-graph/testing/semantic-flow.context';
 import { OutboxSemanticSourceState } from '@/outbox/outbox-semantic-source-state';
 
 import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
 
 jest.setTimeout(60_000);
 
-describeSemanticFlow('실제 의미 queue 유실 뒤 영속 수동 요청 복구', () => {
+describeKnowledgeGraph('실제 의미 queue 유실 뒤 영속 수동 요청 복구', () => {
   const context = createSemanticFlowContext();
   it('F7-16 수동 전달 후 자기 queue 데이터가 유실돼도 PG gap으로 추가 quiet 없이 복구한다', async () => {
     await context.queue.pause();

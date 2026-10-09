@@ -5,10 +5,8 @@ import { KnowledgeGraphMembershipBridge } from '@/jobs/knowledge-graph/knowledge
 import { CuratedGraphService } from '@/knowledge-graph/curated-graph.service';
 import { reconciliationScope } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/reconciliation-scope.schema';
 import { KnowledgeGraphReconciliationService } from '@/knowledge-graph/knowledge-graph-reconciliation.service';
-import {
-  createReconciliationRecoveryContext,
-  describeRecovery,
-} from '@/knowledge-graph/testing/reconciliation-recovery.context';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
+import { createReconciliationRecoveryContext } from '@/knowledge-graph/testing/reconciliation-recovery.context';
 import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 import { ProjectColumnRepository } from '@/projects/infrastructure/persistence/project-column.repository';
 import { TicketRepository } from '@/projects/infrastructure/persistence/ticket.repository';
@@ -17,7 +15,7 @@ import { and, eq } from 'drizzle-orm';
 
 jest.setTimeout(120_000);
 
-describeRecovery('회원 변경·조직 삭제의 실제 그래프 복구', () => {
+describeKnowledgeGraph('회원 변경·조직 삭제의 실제 그래프 복구', () => {
   const context = createReconciliationRecoveryContext();
 
   it('F-04 Better Auth role·탈퇴·재가입 의도 유실은 applied membership 관찰로 복구한다', async () => {

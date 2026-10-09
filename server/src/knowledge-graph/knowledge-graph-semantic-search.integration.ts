@@ -12,18 +12,11 @@ import {
   SHOW_SEMANTIC_VECTOR_INDEX,
 } from '@/knowledge-graph/knowledge-graph-search-queries';
 import { SEMANTIC_GRAPH_INITIALIZATION } from '@/knowledge-graph/semantic-graph-queries';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 
 import neo4j, { type Driver, type Plan, type Session } from 'neo4j-driver';
 
-const describeWritable =
-  process.env.KG_TEST_ALLOW_WRITE === '1' &&
-  process.env.NEO4J_URI &&
-  process.env.NEO4J_USERNAME &&
-  process.env.NEO4J_PASSWORD
-    ? describe
-    : describe.skip;
-
-describeWritable('N8-01·06 실제 Neo4j 의미 검색', () => {
+describeKnowledgeGraph('N8-01·06 실제 Neo4j 의미 검색', () => {
   jest.setTimeout(90_000);
 
   const organizationId = `p8a3-n8-org-${randomUUID()}`;

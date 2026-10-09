@@ -13,17 +13,11 @@ import {
 } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/semantic-correction.schema';
 import { SemanticCorrectionPersistenceModule } from '@/knowledge-graph/infrastructure/persistence/drizzle/semantic-correction-persistence.module';
 import { SemanticCorrectionRepository } from '@/knowledge-graph/infrastructure/persistence/semantic-correction.repository';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 
 import { and, eq } from 'drizzle-orm';
 
-const describeGraphCommandIntegration =
-  process.env.KG_TEST_ALLOW_WRITE === '1' &&
-  process.env.DATABASE_URL &&
-  new URL(process.env.DATABASE_URL).pathname === '/graph_p8_a4'
-    ? describe
-    : describe.skip;
-
-describeGraphCommandIntegration('R8-07 보정 PostgreSQL 원자 편집', () => {
+describeKnowledgeGraph('R8-07 보정 PostgreSQL 원자 편집', () => {
   const organizationId = `p8a4-${randomUUID()}`;
   const actorUserId = `p8a4-actor-${randomUUID()}`;
   const sourceId = '11111111-1111-4111-8111-111111111111';

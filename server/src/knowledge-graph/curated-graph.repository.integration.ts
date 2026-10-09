@@ -23,6 +23,7 @@ import { CuratedGraphPersistenceModule } from '@/knowledge-graph/infrastructure/
 import { curatedEdge } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/curated-edge.schema';
 import { curatedEditAudit } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/curated-edit-audit.schema';
 import { curatedNode } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/curated-node.schema';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 import { OutboxAggregateChangePublisher } from '@/outbox/outbox-aggregate-change.publisher';
 import { project } from '@/projects/infrastructure/persistence/drizzle/schema/project.schema';
@@ -37,7 +38,7 @@ const organizationAId = 'kg-curated-integration-org-a';
 const organizationBId = 'kg-curated-integration-org-b';
 const actorUserId = 'kg-curated-integration-user';
 
-describe('curated 그래프 PostgreSQL owner 통합', () => {
+describeKnowledgeGraph('curated 그래프 PostgreSQL owner 통합', () => {
   let moduleRef: TestingModule;
   let database: DatabaseService['db'];
   let repository: CuratedGraphRepository;

@@ -1,15 +1,13 @@
 import { ToolCallingGraphExtractionError } from '@repo/knowledge-graph';
-import {
-  createSemanticFlowContext,
-  describeSemanticFlow,
-} from '@/knowledge-graph/testing/semantic-flow.context';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
+import { createSemanticFlowContext } from '@/knowledge-graph/testing/semantic-flow.context';
 import { OutboxSemanticSourceState } from '@/outbox/outbox-semantic-source-state';
 
 import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
 
 jest.setTimeout(60_000);
 
-describeSemanticFlow(
+describeKnowledgeGraph(
   'Tool Calling 검증 실패와 유효한 빈 결과의 실제 세대 처리',
   () => {
     const context = createSemanticFlowContext();

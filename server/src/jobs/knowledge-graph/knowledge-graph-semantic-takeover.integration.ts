@@ -1,9 +1,7 @@
 import { KnowledgeGraphSemanticProcessor } from '@/jobs/knowledge-graph/knowledge-graph-semantic.processor';
 import { SemanticJobQueueProvider } from '@/knowledge-graph/infrastructure/queue/semantic-job-queue.provider';
-import {
-  createSemanticFlowContext,
-  describeSemanticFlow,
-} from '@/knowledge-graph/testing/semantic-flow.context';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
+import { createSemanticFlowContext } from '@/knowledge-graph/testing/semantic-flow.context';
 import { outboxSemanticSourceState } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-semantic-source-state.schema';
 import { OutboxSemanticSourceState } from '@/outbox/outbox-semantic-source-state';
 
@@ -13,7 +11,7 @@ import * as Y from 'yjs';
 
 jest.setTimeout(60_000);
 
-describeSemanticFlow('본문 변경과 만료 lease의 두 Jobs takeover', () => {
+describeKnowledgeGraph('본문 변경과 만료 lease의 두 Jobs takeover', () => {
   const context = createSemanticFlowContext();
   it('F7-06 이전 추출이 늦게 끝나도 둘째 Jobs의 최신 snapshot과 활성 세대를 덮지 않는다', async () => {
     const oldText = '이전 추출 본문';

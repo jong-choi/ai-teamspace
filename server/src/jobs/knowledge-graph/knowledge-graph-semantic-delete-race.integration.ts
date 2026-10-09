@@ -1,17 +1,15 @@
 import { randomUUID } from 'node:crypto';
 
 import { SemanticJobQueueProvider } from '@/knowledge-graph/infrastructure/queue/semantic-job-queue.provider';
-import {
-  createSemanticFlowContext,
-  describeSemanticFlow,
-} from '@/knowledge-graph/testing/semantic-flow.context';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
+import { createSemanticFlowContext } from '@/knowledge-graph/testing/semantic-flow.context';
 import { OutboxSemanticSourceState } from '@/outbox/outbox-semantic-source-state';
 
 import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
 
 jest.setTimeout(60_000);
 
-describeSemanticFlow('문서 삭제와 진행 중 수동 추출의 최신 원본 경합', () => {
+describeKnowledgeGraph('문서 삭제와 진행 중 수동 추출의 최신 원본 경합', () => {
   const context = createSemanticFlowContext();
   it('F7-10·17 수동 추출 중 삭제와 늦은 작업은 원본을 부활시키지 않는다', async () => {
     const text = '삭제 경합에서 지윤의 이전 추출을 검증한다.';

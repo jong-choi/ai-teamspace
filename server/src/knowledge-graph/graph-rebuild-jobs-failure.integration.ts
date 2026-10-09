@@ -22,6 +22,7 @@ import { graphRebuildRequest } from '@/knowledge-graph/infrastructure/persistenc
 import type { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
 import type { GraphSourceAccessProvider } from '@/knowledge-graph/infrastructure/source-access/graph-source-access.provider';
 import type { SemanticRefreshService } from '@/knowledge-graph/semantic-refresh.service';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 import { OutboxAggregateChangePublisher } from '@/outbox/outbox-aggregate-change.publisher';
 import { OutboxAggregateProjectionState } from '@/outbox/outbox-aggregate-projection-state';
@@ -31,18 +32,8 @@ import { Queue } from 'bullmq';
 import { and, eq, inArray } from 'drizzle-orm';
 
 const redisUrl = process.env.REDIS_QUEUE_URL;
-const localRedis =
-  redisUrl && ['127.0.0.1', 'localhost'].includes(new URL(redisUrl).hostname);
 
-const describeIsolated =
-  process.env.KG_TEST_ALLOW_WRITE === '1' &&
-  process.env.DATABASE_URL &&
-  new URL(process.env.DATABASE_URL).pathname === '/graph_p8_a5' &&
-  localRedis
-    ? describe
-    : describe.skip;
-
-describeIsolated('F8-06 rebuild Jobs 장애 복구 전체 흐름', () => {
+describeKnowledgeGraph('F8-06 rebuild Jobs 장애 복구 전체 흐름', () => {
   jest.setTimeout(120_000);
 
   const prefix = `kg-p8-a5-f806-${randomUUID().slice(0, 8)}`;

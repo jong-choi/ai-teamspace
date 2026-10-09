@@ -1,14 +1,12 @@
 import { SemanticCorrectionService } from '@/knowledge-graph/semantic-correction.service';
-import {
-  createSemanticFlowContext,
-  describeSemanticFlow,
-} from '@/knowledge-graph/testing/semantic-flow.context';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
+import { createSemanticFlowContext } from '@/knowledge-graph/testing/semantic-flow.context';
 
 import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
 
 jest.setTimeout(90_000);
 
-describeSemanticFlow('실제 PG·Jobs·Neo4j 의미 보정과 최신 overlay', () => {
+describeKnowledgeGraph('실제 PG·Jobs·Neo4j 의미 보정과 최신 overlay', () => {
   const context = createSemanticFlowContext();
 
   it('F7-18 label과 predicate 보정은 재색인 뒤 유지되고 짝 취소는 한 revision으로 원본을 복원한다', async () => {

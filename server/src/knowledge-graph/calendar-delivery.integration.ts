@@ -15,6 +15,7 @@ import { MeetingRoomRepository } from '@/calendar/infrastructure/persistence/mee
 import { DatabaseService } from '@/database/database.service';
 import { JobsModule } from '@/jobs/jobs.module';
 import knowledgeGraphConfig from '@/knowledge-graph/config/knowledge-graph.config';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 
 import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
@@ -22,12 +23,7 @@ import { and, eq } from 'drizzle-orm';
 
 jest.setTimeout(30_000);
 
-const describeWritable =
-  process.env.KG_TEST_ALLOW_WRITE === '1' && process.env.NEO4J_URI
-    ? describe
-    : describe.skip;
-
-describeWritable('Calendar의 실제 PG·Jobs·Neo4j 연결', () => {
+describeKnowledgeGraph('Calendar의 실제 PG·Jobs·Neo4j 연결', () => {
   const organizationId = `kg-calendar-flow-${randomUUID()}`;
   const actorId = `kg-calendar-actor-${randomUUID()}`;
   const attendeeId = `kg-calendar-attendee-${randomUUID()}`;

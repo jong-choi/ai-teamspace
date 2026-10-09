@@ -13,6 +13,7 @@ import { JobsModule } from '@/jobs/jobs.module';
 import { KnowledgeGraphJobsModule } from '@/jobs/knowledge-graph/knowledge-graph-jobs.module';
 import knowledgeGraphConfig from '@/knowledge-graph/config/knowledge-graph.config';
 import { KnowledgeGraphProjectionService } from '@/knowledge-graph/knowledge-graph-projection.service';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 import { OutboxAggregateProjectionState } from '@/outbox/outbox-aggregate-projection-state';
 import { WikiDrizzlePersistenceModule } from '@/wiki/infrastructure/persistence/drizzle/drizzle-persistence.module';
@@ -23,11 +24,7 @@ import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
 import { and, eq } from 'drizzle-orm';
 import * as Y from 'yjs';
 
-const writable =
-  process.env.KG_TEST_ALLOW_WRITE === '1' && Boolean(process.env.NEO4J_URI);
-const describeWritable = writable ? describe : describe.skip;
-
-describeWritable('Wiki의 PG commit과 실제 Jobs·Neo4j 투영', () => {
+describeKnowledgeGraph('Wiki의 PG commit과 실제 Jobs·Neo4j 투영', () => {
   const organizationId = `kg-wiki-flow-${randomUUID()}`;
   const actorId = `kg-wiki-flow-actor-${randomUUID()}`;
   const original = new Map<string, string | undefined>();

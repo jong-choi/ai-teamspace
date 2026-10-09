@@ -4,17 +4,15 @@ import { promisify } from 'node:util';
 import { KnowledgeGraphSemanticReconciliationScheduler } from '@/jobs/knowledge-graph/knowledge-graph-semantic-reconciliation.scheduler';
 import { deriveSemanticIndexStatus } from '@/knowledge-graph/domain/semantic-index-status';
 import { semanticPipelineFingerprint } from '@/knowledge-graph/domain/semantic-pipeline';
-import {
-  createSemanticFlowContext,
-  describeSemanticFlow,
-} from '@/knowledge-graph/testing/semantic-flow.context';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
+import { createSemanticFlowContext } from '@/knowledge-graph/testing/semantic-flow.context';
 import { OutboxSemanticSourceState } from '@/outbox/outbox-semantic-source-state';
 
 import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
 
 const docker = promisify(execFile);
 jest.setTimeout(60_000);
-describeSemanticFlow('격리 Redis 장애 중 영속 수동 접수와 즉시 복구', () => {
+describeKnowledgeGraph('격리 Redis 장애 중 영속 수동 접수와 즉시 복구', () => {
   const context = createSemanticFlowContext();
   it('F7-08 Redis 장애에도 PG 접수·accepted를 보존하고 복구 뒤 추가 quiet 없이 완료한다', async () => {
     if (process.env.REDIS_QUEUE_URL !== 'redis://127.0.0.1:46380/0')

@@ -4,12 +4,13 @@ import { Module } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { JobsModule } from '@/jobs/jobs.module';
-import { KnowledgeGraphRebuildOutboxTransport } from '@/jobs/knowledge-graph/knowledge-graph-rebuild-outbox.transport';
 import { KnowledgeGraphRebuildProcessor } from '@/jobs/knowledge-graph/knowledge-graph-rebuild.processor';
+import { KnowledgeGraphRebuildOutboxTransport } from '@/jobs/knowledge-graph/knowledge-graph-rebuild-outbox.transport';
 import { semanticPipelineFingerprint } from '@/knowledge-graph/domain/semantic-pipeline';
-import { KnowledgeGraphReadModule } from '@/knowledge-graph/knowledge-graph-read.module';
-import { McpModule } from '@/mcp/mcp.module';
 import { graphRebuildRequest } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/graph-rebuild-request.schema';
+import { KnowledgeGraphReadModule } from '@/knowledge-graph/knowledge-graph-read.module';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
+import { McpModule } from '@/mcp/mcp.module';
 import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 
 import {
@@ -24,14 +25,7 @@ class DisabledKnowledgeGraphReadModule {}
 @Module({})
 class DisabledMcpModule {}
 
-const describeGraphRebuildE2e =
-  process.env.KG_TEST_ALLOW_WRITE === '1' &&
-  process.env.DATABASE_URL &&
-  new URL(process.env.DATABASE_URL).pathname === '/graph_p8_a5'
-    ? describe
-    : describe.skip;
-
-describeGraphRebuildE2e('graph rebuild HTTP/프로세스 E2E', () => {
+describeKnowledgeGraph('graph rebuild HTTP/프로세스 E2E', () => {
   const prefix = createRunPrefix('rebuild-http');
   const organizationIds = new Set<string>();
   let fx: KnowledgeGraphHttpFixture;

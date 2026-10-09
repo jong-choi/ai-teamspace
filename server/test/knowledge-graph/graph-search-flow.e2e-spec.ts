@@ -8,25 +8,25 @@ import {
 } from '@nestjs/testing';
 
 import { createNeo4jGraph } from '@repo/knowledge-graph';
-import { JobsModule } from '@/jobs/jobs.module';
 import { KnowledgeGraphReconciliationScheduler } from '@/jobs/knowledge-graph/knowledge-graph-reconciliation.scheduler';
 import { KnowledgeGraphSemanticReconciliationScheduler } from '@/jobs/knowledge-graph/knowledge-graph-semantic-reconciliation.scheduler';
 import knowledgeGraphConfig from '@/knowledge-graph/config/knowledge-graph.config';
 import { SearchResponseSchema } from '@/knowledge-graph/dto/graph-search.dto';
+import { SemanticEmbedder } from '@/knowledge-graph/infrastructure/embedding/semantic-embedder.provider';
+import { SemanticGraphExtractor } from '@/knowledge-graph/infrastructure/extraction/semantic-graph-extractor.provider';
 import { KnowledgeGraphDetailService } from '@/knowledge-graph/knowledge-graph-detail.service';
 import { KnowledgeGraphEdgeListService } from '@/knowledge-graph/knowledge-graph-edge-list.service';
 import { KnowledgeGraphExploreService } from '@/knowledge-graph/knowledge-graph-explore.service';
 import { KnowledgeGraphNodeListService } from '@/knowledge-graph/knowledge-graph-node-list.service';
-import { SemanticEmbedder } from '@/knowledge-graph/infrastructure/embedding/semantic-embedder.provider';
-import { SemanticGraphExtractor } from '@/knowledge-graph/infrastructure/extraction/semantic-graph-extractor.provider';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import {
   TestSemanticEmbedder,
   TestSemanticExtractor,
 } from '@/knowledge-graph/testing/semantic-flow.context';
-import { OutboxSemanticSourceState } from '@/outbox/outbox-semantic-source-state';
-import { waitForCondition } from '@/testing/wait-for-condition';
 import { KnowledgeGraphMcpRegistrar } from '@/mcp/tools/knowledge-graph/knowledge-graph-mcp.registrar';
 import { McpKnowledgeScopeResolver } from '@/mcp/tools/knowledge-graph/mcp-knowledge-scope.resolver';
+import { OutboxSemanticSourceState } from '@/outbox/outbox-semantic-source-state';
+import { waitForCondition } from '@/testing/wait-for-condition';
 
 import {
   createRunPrefix,
@@ -36,18 +36,7 @@ import {
   type TestAgent,
 } from '@test/knowledge-graph/support/knowledge-graph-http.fixture';
 
-const describeA3Flow =
-  process.env.KG_TEST_ALLOW_WRITE === '1' &&
-  process.env.DATABASE_URL &&
-  new URL(process.env.DATABASE_URL).pathname === '/graph_p8_a3' &&
-  process.env.NEO4J_URI &&
-  process.env.NEO4J_USERNAME &&
-  process.env.NEO4J_PASSWORD &&
-  process.env.REDIS_QUEUE_URL
-    ? describe
-    : describe.skip;
-
-describeA3Flow(
+describeKnowledgeGraph(
   'F8-01 실제 로그인 → P7 fake 색인 → REST·MCP 검색 최신성',
   () => {
     jest.setTimeout(120_000);
@@ -56,6 +45,9 @@ describeA3Flow(
     const extractor = new TestSemanticExtractor();
     const embedder = new TestSemanticEmbedder();
     const originalPrefix = process.env.BULLMQ_PREFIX;
+    // Jobs의 투영·의미 색인 결선은 기능 플래그에 달려 있으므로 실행 셸 환경에 기대지 않고 명시한다.
+    const flagKeys = ['KG_PROJECTION_ENABLED', 'KG_SEMANTIC_ENABLED'] as const;
+    const originalFlags = flagKeys.map((key) => process.env[key]);
 
     let fixture: KnowledgeGraphHttpFixture;
     let jobs: TestingModule | null = null;
@@ -84,6 +76,7 @@ describeA3Flow(
     };
 
     beforeAll(async () => {
+      for (const key of flagKeys) process.env[key] = 'true';
       process.env.BULLMQ_PREFIX = `work-os:graph:p8-a3:f801:${randomUUID()}`;
       fixture = await KnowledgeGraphHttpFixture.boot(prefix, configureApi);
       graph = await createNeo4jGraph({
@@ -107,6 +100,11 @@ describeA3Flow(
       await fixture?.close();
       if (originalPrefix === undefined) delete process.env.BULLMQ_PREFIX;
       else process.env.BULLMQ_PREFIX = originalPrefix;
+      flagKeys.forEach((key, index) => {
+        const value = originalFlags[index];
+        if (value === undefined) delete process.env[key];
+        else process.env[key] = value;
+      });
     });
 
     it('Wiki 저장과 fake 의미 색인 뒤 REST 검색 출처가 현재 owner/generation을 따르고 rename 뒤 stale을 제거한다', async () => {
@@ -247,6 +245,8 @@ describeA3Flow(
     }
 
     async function startJobs() {
+      // KnowledgeGraphSemanticJobsModule은 ConditionalModule로 jobs.module 로드 시점에 결선이 정해지므로 플래그를 켠 뒤 불러온다.
+      const { JobsModule } = await import('@/jobs/jobs.module');
       jobs = await Test.createTestingModule({ imports: [JobsModule] })
         .overrideProvider(knowledgeGraphConfig.KEY)
         .useValue(config)

@@ -1,10 +1,8 @@
 import { DatabaseService } from '@/database/database.service';
 import { KnowledgeGraphSemanticProcessor } from '@/jobs/knowledge-graph/knowledge-graph-semantic.processor';
 import { SemanticJobQueueProvider } from '@/knowledge-graph/infrastructure/queue/semantic-job-queue.provider';
-import {
-  createSemanticFlowContext,
-  describeSemanticFlow,
-} from '@/knowledge-graph/testing/semantic-flow.context';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
+import { createSemanticFlowContext } from '@/knowledge-graph/testing/semantic-flow.context';
 import { outboxSemanticSourceState } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-semantic-source-state.schema';
 import { OutboxSemanticSourceState } from '@/outbox/outbox-semantic-source-state';
 
@@ -13,7 +11,7 @@ import { and, eq } from 'drizzle-orm';
 
 jest.setTimeout(60_000);
 
-describeSemanticFlow('실제 비활성 staging 뒤 두 Jobs의 최신 CAS 경합', () => {
+describeKnowledgeGraph('실제 비활성 staging 뒤 두 Jobs의 최신 CAS 경합', () => {
   const context = createSemanticFlowContext();
   afterEach(() => jest.restoreAllMocks());
   it('F7-06 이전 staging의 늦은 실제 PG CAS는 거부되고 최신 세대만 남는다', async () => {

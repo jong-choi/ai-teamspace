@@ -7,6 +7,7 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import { user } from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
 import databaseConfig from '@/database/config/database.config';
 import { DatabaseService } from '@/database/database.service';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 import { OutboxInfrastructureModule } from '@/outbox/outbox.module';
 import { OutboxSemanticManualRequest } from '@/outbox/outbox-semantic-manual-request';
@@ -14,14 +15,7 @@ import { OutboxSemanticSourceState } from '@/outbox/outbox-semantic-source-state
 
 import { eq } from 'drizzle-orm';
 
-const describeIsolated =
-  process.env.KG_TEST_ALLOW_WRITE === '1' &&
-  process.env.DATABASE_URL &&
-  new URL(process.env.DATABASE_URL).pathname === '/graph_p7_semantic'
-    ? describe
-    : describe.skip;
-
-describeIsolated('수동 의미 갱신의 PostgreSQL 영속 접수와 합치기', () => {
+describeKnowledgeGraph('수동 의미 갱신의 PostgreSQL 영속 접수와 합치기', () => {
   const scope = {
     organizationId: `p7-manual-${randomUUID()}`,
     aggregateKind: 'wiki_document',

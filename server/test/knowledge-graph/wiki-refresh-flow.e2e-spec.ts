@@ -6,13 +6,13 @@ import { OutboxRelay } from '@nestjs/outbox';
 import { Test, type TestingModule } from '@nestjs/testing';
 
 import { createNeo4jGraph } from '@repo/knowledge-graph';
-import { JobsModule } from '@/jobs/jobs.module';
 import { KnowledgeGraphProjectionProcessor } from '@/jobs/knowledge-graph/knowledge-graph-projection.processor';
 import { KnowledgeGraphReconciliationScheduler } from '@/jobs/knowledge-graph/knowledge-graph-reconciliation.scheduler';
 import { KnowledgeGraphSemanticProcessor } from '@/jobs/knowledge-graph/knowledge-graph-semantic.processor';
 import { KnowledgeGraphSemanticReconciliationScheduler } from '@/jobs/knowledge-graph/knowledge-graph-semantic-reconciliation.scheduler';
 import { SemanticEmbedder } from '@/knowledge-graph/infrastructure/embedding/semantic-embedder.provider';
 import { SemanticGraphExtractor } from '@/knowledge-graph/infrastructure/extraction/semantic-graph-extractor.provider';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import {
   TestSemanticEmbedder,
   TestSemanticExtractor,
@@ -31,14 +31,7 @@ import {
 const docker = promisify(execFile);
 jest.setTimeout(120_000);
 
-const describeWikiRefreshFlowE2e =
-  process.env.KG_TEST_ALLOW_WRITE === '1' &&
-  process.env.DATABASE_URL &&
-  new URL(process.env.DATABASE_URL).pathname === '/graph_p8_query'
-    ? describe
-    : describe.skip;
-
-describeWikiRefreshFlowE2e('위키 갱신 접수 → Jobs 색인 전체 흐름 E2E', () => {
+describeKnowledgeGraph('위키 갱신 접수 → Jobs 색인 전체 흐름 E2E', () => {
   const prefix = createRunPrefix('refresh-flow');
   const extractor = new TestSemanticExtractor();
   const embedder = new TestSemanticEmbedder();
@@ -49,8 +42,9 @@ describeWikiRefreshFlowE2e('위키 갱신 접수 → Jobs 색인 전체 흐름 E
   let graph: Awaited<ReturnType<typeof createNeo4jGraph>>;
 
   beforeAll(async () => {
-    if (process.env.REDIS_QUEUE_URL !== 'redis://127.0.0.1:46380/3')
-      throw new Error('이 시험은 소유 검증 Redis에서만 실행합니다.');
+    // 투영·의미 색인 Jobs 결선은 기능 플래그에 달려 있으므로 실행 셸 환경에 기대지 않고 명시한다.
+    process.env.KG_PROJECTION_ENABLED = 'true';
+    process.env.KG_SEMANTIC_ENABLED = 'true';
     fx = await KnowledgeGraphHttpFixture.boot(prefix);
     process.env.BULLMQ_PREFIX = `p8-flow-${randomUUID()}`;
     graph = await createNeo4jGraph({
@@ -74,6 +68,8 @@ describeWikiRefreshFlowE2e('위키 갱신 접수 → Jobs 색인 전체 흐름 E
   });
 
   async function startJobs() {
+    // KnowledgeGraphSemanticJobsModule은 ConditionalModule로 jobs.module 로드 시점에 결선이 정해지므로 플래그를 켠 뒤 불러온다.
+    const { JobsModule } = await import('@/jobs/jobs.module');
     jobs = await Test.createTestingModule({ imports: [JobsModule] })
       .overrideProvider(SemanticGraphExtractor)
       .useValue(extractor)

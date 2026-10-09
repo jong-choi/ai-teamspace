@@ -6,14 +6,10 @@ import { MeetingRecurrenceSeriesSchema } from '@/calendar/domain/meeting-recurre
 import { MeetingRoomSchema } from '@/calendar/domain/meeting-room';
 import knowledgeGraphConfig from '@/knowledge-graph/config/knowledge-graph.config';
 import { LangchainNeo4jGraphAdapter } from '@/knowledge-graph/infrastructure/graph/langchain-neo4j-graph.adapter';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import { OutboxAggregateVersionSchema } from '@/outbox/outbox-aggregate-event.schema';
 
-const describeWritable =
-  process.env.KG_TEST_ALLOW_WRITE === '1' && process.env.NEO4J_URI
-    ? describe
-    : describe.skip;
-
-describeWritable('실제 Neo4j Calendar 공유 원본의 독립 fence', () => {
+describeKnowledgeGraph('실제 Neo4j Calendar 공유 원본의 독립 fence', () => {
   const organizationId = `kg-calendar-ref-${randomUUID()}`;
   const meetingId = randomUUID();
   const roomId = randomUUID();

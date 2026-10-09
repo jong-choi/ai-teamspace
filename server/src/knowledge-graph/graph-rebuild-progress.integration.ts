@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 
 import { DatabaseService } from '@/database/database.service';
 import { semanticPipelineFingerprint } from '@/knowledge-graph/domain/semantic-pipeline';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 import { outboxSemanticSourceState } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-semantic-source-state.schema';
 import { OutboxAggregateProjectionState } from '@/outbox/outbox-aggregate-projection-state';
@@ -11,14 +12,7 @@ import { OutboxSemanticRecovery } from '@/outbox/outbox-semantic-recovery';
 
 import { inArray } from 'drizzle-orm';
 
-const describeIsolated =
-  process.env.KG_TEST_ALLOW_WRITE === '1' &&
-  process.env.DATABASE_URL &&
-  new URL(process.env.DATABASE_URL).pathname === '/graph_p8_a5'
-    ? describe
-    : describe.skip;
-
-describeIsolated('R8-16 조직별 projection/semantic 집계', () => {
+describeKnowledgeGraph('R8-16 조직별 projection/semantic 집계', () => {
   const prefix = `kg-p8-a5-progress-${randomUUID().slice(0, 8)}`;
   const orgA = `${prefix}-a`;
   const orgB = `${prefix}-b`;

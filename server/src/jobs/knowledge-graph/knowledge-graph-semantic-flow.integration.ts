@@ -3,10 +3,8 @@ import {
   SemanticJobDataSchema,
 } from '@/jobs/knowledge-graph/knowledge-graph-semantic.job';
 import { SemanticJobQueueProvider } from '@/knowledge-graph/infrastructure/queue/semantic-job-queue.provider';
-import {
-  createSemanticFlowContext,
-  describeSemanticFlow,
-} from '@/knowledge-graph/testing/semantic-flow.context';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
+import { createSemanticFlowContext } from '@/knowledge-graph/testing/semantic-flow.context';
 import { outboxSemanticSourceState } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-semantic-source-state.schema';
 import { OutboxSemanticSourceState } from '@/outbox/outbox-semantic-source-state';
 
@@ -16,7 +14,7 @@ import * as Y from 'yjs';
 
 jest.setTimeout(60_000);
 
-describeSemanticFlow(
+describeKnowledgeGraph(
   '실제 Jobs의 Wiki 수동 의미 색인·force·PG active 전환',
   () => {
     const context = createSemanticFlowContext();

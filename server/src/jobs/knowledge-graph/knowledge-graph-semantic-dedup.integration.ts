@@ -5,6 +5,7 @@ import {
   SEMANTIC_JOB_OPTIONS,
   semanticAutoDedupId,
 } from '@/jobs/knowledge-graph/knowledge-graph-semantic.job';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import { OutboxAggregateEventSchema } from '@/outbox/outbox-aggregate-event.schema';
 import {
   createProducerRedisOptions,
@@ -16,15 +17,9 @@ import { Queue, Worker } from 'bullmq';
 import type { z } from 'zod';
 
 const redisUrl = process.env.REDIS_QUEUE_URL;
-const local =
-  redisUrl &&
-  new URL(redisUrl).port === '46380' &&
-  ['127.0.0.1', 'localhost'].includes(new URL(redisUrl).hostname);
-const describeWritable =
-  process.env.KG_TEST_ALLOW_WRITE === '1' && local ? describe : describe.skip;
 jest.setTimeout(30_000);
 
-describeWritable(
+describeKnowledgeGraph(
   'BullMQ 설치 버전의 delayed·active·waiting dedup 실동작',
   () => {
     const scope = {

@@ -2,10 +2,8 @@ import {
   SEMANTIC_AUTO_JOB,
   SemanticJobDataSchema,
 } from '@/jobs/knowledge-graph/knowledge-graph-semantic.job';
-import {
-  createSemanticFlowContext,
-  describeSemanticFlow,
-} from '@/knowledge-graph/testing/semantic-flow.context';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
+import { createSemanticFlowContext } from '@/knowledge-graph/testing/semantic-flow.context';
 import { OutboxSemanticSourceState } from '@/outbox/outbox-semantic-source-state';
 
 import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
@@ -13,7 +11,7 @@ import * as Y from 'yjs';
 
 jest.setTimeout(60_000);
 
-describeSemanticFlow(
+describeKnowledgeGraph(
   'Wiki 실제 owner 변경의 자동 quiet 신호와 부모 문맥',
   () => {
     const context = createSemanticFlowContext();

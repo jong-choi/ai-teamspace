@@ -4,6 +4,7 @@ import { Test, type TestingModule } from '@nestjs/testing';
 
 import { DatabaseService } from '@/database/database.service';
 import { databaseSchema } from '@/database/schema';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import { outboxAggregateVersion as version } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 import { outboxSemanticSourceState as state } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-semantic-source-state.schema';
 import { OutboxSemanticRecovery } from '@/outbox/outbox-semantic-recovery';
@@ -13,14 +14,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import { z } from 'zod';
 
-const describeIsolated =
-  process.env.KG_TEST_ALLOW_WRITE === '1' &&
-  process.env.DATABASE_URL &&
-  new URL(process.env.DATABASE_URL).pathname === '/graph_p7_semantic'
-    ? describe
-    : describe.skip;
-
-describeIsolated('실제1만 원본의 의미 gap 발견과 PG 실행 계획', () => {
+describeKnowledgeGraph('실제1만 원본의 의미 gap 발견과 PG 실행 계획', () => {
   jest.setTimeout(60_000);
   const org = `p7-performance-${randomUUID()}`;
   let pool: Pool;

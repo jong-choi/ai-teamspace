@@ -3,14 +3,11 @@ import { randomUUID } from 'node:crypto';
 import { createNeo4jGraph } from '@repo/knowledge-graph';
 import knowledgeGraphConfig from '@/knowledge-graph/config/knowledge-graph.config';
 import { LangchainNeo4jGraphAdapter } from '@/knowledge-graph/infrastructure/graph/langchain-neo4j-graph.adapter';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import { OutboxAggregateVersionSchema } from '@/outbox/outbox-aggregate-event.schema';
 import { WikiProjectionSourceSchema } from '@/wiki/domain/wiki-projection-source';
 
-const enabled =
-  process.env.KG_TEST_ALLOW_WRITE === '1' && Boolean(process.env.NEO4J_URI);
-const describeWritable = enabled ? describe : describe.skip;
-
-describeWritable('Neo4j Community의 Wiki 원본 fencing', () => {
+describeKnowledgeGraph('Neo4j Community의 Wiki 원본 fencing', () => {
   const organizationId = `kg-wiki-${randomUUID()}`;
   const otherOrganizationId = `kg-wiki-other-${randomUUID()}`;
   const documentId = randomUUID();

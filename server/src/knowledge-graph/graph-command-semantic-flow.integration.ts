@@ -1,19 +1,12 @@
 import { SemanticCorrectionService } from '@/knowledge-graph/semantic-correction.service';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import { createSemanticFlowContext } from '@/knowledge-graph/testing/semantic-flow.context';
 
 import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
 
 jest.setTimeout(90_000);
 
-const describeA4SemanticFlow =
-  process.env.KG_TEST_ALLOW_WRITE === '1' &&
-  process.env.NEO4J_URI &&
-  process.env.DATABASE_URL &&
-  new URL(process.env.DATABASE_URL).pathname === '/graph_p8_a4'
-    ? describe
-    : describe.skip;
-
-describeA4SemanticFlow('F8-04 A4 보정·force 재색인·취소 경합', () => {
+describeKnowledgeGraph('F8-04 A4 보정·force 재색인·취소 경합', () => {
   const context = createSemanticFlowContext();
 
   it('force 재색인 중 보정을 취소하면 최신 overlay만 남고 보정 쓰기는 추가 모델 호출을 만들지 않는다', async () => {

@@ -3,16 +3,12 @@ import { randomUUID } from 'node:crypto';
 import { createNeo4jGraph } from '@repo/knowledge-graph';
 import knowledgeGraphConfig from '@/knowledge-graph/config/knowledge-graph.config';
 import { LangchainNeo4jGraphAdapter } from '@/knowledge-graph/infrastructure/graph/langchain-neo4j-graph.adapter';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import { OutboxAggregateVersionSchema } from '@/outbox/outbox-aggregate-event.schema';
 import { TicketLabelProjectionSourceSchema } from '@/projects/domain/ticket-label-projection-source';
 import { TicketProjectionSourceSchema } from '@/projects/domain/ticket-projection-source';
 
-const describeWritable =
-  process.env.KG_TEST_ALLOW_WRITE === '1' && process.env.NEO4J_URI
-    ? describe
-    : describe.skip;
-
-describeWritable('실제 Neo4j Ticket의 관계 교체와 source 소유권', () => {
+describeKnowledgeGraph('실제 Neo4j Ticket의 관계 교체와 source 소유권', () => {
   const organizationId = `kg-ticket-${randomUUID()}`;
   const otherOrganizationId = `${organizationId}-other`;
   const ticketId = randomUUID();

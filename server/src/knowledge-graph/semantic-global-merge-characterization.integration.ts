@@ -2,17 +2,14 @@ import { randomUUID } from 'node:crypto';
 
 import { createNeo4jGraph, GraphDocument, Node } from '@repo/knowledge-graph';
 import knowledgeGraphConfig from '@/knowledge-graph/config/knowledge-graph.config';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 
 import { Document } from '@langchain/core/documents';
 import { z } from 'zod';
 
-const describeWritable =
-  process.env.KG_TEST_ALLOW_WRITE === '1' && process.env.NEO4J_URI
-    ? describe
-    : describe.skip;
 jest.setTimeout(60_000);
 
-describeWritable('기존 GraphDocument 전역 병합의 위험 특성화', () => {
+describeKnowledgeGraph('기존 GraphDocument 전역 병합의 위험 특성화', () => {
   it('N7-01 baseEntityLabel의 같은 자연어id는 다른 조직의 입력도 하나로 병합한다', async () => {
     const config = knowledgeGraphConfig();
     if (!config.url || !config.username || !config.password)

@@ -36,14 +36,6 @@ import { Queue } from 'bullmq';
 import { and, eq, inArray, lt } from 'drizzle-orm';
 import * as Y from 'yjs';
 
-export const describeRecovery =
-  process.env.KG_TEST_ALLOW_WRITE === '1' &&
-  process.env.NEO4J_URI &&
-  process.env.DATABASE_URL &&
-  new URL(process.env.DATABASE_URL).pathname === '/graph_p6_reconciliation'
-    ? describe
-    : describe.skip;
-
 // 각 suite 호출마다 별도 context를 만든다. 전역 scope를 공유하므로 runner의 직렬 실행을 유지한다.
 export function createReconciliationRecoveryContext() {
   let jobs: TestingModule;

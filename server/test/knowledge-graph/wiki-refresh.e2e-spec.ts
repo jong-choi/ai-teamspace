@@ -1,12 +1,13 @@
 import { randomUUID } from 'node:crypto';
 
-import { Outbox } from '@nestjs/outbox';
 import { ConfigService } from '@nestjs/config';
+import { Outbox } from '@nestjs/outbox';
 
 import { member } from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
 import { semanticPipelineFingerprint } from '@/knowledge-graph/domain/semantic-pipeline';
 import { requestQuota } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/request-quota.schema';
 import { GraphSourceAccessProvider } from '@/knowledge-graph/infrastructure/source-access/graph-source-access.provider';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 import { outboxSemanticSourceState } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-semantic-source-state.schema';
 import { OutboxSemanticManualRequest } from '@/outbox/outbox-semantic-manual-request';
@@ -22,14 +23,7 @@ import {
 } from '@test/knowledge-graph/support/knowledge-graph-http.fixture';
 import { and, eq } from 'drizzle-orm';
 
-const describeWikiRefreshE2e =
-  process.env.KG_TEST_ALLOW_WRITE === '1' &&
-  process.env.DATABASE_URL &&
-  new URL(process.env.DATABASE_URL).pathname === '/graph_p8_query'
-    ? describe
-    : describe.skip;
-
-describeWikiRefreshE2e('위키 지식 그래프 수동 갱신·상태 HTTP E2E', () => {
+describeKnowledgeGraph('위키 지식 그래프 수동 갱신·상태 HTTP E2E', () => {
   const prefix = createRunPrefix('refresh-http');
   let fx: KnowledgeGraphHttpFixture;
   let policyFixture: KnowledgeGraphHttpFixture;

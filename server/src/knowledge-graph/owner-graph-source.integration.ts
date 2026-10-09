@@ -4,6 +4,7 @@ import { meeting } from '@/calendar/infrastructure/persistence/drizzle/schema/me
 import { DatabaseService } from '@/database/database.service';
 import { GraphSourceAccessProvider } from '@/knowledge-graph/infrastructure/source-access/graph-source-access.provider';
 import { GraphSourceSnapshotProvider } from '@/knowledge-graph/infrastructure/source-snapshot/graph-source-snapshot.provider';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import { OrganizationNotFoundError } from '@/organizations/domain/organization.error';
 import { project } from '@/projects/infrastructure/persistence/drizzle/schema/project.schema';
 import { projectColumn } from '@/projects/infrastructure/persistence/drizzle/schema/project-column.schema';
@@ -14,14 +15,7 @@ import {
   KnowledgeGraphHttpFixture,
 } from '@test/knowledge-graph/support/knowledge-graph-http.fixture';
 
-const describeIsolated =
-  process.env.KG_TEST_ALLOW_WRITE === '1' &&
-  process.env.DATABASE_URL &&
-  new URL(process.env.DATABASE_URL).pathname === '/graph_p8_query'
-    ? describe
-    : describe.skip;
-
-describeIsolated('A1 owner graph source PostgreSQL 통합', () => {
+describeKnowledgeGraph('A1 owner graph source PostgreSQL 통합', () => {
   const prefix = createRunPrefix('owner-source');
   let fx: KnowledgeGraphHttpFixture;
   let database: DatabaseService;

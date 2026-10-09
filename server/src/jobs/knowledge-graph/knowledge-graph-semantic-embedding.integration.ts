@@ -1,10 +1,8 @@
 import { deriveSemanticIndexStatus } from '@/knowledge-graph/domain/semantic-index-status';
 import { semanticPipelineFingerprint } from '@/knowledge-graph/domain/semantic-pipeline';
 import { SemanticJobQueueProvider } from '@/knowledge-graph/infrastructure/queue/semantic-job-queue.provider';
-import {
-  createSemanticFlowContext,
-  describeSemanticFlow,
-} from '@/knowledge-graph/testing/semantic-flow.context';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
+import { createSemanticFlowContext } from '@/knowledge-graph/testing/semantic-flow.context';
 import { outboxSemanticSourceState as stateTable } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-semantic-source-state.schema';
 import { OutboxSemanticSourceState } from '@/outbox/outbox-semantic-source-state';
 import { wikiDocument } from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-document.schema';
@@ -13,7 +11,7 @@ import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
 import { eq } from 'drizzle-orm';
 
 jest.setTimeout(60_000);
-describeSemanticFlow('실제 Jobs의 chunk별 embedding 완전성', () => {
+describeKnowledgeGraph('실제 Jobs의 chunk별 embedding 완전성', () => {
   const context = createSemanticFlowContext();
   const vector = () => [1, ...Array.from({ length: 767 }, () => 0)];
   afterEach(() => jest.restoreAllMocks());

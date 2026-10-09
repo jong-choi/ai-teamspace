@@ -7,6 +7,7 @@ import { user } from '@/auth/infrastructure/persistence/drizzle/generated/auth.s
 import databaseConfig from '@/database/config/database.config';
 import { DatabaseService } from '@/database/database.service';
 import { semanticRecoveryAction } from '@/knowledge-graph/domain/semantic-recovery-action';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import { outboxAggregateVersion as version } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 import { outboxSemanticSourceState as state } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-semantic-source-state.schema';
 import { OutboxSemanticSourceStateSelectSchema } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-semantic-source-state.zod';
@@ -17,14 +18,7 @@ import { OutboxSemanticSourceState } from '@/outbox/outbox-semantic-source-state
 
 import { and, eq, inArray, sql } from 'drizzle-orm';
 
-const describeIsolated =
-  process.env.KG_TEST_ALLOW_WRITE === '1' &&
-  process.env.DATABASE_URL &&
-  new URL(process.env.DATABASE_URL).pathname === '/graph_p7_semantic'
-    ? describe
-    : describe.skip;
-
-describeIsolated('의미 색인의 PG gap 발견·분할 접수·실패 종결', () => {
+describeKnowledgeGraph('의미 색인의 PG gap 발견·분할 접수·실패 종결', () => {
   const organizationId = `p7-recovery-${randomUUID()}`;
   const actorId = `p7-recovery-actor-${randomUUID()}`;
   const fp = 'a'.repeat(64);

@@ -3,15 +3,11 @@ import { randomUUID } from 'node:crypto';
 import { createNeo4jGraph } from '@repo/knowledge-graph';
 import knowledgeGraphConfig from '@/knowledge-graph/config/knowledge-graph.config';
 import { LangchainNeo4jGraphAdapter } from '@/knowledge-graph/infrastructure/graph/langchain-neo4j-graph.adapter';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import { OutboxAggregateVersionSchema } from '@/outbox/outbox-aggregate-event.schema';
 import { ProjectProjectionSourceSchema } from '@/projects/domain/project-projection-source';
 
-const describeWritable =
-  process.env.KG_TEST_ALLOW_WRITE === '1' && process.env.NEO4J_URI
-    ? describe
-    : describe.skip;
-
-describeWritable('Neo4j Project의 관계와 공유 column 소유권', () => {
+describeKnowledgeGraph('Neo4j Project의 관계와 공유 column 소유권', () => {
   const organizationId = `kg-project-${randomUUID()}`;
   const projectId = randomUUID();
   const creatorId = randomUUID();

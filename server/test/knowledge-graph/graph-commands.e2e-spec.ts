@@ -6,20 +6,14 @@ import { KnowledgeGraphViewChangedError } from '@/knowledge-graph/domain/graph-r
 import { GraphCorrectionCommandService } from '@/knowledge-graph/graph-correction-command.service';
 import { SemanticEmbedder } from '@/knowledge-graph/infrastructure/embedding/semantic-embedder.provider';
 import { SemanticGraphExtractor } from '@/knowledge-graph/infrastructure/extraction/semantic-graph-extractor.provider';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 
 import {
   createRunPrefix,
   KnowledgeGraphHttpFixture,
 } from '@test/knowledge-graph/support/knowledge-graph-http.fixture';
 
-const describeGraphCommandsE2e =
-  process.env.KG_TEST_ALLOW_WRITE === '1' &&
-  process.env.DATABASE_URL &&
-  new URL(process.env.DATABASE_URL).pathname === '/graph_p8_a4'
-    ? describe
-    : describe.skip;
-
-describeGraphCommandsE2e('H8 지식 그래프 명령 HTTP', () => {
+describeKnowledgeGraph('H8 지식 그래프 명령 HTTP', () => {
   const prefix = createRunPrefix('a4-commands');
   const correctionId = '77777777-7777-4777-8777-777777777777';
   const replacementId = '88888888-8888-4888-8888-888888888888';

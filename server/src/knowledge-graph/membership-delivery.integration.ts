@@ -7,6 +7,7 @@ import { organization } from '@/auth/infrastructure/persistence/drizzle/generate
 import { JobsModule } from '@/jobs/jobs.module';
 import knowledgeGraphConfig from '@/knowledge-graph/config/knowledge-graph.config';
 import { KnowledgeGraphWriter } from '@/knowledge-graph/infrastructure/graph/knowledge-graph-writer.provider';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import { MembershipProjectionQueryService } from '@/organizations/membership-projection-query.service';
 import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 import { OutboxAggregateChangePublisher } from '@/outbox/outbox-aggregate-change.publisher';
@@ -18,12 +19,7 @@ import { and, eq, inArray } from 'drizzle-orm';
 
 jest.setTimeout(30_000);
 
-const describeWritable =
-  process.env.KG_TEST_ALLOW_WRITE === '1' && process.env.NEO4J_URI
-    ? describe
-    : describe.skip;
-
-describeWritable(
+describeKnowledgeGraph(
   'Membership의 실제 Better Auth·public event·Jobs·Neo4j 연결',
   () => {
     let target: McpIntegrationApp;

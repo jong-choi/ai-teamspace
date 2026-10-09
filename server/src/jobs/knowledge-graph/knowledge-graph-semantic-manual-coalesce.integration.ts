@@ -1,14 +1,12 @@
-import {
-  createSemanticFlowContext,
-  describeSemanticFlow,
-} from '@/knowledge-graph/testing/semantic-flow.context';
+import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
+import { createSemanticFlowContext } from '@/knowledge-graph/testing/semantic-flow.context';
 import { OutboxSemanticSourceState } from '@/outbox/outbox-semantic-source-state';
 
 import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
 
 jest.setTimeout(60_000);
 
-describeSemanticFlow(
+describeKnowledgeGraph(
   '실제 다중 사용자의 수동 요청 합치기와 최신 seq 활성화',
   () => {
     const context = createSemanticFlowContext();

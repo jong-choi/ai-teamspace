@@ -22,6 +22,8 @@ export default defineConfig({
   timeout: 240_000,
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   use: {
+    // 클릭이 오버레이 등에 막히면 test timeout까지 재시도하지 않고 바로 실패시킨다.
+    actionTimeout: 15_000,
     baseURL: webURL,
     locale: 'ko-KR',
     screenshot: 'only-on-failure',

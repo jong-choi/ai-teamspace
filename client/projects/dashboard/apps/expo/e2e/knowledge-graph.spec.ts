@@ -125,12 +125,18 @@ test.describe('지식 그래프 화면', () => {
       await expect(page.getByText('P9 Alpha').first()).toBeVisible();
       await page.getByLabel('P9 Alpha 노드 상세 보기').click();
       await expect(page.getByText('사용자 엔티티').first()).toBeVisible();
-      await page.getByLabel('P9 Alpha 수정').click();
+      // 데이터 화면의 상세는 모달이라 뒤쪽 표 행 버튼 대신 상세 안의 편집 버튼을 누른다.
+      await page.getByRole('button', { name: '노드 편집' }).click();
       await expect(page.getByText('엔티티 노드 수정')).toBeVisible();
       await page.getByLabel('표시 라벨').fill('P9 Alpha Updated');
       await page.getByText('저장하기').click();
       await expect(page.getByText('P9 Alpha Updated').first()).toBeVisible();
       workspace.nodeRevisions[0] += 1;
+      // 편집 모달이 닫히면 선택이 남아 상세 Dialog가 다시 열리므로 닫고 탭을 누른다.
+      const detailDialog = page.getByRole('dialog', { name: '엔티티 상세' });
+      await expect(detailDialog).toBeVisible();
+      await page.keyboard.press('Escape');
+      await expect(detailDialog).toBeHidden();
 
       await page.getByText('관계 관리 (Edges)').click();
       await expect(page.getByText('DEPENDS_ON').first()).toBeVisible();
@@ -140,9 +146,9 @@ test.describe('지식 그래프 화면', () => {
       );
       await expect(page.getByLabel(/지식 그래프 캔버스/)).toBeVisible();
       await expect(page.getByText('P9 Alpha Updated').first()).toBeVisible();
-      await page.getByLabel('테마 모드 전환').click();
+      await page.getByLabel('테마 모드 전환').first().click();
       await expect(page.getByLabel(/지식 그래프 캔버스/)).toBeVisible();
-      await page.getByLabel('테마 모드 전환').click();
+      await page.getByLabel('테마 모드 전환').first().click();
       await expect(page.getByLabel(/지식 그래프 캔버스/)).toBeVisible();
     } finally {
       await cleanupGraphWorkspace(page, workspace);

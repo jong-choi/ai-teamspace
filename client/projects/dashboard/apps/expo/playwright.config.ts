@@ -29,6 +29,8 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
   },
+  // 남아 있거나 종료 중인 서버를 재사용하면 E2E 환경 값과 마이그레이션이 적용되지 않으므로 매번 새로 띄우고,
+  // SIGTERM으로 Nest 종료 훅을 실행해 DB·Redis·Neo4j 연결을 닫은 뒤 내린다.
   webServer: [
     {
       command: 'npx env-cmd --no-override -- node dist/main.js',
@@ -40,7 +42,8 @@ export default defineConfig({
         AGENT_MIGRATE_ON_STARTUP: 'true',
         KG_QUERY_ENABLED: 'true',
       },
-      reuseExistingServer: true,
+      gracefulShutdown: { signal: 'SIGTERM', timeout: 10_000 },
+      reuseExistingServer: false,
       timeout: 120_000,
       url: `${apiURL}/api/auth/ok`,
     },
@@ -53,7 +56,8 @@ export default defineConfig({
         EXPO_PUBLIC_API_URL: apiURL,
         TMPDIR: `${repoRoot}/.temp/playwright/metro-tmp`,
       },
-      reuseExistingServer: true,
+      gracefulShutdown: { signal: 'SIGTERM', timeout: 10_000 },
+      reuseExistingServer: false,
       timeout: 240_000,
       url: webURL,
     },

@@ -1,4 +1,4 @@
-import { expect, type Page, test } from '@playwright/test';
+import { expect, type Locator, type Page, test } from '@playwright/test';
 
 const apiURL = `http://localhost:${process.env.E2E_API_PORT ?? 3101}`;
 const webURL = `http://localhost:${process.env.E2E_WEB_PORT ?? 8083}`;
@@ -95,6 +95,14 @@ function panel(page: Page) {
   return page.getByLabel('Agent 채팅 패널');
 }
 
+// 페이지 이동·hydration 직후의 클릭은 무시될 수 있어 패널이 실제로 보일 때까지 토글을 다시 누른다.
+async function openPanel(page: Page, toggle: Locator) {
+  await expect(async () => {
+    if (!(await panel(page).isVisible())) await toggle.click();
+    await expect(panel(page)).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 15_000 });
+}
+
 test.describe('Agent 채팅 패널 (데스크톱)', () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
@@ -104,8 +112,10 @@ test.describe('Agent 채팅 패널 (데스크톱)', () => {
     await createE2EWorkspace(page);
     await page.goto('/projects');
 
-    await page.getByRole('button', { name: 'AI', exact: true }).click();
-    await expect(panel(page)).toBeVisible();
+    await openPanel(
+      page,
+      page.getByRole('button', { name: 'AI', exact: true }),
+    );
     const input = panel(page).getByLabel('Agent에게 보낼 메시지');
     await expect(input).toBeVisible();
     await input.fill('나중에 보낼 초안');
@@ -130,7 +140,10 @@ test.describe('Agent 채팅 패널 (데스크톱)', () => {
 
     await page.getByRole('link', { name: '회의일정' }).click();
     await expect(page).toHaveURL(/\/calendar/);
-    await page.getByRole('button', { name: 'AI', exact: true }).click();
+    await openPanel(
+      page,
+      page.getByRole('button', { name: 'AI', exact: true }),
+    );
     await expect(panel(page).getByLabel('Agent에게 보낼 메시지')).toHaveValue(
       '나중에 보낼 초안',
     );
@@ -141,7 +154,10 @@ test.describe('Agent 채팅 패널 (데스크톱)', () => {
   }) => {
     await createE2EWorkspace(page);
     await page.goto('/projects');
-    await page.getByRole('button', { name: 'AI', exact: true }).click();
+    await openPanel(
+      page,
+      page.getByRole('button', { name: 'AI', exact: true }),
+    );
 
     await panel(page).getByLabel('추론 수준 선택').click();
     await page.getByRole('option', { name: '추론 낮음' }).click();
@@ -165,7 +181,10 @@ test.describe('Agent 채팅 패널 (데스크톱)', () => {
     await page.goto(`/projects/${workspace.projectId}`);
     await expect(page.getByText('Agent E2E 프로젝트').first()).toBeVisible();
 
-    await page.getByRole('button', { name: 'AI', exact: true }).click();
+    await openPanel(
+      page,
+      page.getByRole('button', { name: 'AI', exact: true }),
+    );
     await panel(page).getByLabel('추론 수준 선택').click();
     await page.getByRole('option', { name: '추론 낮음' }).click();
     const input = panel(page).getByLabel('Agent에게 보낼 메시지');
@@ -197,8 +216,7 @@ test.describe('Agent 채팅 패널 (모바일)', () => {
     await createE2EWorkspace(page);
     await page.goto('/projects');
 
-    await page.getByLabel('Agent 채팅 열기').click();
-    await expect(panel(page)).toBeVisible();
+    await openPanel(page, page.getByLabel('Agent 채팅 열기'));
     await expect(panel(page).getByLabel('채팅 확대')).toHaveCount(0);
     const box = await panel(page).boundingBox();
     expect(box?.width).toBeGreaterThanOrEqual(380);

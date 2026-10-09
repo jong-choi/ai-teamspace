@@ -77,7 +77,9 @@ describe('Wiki 의미 색인의 원본 서명과 모델 공간', () => {
     const original = digestGraphJson(semanticPipelineDescriptor);
     const paths: Array<string[]> = [];
     function walk(value: unknown, path: string[]) {
-      if (value !== null && typeof value === 'object') for (const key of Object.keys(value)) walk(Reflect.get(value, key), [...path, key]);
+      if (value !== null && typeof value === 'object')
+        for (const key of Object.keys(value))
+          walk(Reflect.get(value, key), [...path, key]);
       else paths.push(path);
     }
     walk(semanticPipelineDescriptor, []);
@@ -87,12 +89,15 @@ describe('Wiki 의미 색인의 원본 서명과 모델 공간', () => {
       let current: object = copy;
       for (const key of path.slice(0, -1)) {
         const child: unknown = Reflect.get(current, key);
-        if (child === null || typeof child !== 'object') throw new Error('descriptor 경로가없습니다.');
+        if (child === null || typeof child !== 'object')
+          throw new Error('descriptor 경로가없습니다.');
         current = child;
       }
       Reflect.set(current, path[path.length - 1], '변경된값');
       expect(digestGraphJson(copy)).not.toBe(original);
     }
-    expect(semanticPipelineDescriptor.extractor.promptDigest).toBe(createHash('sha256').update(SYSTEM_PROMPT).digest('hex'));
+    expect(semanticPipelineDescriptor.extractor.promptDigest).toBe(
+      createHash('sha256').update(SYSTEM_PROMPT).digest('hex'),
+    );
   });
 });

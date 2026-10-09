@@ -27,6 +27,7 @@ import { SemanticGraphStore } from '@/knowledge-graph/infrastructure/graph/seman
 import { SemanticSourceStateRepository } from '@/knowledge-graph/infrastructure/persistence/semantic-source-state.repository';
 import { SemanticJobQueueProvider } from '@/knowledge-graph/infrastructure/queue/semantic-job-queue.provider';
 import { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
+import { SemanticCorrectionService } from '@/knowledge-graph/semantic-correction.service';
 import type {
   SemanticLease,
   SemanticSourceCurrent,
@@ -46,6 +47,7 @@ export class SemanticIngestionService {
     private readonly extractor: SemanticGraphExtractor,
     private readonly embedder: SemanticEmbedder,
     private readonly graph: SemanticGraphStore,
+    private readonly corrections: SemanticCorrectionService,
   ) {}
 
   async run(
@@ -182,6 +184,8 @@ export class SemanticIngestionService {
         activeGenerationId: generationId,
       });
       activeCommitted = activated.outcome === 'activated';
+      if (activeCommitted)
+        await this.reportCorrectionMatches(scope, generationId);
       if (activated.outcome === 'superseded')
         await this.discard(scope, generationId);
       // 이전 세대는 grace 뒤 별도 lease를 잡은 GC에서만 정리한다.
@@ -339,6 +343,16 @@ export class SemanticIngestionService {
       await this.graph.deleteGeneration(scope, generationId);
     } catch {
       this.logger.warn({ code: 'SEMANTIC_ORPHAN_GC_FAILED' });
+    }
+  }
+  private async reportCorrectionMatches(
+    scope: SemanticSourceScope,
+    generationId: string,
+  ) {
+    try {
+      await this.corrections.reportMatches(scope, generationId);
+    } catch {
+      this.logger.warn({ code: 'SEMANTIC_CORRECTION_MATCH_REPORT_FAILED' });
     }
   }
   private async remove(

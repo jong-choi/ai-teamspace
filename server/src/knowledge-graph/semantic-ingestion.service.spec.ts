@@ -10,6 +10,7 @@ import { SemanticGraphStore } from '@/knowledge-graph/infrastructure/graph/seman
 import { SemanticSourceStateRepository } from '@/knowledge-graph/infrastructure/persistence/semantic-source-state.repository';
 import { SemanticJobQueueProvider } from '@/knowledge-graph/infrastructure/queue/semantic-job-queue.provider';
 import { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
+import { SemanticCorrectionService } from '@/knowledge-graph/semantic-correction.service';
 import { SemanticIngestionService } from '@/knowledge-graph/semantic-ingestion.service';
 import {
   semanticCurrentFixture,
@@ -90,6 +91,10 @@ describe('의미 worker의 quiet·force·snapshot·fence 수락', () => {
         { provide: SemanticGraphExtractor, useValue: extractor },
         { provide: SemanticEmbedder, useValue: embedder },
         { provide: SemanticGraphStore, useValue: graph },
+        {
+          provide: SemanticCorrectionService,
+          useValue: { reportMatches: jest.fn() },
+        },
       ],
     }).compile();
     service = app.get(SemanticIngestionService);

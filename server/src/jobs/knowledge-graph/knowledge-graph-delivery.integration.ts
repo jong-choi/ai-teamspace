@@ -121,9 +121,9 @@ describe('PostgreSQL Outbox와 BullMQ의 실제 전달', () => {
     });
   }
 
-  async function record(id = 'wiki-one') {
+  async function record(id = 'project-one') {
     await database.transaction((transaction) =>
-      events.wikiChanged(transaction, organizationId, id, 'changed'),
+      events.projectChanged(transaction, organizationId, id, 'changed'),
     );
   }
 
@@ -138,7 +138,7 @@ describe('PostgreSQL Outbox와 BullMQ의 실제 전달', () => {
     if (!message) throw new Error('전달된 Outbox가 없습니다.');
     expect((await queue.getJob(message.id))?.data).toMatchObject({
       organizationId,
-      aggregateKind: 'wiki_document',
+      aggregateKind: 'project',
       sourceVersion: 1,
     });
     expect((await relay.stats()).pending).toBe(0);

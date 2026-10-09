@@ -15,6 +15,7 @@ import { OllamaCloudSemanticExtractorModule } from '@/knowledge-graph/infrastruc
 import { LangchainNeo4jSemanticGraphAdapter } from '@/knowledge-graph/infrastructure/graph/langchain-neo4j-semantic-graph.adapter';
 import { SemanticGraphStore } from '@/knowledge-graph/infrastructure/graph/semantic-graph-store.provider';
 import { SemanticStatePersistenceModule } from '@/knowledge-graph/infrastructure/persistence/outbox/semantic-state-persistence.module';
+import { SemanticCorrectionModule } from '@/knowledge-graph/semantic-correction.module';
 import { SemanticIngestionService } from '@/knowledge-graph/semantic-ingestion.service';
 import { SemanticReconciliationService } from '@/knowledge-graph/semantic-reconciliation.service';
 import { QueueModule } from '@/queue/queue.module';
@@ -29,6 +30,7 @@ import { QueueModule } from '@/queue/queue.module';
     KnowledgeGraphSemanticQueueModule,
     OllamaCloudSemanticExtractorModule,
     GeminiEmbedding2Module,
+    SemanticCorrectionModule,
   ],
   providers: [
     {

@@ -29,13 +29,11 @@ describeLive('실제 공급자의 격리 Wiki 한 문서 Jobs 수락', () => {
       context.actor,
     );
     await context.indexed(source.id, 1, 180_000);
-    const current = await context.app
-      .get(OutboxSemanticSourceState)
-      .current({
-        organizationId: context.org,
-        aggregateKind: 'wiki_document',
-        aggregateId: source.id,
-      });
+    const current = await context.app.get(OutboxSemanticSourceState).current({
+      organizationId: context.org,
+      aggregateKind: 'wiki_document',
+      aggregateId: source.id,
+    });
     expect(current?.state?.activeGenerationId).toBeTruthy();
     expect(
       await context.graph.query(

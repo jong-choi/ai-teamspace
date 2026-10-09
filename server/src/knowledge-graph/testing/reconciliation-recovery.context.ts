@@ -26,10 +26,10 @@ import { ProjectDrizzlePersistenceModule } from '@/projects/infrastructure/persi
 import { project } from '@/projects/infrastructure/persistence/drizzle/schema/project.schema';
 import { ProjectRepository } from '@/projects/infrastructure/persistence/project.repository';
 import { createRedisOptions } from '@/queue/queue.config';
+import { waitForCondition } from '@/testing/wait-for-condition';
 import { WikiDrizzlePersistenceModule } from '@/wiki/infrastructure/persistence/drizzle/drizzle-persistence.module';
 import { WikiRepository } from '@/wiki/infrastructure/persistence/wiki.repository';
 
-import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
 import { AuthService } from '@thallesp/nestjs-better-auth';
 import { Queue } from 'bullmq';
 import { and, eq, inArray, lt } from 'drizzle-orm';

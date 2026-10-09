@@ -60,13 +60,11 @@ describeSemanticFlow('구조 투영과 의미 실행 worker의 독립 전달', (
         '의미 worker 정지 중 구조 투영이 전달되지 않았습니다.',
         { timeoutMs: 15_000 },
       );
-      const current = await context.app
-        .get(OutboxSemanticSourceState)
-        .current({
-          organizationId: context.org,
-          aggregateKind: 'wiki_document',
-          aggregateId: source.id,
-        });
+      const current = await context.app.get(OutboxSemanticSourceState).current({
+        organizationId: context.org,
+        aggregateKind: 'wiki_document',
+        aggregateId: source.id,
+      });
       expect(current?.state).toMatchObject({
         indexedSeq: 1,
         manualRequestSeq: 2,

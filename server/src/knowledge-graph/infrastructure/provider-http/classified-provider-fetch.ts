@@ -36,7 +36,9 @@ export function createClassifiedProviderFetch(timeoutMs: number): typeof fetch {
       const retryAfterMs =
         Number.isFinite(seconds) && seconds >= 0
           ? Math.min(seconds * 1000, 300_000)
-          : Number.isFinite(date) ? Math.min(Math.max(0, date - Date.now()), 300_000) : null;
+          : Number.isFinite(date)
+            ? Math.min(Math.max(0, date - Date.now()), 300_000)
+            : null;
       await response.body?.cancel();
       throw providerStatusError(response.status, retryAfterMs);
     } catch (error) {

@@ -247,6 +247,8 @@ describeSemanticFlow(
           (text) => text === created.contentMarkdown,
         ),
       ).toHaveLength(1);
+      // 이 사례가 의도적으로 중단한 relay를 다음 사례에 넘기지 않는다.
+      await context.restartJobs();
     });
     it('F7-04·U7-17 같은 ms에 두 본문이 commit돼도 seq는 구분되고 원래 서명 복원은 모델 호출 없이 최신을 만족한다', async () => {
       const originalText = '같은 ms 이전에 활성화한 원래 본문';

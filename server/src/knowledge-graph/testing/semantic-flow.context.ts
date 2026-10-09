@@ -22,18 +22,22 @@ import { KNOWLEDGE_GRAPH_SEMANTIC_QUEUE } from '@/jobs/knowledge-graph/knowledge
 import { KnowledgeGraphSemanticReconciliationScheduler } from '@/jobs/knowledge-graph/knowledge-graph-semantic-reconciliation.scheduler';
 import { SemanticEmbedder } from '@/knowledge-graph/infrastructure/embedding/semantic-embedder.provider';
 import { SemanticGraphExtractor } from '@/knowledge-graph/infrastructure/extraction/semantic-graph-extractor.provider';
+import {
+  semanticCorrection,
+  semanticCorrectionSource,
+} from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/semantic-correction.schema';
 import { SemanticStatePersistenceModule } from '@/knowledge-graph/infrastructure/persistence/outbox/semantic-state-persistence.module';
 import { SemanticRefreshService } from '@/knowledge-graph/semantic-refresh.service';
 import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 import { OutboxInfrastructureModule } from '@/outbox/outbox.module';
 import { OutboxSemanticSourceState } from '@/outbox/outbox-semantic-source-state';
 import { createRedisOptions } from '@/queue/queue.config';
+import { waitForCondition } from '@/testing/wait-for-condition';
 import { WikiDrizzlePersistenceModule } from '@/wiki/infrastructure/persistence/drizzle/drizzle-persistence.module';
 import { WikiRepository } from '@/wiki/infrastructure/persistence/wiki.repository';
 
 import { Document } from '@langchain/core/documents';
 import type { EmbeddingsInterface } from '@langchain/core/embeddings';
-import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
 import { Queue } from 'bullmq';
 import { eq } from 'drizzle-orm';
 import * as Y from 'yjs';
@@ -202,10 +206,22 @@ export function createSemanticFlowContext(liveProviders = false) {
       try {
         const db = cleanup.get(DatabaseService).db;
         await db
+          .delete(semanticCorrection)
+          .where(eq(semanticCorrection.organizationId, org));
+        await db
+          .delete(semanticCorrectionSource)
+          .where(eq(semanticCorrectionSource.organizationId, org));
+        await db
           .delete(outboxAggregateVersion)
           .where(eq(outboxAggregateVersion.organizationId, org));
         await db.delete(organization).where(eq(organization.id, org));
         for (const additional of additionalOrganizations) {
+          await db
+            .delete(semanticCorrection)
+            .where(eq(semanticCorrection.organizationId, additional));
+          await db
+            .delete(semanticCorrectionSource)
+            .where(eq(semanticCorrectionSource.organizationId, additional));
           await db
             .delete(outboxAggregateVersion)
             .where(eq(outboxAggregateVersion.organizationId, additional));
@@ -272,14 +288,12 @@ export function createSemanticFlowContext(liveProviders = false) {
   async function createAdditionalOrganization() {
     const id = `p7-flow-additional-${randomUUID()}`;
     additionalOrganizations.add(id);
-    await database
-      .insert(organization)
-      .values({
-        id,
-        slug: id,
-        name: '의미 교차 조직 검증',
-        createdAt: new Date(),
-      });
+    await database.insert(organization).values({
+      id,
+      slug: id,
+      name: '의미 교차 조직 검증',
+      createdAt: new Date(),
+    });
     return id;
   }
   async function replaceWikiBody(documentId: string, text: string) {

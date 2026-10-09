@@ -31,6 +31,25 @@ ON CREATE SET r.predicate=row.predicate, r.organizationId=$organizationId, r.sou
  r.sourceId=$sourceId, r.generationId=$generationId, r.chunkIndex=row.chunkIndex, r.factClass='extracted'
 RETURN count(r) AS written`;
 
+export const READ_SEMANTIC_CORRECTION_ENTITIES = `
+MATCH (e:KGSemanticEntity)
+WHERE e.organizationId=$organizationId AND e.sourceKind=$sourceKind
+ AND e.sourceId=$sourceId AND e.generationId=$generationId
+RETURN e.key AS key, e.localId AS localId, e.entityType AS entityType,
+ e.normalizedName AS normalizedName, e.evidenceDigest AS evidenceDigest,
+ e.occurrence AS occurrence, e.extractorFingerprint AS extractorFingerprint
+ORDER BY e.key`;
+
+export const READ_SEMANTIC_CORRECTION_RELATIONS = `
+MATCH (s:KGSemanticEntity)-[r:KG_SEMANTIC_RELATION]->(t:KGSemanticEntity)
+WHERE r.organizationId=$organizationId AND r.sourceKind=$sourceKind
+ AND r.sourceId=$sourceId AND r.generationId=$generationId
+ AND s.organizationId=$organizationId AND t.organizationId=$organizationId
+ AND s.sourceId=$sourceId AND t.sourceId=$sourceId
+ AND s.generationId=$generationId AND t.generationId=$generationId
+RETURN r.key AS key, s.key AS sourceKey, t.key AS targetKey, r.predicate AS predicate
+ORDER BY r.key`;
+
 export function deleteSemanticNodesQuery(
   label: 'KGSemanticChunk' | 'KGSemanticEntity',
   oneGeneration: boolean,

@@ -579,12 +579,24 @@ describeIsolated('전용 PostgreSQL의 복구 lease·재예약·snapshot 관찰'
         aggregateKind: 'membership',
       });
     }
-    expect(await state.listTrackedOrganizationIds(null, 2)).toEqual(
-      organizationIds.slice(0, 2).map((organizationId) => ({ organizationId })),
+    const visited: string[] = [];
+    let after: string | null = null;
+    for (let pageNumber = 0; pageNumber < 100; pageNumber += 1) {
+      const page = await state.listTrackedOrganizationIds(after, 2);
+      if (page.length === 0) break;
+      const ids = page.map((row) => row.organizationId);
+      expect(ids).toEqual(
+        [...ids].sort((left, right) => left.localeCompare(right)),
+      );
+      const cursor = after;
+      if (cursor !== null) expect(ids.every((id) => id > cursor)).toBe(true);
+      visited.push(...ids);
+      after = ids.at(-1) ?? null;
+    }
+    expect(new Set(visited).size).toBe(visited.length);
+    expect(visited.filter((id) => organizationIds.includes(id))).toEqual(
+      organizationIds,
     );
-    expect(
-      await state.listTrackedOrganizationIds(organizationIds[1], 2),
-    ).toEqual([{ organizationId: organizationIds[2] }]);
   });
 
   it('R-12 조직 tombstone은 이미 삭제된 source와 더 새 live 변경을 되돌리지 않는다', async () => {
@@ -704,6 +716,8 @@ describeIsolated('전용 PostgreSQL의 복구 lease·재예약·snapshot 관찰'
   });
 
   it('복구 통계는 applied를 제외하고 영구 실패·정체 count와 실제 timestamp를 반환한다', async () => {
+    const [before] = await state.recoveryStats();
+    if (!before) throw new Error('복구 통계 기준값이 없습니다.');
     await insertSource('pending', { requeueCount: 6 });
     await insertSource('applying', { projectionStatus: 'applying' });
     await insertSource('retry', { projectionStatus: 'retry_scheduled' });
@@ -714,11 +728,11 @@ describeIsolated('전용 PostgreSQL의 복구 lease·재예약·snapshot 관찰'
     });
     expect(await state.recoveryStats()).toEqual([
       {
-        pending: 1,
-        applying: 1,
-        retryScheduled: 1,
-        failed: 1,
-        requeueStuck: 1,
+        pending: before.pending + 1,
+        applying: before.applying + 1,
+        retryScheduled: before.retryScheduled + 1,
+        failed: before.failed + 1,
+        requeueStuck: before.requeueStuck + 1,
         oldestPendingAt: new Date(0),
       },
     ]);

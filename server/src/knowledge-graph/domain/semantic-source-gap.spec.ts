@@ -9,17 +9,42 @@ import {
 
 describe('의미 색인의 최신 요구와 영구 실패 자격', () => {
   const fingerprint = 'a'.repeat(64);
-  const combinations = Array.from({ length: 32 }, (_, index) => ({ deleted: Boolean(index & 1), desired: Boolean(index & 2), manual: Boolean(index & 4), changedFingerprint: Boolean(index & 8), failed: Boolean(index & 16) }));
-  it.each(combinations)('U7-09 독립5조건의32개조합을기획의gap·terminal 정의와대조한다: %j', ({ deleted, desired, manual, changedFingerprint, failed }) => {
-    const desiredSeq = desired ? 2 : 1;
-    const state = semanticStateFixture({ indexedSeq: 1, indexedManualSeq: 0, indexedFingerprint: changedFingerprint ? 'b'.repeat(64) : fingerprint,
-      manualRequestSeq: manual ? 1 : 0, manualRequestId: manual ? '10000000-0000-4000-8000-000000000001' : null, manualRequestedAt: manual ? new Date(0) : null,
-      runStatus: failed ? 'failed' : 'idle', attemptSeq: desiredSeq, attemptManualSeq: manual ? 1 : 0, attemptFingerprint: fingerprint,
-    });
-    const current = semanticCurrentFixture({ version: { desiredSeq, deleted, updatedAt: new Date(0) }, state });
-    expect(computeSemanticGaps(current, fingerprint)).toEqual({ desired: !deleted && desired, manual: !deleted && manual, fingerprint: !deleted && changedFingerprint, none: deleted || !(desired || manual || changedFingerprint) });
-    expect(isSemanticTerminal(current, fingerprint)).toBe(!deleted && failed);
-  });
+  const combinations = Array.from({ length: 32 }, (_, index) => ({
+    deleted: Boolean(index & 1),
+    desired: Boolean(index & 2),
+    manual: Boolean(index & 4),
+    changedFingerprint: Boolean(index & 8),
+    failed: Boolean(index & 16),
+  }));
+  it.each(combinations)(
+    'U7-09 독립5조건의32개조합을기획의gap·terminal 정의와대조한다: %j',
+    ({ deleted, desired, manual, changedFingerprint, failed }) => {
+      const desiredSeq = desired ? 2 : 1;
+      const state = semanticStateFixture({
+        indexedSeq: 1,
+        indexedManualSeq: 0,
+        indexedFingerprint: changedFingerprint ? 'b'.repeat(64) : fingerprint,
+        manualRequestSeq: manual ? 1 : 0,
+        manualRequestId: manual ? '10000000-0000-4000-8000-000000000001' : null,
+        manualRequestedAt: manual ? new Date(0) : null,
+        runStatus: failed ? 'failed' : 'idle',
+        attemptSeq: desiredSeq,
+        attemptManualSeq: manual ? 1 : 0,
+        attemptFingerprint: fingerprint,
+      });
+      const current = semanticCurrentFixture({
+        version: { desiredSeq, deleted, updatedAt: new Date(0) },
+        state,
+      });
+      expect(computeSemanticGaps(current, fingerprint)).toEqual({
+        desired: !deleted && desired,
+        manual: !deleted && manual,
+        fingerprint: !deleted && changedFingerprint,
+        none: deleted || !(desired || manual || changedFingerprint),
+      });
+      expect(isSemanticTerminal(current, fingerprint)).toBe(!deleted && failed);
+    },
+  );
   it('U7-09 상태가 없어도 registry의 desired 요구를 보존한다', () => {
     expect(
       computeSemanticGaps(semanticCurrentFixture({ state: null }), fingerprint),

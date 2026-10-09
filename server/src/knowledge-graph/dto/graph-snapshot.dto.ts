@@ -7,6 +7,10 @@ import {
   GraphOwnerKindSchema,
   GraphPermissionsSchema,
 } from '@/knowledge-graph/domain/graph-read-contract';
+import {
+  curatedEdgeSelectSchema,
+  curatedNodeSelectSchema,
+} from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/curated-graph.zod';
 
 import { z } from 'zod';
 
@@ -119,6 +123,13 @@ export const GraphNodeSchema = z
       })
       .strict()
       .nullable(),
+    curated: z
+      .object({
+        kind: curatedNodeSelectSchema.shape.kind,
+        properties: curatedNodeSelectSchema.shape.properties,
+      })
+      .strict()
+      .nullable(),
     connectedEdgeCount: z.number().int().nonnegative().optional(),
   })
   .strict()
@@ -143,6 +154,16 @@ export const GraphEdgeSchema = z
         generationId: z.uuid().nullable(),
         chunkIndex: z.number().int().nonnegative().nullable(),
         evidenceDigest: z.string().min(1).max(256).nullable(),
+      })
+      .strict()
+      .nullable(),
+    curated: z
+      .object({
+        sourceNodeKind: curatedEdgeSelectSchema.shape.sourceNodeKind,
+        sourceNodeId: curatedEdgeSelectSchema.shape.sourceNodeId,
+        targetNodeKind: curatedEdgeSelectSchema.shape.targetNodeKind,
+        targetNodeId: curatedEdgeSelectSchema.shape.targetNodeId,
+        properties: curatedEdgeSelectSchema.shape.properties,
       })
       .strict()
       .nullable(),

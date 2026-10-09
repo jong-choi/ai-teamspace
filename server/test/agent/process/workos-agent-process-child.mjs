@@ -14,11 +14,31 @@ import { fakeModel } from '@langchain/core/testing';
 import { Client } from '@langchain/langgraph-sdk';
 import { MCPAdapter } from '@langchain/mcp-adapters';
 
-import { WorkOsAgentFactory } from '../../../dist/agent/application/workos-agent.factory.js';
-import { AgentConfiguration } from '../../../dist/agent/config/agent-configuration.js';
-import { DeepAgentBuilder } from '../../../dist/agent/infrastructure/deep-agent/deep-agent.builder.js';
-import { DeepAgentWorkOsGraphAdapter } from '../../../dist/agent/infrastructure/deep-agent/deep-agent-workos-graph.adapter.js';
-import { McpToolApprovalPolicy } from '../../../dist/agent/infrastructure/mcp/langchain/mcp-tool-approval.policy.js';
+const distributionRoot = new URL('../../../dist/', import.meta.url);
+const { WorkOsAgentFactory } = await import(
+  new URL('agent/application/workos-agent.factory.js', distributionRoot).href
+);
+const { AgentConfiguration } = await import(
+  new URL('agent/config/agent-configuration.js', distributionRoot).href
+);
+const { DeepAgentBuilder } = await import(
+  new URL(
+    'agent/infrastructure/deep-agent/deep-agent.builder.js',
+    distributionRoot,
+  ).href
+);
+const { DeepAgentWorkOsGraphAdapter } = await import(
+  new URL(
+    'agent/infrastructure/deep-agent/deep-agent-workos-graph.adapter.js',
+    distributionRoot,
+  ).href
+);
+const { McpToolApprovalPolicy } = await import(
+  new URL(
+    'agent/infrastructure/mcp/langchain/mcp-tool-approval.policy.js',
+    distributionRoot,
+  ).href
+);
 
 const phase = required('AGENT_PROCESS_PHASE');
 const databaseUrl = required('AGENT_TEST_DATABASE_URL');
@@ -83,7 +103,7 @@ const sessions = {
           transport: 'http',
           mode: 'modern',
           url: configuration.mcp.url,
-          authProvider: await authProviderFactory.create(actor),
+          authProvider: authProviderFactory.create(actor),
         },
       },
     });

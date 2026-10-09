@@ -1,7 +1,5 @@
-import type {
-  GraphFixtureEdge,
-  GraphFixtureNode,
-} from '@core/features/knowledge-graph/fixtures/knowledge-graph-fixture-contract';
+import type { GraphEdge } from '@repo/client/api-client/generated/schemas/graphEdge.zod';
+import type { GraphNode } from '@repo/client/api-client/generated/schemas/graphNode.zod';
 import { GRAPH_NODE_RADIUS } from '@core/features/knowledge-graph/lib/graph-layout';
 import type { GraphPoint } from '@core/features/knowledge-graph/state/graph-studio-store';
 
@@ -21,8 +19,8 @@ export type GraphEdgeGeometry = {
 
 /** 양끝 노드가 모두 있는 edge만 남긴다. 없는 endpoint의 ghost edge를 그리지 않는다. */
 export function getRenderableEdges<
-  TNode extends Pick<GraphFixtureNode, 'id'>,
-  TEdge extends Pick<GraphFixtureEdge, 'sourceNodeId' | 'targetNodeId'>,
+  TNode extends Pick<GraphNode, 'id'>,
+  TEdge extends Pick<GraphEdge, 'sourceNodeId' | 'targetNodeId'>,
 >(nodes: readonly TNode[], edges: readonly TEdge[]): TEdge[] {
   const ids = new Set(nodes.map(({ id }) => id));
   return edges.filter(
@@ -36,10 +34,7 @@ export function getRenderableEdges<
  * 방향과 무관하게 같은 쌍으로 묶어 선이 겹치지 않게 한다.
  */
 export function getParallelOffsets(
-  edges: readonly Pick<
-    GraphFixtureEdge,
-    'id' | 'sourceNodeId' | 'targetNodeId'
-  >[],
+  edges: readonly Pick<GraphEdge, 'id' | 'sourceNodeId' | 'targetNodeId'>[],
 ): ReadonlyMap<string, number> {
   const groups = new Map<string, string[]>();
   for (const edge of edges) {
@@ -227,7 +222,7 @@ export type GraphNodeConnection<TEdge> = {
 
 export function getNodeConnections<
   TEdge extends Pick<
-    GraphFixtureEdge,
+    GraphEdge,
     'id' | 'sourceNodeId' | 'targetNodeId' | 'directed'
   >,
 >(nodeId: string, edges: readonly TEdge[]): GraphNodeConnection<TEdge>[] {

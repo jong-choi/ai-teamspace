@@ -28,6 +28,14 @@ export const graphEdgeProvenanceChunkIndexMax = 9007199254740991;
 
 export const graphEdgeProvenanceEvidenceDigestMax = 256;
 
+export const graphEdgeCuratedSourceNodeIdRegExp = new RegExp('^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$');
+export const graphEdgeCuratedTargetNodeIdRegExp = new RegExp('^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$');
+export const graphEdgeCuratedPropertiesOneOneMax = 4096;
+
+export const graphEdgeCuratedPropertiesTwoItemOneMax = 4096;
+
+export const graphEdgeCuratedPropertiesTwoMax = 64;
+
 
 
 export const GraphEdge = zod.object({
@@ -57,6 +65,13 @@ export const GraphEdge = zod.object({
   "generationId": zod.uuid().regex(graphEdgeProvenanceGenerationIdRegExp).nullable(),
   "chunkIndex": zod.int().min(graphEdgeProvenanceChunkIndexMin).max(graphEdgeProvenanceChunkIndexMax).nullable(),
   "evidenceDigest": zod.string().min(1).max(graphEdgeProvenanceEvidenceDigestMax).nullable()
+}).nullable(),
+  "curated": zod.object({
+  "sourceNodeKind": zod.enum(['curated_node', 'wiki_document', 'project', 'ticket', 'meeting']),
+  "sourceNodeId": zod.uuid().regex(graphEdgeCuratedSourceNodeIdRegExp),
+  "targetNodeKind": zod.enum(['curated_node', 'wiki_document', 'project', 'ticket', 'meeting']),
+  "targetNodeId": zod.uuid().regex(graphEdgeCuratedTargetNodeIdRegExp),
+  "properties": zod.record(zod.string(), zod.union([zod.union([zod.string().max(graphEdgeCuratedPropertiesOneOneMax),zod.number(),zod.boolean(),zod.literal(null).nullable()]),zod.array(zod.union([zod.string().max(graphEdgeCuratedPropertiesTwoItemOneMax),zod.number(),zod.boolean(),zod.literal(null).nullable()])).max(graphEdgeCuratedPropertiesTwoMax)]))
 }).nullable()
 });
 

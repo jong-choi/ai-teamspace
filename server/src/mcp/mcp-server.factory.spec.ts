@@ -48,16 +48,17 @@ describe('Work OS MCP server factory', () => {
   });
 
   it('raw transport token을 tool registry context로 전달하지 않는다', () => {
+    const registryToolsForAuthMock = jest.fn().mockImplementation((auth) => {
+      expect(JSON.stringify(auth)).not.toContain('raw-transport-token');
+      return [];
+    });
     const registry = {
-      toolsForAuth: jest.fn().mockImplementation((auth) => {
-        expect(JSON.stringify(auth)).not.toContain('raw-transport-token');
-        return [];
-      }),
+      toolsForAuth: registryToolsForAuthMock,
       invoke: jest.fn(),
     } as unknown as McpToolRegistryService;
 
     new WorkOsMcpServerFactory(registry).create(authInfo);
 
-    expect(registry.toolsForAuth).toHaveBeenCalledTimes(1);
+    expect(registryToolsForAuthMock).toHaveBeenCalledTimes(1);
   });
 });

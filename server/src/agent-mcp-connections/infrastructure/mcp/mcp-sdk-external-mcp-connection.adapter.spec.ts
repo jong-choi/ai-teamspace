@@ -78,18 +78,19 @@ describe('external MCP SDK connection adapter', () => {
 
   test('교체 전 bearer 검증은 persisted credential을 읽지 않고 ephemeral token만 사용한다', async () => {
     const fixture = await startWorkOsMcpFixture();
+    const safeOutboundFetchMock = jest.fn(
+      (input: string | URL, init?: RequestInit) =>
+        fetch(input, { ...init, redirect: 'manual' }),
+    );
     const safeOutbound = {
       assertSafe: jest.fn().mockResolvedValue(new URL(fixture.url)),
-      fetch: jest.fn((input: string | URL, init?: RequestInit) =>
-        fetch(input, { ...init, redirect: 'manual' }),
-      ),
+      fetch: safeOutboundFetchMock,
     } as unknown as SafeOutboundHttp;
+    const persistedCredentialsGetBearerTokenMock = jest
+      .fn()
+      .mockRejectedValue(new Error('persisted credential을 읽으면 안 됩니다.'));
     const persistedCredentials = {
-      getBearerToken: jest
-        .fn()
-        .mockRejectedValue(
-          new Error('persisted credential을 읽으면 안 됩니다.'),
-        ),
+      getBearerToken: persistedCredentialsGetBearerTokenMock,
     } as unknown as AgentMcpCredentialService;
     const adapter = new McpSdkExternalMcpConnectionAdapter(
       repository(),
@@ -110,7 +111,7 @@ describe('external MCP SDK connection adapter', () => {
       expect(discovery.tools.map((tool) => tool.name)).toContain(
         'fixture_read',
       );
-      expect(persistedCredentials.getBearerToken).not.toHaveBeenCalled();
+      expect(persistedCredentialsGetBearerTokenMock).not.toHaveBeenCalled();
     } finally {
       await fixture.close();
     }
@@ -118,11 +119,13 @@ describe('external MCP SDK connection adapter', () => {
 
   test('modern MCP를 연결하고 external tool을 모두 HITL 대상으로 노출한다', async () => {
     const fixture = await startWorkOsMcpFixture();
+    const safeOutboundFetchMock = jest.fn(
+      (input: string | URL, init?: RequestInit) =>
+        fetch(input, { ...init, redirect: 'manual' }),
+    );
     const safeOutbound = {
       assertSafe: jest.fn().mockResolvedValue(new URL(fixture.url)),
-      fetch: jest.fn((input: string | URL, init?: RequestInit) =>
-        fetch(input, { ...init, redirect: 'manual' }),
-      ),
+      fetch: safeOutboundFetchMock,
     } as unknown as SafeOutboundHttp;
     const adapter = new McpSdkExternalMcpConnectionAdapter(
       repository(),
@@ -170,11 +173,13 @@ describe('external MCP SDK connection adapter', () => {
   test('discovery는 policy filter 전 원본 tool catalog를 bounded timeout으로 반환한다', async () => {
     const fixture = await startWorkOsMcpFixture();
     const listTools = jest.spyOn(Client.prototype, 'listTools');
+    const safeOutboundFetchMock = jest.fn(
+      (input: string | URL, init?: RequestInit) =>
+        fetch(input, { ...init, redirect: 'manual' }),
+    );
     const safeOutbound = {
       assertSafe: jest.fn().mockResolvedValue(new URL(fixture.url)),
-      fetch: jest.fn((input: string | URL, init?: RequestInit) =>
-        fetch(input, { ...init, redirect: 'manual' }),
-      ),
+      fetch: safeOutboundFetchMock,
     } as unknown as SafeOutboundHttp;
     const adapter = new McpSdkExternalMcpConnectionAdapter(
       repository(),
@@ -209,11 +214,13 @@ describe('external MCP SDK connection adapter', () => {
 
   test('tool AbortSignal을 실제 MCP request까지 전파한다', async () => {
     const fixture = await startWorkOsMcpFixture();
+    const safeOutboundFetchMock = jest.fn(
+      (input: string | URL, init?: RequestInit) =>
+        fetch(input, { ...init, redirect: 'manual' }),
+    );
     const safeOutbound = {
       assertSafe: jest.fn().mockResolvedValue(new URL(fixture.url)),
-      fetch: jest.fn((input: string | URL, init?: RequestInit) =>
-        fetch(input, { ...init, redirect: 'manual' }),
-      ),
+      fetch: safeOutboundFetchMock,
     } as unknown as SafeOutboundHttp;
     const adapter = new McpSdkExternalMcpConnectionAdapter(
       repository(),
@@ -289,11 +296,13 @@ describe('external MCP SDK connection adapter', () => {
     });
     const address = redirectServer.address() as AddressInfo;
     const redirectUrl = new URL(`http://127.0.0.1:${address.port}/mcp`);
+    const safeOutboundFetchMock = jest.fn(
+      (input: string | URL, init?: RequestInit) =>
+        fetch(input, { ...init, redirect: 'manual' }),
+    );
     const safeOutbound = {
       assertSafe: jest.fn().mockResolvedValue(redirectUrl),
-      fetch: jest.fn((input: string | URL, init?: RequestInit) =>
-        fetch(input, { ...init, redirect: 'manual' }),
-      ),
+      fetch: safeOutboundFetchMock,
     } as unknown as SafeOutboundHttp;
     const adapter = new McpSdkExternalMcpConnectionAdapter(
       repository(),
@@ -306,7 +315,7 @@ describe('external MCP SDK connection adapter', () => {
 
     try {
       await expect(adapter.open(actor, connection())).rejects.toThrow();
-      expect(safeOutbound.fetch).toHaveBeenCalled();
+      expect(safeOutboundFetchMock).toHaveBeenCalled();
       expect(endpointAuthorization).toBe('Bearer fixture:user-a');
       expect(redirectedHits).toBe(0);
       expect(redirectedAuthorization).toBeUndefined();

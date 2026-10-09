@@ -116,11 +116,12 @@ describe('외부 MCP OAuth state 서비스', () => {
   test('callback state는 hash + owner/org + redirect/resource binding으로 복원한다', async () => {
     const rawState = 'state-value';
     const stateHash = createHash('sha256').update(rawState).digest('hex');
+    const repositoryFindActiveOAuthStateByHashMock = jest
+      .fn()
+      .mockResolvedValue(activeState(stateHash));
     const repository = {
       findOwned: jest.fn().mockResolvedValue(connection()),
-      findActiveOAuthStateByHash: jest
-        .fn()
-        .mockResolvedValue(activeState(stateHash)),
+      findActiveOAuthStateByHash: repositoryFindActiveOAuthStateByHashMock,
     } as unknown as AgentMcpConnectionRepository;
     const service = new AgentMcpOauthStateService(
       repository,
@@ -136,7 +137,7 @@ describe('외부 MCP OAuth state 서비스', () => {
       resourceIdentity: endpoint,
       redirectUri,
     });
-    expect(repository.findActiveOAuthStateByHash).toHaveBeenCalledWith(
+    expect(repositoryFindActiveOAuthStateByHashMock).toHaveBeenCalledWith(
       actor.userId,
       actor.organizationId,
       stateHash,
@@ -147,11 +148,12 @@ describe('외부 MCP OAuth state 서비스', () => {
   test('callback state redirect binding이 다르면 거부한다', async () => {
     const rawState = 'state-value';
     const stateHash = createHash('sha256').update(rawState).digest('hex');
+    const repositoryFindActiveOAuthStateByHashMock = jest
+      .fn()
+      .mockResolvedValue(activeState(stateHash));
     const repository = {
       findOwned: jest.fn().mockResolvedValue(connection()),
-      findActiveOAuthStateByHash: jest
-        .fn()
-        .mockResolvedValue(activeState(stateHash)),
+      findActiveOAuthStateByHash: repositoryFindActiveOAuthStateByHashMock,
     } as unknown as AgentMcpConnectionRepository;
     const service = new AgentMcpOauthStateService(
       repository,
@@ -177,15 +179,16 @@ describe('외부 MCP OAuth state 서비스', () => {
       findActiveOAuthState: jest.fn().mockResolvedValue(activeState(stateHash)),
       saveOAuthStateVerifier,
     } as unknown as AgentMcpConnectionRepository;
+    const cryptoEncryptMock = jest.fn().mockResolvedValue({
+      version: 1,
+      algorithm: 'aes-256-gcm',
+      keyId: 'key-1',
+      nonce: Buffer.alloc(12, 3).toString('base64'),
+      ciphertext: Buffer.from('ciphertext').toString('base64'),
+      authTag: Buffer.alloc(16, 4).toString('base64'),
+    });
     const crypto = {
-      encrypt: jest.fn().mockResolvedValue({
-        version: 1,
-        algorithm: 'aes-256-gcm',
-        keyId: 'key-1',
-        nonce: Buffer.alloc(12, 3).toString('base64'),
-        ciphertext: Buffer.from('ciphertext').toString('base64'),
-        authTag: Buffer.alloc(16, 4).toString('base64'),
-      }),
+      encrypt: cryptoEncryptMock,
     } as unknown as CredentialCryptoProvider;
     const service = new AgentMcpOauthStateService(
       repository,
@@ -201,7 +204,7 @@ describe('외부 MCP OAuth state 서비스', () => {
       'pkce-secret',
     );
 
-    expect(crypto.encrypt).toHaveBeenCalledWith('pkce-secret', {
+    expect(cryptoEncryptMock).toHaveBeenCalledWith('pkce-secret', {
       recordKind: 'agent-mcp-oauth-pkce',
       recordId: stateHash,
       userId: actor.userId,
@@ -240,16 +243,20 @@ describe('외부 MCP OAuth state 서비스', () => {
         .mockResolvedValueOnce(encryptedState),
       saveOAuthStateDiscovery,
     } as unknown as AgentMcpConnectionRepository;
+    const cryptoEncryptMock = jest.fn().mockResolvedValue({
+      version: 1,
+      algorithm: 'aes-256-gcm',
+      keyId: 'key-1',
+      nonce: Buffer.alloc(12, 5).toString('base64'),
+      ciphertext: Buffer.from('encrypted-discovery').toString('base64'),
+      authTag: Buffer.alloc(16, 6).toString('base64'),
+    });
+    const cryptoDecryptMock = jest
+      .fn()
+      .mockResolvedValue(JSON.stringify(discovery));
     const crypto = {
-      encrypt: jest.fn().mockResolvedValue({
-        version: 1,
-        algorithm: 'aes-256-gcm',
-        keyId: 'key-1',
-        nonce: Buffer.alloc(12, 5).toString('base64'),
-        ciphertext: Buffer.from('encrypted-discovery').toString('base64'),
-        authTag: Buffer.alloc(16, 6).toString('base64'),
-      }),
-      decrypt: jest.fn().mockResolvedValue(JSON.stringify(discovery)),
+      encrypt: cryptoEncryptMock,
+      decrypt: cryptoDecryptMock,
     } as unknown as CredentialCryptoProvider;
     const service = new AgentMcpOauthStateService(
       repository,
@@ -279,7 +286,7 @@ describe('외부 MCP OAuth state 서비스', () => {
     await expect(
       service.discoveryState(actor, connectionId, rawState, redirectUri),
     ).resolves.toEqual(discovery);
-    expect(crypto.decrypt).toHaveBeenCalledWith(
+    expect(cryptoDecryptMock).toHaveBeenCalledWith(
       expect.objectContaining({ algorithm: 'aes-256-gcm' }),
       {
         recordKind: 'agent-mcp-oauth-discovery',
@@ -310,12 +317,13 @@ describe('외부 MCP OAuth state 서비스', () => {
       findOwned: jest.fn().mockResolvedValue(connection()),
       findActiveOAuthState: jest.fn().mockResolvedValue(encryptedState),
     } as unknown as AgentMcpConnectionRepository;
+    const cryptoDecryptMock = jest.fn().mockResolvedValue(
+      JSON.stringify({
+        authorizationServerUrl: 'https://attacker.example.com/',
+      }),
+    );
     const crypto = {
-      decrypt: jest.fn().mockResolvedValue(
-        JSON.stringify({
-          authorizationServerUrl: 'https://attacker.example.com/',
-        }),
-      ),
+      decrypt: cryptoDecryptMock,
     } as unknown as CredentialCryptoProvider;
     const service = new AgentMcpOauthStateService(
       repository,
@@ -336,8 +344,9 @@ describe('외부 MCP OAuth state 서비스', () => {
       findActiveOAuthState: jest.fn().mockResolvedValue(activeState(stateHash)),
       consumeOAuthState: jest.fn().mockResolvedValue(null),
     } as unknown as AgentMcpConnectionRepository;
+    const cryptoDecryptMock = jest.fn().mockResolvedValue('pkce-secret');
     const crypto = {
-      decrypt: jest.fn().mockResolvedValue('pkce-secret'),
+      decrypt: cryptoDecryptMock,
     } as unknown as CredentialCryptoProvider;
     const service = new AgentMcpOauthStateService(
       repository,

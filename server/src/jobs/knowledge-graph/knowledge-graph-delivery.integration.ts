@@ -191,7 +191,9 @@ describe('PostgreSQL Outbox와 BullMQ의 실제 전달', () => {
         ),
       ).toEqual([1, 2, 3]);
       expect(
-        (await queue.getWaiting()).map((job) => job.data.sourceVersion).sort(),
+        (await queue.getWaiting())
+          .map((job) => job.data.sourceVersion)
+          .sort((left, right) => left - right),
       ).toEqual([1, 2, 3]);
       expect((await relay.stats()).pending).toBe(0);
     } finally {

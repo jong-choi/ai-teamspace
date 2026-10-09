@@ -1,5 +1,8 @@
+import { useState } from 'react';
 import { View } from 'react-native';
 
+import { useKnowledgeGraphControllerListNodesSuspense } from '@repo/client/api-client';
+import type { KnowledgeGraphControllerListNodesParams } from '@repo/client/api-client/generated/schemas/knowledgeGraphControllerListNodesParams.zod';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 import {
@@ -17,9 +20,6 @@ import {
   GraphMetaBadge,
   GraphProjectionBadge,
 } from '@core/features/knowledge-graph/components/graph-badges';
-import type { GraphFixtureNodeListParams } from '@core/features/knowledge-graph/fixtures/knowledge-graph-fixture-contract';
-// TODO(graph-05-orval): graph-05 node 목록 generated Suspense hook으로 직접 교체한다.
-import { useGraphFixtureNodesSuspense } from '@core/features/knowledge-graph/fixtures/knowledge-graph-fixture-queries';
 import { getGraphRecordActions } from '@core/features/knowledge-graph/lib/graph-permission';
 import {
   GRAPH_NODE_KIND_META,
@@ -52,15 +52,30 @@ export function GraphNodeTable({
 }: {
   onCursorChange: (cursor: string | null) => void;
   organizationId: string;
-  params: GraphFixtureNodeListParams;
+  params: KnowledgeGraphControllerListNodesParams;
 }) {
-  const page = useGraphFixtureNodesSuspense(organizationId, params).data;
+  const page = useKnowledgeGraphControllerListNodesSuspense(
+    organizationId,
+    params,
+  ).data;
   const { copyText, notifySuccess } = useDashboardPlatform();
   const selection = useGraphStudioStore((state) => state.selection);
   const select = useGraphStudioStore((state) => state.select);
   const openDialog = useGraphStudioStore((state) => state.openDialog);
   const pinnedPositions = useGraphStudioStore((state) => state.pinnedPositions);
-  const start = page.pageIndex * params.pageSize;
+  const scope = `${params.q ?? ''}:${params.kind ?? ''}:${params.limit ?? 50}`;
+  const [navigation, setNavigation] = useState<{
+    scope: string;
+    previous: Array<string | null>;
+  }>({
+    scope,
+    previous: [],
+  });
+  if (navigation.scope !== scope) {
+    setNavigation({ scope, previous: [] });
+  }
+  const pageSize = params.limit ?? 50;
+  const start = navigation.previous.length * pageSize;
 
   return (
     <View className="gap-4">
@@ -112,7 +127,7 @@ export function GraphNodeTable({
                 </GraphTableCell>
                 <GraphTableCell className="w-44 flex-wrap">
                   <GraphFactClassBadge factClass={node.factClass} />
-                  <GraphProjectionBadge projection={node.projection} />
+                  <GraphProjectionBadge projection={node.projectionState} />
                 </GraphTableCell>
                 <GraphTableCell className="w-32">
                   <Text className="font-mono text-[11px] text-muted-foreground">
@@ -161,11 +176,30 @@ export function GraphNodeTable({
       </GraphTable>
 
       <GraphPagination
-        label={`전체 ${page.totalCount}개 노드 중 ${page.totalCount > 0 ? start + 1 : 0}–${Math.min(start + params.pageSize, page.totalCount)}`}
+        canPrevious={navigation.previous.length > 0}
+        label={
+          page.totalCount === null
+            ? `전체 수 미확정 · 현재 ${page.items.length}개 노드`
+            : `전체 ${page.totalCount}개 노드 중 ${page.totalCount > 0 ? start + 1 : 0}–${Math.min(start + pageSize, page.totalCount)}`
+        }
         nextCursor={page.nextCursor}
-        onCursorChange={onCursorChange}
-        page={{ index: page.pageIndex, count: page.pageCount }}
-        previousCursor={page.previousCursor}
+        onNext={() => {
+          if (!page.nextCursor) return;
+          setNavigation((current) => ({
+            ...current,
+            previous: [...current.previous, params.cursor ?? null],
+          }));
+          onCursorChange(page.nextCursor);
+        }}
+        onPrevious={() => {
+          const previous = navigation.previous.at(-1) ?? null;
+          setNavigation((current) => ({
+            ...current,
+            previous: current.previous.slice(0, -1),
+          }));
+          onCursorChange(previous);
+        }}
+        pageIndex={navigation.previous.length}
       />
     </View>
   );

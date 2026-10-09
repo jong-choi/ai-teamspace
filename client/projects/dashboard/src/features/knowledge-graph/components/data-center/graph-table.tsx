@@ -26,7 +26,7 @@ export function GraphTable({
   columns: readonly GraphTableColumn[];
 }) {
   return (
-    <View className="overflow-hidden rounded-xl border border-border bg-card shadow-sm shadow-black/5">
+    <View className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
       <ScrollView contentContainerClassName="min-w-full" horizontal>
         <View className="min-w-[860px] flex-1">
           <View className="flex-row border-b border-border bg-muted/50">
@@ -194,17 +194,19 @@ export function GraphRowActionButton({
 }
 
 export function GraphPagination({
+  canPrevious,
   label,
   nextCursor,
-  onCursorChange,
-  page,
-  previousCursor,
+  onNext,
+  onPrevious,
+  pageIndex,
 }: {
+  canPrevious: boolean;
   label: string;
   nextCursor: string | null;
-  onCursorChange: (cursor: string | null) => void;
-  page: { index: number; count: number };
-  previousCursor: string | null;
+  onNext: () => void;
+  onPrevious: () => void;
+  pageIndex: number;
 }) {
   return (
     <View className="flex-row items-center justify-between px-1">
@@ -212,20 +214,18 @@ export function GraphPagination({
       <View className="flex-row items-center gap-1">
         <Button
           className="h-7 rounded-lg px-2.5"
-          disabled={page.index === 0}
-          onPress={() => onCursorChange(previousCursor)}
+          disabled={!canPrevious}
+          onPress={onPrevious}
           size="sm"
           variant="outline"
         >
           <Text className="text-xs text-muted-foreground">이전</Text>
         </Button>
-        <Text className="px-2 font-mono text-xs">
-          {page.index + 1} / {page.count}
-        </Text>
+        <Text className="px-2 font-mono text-xs">{pageIndex + 1}</Text>
         <Button
           className="h-7 rounded-lg px-2.5"
           disabled={!nextCursor}
-          onPress={() => onCursorChange(nextCursor)}
+          onPress={onNext}
           size="sm"
           variant="outline"
         >

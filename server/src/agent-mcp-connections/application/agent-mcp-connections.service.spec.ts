@@ -45,45 +45,69 @@ describe('external MCP connection application service', () => {
   }
 
   function dependencies() {
+    const repositoryCreatePendingConnectionMock = jest.fn();
+    const repositoryFindOwnedMock = jest.fn();
+    const repositoryUpdateIfRevisionMock = jest.fn();
+    const repositoryUpdateSecurityBoundaryIfRevisionMock = jest.fn();
+    const repositoryUpdateToolPolicyIfRevisionMock = jest.fn();
+    const repositoryRemoveOwnedMock = jest.fn().mockResolvedValue(false);
+    const repositoryRecordHealthMock = jest
+      .fn()
+      .mockImplementation(
+        async (
+          _ownerUserId,
+          _organizationId,
+          _connectionId,
+          testedAt,
+          lastErrorCategory,
+        ) =>
+          connection({
+            lastTestedAt: testedAt,
+            lastErrorCategory,
+          }),
+      );
+    const repositoryFindCredentialForOwnedConnectionMock = jest
+      .fn()
+      .mockResolvedValue(null);
+    const repositoryListEnabledToolsMock = jest.fn().mockResolvedValue([]);
     const repository = {
       listOwned: jest.fn().mockResolvedValue([]),
-      createPendingConnection: jest.fn(),
-      findOwned: jest.fn(),
-      updateIfRevision: jest.fn(),
-      updateSecurityBoundaryIfRevision: jest.fn(),
-      updateToolPolicyIfRevision: jest.fn(),
-      removeOwned: jest.fn().mockResolvedValue(false),
-      recordHealth: jest
-        .fn()
-        .mockImplementation(
-          async (
-            _ownerUserId,
-            _organizationId,
-            _connectionId,
-            testedAt,
-            lastErrorCategory,
-          ) =>
-            connection({
-              lastTestedAt: testedAt,
-              lastErrorCategory,
-            }),
-        ),
-      findCredentialForOwnedConnection: jest.fn().mockResolvedValue(null),
-      listEnabledTools: jest.fn().mockResolvedValue([]),
+      createPendingConnection: repositoryCreatePendingConnectionMock,
+      findOwned: repositoryFindOwnedMock,
+      updateIfRevision: repositoryUpdateIfRevisionMock,
+      updateSecurityBoundaryIfRevision:
+        repositoryUpdateSecurityBoundaryIfRevisionMock,
+      updateToolPolicyIfRevision: repositoryUpdateToolPolicyIfRevisionMock,
+      removeOwned: repositoryRemoveOwnedMock,
+      recordHealth: repositoryRecordHealthMock,
+      findCredentialForOwnedConnection:
+        repositoryFindCredentialForOwnedConnectionMock,
+      listEnabledTools: repositoryListEnabledToolsMock,
     } as unknown as AgentMcpConnectionRepository;
+    const credentialsSaveBearerTokenMock = jest
+      .fn()
+      .mockResolvedValue(undefined);
     const credentials = {
-      saveBearerToken: jest.fn().mockResolvedValue(undefined),
+      saveBearerToken: credentialsSaveBearerTokenMock,
     } as unknown as AgentMcpCredentialService;
+    const oauthCredentialsHasAccessTokenMock = jest
+      .fn()
+      .mockResolvedValue(false);
     const oauthCredentials = {
-      hasAccessToken: jest.fn().mockResolvedValue(false),
+      hasAccessToken: oauthCredentialsHasAccessTokenMock,
     } as unknown as AgentMcpOauthCredentialService;
+    const oauthFinishMock = jest.fn();
     const oauth = {
       start: jest.fn(),
-      finish: jest.fn(),
+      finish: oauthFinishMock,
     } as unknown as AgentMcpOauthService;
+    const discoverMock = jest.fn();
+    const discoverWithBearerTokenMock = jest
+      .fn()
+      .mockResolvedValue({ tools: [] });
     const discovery = {
-      discover: jest.fn(),
-      discoverWithBearerToken: jest.fn().mockResolvedValue({ tools: [] }),
+      discover: discoverMock,
+      discoverWithBearerToken: discoverWithBearerTokenMock,
     };
     const organizations = {
       getActive: jest.fn().mockResolvedValue({
@@ -100,6 +124,20 @@ describe('external MCP connection application service', () => {
     } as unknown as ConfigService<AllConfigType>;
 
     return {
+      discoverMock,
+      discoverWithBearerTokenMock,
+      repositoryCreatePendingConnectionMock,
+      repositoryFindOwnedMock,
+      repositoryUpdateIfRevisionMock,
+      repositoryUpdateSecurityBoundaryIfRevisionMock,
+      repositoryUpdateToolPolicyIfRevisionMock,
+      repositoryRemoveOwnedMock,
+      repositoryRecordHealthMock,
+      repositoryFindCredentialForOwnedConnectionMock,
+      repositoryListEnabledToolsMock,
+      credentialsSaveBearerTokenMock,
+      oauthCredentialsHasAccessTokenMock,
+      oauthFinishMock,
       repository,
       credentials,
       oauthCredentials,
@@ -112,6 +150,12 @@ describe('external MCP connection application service', () => {
 
   test('OAuth callback 성공 뒤 fresh discovery로 health를 ready로 갱신한다', async () => {
     const deps = dependencies();
+    const {
+      oauthFinishMock,
+      discoverMock,
+      repositoryRecordHealthMock,
+      oauthCredentialsHasAccessTokenMock,
+    } = deps;
     const oauthConnection = connection({
       authKind: 'oauth',
       enabled: true,
@@ -123,12 +167,10 @@ describe('external MCP connection application service', () => {
       lastTestedAt: new Date('2026-10-08T00:00:00.000Z'),
       lastErrorCategory: null,
     });
-    jest.mocked(deps.oauth.finish).mockResolvedValue(oauthConnection);
-    jest.mocked(deps.discovery.discover).mockResolvedValue({ tools: [] });
-    jest
-      .mocked(deps.repository.recordHealth)
-      .mockResolvedValue(healthyConnection);
-    jest.mocked(deps.oauthCredentials.hasAccessToken).mockResolvedValue(true);
+    oauthFinishMock.mockResolvedValue(oauthConnection);
+    discoverMock.mockResolvedValue({ tools: [] });
+    repositoryRecordHealthMock.mockResolvedValue(healthyConnection);
+    oauthCredentialsHasAccessTokenMock.mockResolvedValue(true);
     const service = new AgentMcpConnectionsService(
       deps.repository,
       deps.credentials,
@@ -144,11 +186,11 @@ describe('external MCP connection application service', () => {
       new URLSearchParams({ code: 'code', state: 'state' }),
     );
 
-    expect(deps.discovery.discover).toHaveBeenCalledWith(
+    expect(discoverMock).toHaveBeenCalledWith(
       expect.objectContaining({ userId: 'user-1', organizationId: 'org-1' }),
       oauthConnection,
     );
-    expect(deps.repository.recordHealth).toHaveBeenCalledWith(
+    expect(repositoryRecordHealthMock).toHaveBeenCalledWith(
       'user-1',
       'org-1',
       oauthConnection.id,
@@ -161,6 +203,12 @@ describe('external MCP connection application service', () => {
 
   test('OAuth callback 뒤 fresh discovery 실패는 credential을 보존하고 health 상태로 반환한다', async () => {
     const deps = dependencies();
+    const {
+      oauthFinishMock,
+      discoverMock,
+      repositoryRecordHealthMock,
+      oauthCredentialsHasAccessTokenMock,
+    } = deps;
     const oauthConnection = connection({ authKind: 'oauth', enabled: true });
     const unavailableConnection = connection({
       authKind: 'oauth',
@@ -168,14 +216,12 @@ describe('external MCP connection application service', () => {
       lastTestedAt: new Date('2026-10-08T00:00:00.000Z'),
       lastErrorCategory: 'connection_unavailable',
     });
-    jest.mocked(deps.oauth.finish).mockResolvedValue(oauthConnection);
-    jest
-      .mocked(deps.discovery.discover)
-      .mockRejectedValue(new TypeError('remote secret-like network failure'));
-    jest
-      .mocked(deps.repository.recordHealth)
-      .mockResolvedValue(unavailableConnection);
-    jest.mocked(deps.oauthCredentials.hasAccessToken).mockResolvedValue(true);
+    oauthFinishMock.mockResolvedValue(oauthConnection);
+    discoverMock.mockRejectedValue(
+      new TypeError('remote secret-like network failure'),
+    );
+    repositoryRecordHealthMock.mockResolvedValue(unavailableConnection);
+    oauthCredentialsHasAccessTokenMock.mockResolvedValue(true);
     const service = new AgentMcpConnectionsService(
       deps.repository,
       deps.credentials,
@@ -191,7 +237,7 @@ describe('external MCP connection application service', () => {
       new URLSearchParams({ code: 'code', state: 'state' }),
     );
 
-    expect(deps.repository.recordHealth).toHaveBeenCalledWith(
+    expect(repositoryRecordHealthMock).toHaveBeenCalledWith(
       'user-1',
       'org-1',
       oauthConnection.id,
@@ -204,13 +250,19 @@ describe('external MCP connection application service', () => {
 
   test('인증 없는 create도 remote discovery를 통과한 뒤 반환한다', async () => {
     const deps = dependencies();
+    const {
+      repositoryCreatePendingConnectionMock,
+      discoverMock,
+      repositoryRemoveOwnedMock,
+    } = deps;
     const created = connection({ authKind: 'none', revision: 0 });
-    jest
-      .mocked(deps.repository.createPendingConnection)
-      .mockResolvedValue(created);
-    jest.mocked(deps.discovery.discover).mockResolvedValue({ tools: [] });
+    repositoryCreatePendingConnectionMock.mockResolvedValue(created);
+    discoverMock.mockResolvedValue({ tools: [] });
+    const auditPublisherPublishMock = jest
+      .fn()
+      .mockRejectedValue(new Error('audit sink unavailable'));
     const auditPublisher = {
-      publish: jest.fn().mockRejectedValue(new Error('audit sink unavailable')),
+      publish: auditPublisherPublishMock,
     } as unknown as AgentMcpAuditPublisher;
     const service = new AgentMcpConnectionsService(
       deps.repository,
@@ -231,12 +283,12 @@ describe('external MCP connection application service', () => {
       }),
     ).resolves.toMatchObject({ id: created.id, authKind: 'none' });
 
-    expect(deps.discovery.discover).toHaveBeenCalledWith(
+    expect(discoverMock).toHaveBeenCalledWith(
       expect.objectContaining({ userId: 'user-1', organizationId: 'org-1' }),
       created,
     );
-    expect(deps.repository.removeOwned).not.toHaveBeenCalled();
-    expect(auditPublisher.publish).toHaveBeenCalledWith(
+    expect(repositoryRemoveOwnedMock).not.toHaveBeenCalled();
+    expect(auditPublisherPublishMock).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'agent_mcp.discovery.completed',
         connectionId: created.id,
@@ -244,7 +296,7 @@ describe('external MCP connection application service', () => {
         toolCount: 0,
       }),
     );
-    expect(auditPublisher.publish).toHaveBeenCalledWith(
+    expect(auditPublisherPublishMock).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'agent_mcp.connection.created',
         connectionId: created.id,
@@ -255,13 +307,14 @@ describe('external MCP connection application service', () => {
 
   test('인증 없는 preflight 실패는 pending connection을 정리한다', async () => {
     const deps = dependencies();
+    const {
+      repositoryCreatePendingConnectionMock,
+      discoverMock,
+      repositoryRemoveOwnedMock,
+    } = deps;
     const created = connection({ authKind: 'none', revision: 0 });
-    jest
-      .mocked(deps.repository.createPendingConnection)
-      .mockResolvedValue(created);
-    jest
-      .mocked(deps.discovery.discover)
-      .mockRejectedValue(new TypeError('remote private detail'));
+    repositoryCreatePendingConnectionMock.mockResolvedValue(created);
+    discoverMock.mockRejectedValue(new TypeError('remote private detail'));
     const service = new AgentMcpConnectionsService(
       deps.repository,
       deps.credentials,
@@ -280,7 +333,7 @@ describe('external MCP connection application service', () => {
       }),
     ).rejects.toBeInstanceOf(AgentMcpDiscoveryFailedError);
 
-    expect(deps.repository.removeOwned).toHaveBeenCalledWith(
+    expect(repositoryRemoveOwnedMock).toHaveBeenCalledWith(
       'user-1',
       'org-1',
       created.id,
@@ -290,13 +343,17 @@ describe('external MCP connection application service', () => {
 
   test('bearer create는 secret을 저장하지만 응답에는 노출하지 않는다', async () => {
     const deps = dependencies();
+    const {
+      repositoryCreatePendingConnectionMock,
+      repositoryFindCredentialForOwnedConnectionMock,
+      discoverWithBearerTokenMock,
+      credentialsSaveBearerTokenMock,
+    } = deps;
     const created = connection({ revision: 0 });
-    jest
-      .mocked(deps.repository.createPendingConnection)
-      .mockResolvedValue(created);
-    jest
-      .mocked(deps.repository.findCredentialForOwnedConnection)
-      .mockResolvedValue({} as never);
+    repositoryCreatePendingConnectionMock.mockResolvedValue(created);
+    repositoryFindCredentialForOwnedConnectionMock.mockResolvedValue(
+      {} as never,
+    );
     const service = new AgentMcpConnectionsService(
       deps.repository,
       deps.credentials,
@@ -314,23 +371,19 @@ describe('external MCP connection application service', () => {
       bearerToken: 'secret-token',
     });
 
-    expect(deps.discovery.discoverWithBearerToken).toHaveBeenCalledWith(
+    expect(discoverWithBearerTokenMock).toHaveBeenCalledWith(
       expect.objectContaining({ userId: 'user-1', organizationId: 'org-1' }),
       created,
       'secret-token',
     );
-    expect(deps.credentials.saveBearerToken).toHaveBeenCalledWith(
+    expect(credentialsSaveBearerTokenMock).toHaveBeenCalledWith(
       expect.objectContaining({ userId: 'user-1', organizationId: 'org-1' }),
       created.id,
       'secret-token',
     );
     expect(
-      jest.mocked(deps.discovery.discoverWithBearerToken).mock
-        .invocationCallOrder[0],
-    ).toBeLessThan(
-      jest.mocked(deps.credentials.saveBearerToken).mock
-        .invocationCallOrder[0]!,
-    );
+      discoverWithBearerTokenMock.mock.invocationCallOrder[0],
+    ).toBeLessThan(credentialsSaveBearerTokenMock.mock.invocationCallOrder[0]!);
     expect(result).not.toHaveProperty('bearerToken');
     expect(result).not.toHaveProperty('endpoint');
     expect(result.publicHost).toBe('example.com');
@@ -338,13 +391,17 @@ describe('external MCP connection application service', () => {
 
   test('bearer preflight 실패는 secret을 저장하지 않고 pending connection을 정리한다', async () => {
     const deps = dependencies();
+    const {
+      repositoryCreatePendingConnectionMock,
+      discoverWithBearerTokenMock,
+      credentialsSaveBearerTokenMock,
+      repositoryRemoveOwnedMock,
+    } = deps;
     const created = connection({ revision: 0 });
-    jest
-      .mocked(deps.repository.createPendingConnection)
-      .mockResolvedValue(created);
-    jest
-      .mocked(deps.discovery.discoverWithBearerToken)
-      .mockRejectedValue(new TypeError('remote secret-like failure'));
+    repositoryCreatePendingConnectionMock.mockResolvedValue(created);
+    discoverWithBearerTokenMock.mockRejectedValue(
+      new TypeError('remote secret-like failure'),
+    );
     const service = new AgentMcpConnectionsService(
       deps.repository,
       deps.credentials,
@@ -364,8 +421,8 @@ describe('external MCP connection application service', () => {
       }),
     ).rejects.toBeInstanceOf(AgentMcpDiscoveryFailedError);
 
-    expect(deps.credentials.saveBearerToken).not.toHaveBeenCalled();
-    expect(deps.repository.removeOwned).toHaveBeenCalledWith(
+    expect(credentialsSaveBearerTokenMock).not.toHaveBeenCalled();
+    expect(repositoryRemoveOwnedMock).toHaveBeenCalledWith(
       'user-1',
       'org-1',
       created.id,
@@ -375,16 +432,19 @@ describe('external MCP connection application service', () => {
 
   test('endpoint 변경은 connection을 disable하고 기존 security state를 폐기한다', async () => {
     const deps = dependencies();
+    const {
+      repositoryFindOwnedMock,
+      repositoryUpdateSecurityBoundaryIfRevisionMock,
+      repositoryUpdateIfRevisionMock,
+    } = deps;
     const current = connection({ enabled: true });
     const updated = connection({
       endpoint: 'https://new.example.com/mcp',
       enabled: false,
       revision: 3,
     });
-    jest.mocked(deps.repository.findOwned).mockResolvedValue(current);
-    jest
-      .mocked(deps.repository.updateSecurityBoundaryIfRevision)
-      .mockResolvedValue(updated);
+    repositoryFindOwnedMock.mockResolvedValue(current);
+    repositoryUpdateSecurityBoundaryIfRevisionMock.mockResolvedValue(updated);
     const service = new AgentMcpConnectionsService(
       deps.repository,
       deps.credentials,
@@ -401,9 +461,7 @@ describe('external MCP connection application service', () => {
       enabled: true,
     });
 
-    expect(
-      deps.repository.updateSecurityBoundaryIfRevision,
-    ).toHaveBeenCalledWith(
+    expect(repositoryUpdateSecurityBoundaryIfRevisionMock).toHaveBeenCalledWith(
       'user-1',
       'org-1',
       current.id,
@@ -413,13 +471,14 @@ describe('external MCP connection application service', () => {
         enabled: false,
       }),
     );
-    expect(deps.repository.updateIfRevision).not.toHaveBeenCalled();
+    expect(repositoryUpdateIfRevisionMock).not.toHaveBeenCalled();
   });
 
   test('credential 없는 bearer connection은 enable하지 않는다', async () => {
     const deps = dependencies();
+    const { repositoryFindOwnedMock, repositoryUpdateIfRevisionMock } = deps;
     const current = connection();
-    jest.mocked(deps.repository.findOwned).mockResolvedValue(current);
+    repositoryFindOwnedMock.mockResolvedValue(current);
     const service = new AgentMcpConnectionsService(
       deps.repository,
       deps.credentials,
@@ -436,17 +495,23 @@ describe('external MCP connection application service', () => {
         enabled: true,
       }),
     ).rejects.toBeInstanceOf(AgentMcpConnectionCredentialRequiredError);
-    expect(deps.repository.updateIfRevision).not.toHaveBeenCalled();
+    expect(repositoryUpdateIfRevisionMock).not.toHaveBeenCalled();
   });
 
   test('OAuth client 정보만 있고 access token이 없으면 enable하지 않는다', async () => {
     const deps = dependencies();
+    const {
+      repositoryFindOwnedMock,
+      repositoryFindCredentialForOwnedConnectionMock,
+      oauthCredentialsHasAccessTokenMock,
+      repositoryUpdateIfRevisionMock,
+    } = deps;
     const current = connection({ authKind: 'oauth' });
-    jest.mocked(deps.repository.findOwned).mockResolvedValue(current);
-    jest
-      .mocked(deps.repository.findCredentialForOwnedConnection)
-      .mockResolvedValue({} as never);
-    jest.mocked(deps.oauthCredentials.hasAccessToken).mockResolvedValue(false);
+    repositoryFindOwnedMock.mockResolvedValue(current);
+    repositoryFindCredentialForOwnedConnectionMock.mockResolvedValue(
+      {} as never,
+    );
+    oauthCredentialsHasAccessTokenMock.mockResolvedValue(false);
     const service = new AgentMcpConnectionsService(
       deps.repository,
       deps.credentials,
@@ -463,18 +528,19 @@ describe('external MCP connection application service', () => {
         enabled: true,
       }),
     ).rejects.toBeInstanceOf(AgentMcpConnectionCredentialRequiredError);
-    expect(deps.oauthCredentials.hasAccessToken).toHaveBeenCalledWith(
+    expect(oauthCredentialsHasAccessTokenMock).toHaveBeenCalledWith(
       expect.objectContaining({ userId: 'user-1', organizationId: 'org-1' }),
       current.id,
     );
-    expect(deps.repository.updateIfRevision).not.toHaveBeenCalled();
+    expect(repositoryUpdateIfRevisionMock).not.toHaveBeenCalled();
   });
 
   test('존재하는 connection의 CAS 실패는 revision conflict로 구분한다', async () => {
     const deps = dependencies();
+    const { repositoryFindOwnedMock, repositoryUpdateIfRevisionMock } = deps;
     const current = connection({ authKind: 'none' });
-    jest.mocked(deps.repository.findOwned).mockResolvedValue(current);
-    jest.mocked(deps.repository.updateIfRevision).mockResolvedValue(null);
+    repositoryFindOwnedMock.mockResolvedValue(current);
+    repositoryUpdateIfRevisionMock.mockResolvedValue(null);
     const service = new AgentMcpConnectionsService(
       deps.repository,
       deps.credentials,
@@ -495,16 +561,18 @@ describe('external MCP connection application service', () => {
 
   test('tool policy는 mode와 전체 선택 집합을 하나의 revision CAS로 저장한다', async () => {
     const deps = dependencies();
+    const {
+      repositoryFindOwnedMock,
+      repositoryUpdateToolPolicyIfRevisionMock,
+    } = deps;
     const current = connection({ authKind: 'none' });
     const updated = connection({
       authKind: 'none',
       toolPolicyMode: 'all',
       revision: current.revision + 1,
     });
-    jest.mocked(deps.repository.findOwned).mockResolvedValue(current);
-    jest
-      .mocked(deps.repository.updateToolPolicyIfRevision)
-      .mockResolvedValue(updated);
+    repositoryFindOwnedMock.mockResolvedValue(current);
+    repositoryUpdateToolPolicyIfRevisionMock.mockResolvedValue(updated);
     const service = new AgentMcpConnectionsService(
       deps.repository,
       deps.credentials,
@@ -528,7 +596,7 @@ describe('external MCP connection application service', () => {
       tools,
     });
 
-    expect(deps.repository.updateToolPolicyIfRevision).toHaveBeenCalledWith(
+    expect(repositoryUpdateToolPolicyIfRevisionMock).toHaveBeenCalledWith(
       'user-1',
       'org-1',
       current.id,
@@ -541,19 +609,24 @@ describe('external MCP connection application service', () => {
 
   test('discovery schema fingerprint가 바뀌면 selected 상태를 fail-closed로 표시한다', async () => {
     const deps = dependencies();
+    const {
+      repositoryFindOwnedMock,
+      repositoryListEnabledToolsMock,
+      discoverMock,
+    } = deps;
     const current = connection({
       authKind: 'none',
       toolPolicyMode: 'selected',
     });
-    jest.mocked(deps.repository.findOwned).mockResolvedValue(current);
-    jest.mocked(deps.repository.listEnabledTools).mockResolvedValue([
+    repositoryFindOwnedMock.mockResolvedValue(current);
+    repositoryListEnabledToolsMock.mockResolvedValue([
       {
         originalToolName: 'search',
         schemaFingerprint: 'b'.repeat(64),
         enabled: true,
       },
     ] as never);
-    deps.discovery.discover.mockResolvedValue({
+    discoverMock.mockResolvedValue({
       serverName: 'Fixture MCP',
       serverVersion: '1.0.0',
       tools: [
@@ -592,9 +665,14 @@ describe('external MCP connection application service', () => {
 
   test('원격 discovery 오류 세부내용을 API 오류 메시지로 노출하지 않는다', async () => {
     const deps = dependencies();
+    const {
+      repositoryFindOwnedMock,
+      discoverMock,
+      repositoryRecordHealthMock,
+    } = deps;
     const current = connection({ authKind: 'none' });
-    jest.mocked(deps.repository.findOwned).mockResolvedValue(current);
-    deps.discovery.discover.mockRejectedValue(
+    repositoryFindOwnedMock.mockResolvedValue(current);
+    discoverMock.mockRejectedValue(
       new Error('remote-secret-token=do-not-leak'),
     );
     const service = new AgentMcpConnectionsService(
@@ -616,7 +694,7 @@ describe('external MCP connection application service', () => {
 
     expect(caught).toBeInstanceOf(AgentMcpDiscoveryFailedError);
     expect((caught as Error).message).not.toContain('remote-secret-token');
-    expect(deps.repository.recordHealth).toHaveBeenCalledWith(
+    expect(repositoryRecordHealthMock).toHaveBeenCalledWith(
       'user-1',
       'org-1',
       current.id,
@@ -627,9 +705,14 @@ describe('external MCP connection application service', () => {
 
   test('network discovery 실패는 unavailable health로 기록한다', async () => {
     const deps = dependencies();
+    const {
+      repositoryFindOwnedMock,
+      discoverMock,
+      repositoryRecordHealthMock,
+    } = deps;
     const current = connection({ authKind: 'none', enabled: true });
-    jest.mocked(deps.repository.findOwned).mockResolvedValue(current);
-    deps.discovery.discover.mockRejectedValue(new TypeError('fetch failed'));
+    repositoryFindOwnedMock.mockResolvedValue(current);
+    discoverMock.mockRejectedValue(new TypeError('fetch failed'));
     const service = new AgentMcpConnectionsService(
       deps.repository,
       deps.credentials,
@@ -643,7 +726,7 @@ describe('external MCP connection application service', () => {
     await expect(
       service.testConnection(context, current.id),
     ).rejects.toBeInstanceOf(AgentMcpDiscoveryFailedError);
-    expect(deps.repository.recordHealth).toHaveBeenCalledWith(
+    expect(repositoryRecordHealthMock).toHaveBeenCalledWith(
       'user-1',
       'org-1',
       current.id,

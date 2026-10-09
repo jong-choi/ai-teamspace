@@ -49,6 +49,7 @@ export class GraphSemanticAssemblerService {
         generationId: view.generationId,
         evidenceDigest: entity.anchor.evidenceDigest,
       },
+      curated: null,
       ...(connectedEdgeCount === undefined ? {} : { connectedEdgeCount }),
     };
   }
@@ -92,6 +93,7 @@ export class GraphSemanticAssemblerService {
         chunkIndex: null,
         evidenceDigest: entity.anchor.evidenceDigest,
       },
+      curated: null,
     }));
     for (const relation of view.relations) {
       if (
@@ -145,6 +147,7 @@ export class GraphSemanticAssemblerService {
           chunkIndex: null,
           evidenceDigest: null,
         },
+        curated: null,
       });
     }
     return edges;

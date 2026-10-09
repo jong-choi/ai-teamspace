@@ -96,7 +96,7 @@ describeKnowledgeGraph(
           child.id,
           {
             encodedState: Y.encodeStateAsUpdate(doc),
-            contentMarkdown: doc.getText('markdown').toString(),
+            contentMarkdown: doc.getText('markdown').toJSON(),
           },
           context.actor,
           [context.actor],

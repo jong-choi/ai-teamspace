@@ -23,6 +23,7 @@ import {
 } from '@nestjs/swagger';
 
 import type { Auth } from '@/auth/auth';
+import { ApiZodQuery } from '@/common/http/api-zod-query.decorator';
 import { TrustedOriginGuard } from '@/common/http/trusted-origin.guard';
 import {
   CreateCuratedEdgeCommandDto,
@@ -32,12 +33,15 @@ import {
   CuratedEndpointOptionsDto,
   type CuratedEndpointOptionsQuery,
   CuratedEndpointOptionsQueryDto,
+  CuratedEndpointOptionsQuerySchema,
   CuratedGraphEdgeCommandResultDto,
   CuratedGraphNodeCommandResultDto,
   type DeleteCuratedEdgeCommandQuery,
   DeleteCuratedEdgeCommandQueryDto,
+  DeleteCuratedEdgeCommandQuerySchema,
   type DeleteCuratedNodeCommandQuery,
   DeleteCuratedNodeCommandQueryDto,
+  DeleteCuratedNodeCommandQuerySchema,
   UpdateCuratedEdgeCommandDto,
   type UpdateCuratedEdgeCommandInput,
   UpdateCuratedNodeCommandDto,
@@ -48,6 +52,7 @@ import {
   type CreateSemanticCorrectionCommandInput,
   QuerySemanticCorrectionsDto,
   type QuerySemanticCorrectionsInput,
+  QuerySemanticCorrectionsSchema,
   SemanticCorrectionCommandResultDto,
   SemanticCorrectionsDto,
   UpdateSemanticCorrectionCommandDto,
@@ -110,6 +115,7 @@ export class KnowledgeGraphCommandController {
   @Delete('curated/nodes/:nodeId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiNoContentResponse()
+  @ApiZodQuery(DeleteCuratedNodeCommandQuerySchema)
   deleteCuratedNode(
     @Session() session: UserSession<Auth>,
     @Param('organizationId') organizationId: string,
@@ -162,6 +168,7 @@ export class KnowledgeGraphCommandController {
   @Delete('curated/edges/:edgeId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiNoContentResponse()
+  @ApiZodQuery(DeleteCuratedEdgeCommandQuerySchema)
   deleteCuratedEdge(
     @Session() session: UserSession<Auth>,
     @Param('organizationId') organizationId: string,
@@ -178,6 +185,7 @@ export class KnowledgeGraphCommandController {
   }
 
   @Get('curated/endpoint-options')
+  @ApiZodQuery(CuratedEndpointOptionsQuerySchema)
   @ApiOkResponse({ standardSchema: CuratedEndpointOptionsDto.schema })
   endpointOptions(
     @Session() session: UserSession<Auth>,
@@ -213,6 +221,7 @@ export class KnowledgeGraphCommandController {
   }
 
   @Get('corrections')
+  @ApiZodQuery(QuerySemanticCorrectionsSchema)
   @ApiOkResponse({ standardSchema: SemanticCorrectionsDto.schema })
   listCorrections(
     @Session() session: UserSession<Auth>,

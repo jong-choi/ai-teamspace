@@ -108,6 +108,13 @@ export function KnowledgeGraphRoute({ view }: { view: GraphStudioView }) {
     <GraphStudio
       dataParams={parseGraphDataCenterParams(searchParams)}
       exploreParams={parseGraphExploreParams(searchParams)}
+      onExploreSearch={(q) =>
+        router.setParams({
+          q: q || undefined,
+          focusKind: undefined,
+          focusId: undefined,
+        })
+      }
       onDataParamsChange={(params) =>
         router.setParams(toGraphDataCenterSearchParams(params))
       }

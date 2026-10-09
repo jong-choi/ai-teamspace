@@ -53,7 +53,7 @@ export class FirstPartyWorkOsMcpAdapter extends WorkOsToolSessionProvider {
         readOnlyTools: this.approvalPolicy.readOnlyTools(tools),
         interruptOn: this.approvalPolicy.interruptOn(tools),
         toolIdentities,
-        close: connection.close,
+        close: () => connection.close(),
       };
     } catch (error) {
       await connection.close();

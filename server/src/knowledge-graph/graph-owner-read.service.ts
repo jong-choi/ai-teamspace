@@ -19,6 +19,7 @@ import type { StructureEdgeRecord } from '@/knowledge-graph/infrastructure/graph
 import {
   type ProjectionFreshness,
   ProjectionFreshnessRepository,
+  type ProjectionFreshnessSource,
 } from '@/knowledge-graph/infrastructure/persistence/projection-freshness.repository';
 import { GraphSourceSnapshotProvider } from '@/knowledge-graph/infrastructure/source-snapshot/graph-source-snapshot.provider';
 import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
@@ -152,6 +153,7 @@ export class GraphOwnerReadService {
         projectionState: this.projectionState(ownerFreshness),
         completeness,
         provenance: null,
+        curated: null,
       });
     }
     return { items, projectionPending };
@@ -190,32 +192,32 @@ export class GraphOwnerReadService {
         this.snapshots.membersForGraph(actor, organizationId, memberIds),
       ]);
       return [
-        ...wiki.map((row) => ({
-          kind: 'wiki_document' as const,
+        ...wiki.map((row): CurrentGraphSource => ({
+          kind: 'wiki_document',
           id: row.id,
           title: row.title,
           updatedAt: row.updatedAt,
         })),
-        ...projects.map((row) => ({
-          kind: 'project' as const,
+        ...projects.map((row): CurrentGraphSource => ({
+          kind: 'project',
           id: row.id,
           title: row.name,
           updatedAt: row.updatedAt,
         })),
-        ...tickets.map((row) => ({
-          kind: 'ticket' as const,
+        ...tickets.map((row): CurrentGraphSource => ({
+          kind: 'ticket',
           id: row.id,
           title: row.title,
           updatedAt: row.updatedAt,
         })),
-        ...meetings.map((row) => ({
-          kind: 'meeting' as const,
+        ...meetings.map((row): CurrentGraphSource => ({
+          kind: 'meeting',
           id: row.id,
           title: row.title,
           updatedAt: row.updatedAt,
         })),
-        ...members.map((row) => ({
-          kind: 'member' as const,
+        ...members.map((row): CurrentGraphSource => ({
+          kind: 'member',
           id: row.userId,
           title: row.user.name,
           updatedAt: null,
@@ -251,6 +253,7 @@ export class GraphOwnerReadService {
       projectionState: projection ? this.projectionState(projection) : null,
       completeness,
       provenance: null,
+      curated: null,
     };
   }
 
@@ -272,10 +275,10 @@ export class GraphOwnerReadService {
   private endpointRef(
     kind: StructureEdgeRecord['sourceNodeKind'],
     id: string | null,
-  ) {
+  ): Pick<CurrentGraphSource, 'kind' | 'id'> | null {
     if (!id || kind === 'curated_node' || kind === 'semantic_entity')
       return null;
-    return { kind, id } as const;
+    return { kind, id };
   }
 
   private sourceRef(current: CurrentGraphSource | null): GraphSourceRef | null {
@@ -304,8 +307,8 @@ export class GraphOwnerReadService {
 
   private projectionKind(
     kind: Exclude<GraphNodeKind, 'curated_node' | 'semantic_entity'>,
-  ) {
-    return kind === 'member' ? ('membership' as const) : kind;
+  ): ProjectionFreshnessSource['kind'] {
+    return kind === 'member' ? 'membership' : kind;
   }
 
   private uniqueRefs<T extends { kind: string; id: string }>(

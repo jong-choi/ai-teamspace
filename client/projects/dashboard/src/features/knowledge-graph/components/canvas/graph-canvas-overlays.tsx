@@ -17,24 +17,34 @@ import {
 /** 좌상단 overlay: 확대·축소·화면 맞춤·원점 + 배율, 그 아래 통계 한 줄. */
 export function GraphCanvasToolbar({
   edgeCount,
+  canExpand,
+  canLoadMore,
   nodeCount,
+  onExpand,
   onFit,
+  onLoadMore,
   onReset,
   onZoomIn,
   onZoomOut,
   zoomPercent,
+  statusLabel,
 }: {
+  canExpand: boolean;
+  canLoadMore: boolean;
   edgeCount: number;
   nodeCount: number;
+  onExpand: () => void;
   onFit: () => void;
+  onLoadMore: () => void;
   onReset: () => void;
   onZoomIn: () => void;
   onZoomOut: () => void;
   zoomPercent: number;
+  statusLabel: string;
 }) {
   return (
     <View className="absolute left-4 top-4 z-20 gap-2" pointerEvents="box-none">
-      <View className="flex-row items-center gap-1 self-start rounded-xl border border-border bg-background/90 p-1.5 shadow-sm shadow-black/5">
+      <View className="flex-row items-center gap-1 self-start rounded-xl border border-border bg-background/90 p-1.5 shadow-sm">
         <GraphToolbarButton icon={ZoomIn} label="확대 (+)" onPress={onZoomIn} />
         <GraphToolbarButton
           icon={ZoomOut}
@@ -60,7 +70,7 @@ export function GraphCanvasToolbar({
         </Text>
       </View>
 
-      <View className="flex-row items-center gap-3 self-start rounded-xl border border-border bg-background/90 px-3 py-1.5 shadow-sm shadow-black/5">
+      <View className="flex-row items-center gap-3 self-start rounded-xl border border-border bg-background/90 px-3 py-1.5 shadow-sm">
         <View className="flex-row items-center gap-1.5">
           <View className="size-2 rounded-full bg-ring" />
           <Text className="text-xs font-medium text-muted-foreground">
@@ -70,7 +80,22 @@ export function GraphCanvasToolbar({
         <Text className="text-xs text-border">|</Text>
         <Text className="font-mono text-xs">노드: {nodeCount}</Text>
         <Text className="font-mono text-xs">관계: {edgeCount}</Text>
+        <Text className="text-xs text-muted-foreground">{statusLabel}</Text>
       </View>
+      {canExpand || canLoadMore ? (
+        <View className="flex-row gap-1 self-start rounded-xl border border-border bg-background/90 p-1.5 shadow-sm">
+          {canExpand ? (
+            <Button onPress={onExpand} size="sm" variant="ghost">
+              <Text className="text-[11px]">2단계 관계 추가</Text>
+            </Button>
+          ) : null}
+          {canLoadMore ? (
+            <Button onPress={onLoadMore} size="sm" variant="ghost">
+              <Text className="text-[11px]">다음 결과 더 보기</Text>
+            </Button>
+          ) : null}
+        </View>
+      ) : null}
     </View>
   );
 }

@@ -27,6 +27,7 @@ const node = (index: number): GraphNode => ({
   projectionState: null,
   completeness: 'complete',
   provenance: null,
+  curated: null,
 });
 
 const edge = (
@@ -51,6 +52,7 @@ const edge = (
   projectionState: null,
   completeness: 'complete',
   provenance: null,
+  curated: null,
 });
 
 describe('U8-11 explore 상한', () => {
@@ -102,12 +104,13 @@ describe('U8-11 explore 상한', () => {
   });
 
   it('구조 순회에 frontier와 hop candidate 정책 상한을 그대로 전달한다', async () => {
+    const structureExpandMock = jest.fn().mockResolvedValue({
+      nodes: [],
+      edges: [],
+      truncated: false,
+    });
     const structure = {
-      expand: jest.fn().mockResolvedValue({
-        nodes: [],
-        edges: [],
-        truncated: false,
-      }),
+      expand: structureExpandMock,
     } as unknown as KnowledgeGraphStructureReader;
     const assembler = {
       authorize: jest.fn().mockResolvedValue({ canManageCurated: false }),
@@ -144,7 +147,7 @@ describe('U8-11 explore 상한', () => {
       'complete',
     );
 
-    expect(structure.expand).toHaveBeenCalledWith(
+    expect(structureExpandMock).toHaveBeenCalledWith(
       expect.objectContaining({
         depth: 2,
         maxFrontier: GRAPH_EXPLORE_LIMITS.maxHopFrontier,

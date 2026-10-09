@@ -29,10 +29,11 @@ describe('KnowledgeGraphMcpRegistrar', () => {
     completeness: 'complete',
     degradedReasons: [],
   });
+  const resolverAllowedNodeKindsMock = jest
+    .fn()
+    .mockResolvedValue(['wiki_document', 'semantic_entity', 'curated_node']);
   const resolver = {
-    allowedNodeKinds: jest
-      .fn()
-      .mockResolvedValue(['wiki_document', 'semantic_entity', 'curated_node']),
+    allowedNodeKinds: resolverAllowedNodeKindsMock,
   } as unknown as McpKnowledgeScopeResolver;
   const registrar = new KnowledgeGraphMcpRegistrar(
     { search } as never,
@@ -55,7 +56,7 @@ describe('KnowledgeGraphMcpRegistrar', () => {
       ),
     ).resolves.toMatchObject({ mode: 'keyword', items: [] });
 
-    expect(resolver.allowedNodeKinds).toHaveBeenCalledWith(auth, 'org-a');
+    expect(resolverAllowedNodeKindsMock).toHaveBeenCalledWith(auth, 'org-a');
     expect(search).toHaveBeenCalledWith(
       { userId: 'user-a' },
       'org-a',
@@ -103,7 +104,7 @@ describe('KnowledgeGraphMcpRegistrar', () => {
     ).rejects.toThrow('MCP authorization denied');
 
     expect(denied).toHaveBeenCalledTimes(1);
-    expect(resolver.allowedNodeKinds).not.toHaveBeenCalled();
+    expect(resolverAllowedNodeKindsMock).not.toHaveBeenCalled();
     expect(search).not.toHaveBeenCalled();
   });
 

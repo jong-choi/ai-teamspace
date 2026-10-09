@@ -94,7 +94,9 @@ describeKnowledgeGraph('R8-08 rebuild 접수 PostgreSQL single-flight', () => {
     if (left.outcome !== 'accepted' || right.outcome !== 'accepted') return;
     expect(left.acceptance.id).toBe(right.acceptance.id);
     expect(
-      [left.acceptance.coalesced, right.acceptance.coalesced].sort(),
+      [left.acceptance.coalesced, right.acceptance.coalesced].sort(
+        (leftValue, rightValue) => Number(leftValue) - Number(rightValue),
+      ),
     ).toEqual([false, true]);
     expect(
       await database.db

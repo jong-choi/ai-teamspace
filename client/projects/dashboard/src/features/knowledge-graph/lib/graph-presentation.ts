@@ -1,25 +1,19 @@
-import type {
-  GraphFixtureFactClass,
-  GraphFixtureNodeKind,
-  GraphFixtureProjectionState,
-} from '@core/features/knowledge-graph/fixtures/knowledge-graph-fixture-contract';
+import type { GraphNode } from '@repo/client/api-client/generated/schemas/graphNode.zod';
+import type { GraphProjectionState } from '@repo/client/api-client/generated/schemas/graphProjectionState.zod';
 
 import {
   Box,
   Calendar,
   FileText,
-  Hash,
   Lightbulb,
-  Link2,
   type LucideIcon,
   Shapes,
   SquareCheck,
   UserRound,
-  Wrench,
 } from 'lucide-react-native';
 
 export const GRAPH_NODE_KIND_META: Record<
-  GraphFixtureNodeKind,
+  GraphNode['kind'],
   { label: string; code: string; icon: LucideIcon }
 > = {
   wiki_document: { label: '위키 문서', code: 'Wiki', icon: FileText },
@@ -27,16 +21,13 @@ export const GRAPH_NODE_KIND_META: Record<
   ticket: { label: '티켓', code: 'Ticket', icon: SquareCheck },
   meeting: { label: '회의', code: 'Meeting', icon: Calendar },
   member: { label: '멤버', code: 'Member', icon: UserRound },
-  custom: { label: '사용자 정의', code: 'Custom', icon: Shapes },
-  concept: { label: '개념', code: 'Concept', icon: Lightbulb },
-  topic: { label: '주제', code: 'Topic', icon: Hash },
-  technology: { label: '기술', code: 'Technology', icon: Wrench },
-  reference: { label: '참고 자료', code: 'Reference', icon: Link2 },
+  curated_node: { label: '사용자 엔티티', code: 'Curated', icon: Shapes },
+  semantic_entity: { label: 'AI 엔티티', code: 'Semantic', icon: Lightbulb },
 };
 
 // 색만으로 구분하지 않도록 선 패턴과 텍스트 라벨을 함께 쓴다.
 export const GRAPH_FACT_CLASS_META: Record<
-  GraphFixtureFactClass,
+  GraphNode['factClass'],
   { label: string; description: string; dash: string | undefined }
 > = {
   authoritative: {
@@ -58,11 +49,13 @@ export const GRAPH_FACT_CLASS_META: Record<
 };
 
 export const GRAPH_PROJECTION_META: Record<
-  GraphFixtureProjectionState,
+  GraphProjectionState['status'],
   { label: string }
 > = {
-  synchronized: { label: '그래프 반영됨' },
+  applied: { label: '그래프 반영됨' },
   pending: { label: '그래프 반영 대기' },
+  failed: { label: '그래프 반영 실패' },
+  unknown: { label: '그래프 상태 확인 필요' },
 };
 
 export const GRAPH_PREDICATE_LABELS: Readonly<Record<string, string>> = {

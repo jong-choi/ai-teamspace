@@ -1,6 +1,10 @@
 import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
+import {
+  useKnowledgeGraphControllerExploreSuspense,
+  useKnowledgeGraphControllerNodeDetailSuspense,
+} from '@repo/client/api-client';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
@@ -18,11 +22,6 @@ import {
   GraphInspectorSectionTitle,
   GraphInspectorTitle,
 } from '@core/features/knowledge-graph/components/inspector/graph-inspector-frame';
-// TODO(graph-05-orval): graph-05 node 상세·explore의 generated Suspense hook으로 직접 교체한다.
-import {
-  useGraphFixtureExploreSuspense,
-  useGraphFixtureNodeSuspense,
-} from '@core/features/knowledge-graph/fixtures/knowledge-graph-fixture-queries';
 import { getGraphRecordActions } from '@core/features/knowledge-graph/lib/graph-permission';
 import {
   formatPredicate,
@@ -38,7 +37,7 @@ const DIRECTION_LABEL = {
   incoming: 'INCOMING ⬅',
   undirected: 'UNDIRECTED ↔',
   self: 'SELF ↺',
-} as const;
+};
 
 export function GraphNodeInspector({
   headerClassName,
@@ -52,12 +51,15 @@ export function GraphNodeInspector({
   organizationId: string;
 }) {
   const router = useRouter();
-  const node = useGraphFixtureNodeSuspense(organizationId, nodeId).data;
+  const node = useKnowledgeGraphControllerNodeDetailSuspense(
+    organizationId,
+    nodeId,
+  ).data;
   // 1-hop 이웃을 같은 explore 계약으로 받아 방향과 상대 노드 이름을 보여준다.
-  const neighborhood = useGraphFixtureExploreSuspense(organizationId, {
-    focusKind: node.kind,
-    focusId: node.id,
-  }).data;
+  const neighborhood = useKnowledgeGraphControllerExploreSuspense(
+    organizationId,
+    { focusKind: node.kind, focusId: node.id, depth: 1, limit: 100 },
+  ).data;
   const pinned = useGraphStudioStore((state) => state.pinnedPositions[node.id]);
   const select = useGraphStudioStore((state) => state.select);
   const openDialog = useGraphStudioStore((state) => state.openDialog);
@@ -80,9 +82,20 @@ export function GraphNodeInspector({
           onDelete={() => openDialog({ type: 'node-delete', nodeId: node.id })}
           onEdit={() => openDialog({ type: 'node-edit', nodeId: node.id })}
           onOpenSource={() => {
-            if (!node.source?.href) return;
+            if (node.editTarget.kind !== 'owner') return;
             onNavigate?.();
-            router.push(node.source.href);
+            if (node.editTarget.ownerKind === 'wiki_document') {
+              router.push({
+                pathname: '/wiki/[documentId]',
+                params: { documentId: node.editTarget.sourceId },
+              });
+            }
+            if (node.editTarget.ownerKind === 'project') {
+              router.push({
+                pathname: '/projects/[projectId]',
+                params: { projectId: node.editTarget.sourceId },
+              });
+            }
           }}
           readOnlyMessage="확정 원본은 각 업무 화면에서 수정합니다."
         />
@@ -97,21 +110,26 @@ export function GraphNodeInspector({
         </GraphInspectorField>
         <GraphInspectorField label="출처">
           <GraphFactClassBadge factClass={node.factClass} />
-          <GraphProjectionBadge projection={node.projection} />
+          <GraphProjectionBadge projection={node.projectionState} />
         </GraphInspectorField>
-        {node.source ? (
+        {node.sourceRef ? (
           <GraphInspectorField label="원본">
-            {node.source.label}
+            {node.sourceRef.title ??
+              `${node.sourceRef.kind}:${node.sourceRef.id}`}
           </GraphInspectorField>
         ) : null}
-        {Object.entries(node.properties).map(([key, value]) => (
-          <GraphInspectorField key={key} label={key}>
-            {value}
+        {node.provenance?.extractedName ? (
+          <GraphInspectorField label="추출명">
+            {node.provenance.extractedName}
           </GraphInspectorField>
-        ))}
-        <GraphInspectorField label="리비전">{`r${node.revision}`}</GraphInspectorField>
+        ) : null}
+        {node.editTarget.kind === 'curated_node' ? (
+          <GraphInspectorField label="리비전">{`r${node.editTarget.revision}`}</GraphInspectorField>
+        ) : null}
         <GraphInspectorField label="수정">
-          {formatGraphDate(node.updatedAt)}
+          {node.sourceRef?.updatedAt
+            ? formatGraphDate(node.sourceRef.updatedAt)
+            : '확인 불가'}
         </GraphInspectorField>
         <GraphInspectorField label="좌표">
           {pinned ? `x:${pinned.x}, y:${pinned.y}` : '자동 배치'}
@@ -147,7 +165,7 @@ export function GraphNodeInspector({
           ) : (
             connections.map(({ direction, edge, otherNodeId }) => (
               <Pressable
-                accessibilityLabel={`${formatPredicate(edge.predicate)} 관계, ${titles.get(otherNodeId) ?? otherNodeId}`}
+                accessibilityLabel={`${formatPredicate(edge.predicate ?? edge.relation)} 관계, ${titles.get(otherNodeId) ?? otherNodeId}`}
                 accessibilityRole="button"
                 className="gap-1 rounded-lg border border-border bg-background p-2.5 web:hover:bg-muted/40"
                 key={edge.id}
@@ -165,7 +183,7 @@ export function GraphNodeInspector({
                     {DIRECTION_LABEL[direction]}
                   </Text>
                   <GraphMetaBadge
-                    label={formatPredicate(edge.predicate)}
+                    label={formatPredicate(edge.predicate ?? edge.relation)}
                     mono
                   />
                 </View>

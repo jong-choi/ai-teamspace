@@ -16,28 +16,56 @@ describe('external MCP OAuth SDK provider bridge', () => {
   const issuer = 'https://auth.example.com/';
 
   function dependencies() {
+    const credentialsSaveClientInformationMock = jest
+      .fn()
+      .mockResolvedValue(undefined);
+    const credentialsSaveTokensMock = jest.fn().mockResolvedValue(undefined);
+    const credentialsInvalidateMock = jest.fn().mockResolvedValue(undefined);
     const credentials = {
       clientInformation: jest.fn().mockResolvedValue(undefined),
-      saveClientInformation: jest.fn().mockResolvedValue(undefined),
+      saveClientInformation: credentialsSaveClientInformationMock,
       tokens: jest.fn().mockResolvedValue(undefined),
-      saveTokens: jest.fn().mockResolvedValue(undefined),
-      invalidate: jest.fn().mockResolvedValue(undefined),
+      saveTokens: credentialsSaveTokensMock,
+      invalidate: credentialsInvalidateMock,
     } as unknown as AgentMcpOauthCredentialService;
+    const stateServiceCreateStateMock = jest.fn().mockResolvedValue({
+      state: 'state-secret',
+    });
+    const stateServiceSaveCodeVerifierMock = jest
+      .fn()
+      .mockResolvedValue(undefined);
+    const stateServiceSaveDiscoveryStateMock = jest
+      .fn()
+      .mockResolvedValue(undefined);
+    const stateServiceConsumeStateMock = jest.fn().mockResolvedValue({});
     const stateService = {
-      createState: jest.fn().mockResolvedValue({
-        state: 'state-secret',
-      }),
-      saveCodeVerifier: jest.fn().mockResolvedValue(undefined),
+      createState: stateServiceCreateStateMock,
+      saveCodeVerifier: stateServiceSaveCodeVerifierMock,
       codeVerifier: jest.fn().mockResolvedValue('pkce-secret'),
-      saveDiscoveryState: jest.fn().mockResolvedValue(undefined),
+      saveDiscoveryState: stateServiceSaveDiscoveryStateMock,
       discoveryState: jest.fn().mockResolvedValue(undefined),
-      consumeState: jest.fn().mockResolvedValue({}),
+      consumeState: stateServiceConsumeStateMock,
     } as unknown as AgentMcpOauthStateService;
-    return { credentials, stateService };
+    return {
+      credentialsSaveClientInformationMock,
+      credentialsSaveTokensMock,
+      credentialsInvalidateMock,
+      stateServiceCreateStateMock,
+      stateServiceSaveCodeVerifierMock,
+      stateServiceSaveDiscoveryStateMock,
+      stateServiceConsumeStateMock,
+      credentials,
+      stateService,
+    };
   }
 
   test('state와 PKCE/discovery 저장을 제품 state service에 위임한다', async () => {
     const deps = dependencies();
+    const {
+      stateServiceCreateStateMock,
+      stateServiceSaveDiscoveryStateMock,
+      stateServiceSaveCodeVerifierMock,
+    } = deps;
     const provider = new AgentMcpOauthClientProvider(
       actor,
       connectionId,
@@ -54,8 +82,8 @@ describe('external MCP OAuth SDK provider bridge', () => {
     await provider.saveDiscoveryState(discovery);
     await expect(provider.state()).resolves.toBe('state-secret');
     await expect(provider.state()).resolves.toBe('state-secret');
-    expect(deps.stateService.createState).toHaveBeenCalledTimes(1);
-    expect(deps.stateService.saveDiscoveryState).toHaveBeenCalledWith(
+    expect(stateServiceCreateStateMock).toHaveBeenCalledTimes(1);
+    expect(stateServiceSaveDiscoveryStateMock).toHaveBeenCalledWith(
       actor,
       connectionId,
       'state-secret',
@@ -65,7 +93,7 @@ describe('external MCP OAuth SDK provider bridge', () => {
 
     await provider.saveCodeVerifier('pkce-secret');
     await expect(provider.codeVerifier()).resolves.toBe('pkce-secret');
-    expect(deps.stateService.saveCodeVerifier).toHaveBeenCalledWith(
+    expect(stateServiceSaveCodeVerifierMock).toHaveBeenCalledWith(
       actor,
       connectionId,
       'state-secret',
@@ -76,6 +104,8 @@ describe('external MCP OAuth SDK provider bridge', () => {
 
   test('issuer-bound client/token storage와 authorization redirect capture를 위임한다', async () => {
     const deps = dependencies();
+    const { credentialsSaveClientInformationMock, credentialsSaveTokensMock } =
+      deps;
     const provider = new AgentMcpOauthClientProvider(
       actor,
       connectionId,
@@ -97,13 +127,13 @@ describe('external MCP OAuth SDK provider bridge', () => {
 
     await provider.saveClientInformation(clientInformation, { issuer });
     await provider.saveTokens(tokens, { issuer });
-    expect(deps.credentials.saveClientInformation).toHaveBeenCalledWith(
+    expect(credentialsSaveClientInformationMock).toHaveBeenCalledWith(
       actor,
       connectionId,
       clientInformation,
       issuer,
     );
-    expect(deps.credentials.saveTokens).toHaveBeenCalledWith(
+    expect(credentialsSaveTokensMock).toHaveBeenCalledWith(
       actor,
       connectionId,
       tokens,
@@ -120,6 +150,7 @@ describe('external MCP OAuth SDK provider bridge', () => {
 
   test('SDK credential invalidation을 encrypted storage와 pending state에 위임한다', async () => {
     const deps = dependencies();
+    const { credentialsInvalidateMock, stateServiceConsumeStateMock } = deps;
     const provider = new AgentMcpOauthClientProvider(
       actor,
       connectionId,
@@ -131,15 +162,15 @@ describe('external MCP OAuth SDK provider bridge', () => {
     );
 
     await provider.invalidateCredentials('tokens');
-    expect(deps.credentials.invalidate).toHaveBeenCalledWith(
+    expect(credentialsInvalidateMock).toHaveBeenCalledWith(
       actor,
       connectionId,
       'tokens',
     );
-    expect(deps.stateService.consumeState).not.toHaveBeenCalled();
+    expect(stateServiceConsumeStateMock).not.toHaveBeenCalled();
 
     await provider.invalidateCredentials('discovery');
-    expect(deps.stateService.consumeState).toHaveBeenCalledWith(
+    expect(stateServiceConsumeStateMock).toHaveBeenCalledWith(
       actor,
       connectionId,
       'state-secret',

@@ -2,12 +2,31 @@ import { useState } from 'react';
 import { View } from 'react-native';
 
 import {
+  getKnowledgeGraphCommandControllerEndpointOptionsQueryKey,
+  getKnowledgeGraphControllerEdgeDetailQueryKey,
+  getKnowledgeGraphControllerExploreQueryKey,
+  getKnowledgeGraphControllerListEdgesQueryKey,
+  getKnowledgeGraphControllerListNodesQueryKey,
+  getKnowledgeGraphControllerNodeDetailQueryKey,
+  useKnowledgeGraphCommandControllerCreateCuratedEdge,
+  useKnowledgeGraphCommandControllerEndpointOptionsSuspense,
+  useKnowledgeGraphCommandControllerUpdateCuratedEdge,
+  useKnowledgeGraphControllerEdgeDetailSuspense,
+  useKnowledgeGraphControllerNodeDetailSuspense,
+} from '@repo/client/api-client';
+import {
+  CreateCuratedEdgeCommand,
+  type CreateCuratedEdgeCommand as CreateCuratedEdgeCommandValue,
+} from '@repo/client/api-client/generated/schemas/createCuratedEdgeCommand.zod';
+import type { GraphEdge } from '@repo/client/api-client/generated/schemas/graphEdge.zod';
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@repo/client/rnr/components/ui/select';
+import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 import { DashboardQueryBoundary } from '@core/app/state/dashboard-query-state';
 import {
   GraphDialogFooter,
@@ -16,25 +35,18 @@ import {
   GraphFormField,
 } from '@core/features/knowledge-graph/components/dialogs/graph-dialog-frame';
 import {
-  GRAPH_FIXTURE_CURATED_PREDICATES,
-  type GraphFixtureCuratedPredicate,
-  type GraphFixtureEdgeDetail,
-  type GraphFixtureNodeOption,
-} from '@core/features/knowledge-graph/fixtures/knowledge-graph-fixture-contract';
-// TODO(graph-05-orval): graph-05 curated edge generated mutation hook으로 직접 교체한다.
-import { useGraphFixtureEdgeMutations } from '@core/features/knowledge-graph/fixtures/knowledge-graph-fixture-mutations';
-// TODO(graph-05-orval): graph-05 edge 상세·노드 검색 generated Suspense hook으로 직접 교체한다.
-import {
-  useGraphFixtureEdgeSuspense,
-  useGraphFixtureNodeOptionsSuspense,
-} from '@core/features/knowledge-graph/fixtures/knowledge-graph-fixture-queries';
-import {
-  formatPredicate,
-  GRAPH_FACT_CLASS_META,
-  GRAPH_PREDICATE_LABELS,
-} from '@core/features/knowledge-graph/lib/graph-presentation';
+  CURATED_PREDICATES,
+  endpointFromEdge,
+  type EndpointOption,
+  GraphNodeSelectField,
+  mergeEndpoint,
+  predicateLabel,
+  toEndpoint,
+} from '@core/features/knowledge-graph/components/dialogs/graph-edge-form-support';
+import { useKnowledgeGraphMutationError } from '@core/features/knowledge-graph/hooks/use-knowledge-graph-mutation-error';
 import { useGraphStudioStore } from '@core/features/knowledge-graph/state/graph-studio-provider';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { ArrowUpRight, Link2 } from 'lucide-react-native';
 
 const DIRECTED = 'directed';
@@ -66,11 +78,13 @@ export function GraphEdgeDialog({
             edgeId={edgeId}
             organizationId={organizationId}
           />
-        ) : (
-          <GraphEdgeForm
+        ) : sourceNodeId ? (
+          <GraphPreselectedEdgeForm
+            graphNodeId={sourceNodeId}
             organizationId={organizationId}
-            sourceNodeId={sourceNodeId ?? null}
           />
+        ) : (
+          <GraphEdgeForm organizationId={organizationId} />
         )}
       </DashboardQueryBoundary>
     </GraphDialogFrame>
@@ -84,12 +98,43 @@ function GraphLoadedEdgeForm({
   edgeId: string;
   organizationId: string;
 }) {
-  const edge = useGraphFixtureEdgeSuspense(organizationId, edgeId).data;
+  const edge = useKnowledgeGraphControllerEdgeDetailSuspense(
+    organizationId,
+    edgeId,
+  ).data;
+  const sourceNode = useKnowledgeGraphControllerNodeDetailSuspense(
+    organizationId,
+    edge.sourceNodeId,
+  ).data;
+  const targetNode = useKnowledgeGraphControllerNodeDetailSuspense(
+    organizationId,
+    edge.targetNodeId,
+  ).data;
   return (
     <GraphEdgeForm
       edge={edge}
       organizationId={organizationId}
-      sourceNodeId={edge.sourceNodeId}
+      sourceEndpoint={toEndpoint(sourceNode)}
+      targetEndpoint={toEndpoint(targetNode)}
+    />
+  );
+}
+
+function GraphPreselectedEdgeForm({
+  graphNodeId,
+  organizationId,
+}: {
+  graphNodeId: string;
+  organizationId: string;
+}) {
+  const node = useKnowledgeGraphControllerNodeDetailSuspense(
+    organizationId,
+    graphNodeId,
+  ).data;
+  return (
+    <GraphEdgeForm
+      organizationId={organizationId}
+      sourceEndpoint={toEndpoint(node)}
     />
   );
 }
@@ -97,90 +142,164 @@ function GraphLoadedEdgeForm({
 function GraphEdgeForm({
   edge,
   organizationId,
-  sourceNodeId,
+  sourceEndpoint,
+  targetEndpoint,
 }: {
-  edge?: GraphFixtureEdgeDetail;
+  edge?: GraphEdge;
   organizationId: string;
-  sourceNodeId: string | null;
+  sourceEndpoint?: EndpointOption | null;
+  targetEndpoint?: EndpointOption | null;
 }) {
   const closeDialog = useGraphStudioStore((state) => state.closeDialog);
-  const select = useGraphStudioStore((state) => state.select);
-  const options = useGraphFixtureNodeOptionsSuspense(organizationId).data;
-  const mutations = useGraphFixtureEdgeMutations(organizationId);
-  // 미리 고른 출발 노드는 초기 state로만 받아 rerender·reset에서 잃지 않는다.
-  const [source, setSource] = useState<string | null>(sourceNodeId);
-  const [target, setTarget] = useState<string | null>(
-    edge?.targetNodeId ?? null,
-  );
-  const [predicate, setPredicate] = useState<GraphFixtureCuratedPredicate>(
-    GRAPH_FIXTURE_CURATED_PREDICATES.find(
-      (candidate) => candidate === edge?.predicate,
-    ) ?? 'related_to',
+  const queryClient = useQueryClient();
+  const { notifySuccess } = useDashboardPlatform();
+  const notifyError = useKnowledgeGraphMutationError({
+    fallback: '관계를 저장하지 못했습니다.',
+    id: 'knowledge-graph-edge',
+    title: '관계 저장 실패',
+  });
+  const options = useKnowledgeGraphCommandControllerEndpointOptionsSuspense(
+    organizationId,
+    { limit: 20 },
+  ).data.items;
+  const create = useKnowledgeGraphCommandControllerCreateCuratedEdge({
+    mutation: { onError: notifyError },
+  });
+  const update = useKnowledgeGraphCommandControllerUpdateCuratedEdge({
+    mutation: { onError: notifyError },
+  });
+  const initialSource =
+    sourceEndpoint ?? endpointFromEdge(edge, 'source', options);
+  const initialTarget =
+    targetEndpoint ?? endpointFromEdge(edge, 'target', options);
+  const [source, setSource] = useState<EndpointOption | null>(initialSource);
+  const [target, setTarget] = useState<EndpointOption | null>(initialTarget);
+  const [predicate, setPredicate] = useState<
+    CreateCuratedEdgeCommandValue['predicate']
+  >(
+    CURATED_PREDICATES.find((item) => item === edge?.predicate) ?? 'related_to',
   );
   const [directed, setDirected] = useState(edge?.directed ?? true);
   const [error, setError] = useState<string | null>(null);
-  const busy = mutations.create.isPending || mutations.update.isPending;
-  // related_to만 무방향을 허용한다.
+  const busy = create.isPending || update.isPending;
   const effectiveDirected = predicate === 'related_to' ? directed : true;
+  const allowedPredicates = CURATED_PREDICATES.filter(
+    (item) =>
+      (!source || source.allowedPredicates.includes(item)) &&
+      (!target || target.allowedPredicates.includes(item)),
+  );
+
+  const invalidate = () =>
+    Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: getKnowledgeGraphControllerExploreQueryKey(organizationId),
+      }),
+      queryClient.invalidateQueries({
+        queryKey: getKnowledgeGraphControllerListEdgesQueryKey(organizationId),
+      }),
+      queryClient.invalidateQueries({
+        queryKey: getKnowledgeGraphControllerListNodesQueryKey(organizationId),
+      }),
+      queryClient.invalidateQueries({
+        queryKey:
+          getKnowledgeGraphCommandControllerEndpointOptionsQueryKey(
+            organizationId,
+          ),
+      }),
+      ...(edge
+        ? [
+            queryClient.invalidateQueries({
+              queryKey: getKnowledgeGraphControllerEdgeDetailQueryKey(
+                organizationId,
+                edge.id,
+              ),
+            }),
+            queryClient.invalidateQueries({
+              queryKey: getKnowledgeGraphControllerNodeDetailQueryKey(
+                organizationId,
+                edge.sourceNodeId,
+              ),
+            }),
+            queryClient.invalidateQueries({
+              queryKey: getKnowledgeGraphControllerNodeDetailQueryKey(
+                organizationId,
+                edge.targetNodeId,
+              ),
+            }),
+          ]
+        : []),
+    ]);
+
+  const saved = (title: string) => {
+    notifySuccess({
+      title,
+      description:
+        'PostgreSQL에 저장했습니다. 그래프 반영은 잠시 후 완료됩니다.',
+    });
+    closeDialog();
+    return invalidate();
+  };
 
   const submit = () => {
     if (!source || !target) {
       setError('출발 노드와 도착 노드를 모두 선택해 주세요.');
       return;
     }
-    setError(null);
-    const input = {
-      sourceNodeId: source,
-      targetNodeId: target,
+    const parsed = CreateCuratedEdgeCommand.safeParse({
+      sourceNodeId: source.nodeId,
+      sourceNodeKind: source.kind,
+      targetNodeId: target.nodeId,
+      targetNodeKind: target.kind,
       predicate,
       directed: effectiveDirected,
-    };
+      properties: edge?.curated?.properties ?? {},
+    });
+    if (!parsed.success) {
+      setError('선택한 노드와 관계 정책을 다시 확인해 주세요.');
+      return;
+    }
+    setError(null);
     if (edge) {
-      mutations.update.mutate(
+      if (edge.editTarget.kind !== 'curated_edge') return;
+      update.mutate(
         {
-          edgeId: edge.id,
-          input: { ...input, revision: edge.revision },
-          previous: {
-            sourceNodeId: edge.sourceNodeId,
-            targetNodeId: edge.targetNodeId,
-          },
+          organizationId,
+          edgeId: edge.editTarget.edgeId,
+          data: { ...parsed.data, expectedRevision: edge.editTarget.revision },
         },
-        { onSuccess: closeDialog },
+        { onSuccess: () => saved('관계를 수정했습니다') },
       );
       return;
     }
-    mutations.create.mutate(input, {
-      onSuccess: ({ id }) => {
-        closeDialog();
-        select({ kind: 'edge', id });
-      },
-    });
+    create.mutate(
+      { organizationId, data: parsed.data },
+      { onSuccess: () => saved('관계를 연결했습니다') },
+    );
   };
 
   return (
     <>
       <View className="gap-4">
         <GraphNodeSelectField
+          disabled={busy}
           label="출발 노드 (Source)"
           onChange={setSource}
-          options={options}
+          options={mergeEndpoint(options, sourceEndpoint)}
           value={source}
-          disabled={busy}
         />
-
         <GraphFormField
           hint={
             predicate === 'references'
-              ? 'references는 위키·프로젝트·티켓·회의 원본과도 연결할 수 있습니다.'
-              : '사용자 노드끼리만 연결할 수 있습니다.'
+              ? 'references는 권한 있는 업무 원본과도 연결할 수 있습니다.'
+              : '이 서술어의 허용 종단은 서버 정책으로 제한됩니다.'
           }
           label="관계 서술어 (Predicate Relationship)"
         >
           <Select
             disabled={busy}
             onValueChange={(option) => {
-              const next = GRAPH_FIXTURE_CURATED_PREDICATES.find(
-                (candidate) => candidate === option?.value,
+              const next = allowedPredicates.find(
+                (item) => item === option?.value,
               );
               if (next) setPredicate(next);
             }}
@@ -196,27 +315,25 @@ function GraphEdgeForm({
               />
             </SelectTrigger>
             <SelectContent align="start" side="bottom">
-              {GRAPH_FIXTURE_CURATED_PREDICATES.map((candidate) => (
+              {allowedPredicates.map((item) => (
                 <SelectItem
-                  key={candidate}
-                  label={predicateLabel(candidate)}
-                  value={candidate}
+                  key={item}
+                  label={predicateLabel(item)}
+                  value={item}
                 >
-                  {predicateLabel(candidate)}
+                  {predicateLabel(item)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </GraphFormField>
-
         <GraphNodeSelectField
+          disabled={busy}
           label="도착 노드 (Target)"
           onChange={setTarget}
-          options={options}
+          options={mergeEndpoint(options, targetEndpoint)}
           value={target}
-          disabled={busy}
         />
-
         <GraphFormField
           error={error}
           hint={
@@ -257,7 +374,6 @@ function GraphEdgeForm({
           </Select>
         </GraphFormField>
       </View>
-
       <GraphDialogFooter
         busy={busy}
         confirmLabel={edge ? '관계 저장' : '관계 추가'}
@@ -266,61 +382,4 @@ function GraphEdgeForm({
       />
     </>
   );
-}
-
-function GraphNodeSelectField({
-  disabled,
-  label,
-  onChange,
-  options,
-  value,
-}: {
-  disabled: boolean;
-  label: string;
-  onChange: (nodeId: string) => void;
-  options: readonly GraphFixtureNodeOption[];
-  value: string | null;
-}) {
-  const selected = options.find(({ id }) => id === value);
-  return (
-    <GraphFormField label={label}>
-      <Select
-        disabled={disabled}
-        onValueChange={(option) => {
-          if (option?.value) onChange(option.value);
-        }}
-        value={
-          selected
-            ? { value: selected.id, label: nodeOptionLabel(selected) }
-            : undefined
-        }
-      >
-        <SelectTrigger
-          accessibilityLabel={`${label} 선택`}
-          className="h-9 w-full"
-        >
-          <SelectValue className="text-xs" placeholder="노드 선택" />
-        </SelectTrigger>
-        <SelectContent align="start" className="max-h-72" side="bottom">
-          {options.map((option) => (
-            <SelectItem
-              key={option.id}
-              label={nodeOptionLabel(option)}
-              value={option.id}
-            >
-              {nodeOptionLabel(option)}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </GraphFormField>
-  );
-}
-
-function nodeOptionLabel(option: GraphFixtureNodeOption) {
-  return `${option.title} · ${GRAPH_FACT_CLASS_META[option.factClass].label}`;
-}
-
-function predicateLabel(predicate: GraphFixtureCuratedPredicate) {
-  return `${formatPredicate(predicate)} (${GRAPH_PREDICATE_LABELS[predicate]})`;
 }

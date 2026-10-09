@@ -10,6 +10,7 @@ export type GraphDialog =
   | { type: 'node-delete'; nodeId: string }
   | { type: 'edge-create'; sourceNodeId: string | null }
   | { type: 'edge-edit'; edgeId: string }
+  | { type: 'edge-correct'; edgeId: string }
   | { type: 'edge-delete'; edgeId: string };
 
 export type GraphPoint = { x: number; y: number };

@@ -14,6 +14,7 @@ describe('지식 그래프 route param', () => {
       tab: 'nodes',
       search: '',
       kind: 'all',
+      relation: 'all',
       pageSize: 10,
       cursor: null,
     });
@@ -24,6 +25,7 @@ describe('지식 그래프 route param', () => {
       tab: 'edges',
       q: 'neo4j',
       kind: 'technology',
+      relation: 'mentions',
       size: '20',
       cursor: '2',
     });
@@ -39,6 +41,7 @@ describe('지식 그래프 route param', () => {
       tab: undefined,
       q: undefined,
       kind: undefined,
+      relation: undefined,
       size: undefined,
       cursor: undefined,
     });

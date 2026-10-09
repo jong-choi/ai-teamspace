@@ -23,9 +23,9 @@ describe('H8-20 Orval 지식 그래프 계약', () => {
     expect(
       getKnowledgeGraphSearchControllerSearchUrl('org', { q: '설계' }),
     ).toContain('/knowledge-graph/search?q=');
-    expect(getKnowledgeGraphControllerExploreUrl('org')).toContain(
-      '/knowledge-graph/explore',
-    );
+    expect(
+      getKnowledgeGraphControllerExploreUrl('org', { depth: 1, limit: 100 }),
+    ).toContain('/knowledge-graph/explore');
     expect(getKnowledgeGraphOperationsControllerStatusUrl('org')).toContain(
       '/knowledge-graph/operations/status',
     );
@@ -54,6 +54,7 @@ describe('H8-20 Orval 지식 그래프 계약', () => {
       expect(
         WikiKnowledgeGraphStatus.parse({
           status,
+          graphNodeId: 'opaque-wiki-node-id',
           sourceUpdatedAt: at,
           indexedSourceUpdatedAt: null,
           autoEligibleAt: null,
@@ -98,6 +99,7 @@ describe('H8-20 Orval 지식 그래프 계약', () => {
         projectionState: null,
         completeness: 'complete',
         provenance: null,
+        curated: null,
       }).id,
     ).toBe('opaque-node-id');
     for (const status of [409, 429, 503]) {

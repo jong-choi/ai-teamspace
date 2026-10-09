@@ -73,8 +73,9 @@ describe('external MCP OAuth credential bundle', () => {
           },
         ),
     } as unknown as AgentMcpConnectionRepository;
-    const crypto = {
-      encrypt: jest.fn().mockImplementation(async (value: string) => {
+    const cryptoEncryptMock = jest
+      .fn()
+      .mockImplementation(async (value: string) => {
         plaintext = value;
         return {
           version: 1,
@@ -84,14 +85,19 @@ describe('external MCP OAuth credential bundle', () => {
           ciphertext: Buffer.from('opaque-ciphertext').toString('base64'),
           authTag: Buffer.alloc(16, 2).toString('base64'),
         };
-      }),
+      });
+    const crypto = {
+      encrypt: cryptoEncryptMock,
       decrypt: jest.fn().mockImplementation(async () => plaintext),
     } as unknown as CredentialCryptoProvider;
     const config = {
       getOrThrow: jest.fn().mockReturnValue({ maxResponseBytes: 1_048_576 }),
     } as unknown as ConfigService<AllConfigType>;
+    const auditPublisherPublishMock = jest
+      .fn()
+      .mockRejectedValue(new Error('audit unavailable'));
     const auditPublisher = {
-      publish: jest.fn().mockRejectedValue(new Error('audit unavailable')),
+      publish: auditPublisherPublishMock,
     } as unknown as AgentMcpAuditPublisher;
     const service = new AgentMcpOauthCredentialService(
       repository,
@@ -131,7 +137,7 @@ describe('external MCP OAuth credential bundle', () => {
     });
     expect(JSON.stringify(credential)).not.toContain('access-two');
     expect(JSON.stringify(credential)).not.toContain('refresh-secret');
-    expect(crypto.encrypt).toHaveBeenCalledWith(
+    expect(cryptoEncryptMock).toHaveBeenCalledWith(
       expect.stringContaining('access-two'),
       {
         recordKind: 'agent-mcp-oauth-credential',
@@ -149,7 +155,7 @@ describe('external MCP OAuth credential bundle', () => {
     ).resolves.toBeUndefined();
     expect(plaintext).not.toContain('access-two');
     expect(plaintext).not.toContain('refresh-secret');
-    expect(auditPublisher.publish).toHaveBeenCalledWith(
+    expect(auditPublisherPublishMock).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'agent_mcp.credential.revoked',
         connectionId,

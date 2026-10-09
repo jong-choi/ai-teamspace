@@ -74,6 +74,29 @@ describeKnowledgeGraph('H8-20 지식 그래프 OpenAPI 계약', () => {
     expect(JSON.stringify(curatedUpdate?.responses['409'])).toContain(
       '#/components/schemas/ProblemDetails',
     );
+
+    const explore = JSON.stringify(
+      document.paths['/organizations/{organizationId}/knowledge-graph/explore'],
+    );
+    for (const parameter of [
+      'focusKind',
+      'focusId',
+      'q',
+      'depth',
+      'limit',
+      'cursor',
+    ]) {
+      expect(explore).toContain(`"name":"${parameter}"`);
+    }
+    const nodeList = JSON.stringify(
+      document.paths['/organizations/{organizationId}/knowledge-graph/nodes'],
+    );
+    expect(nodeList).toContain('"name":"kind"');
+    expect(nodeList).toContain('"name":"q"');
+    const edgeList = JSON.stringify(
+      document.paths['/organizations/{organizationId}/knowledge-graph/edges'],
+    );
+    expect(edgeList).toContain('"name":"relation"');
   });
 
   it('status 8종·nullable·ISO와 editTarget union·opaque ID를 생성한다', () => {
@@ -81,6 +104,7 @@ describeKnowledgeGraph('H8-20 지식 그래프 OpenAPI 계약', () => {
       ? createOpenApiDocument(fixture.app).components?.schemas
       : undefined;
     const status = JSON.stringify(schemas?.WikiKnowledgeGraphStatus);
+    expect(status).toContain('graphNodeId');
     for (const value of [
       'accepted',
       'queued',
@@ -109,6 +133,8 @@ describeKnowledgeGraph('H8-20 지식 그래프 OpenAPI 계약', () => {
     }
     const graphNode = JSON.stringify(schemas?.GraphNode);
     expect(graphNode).toContain('maxLength');
+    expect(graphNode).toContain('curated');
     expect(graphNode).not.toContain('"id":{"type":"string","format":"uuid"');
+    expect(JSON.stringify(schemas?.GraphEdge)).toContain('curated');
   });
 });

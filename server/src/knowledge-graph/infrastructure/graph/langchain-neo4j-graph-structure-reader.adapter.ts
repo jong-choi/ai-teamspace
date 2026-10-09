@@ -309,15 +309,18 @@ export class LangchainNeo4jGraphStructureReaderAdapter
   }
 
   private edgeFromRow(row: Record<string, unknown>, hop: 1 | 2) {
-    const relationshipType = String(row.relationshipType ?? '');
+    const relationshipType =
+      typeof row.relationshipType === 'string' ? row.relationshipType : '';
     const relation = relationByType.get(relationshipType);
     const sourceKind = this.structureKind(row.sourceKind);
     const targetKind = this.structureKind(row.targetKind);
     if (!relation || !sourceKind || !targetKind) return null;
-    const sourceNodeId = String(row.sourceKey);
-    const targetNodeId = String(row.targetKey);
-    const sourceId = row.sourceId == null ? null : String(row.sourceId);
-    const targetId = row.targetId == null ? null : String(row.targetId);
+    if (typeof row.sourceKey !== 'string' || typeof row.targetKey !== 'string')
+      return null;
+    const sourceNodeId = row.sourceKey;
+    const targetNodeId = row.targetKey;
+    const sourceId = typeof row.sourceId === 'string' ? row.sourceId : null;
+    const targetId = typeof row.targetId === 'string' ? row.targetId : null;
     const owner = this.ownerForRelation(relation, sourceKind, sourceId);
     return {
       id: JSON.stringify([relationshipType, sourceNodeId, targetNodeId]),
@@ -386,13 +389,17 @@ export class LangchainNeo4jGraphStructureReaderAdapter
   }
 
   private structureKind(value: unknown): StructureNodeRecord['kind'] | null {
-    const kind = String(value ?? '') as StructureNodeRecord['kind'];
-    return structureNodeKinds.has(kind) ? kind : null;
+    if (typeof value !== 'string') return null;
+    for (const kind of structureNodeKinds) {
+      if (kind === value) return kind;
+    }
+    return null;
   }
 
   private dateOrNull(value: unknown) {
     if (value == null) return null;
-    const date = value instanceof Date ? value : new Date(String(value));
+    if (!(value instanceof Date) && typeof value !== 'string') return null;
+    const date = value instanceof Date ? value : new Date(value);
     return Number.isNaN(date.valueOf()) ? null : date;
   }
 

@@ -60,6 +60,34 @@ describe('그래프 레이아웃', () => {
     expect(next.e).toBeDefined();
   });
 
+  test.each([50, 100, 200])(
+    '%i개 노드와 3배 관계 입력을 500ms 안에 유한 좌표로 배치한다',
+    (nodeCount) => {
+      const nodeIds = Array.from(
+        { length: nodeCount },
+        (_, index) => `node-${index}`,
+      );
+      const links = Array.from({ length: nodeCount * 3 }, (_, index) => ({
+        sourceId: nodeIds[index % nodeCount] ?? '',
+        targetId: nodeIds[(index * 7 + 1) % nodeCount] ?? '',
+      }));
+      const startedAt = performance.now();
+      const positions = layoutGraph({
+        nodeIds,
+        links,
+        focusId: nodeIds[0] ?? null,
+      });
+      const elapsed = performance.now() - startedAt;
+      expect(Object.keys(positions)).toHaveLength(nodeCount);
+      expect(
+        Object.values(positions).every(
+          ({ x, y }) => Number.isFinite(x) && Number.isFinite(y),
+        ),
+      ).toBe(true);
+      expect(elapsed).toBeLessThan(500);
+    },
+  );
+
   test('없는 노드를 가리키는 링크와 빈 그래프를 안전하게 처리한다', () => {
     expect(layoutGraph({ nodeIds: [], links: [], focusId: null })).toEqual({});
     const positions = layoutGraph({
@@ -87,13 +115,14 @@ describe('그래프 뷰포트', () => {
     ]);
     const viewport = fitViewport(bounds, size);
     expect(bounds).not.toBeNull();
+    if (!bounds) throw new Error('그래프 bounds를 계산하지 못했습니다.');
     const topLeft = {
-      x: bounds!.minX * viewport.scale + viewport.x,
-      y: bounds!.minY * viewport.scale + viewport.y,
+      x: bounds.minX * viewport.scale + viewport.x,
+      y: bounds.minY * viewport.scale + viewport.y,
     };
     const bottomRight = {
-      x: bounds!.maxX * viewport.scale + viewport.x,
-      y: bounds!.maxY * viewport.scale + viewport.y,
+      x: bounds.maxX * viewport.scale + viewport.x,
+      y: bounds.maxY * viewport.scale + viewport.y,
     };
     expect(topLeft.x).toBeGreaterThanOrEqual(0);
     expect(topLeft.y).toBeGreaterThanOrEqual(0);

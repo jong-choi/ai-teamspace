@@ -40,18 +40,22 @@ describe('외부 MCP bearer credential 서비스', () => {
       findOwned: jest.fn().mockResolvedValue(connection('bearer')),
       saveCredential,
     } as unknown as AgentMcpConnectionRepository;
+    const cryptoEncryptMock = jest.fn().mockResolvedValue({
+      version: 1,
+      algorithm: 'aes-256-gcm',
+      keyId: 'key-1',
+      nonce: Buffer.alloc(12, 1).toString('base64'),
+      ciphertext: Buffer.from('ciphertext').toString('base64'),
+      authTag: Buffer.alloc(16, 2).toString('base64'),
+    });
     const crypto = {
-      encrypt: jest.fn().mockResolvedValue({
-        version: 1,
-        algorithm: 'aes-256-gcm',
-        keyId: 'key-1',
-        nonce: Buffer.alloc(12, 1).toString('base64'),
-        ciphertext: Buffer.from('ciphertext').toString('base64'),
-        authTag: Buffer.alloc(16, 2).toString('base64'),
-      }),
+      encrypt: cryptoEncryptMock,
     } as unknown as CredentialCryptoProvider;
+    const auditPublisherPublishMock = jest
+      .fn()
+      .mockRejectedValue(new Error('audit unavailable'));
     const auditPublisher = {
-      publish: jest.fn().mockRejectedValue(new Error('audit unavailable')),
+      publish: auditPublisherPublishMock,
     } as unknown as AgentMcpAuditPublisher;
     const service = new AgentMcpCredentialService(
       repository,
@@ -61,7 +65,7 @@ describe('외부 MCP bearer credential 서비스', () => {
 
     await service.saveBearerToken(actor, connectionId, 'secret-token');
 
-    expect(crypto.encrypt).toHaveBeenCalledWith('secret-token', {
+    expect(cryptoEncryptMock).toHaveBeenCalledWith('secret-token', {
       recordKind: 'agent-mcp-credential',
       recordId: connectionId,
       userId: actor.userId,
@@ -78,7 +82,7 @@ describe('외부 MCP bearer credential 서비스', () => {
     expect(JSON.stringify(saveCredential.mock.calls)).not.toContain(
       'secret-token',
     );
-    expect(auditPublisher.publish).toHaveBeenCalledWith(
+    expect(auditPublisherPublishMock).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'agent_mcp.credential.replaced',
         connectionId,
@@ -89,20 +93,22 @@ describe('외부 MCP bearer credential 서비스', () => {
   });
 
   test('bearer가 아닌 connection에는 token을 저장하지 않는다', async () => {
+    const repositorySaveCredentialMock = jest.fn();
     const repository = {
       findOwned: jest.fn().mockResolvedValue(connection('none')),
-      saveCredential: jest.fn(),
+      saveCredential: repositorySaveCredentialMock,
     } as unknown as AgentMcpConnectionRepository;
+    const cryptoEncryptMock = jest.fn();
     const crypto = {
-      encrypt: jest.fn(),
+      encrypt: cryptoEncryptMock,
     } as unknown as CredentialCryptoProvider;
     const service = new AgentMcpCredentialService(repository, crypto);
 
     await expect(
       service.saveBearerToken(actor, connectionId, 'secret-token'),
     ).rejects.toBeInstanceOf(AgentMcpConnectionAuthKindMismatchError);
-    expect(crypto.encrypt).not.toHaveBeenCalled();
-    expect(repository.saveCredential).not.toHaveBeenCalled();
+    expect(cryptoEncryptMock).not.toHaveBeenCalled();
+    expect(repositorySaveCredentialMock).not.toHaveBeenCalled();
   });
 
   test('소유 connection이 없으면 bearer token 조회는 null이다', async () => {

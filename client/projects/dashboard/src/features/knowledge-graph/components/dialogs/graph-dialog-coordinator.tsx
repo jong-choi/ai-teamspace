@@ -1,3 +1,4 @@
+import { GraphCorrectionDialog } from '@core/features/knowledge-graph/components/dialogs/graph-correction-dialog';
 import {
   GraphEdgeDeleteDialog,
   GraphNodeDeleteDialog,
@@ -32,9 +33,8 @@ export function GraphDialogCoordinator({
       );
     case 'node-correct':
       return (
-        <GraphNodeDialog
+        <GraphCorrectionDialog
           key={dialog.nodeId}
-          mode="correct"
           nodeId={dialog.nodeId}
           organizationId={organizationId}
         />
@@ -57,6 +57,14 @@ export function GraphDialogCoordinator({
     case 'edge-edit':
       return (
         <GraphEdgeDialog
+          edgeId={dialog.edgeId}
+          key={dialog.edgeId}
+          organizationId={organizationId}
+        />
+      );
+    case 'edge-correct':
+      return (
+        <GraphCorrectionDialog
           edgeId={dialog.edgeId}
           key={dialog.edgeId}
           organizationId={organizationId}

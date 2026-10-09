@@ -1,26 +1,17 @@
-import {
-  type ReactNode,
-  Suspense,
-  useDeferredValue,
-  useRef,
-  useState,
-} from 'react';
+import { type ReactNode, Suspense, useDeferredValue } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 
+import {
+  useKnowledgeGraphControllerListEdgesSuspense,
+  useKnowledgeGraphControllerListNodesSuspense,
+} from '@repo/client/api-client';
 import { Badge } from '@repo/client/rnr/components/ui/badge';
 import { Button } from '@repo/client/rnr/components/ui/button';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
-import { Input } from '@repo/client/rnr/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@repo/client/rnr/components/ui/select';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
 import { DashboardQueryBoundary } from '@core/app/state/dashboard-query-state';
+import { GraphDataFilterBar } from '@core/features/knowledge-graph/components/data-center/graph-data-filter-bar';
 import {
   GRAPH_EDGE_TABLE_COLUMNS,
   GraphEdgeTable,
@@ -30,16 +21,6 @@ import {
   GraphNodeTable,
 } from '@core/features/knowledge-graph/components/data-center/graph-node-table';
 import { GraphTableSkeleton } from '@core/features/knowledge-graph/components/data-center/graph-table';
-import {
-  GRAPH_FIXTURE_NODE_KINDS,
-  GRAPH_FIXTURE_PAGE_SIZES,
-} from '@core/features/knowledge-graph/fixtures/knowledge-graph-fixture-contract';
-// TODO(graph-05-orval): graph-05 node/edge 목록 generated Suspense hook으로 직접 교체한다.
-import {
-  useGraphFixtureEdgesSuspense,
-  useGraphFixtureNodesSuspense,
-} from '@core/features/knowledge-graph/fixtures/knowledge-graph-fixture-queries';
-import { GRAPH_NODE_KIND_META } from '@core/features/knowledge-graph/lib/graph-presentation';
 import type { GraphDataCenterParams } from '@core/features/knowledge-graph/lib/graph-route-params';
 import { useGraphStudioStore } from '@core/features/knowledge-graph/state/graph-studio-provider';
 
@@ -49,10 +30,8 @@ import {
   Link2,
   type LucideIcon,
   Plus,
-  Search,
 } from 'lucide-react-native';
 
-const SEARCH_COMMIT_DELAY_MS = 300;
 const ALL_KINDS = 'all';
 
 export function GraphDataCenter({
@@ -161,10 +140,13 @@ export function GraphDataCenter({
                 }
                 organizationId={organizationId}
                 params={{
-                  search: deferredParams.search,
-                  kind: deferredParams.kind,
-                  pageSize: deferredParams.pageSize,
-                  cursor: deferredParams.cursor,
+                  q: deferredParams.search || undefined,
+                  kind:
+                    deferredParams.kind === ALL_KINDS
+                      ? undefined
+                      : deferredParams.kind,
+                  limit: deferredParams.pageSize,
+                  cursor: deferredParams.cursor ?? undefined,
                 }}
               />
             ) : (
@@ -174,9 +156,12 @@ export function GraphDataCenter({
                 }
                 organizationId={organizationId}
                 params={{
-                  search: deferredParams.search,
-                  pageSize: deferredParams.pageSize,
-                  cursor: deferredParams.cursor,
+                  relation:
+                    deferredParams.relation === ALL_KINDS
+                      ? undefined
+                      : deferredParams.relation,
+                  limit: deferredParams.pageSize,
+                  cursor: deferredParams.cursor ?? undefined,
                 }}
               />
             )}
@@ -239,142 +224,16 @@ function GraphTabCount({ value }: { value: number | string }) {
 }
 
 // 탭 배지는 필터와 무관한 전체 건수다. 표와 다른 작은 경계로 둬 표 로딩을 기다리지 않는다.
-const COUNT_PARAMS = { search: '', pageSize: 5, cursor: null } as const;
-
 function GraphNodeCount({ organizationId }: { organizationId: string }) {
-  const total = useGraphFixtureNodesSuspense(organizationId, {
-    ...COUNT_PARAMS,
-    kind: 'all',
+  const total = useKnowledgeGraphControllerListNodesSuspense(organizationId, {
+    limit: 5,
   }).data.totalCount;
-  return <GraphTabCount value={total} />;
+  return <GraphTabCount value={total ?? '?'} />;
 }
 
 function GraphEdgeCount({ organizationId }: { organizationId: string }) {
-  const total = useGraphFixtureEdgesSuspense(organizationId, COUNT_PARAMS).data
-    .totalCount;
-  return <GraphTabCount value={total} />;
-}
-
-function GraphDataFilterBar({
-  onChange,
-  params,
-}: {
-  onChange: (patch: Partial<GraphDataCenterParams>) => void;
-  params: GraphDataCenterParams;
-}) {
-  const [search, setSearch] = useState(params.search);
-  const commitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const commitSearch = (value: string) => {
-    if (commitTimer.current) clearTimeout(commitTimer.current);
-    commitTimer.current = null;
-    if (value.trim() !== params.search) onChange({ search: value.trim() });
-  };
-
-  return (
-    <View className="mb-4 flex-row flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-3 shadow-sm shadow-black/5">
-      <View className="min-w-[240px] flex-1 flex-row items-center gap-2">
-        <View className="relative flex-1 justify-center">
-          <Icon
-            as={Search}
-            className="absolute left-3 z-10 size-4 text-muted-foreground"
-          />
-          <Input
-            accessibilityLabel="이름, ID 또는 키워드 검색"
-            className="h-8 pl-9 text-xs sm:h-8 md:text-xs"
-            onChangeText={(value) => {
-              setSearch(value);
-              if (commitTimer.current) clearTimeout(commitTimer.current);
-              commitTimer.current = setTimeout(
-                () => commitSearch(value),
-                SEARCH_COMMIT_DELAY_MS,
-              );
-            }}
-            onSubmitEditing={() => commitSearch(search)}
-            placeholder="이름, ID 또는 키워드 검색..."
-            returnKeyType="search"
-            value={search}
-          />
-        </View>
-
-        {params.tab === 'nodes' ? (
-          <Select
-            onValueChange={(option) =>
-              onChange({
-                kind:
-                  GRAPH_FIXTURE_NODE_KINDS.find(
-                    (candidate) => candidate === option?.value,
-                  ) ?? ALL_KINDS,
-              })
-            }
-            value={{
-              value: params.kind,
-              label:
-                params.kind === ALL_KINDS
-                  ? '전체 카테고리'
-                  : kindOptionLabel(params.kind),
-            }}
-          >
-            <SelectTrigger
-              accessibilityLabel="카테고리 필터"
-              className="sm:h-8"
-              size="sm"
-            >
-              <SelectValue className="text-xs" placeholder="전체 카테고리" />
-            </SelectTrigger>
-            <SelectContent align="start" side="bottom">
-              <SelectItem label="전체 카테고리" value={ALL_KINDS}>
-                전체 카테고리
-              </SelectItem>
-              {GRAPH_FIXTURE_NODE_KINDS.map((kind) => (
-                <SelectItem
-                  key={kind}
-                  label={kindOptionLabel(kind)}
-                  value={kind}
-                >
-                  {kindOptionLabel(kind)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ) : null}
-      </View>
-
-      <View className="flex-row items-center gap-2">
-        <Text className="text-xs text-muted-foreground">페이지당 항목:</Text>
-        <Select
-          onValueChange={(option) => {
-            const pageSize = GRAPH_FIXTURE_PAGE_SIZES.find(
-              (candidate) => String(candidate) === option?.value,
-            );
-            if (pageSize) onChange({ pageSize });
-          }}
-          value={{
-            value: String(params.pageSize),
-            label: `${params.pageSize}개`,
-          }}
-        >
-          <SelectTrigger
-            accessibilityLabel="페이지당 항목 수"
-            className="sm:h-8"
-            size="sm"
-          >
-            <SelectValue className="text-xs" placeholder="10개" />
-          </SelectTrigger>
-          <SelectContent align="end" side="bottom">
-            {GRAPH_FIXTURE_PAGE_SIZES.map((size) => (
-              <SelectItem key={size} label={`${size}개`} value={String(size)}>
-                {`${size}개`}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </View>
-    </View>
-  );
-}
-
-function kindOptionLabel(kind: (typeof GRAPH_FIXTURE_NODE_KINDS)[number]) {
-  const meta = GRAPH_NODE_KIND_META[kind];
-  return `${meta.code} (${meta.label})`;
+  const total = useKnowledgeGraphControllerListEdgesSuspense(organizationId, {
+    limit: 5,
+  }).data.totalCount;
+  return <GraphTabCount value={total ?? '?'} />;
 }

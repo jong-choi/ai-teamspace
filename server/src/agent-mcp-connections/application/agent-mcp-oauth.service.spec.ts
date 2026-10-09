@@ -41,24 +41,36 @@ describe('external MCP OAuth runtime refresh coordination', () => {
   }
 
   function dependencies() {
+    const repositoryAcquireCredentialRefreshLeaseMock = jest
+      .fn()
+      .mockResolvedValue(true);
+    const repositoryReleaseCredentialRefreshLeaseMock = jest
+      .fn()
+      .mockResolvedValue(true);
+    const repositoryRecordHealthMock = jest
+      .fn()
+      .mockResolvedValue(connection());
     const repository = {
-      acquireCredentialRefreshLease: jest.fn().mockResolvedValue(true),
-      releaseCredentialRefreshLease: jest.fn().mockResolvedValue(true),
-      recordHealth: jest.fn().mockResolvedValue(connection()),
+      acquireCredentialRefreshLease:
+        repositoryAcquireCredentialRefreshLeaseMock,
+      releaseCredentialRefreshLease:
+        repositoryReleaseCredentialRefreshLeaseMock,
+      recordHealth: repositoryRecordHealthMock,
     } as unknown as AgentMcpConnectionRepository;
+    const credentialsTokensMock = jest
+      .fn()
+      .mockResolvedValueOnce({
+        access_token: 'access-one',
+        token_type: 'Bearer',
+        issuer: 'https://auth.example.com/',
+      })
+      .mockResolvedValueOnce({
+        access_token: 'access-two',
+        token_type: 'Bearer',
+        issuer: 'https://auth.example.com/',
+      });
     const credentials = {
-      tokens: jest
-        .fn()
-        .mockResolvedValueOnce({
-          access_token: 'access-one',
-          token_type: 'Bearer',
-          issuer: 'https://auth.example.com/',
-        })
-        .mockResolvedValueOnce({
-          access_token: 'access-two',
-          token_type: 'Bearer',
-          issuer: 'https://auth.example.com/',
-        }),
+      tokens: credentialsTokensMock,
     } as unknown as AgentMcpOauthCredentialService;
     const config = {
       getOrThrow: jest.fn().mockReturnValue({
@@ -69,11 +81,25 @@ describe('external MCP OAuth runtime refresh coordination', () => {
       }),
     } as unknown as ConfigService<AllConfigType>;
 
-    return { repository, credentials, config };
+    return {
+      repositoryAcquireCredentialRefreshLeaseMock,
+      repositoryReleaseCredentialRefreshLeaseMock,
+      repositoryRecordHealthMock,
+      credentialsTokensMock,
+      repository,
+      credentials,
+      config,
+    };
   }
 
   test('lease 획득 뒤 이미 갱신된 token을 발견하면 중복 refresh 없이 lease를 해제한다', async () => {
     const deps = dependencies();
+    const {
+      repositoryAcquireCredentialRefreshLeaseMock,
+      repositoryReleaseCredentialRefreshLeaseMock,
+      credentialsTokensMock,
+      repositoryRecordHealthMock,
+    } = deps;
     const current = connection();
     const service = new AgentMcpOauthService(
       deps.repository,
@@ -93,7 +119,7 @@ describe('external MCP OAuth runtime refresh coordination', () => {
       }),
     ).resolves.toBeUndefined();
 
-    expect(deps.repository.acquireCredentialRefreshLease).toHaveBeenCalledWith(
+    expect(repositoryAcquireCredentialRefreshLeaseMock).toHaveBeenCalledWith(
       actor.userId,
       actor.organizationId,
       current.id,
@@ -101,14 +127,14 @@ describe('external MCP OAuth runtime refresh coordination', () => {
       expect.any(Date),
       expect.any(Date),
     );
-    expect(deps.repository.releaseCredentialRefreshLease).toHaveBeenCalledWith(
+    expect(repositoryReleaseCredentialRefreshLeaseMock).toHaveBeenCalledWith(
       actor.userId,
       actor.organizationId,
       current.id,
       expect.any(String),
     );
-    expect(deps.credentials.tokens).toHaveBeenCalledTimes(2);
-    expect(deps.repository.recordHealth).toHaveBeenCalledWith(
+    expect(credentialsTokensMock).toHaveBeenCalledTimes(2);
+    expect(repositoryRecordHealthMock).toHaveBeenCalledWith(
       actor.userId,
       actor.organizationId,
       current.id,
@@ -119,10 +145,14 @@ describe('external MCP OAuth runtime refresh coordination', () => {
 
   test('refresh authorization required 실패는 connection health에 기록한다', async () => {
     const deps = dependencies();
+    const {
+      repositoryAcquireCredentialRefreshLeaseMock,
+      repositoryRecordHealthMock,
+    } = deps;
     const current = connection();
-    jest
-      .mocked(deps.repository.acquireCredentialRefreshLease)
-      .mockRejectedValue(new AgentMcpOauthAuthorizationRequiredError());
+    repositoryAcquireCredentialRefreshLeaseMock.mockRejectedValue(
+      new AgentMcpOauthAuthorizationRequiredError(),
+    );
     const service = new AgentMcpOauthService(
       deps.repository,
       deps.credentials,
@@ -141,7 +171,7 @@ describe('external MCP OAuth runtime refresh coordination', () => {
       }),
     ).rejects.toBeInstanceOf(AgentMcpOauthAuthorizationRequiredError);
 
-    expect(deps.repository.recordHealth).toHaveBeenCalledWith(
+    expect(repositoryRecordHealthMock).toHaveBeenCalledWith(
       actor.userId,
       actor.organizationId,
       current.id,
@@ -152,6 +182,7 @@ describe('external MCP OAuth runtime refresh coordination', () => {
 
   test('401 resource identity가 connection endpoint와 다르면 refresh를 시작하지 않는다', async () => {
     const deps = dependencies();
+    const { repositoryAcquireCredentialRefreshLeaseMock } = deps;
     const current = connection();
     const service = new AgentMcpOauthService(
       deps.repository,
@@ -169,8 +200,6 @@ describe('external MCP OAuth runtime refresh coordination', () => {
         fetchFn: jest.fn(),
       }),
     ).rejects.toBeInstanceOf(AgentMcpOauthCredentialInvalidError);
-    expect(
-      deps.repository.acquireCredentialRefreshLease,
-    ).not.toHaveBeenCalled();
+    expect(repositoryAcquireCredentialRefreshLeaseMock).not.toHaveBeenCalled();
   });
 });

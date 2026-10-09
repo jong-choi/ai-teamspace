@@ -10,6 +10,8 @@ const RELAX_ITERATIONS = 140;
 const REPULSION = 22000;
 const SPRING = 0.02;
 const MAX_STEP = 24;
+const REPULSION_CELL_SIZE = 260;
+const REPULSION_CELL_RANGE = 2;
 // 라벨까지 포함한 노드 bounds 여백이다.
 const NODE_EXTENT = { left: 70, right: 70, top: 32, bottom: 60 };
 
@@ -69,7 +71,12 @@ export function layoutGraph(
 
   relax(ids, input.links, known, positions, fixed);
 
-  return Object.fromEntries(ids.map((id) => [id, round(positions.get(id)!)]));
+  return Object.fromEntries(
+    ids.flatMap((id) => {
+      const point = positions.get(id);
+      return point ? [[id, round(point)]] : [];
+    }),
+  );
 }
 
 function seedRings(
@@ -171,13 +178,16 @@ function relax(
   for (let iteration = 0; iteration < RELAX_ITERATIONS; iteration += 1) {
     const cooling = 1 - iteration / RELAX_ITERATIONS;
     const forces = new Map(movable.map((id) => [id, { x: 0, y: 0 }]));
+    const buckets = createPositionBuckets(ids, positions);
 
     for (const id of movable) {
-      const point = positions.get(id)!;
-      const force = forces.get(id)!;
-      for (const other of ids) {
+      const point = positions.get(id);
+      const force = forces.get(id);
+      if (!point || !force) continue;
+      for (const other of nearbyNodeIds(point, buckets)) {
         if (other === id) continue;
-        const otherPoint = positions.get(other)!;
+        const otherPoint = positions.get(other);
+        if (!otherPoint) continue;
         let dx = point.x - otherPoint.x;
         let dy = point.y - otherPoint.y;
         if (dx === 0 && dy === 0) {
@@ -195,8 +205,9 @@ function relax(
     for (const { sourceId, targetId } of links) {
       if (!known.has(sourceId) || !known.has(targetId) || sourceId === targetId)
         continue;
-      const source = positions.get(sourceId)!;
-      const target = positions.get(targetId)!;
+      const source = positions.get(sourceId);
+      const target = positions.get(targetId);
+      if (!source || !target) continue;
       const dx = target.x - source.x;
       const dy = target.y - source.y;
       const distance = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
@@ -216,8 +227,9 @@ function relax(
     }
 
     for (const id of movable) {
-      const point = positions.get(id)!;
-      const force = forces.get(id)!;
+      const point = positions.get(id);
+      const force = forces.get(id);
+      if (!point || !force) continue;
       const step = Math.min(
         Math.sqrt(force.x * force.x + force.y * force.y),
         MAX_STEP * cooling,
@@ -232,6 +244,51 @@ function relax(
       });
     }
   }
+}
+
+function createPositionBuckets(
+  ids: readonly string[],
+  positions: ReadonlyMap<string, GraphPoint>,
+): ReadonlyMap<string, readonly string[]> {
+  const buckets = new Map<string, string[]>();
+  for (const id of ids) {
+    const point = positions.get(id);
+    if (!point) continue;
+    const key = positionBucketKey(point);
+    const bucket = buckets.get(key);
+    if (bucket) bucket.push(id);
+    else buckets.set(key, [id]);
+  }
+  return buckets;
+}
+
+function nearbyNodeIds(
+  point: GraphPoint,
+  buckets: ReadonlyMap<string, readonly string[]>,
+): readonly string[] {
+  const cellX = Math.floor(point.x / REPULSION_CELL_SIZE);
+  const cellY = Math.floor(point.y / REPULSION_CELL_SIZE);
+  const nearby: string[] = [];
+  for (
+    let xOffset = -REPULSION_CELL_RANGE;
+    xOffset <= REPULSION_CELL_RANGE;
+    xOffset += 1
+  ) {
+    for (
+      let yOffset = -REPULSION_CELL_RANGE;
+      yOffset <= REPULSION_CELL_RANGE;
+      yOffset += 1
+    ) {
+      nearby.push(
+        ...(buckets.get(`${cellX + xOffset}:${cellY + yOffset}`) ?? []),
+      );
+    }
+  }
+  return nearby;
+}
+
+function positionBucketKey(point: GraphPoint): string {
+  return `${Math.floor(point.x / REPULSION_CELL_SIZE)}:${Math.floor(point.y / REPULSION_CELL_SIZE)}`;
 }
 
 function hash(value: string): number {

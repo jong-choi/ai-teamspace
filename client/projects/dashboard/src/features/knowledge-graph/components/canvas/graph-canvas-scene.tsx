@@ -1,10 +1,8 @@
 import { Platform } from 'react-native';
 import { Circle, G, Path, Text as SvgText } from 'react-native-svg';
 
-import type {
-  GraphFixtureEdge,
-  GraphFixtureNode,
-} from '@core/features/knowledge-graph/fixtures/knowledge-graph-fixture-contract';
+import type { GraphEdge } from '@repo/client/api-client/generated/schemas/graphEdge.zod';
+import type { GraphNode } from '@repo/client/api-client/generated/schemas/graphNode.zod';
 import type { GraphThemePalette } from '@core/features/knowledge-graph/hooks/use-graph-theme-palette';
 import { GRAPH_NODE_RADIUS } from '@core/features/knowledge-graph/lib/graph-layout';
 import {
@@ -26,10 +24,10 @@ const MONO_FONT = Platform.select({
 });
 
 type GraphCanvasSceneProps = {
-  edges: readonly GraphFixtureEdge[];
+  edges: readonly GraphEdge[];
   focusNodeId: string | null;
   geometries: ReadonlyMap<string, GraphEdgeGeometry>;
-  nodes: readonly GraphFixtureNode[];
+  nodes: readonly GraphNode[];
   palette: GraphThemePalette;
   positions: ReadonlyMap<string, GraphPoint>;
   selection: GraphSelection | null;
@@ -99,7 +97,7 @@ function GraphEdgeGlyph({
   selected,
 }: {
   active: boolean;
-  edge: GraphFixtureEdge;
+  edge: GraphEdge;
   geometry: GraphEdgeGeometry;
   palette: GraphThemePalette;
   selected: boolean;
@@ -129,7 +127,7 @@ function GraphEdgeGlyph({
         x={geometry.label.x}
         y={geometry.label.y}
       >
-        {formatPredicate(edge.predicate)}
+        {formatPredicate(edge.predicate ?? edge.relation)}
       </SvgText>
     </G>
   );
@@ -143,7 +141,7 @@ function GraphNodeGlyph({
   selected,
 }: {
   focus: boolean;
-  node: GraphFixtureNode;
+  node: GraphNode;
   palette: GraphThemePalette;
   point: GraphPoint;
   selected: boolean;

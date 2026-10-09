@@ -123,6 +123,14 @@ import type {
   CreateWikiDocument,
   GraphRebuildCancel,
   GraphRebuildCreate,
+  KnowledgeGraphCommandControllerDeleteCuratedEdgeParams,
+  KnowledgeGraphCommandControllerDeleteCuratedNodeParams,
+  KnowledgeGraphCommandControllerEndpointOptionsParams,
+  KnowledgeGraphCommandControllerListCorrectionsParams,
+  KnowledgeGraphControllerExploreParams,
+  KnowledgeGraphControllerListEdgesParams,
+  KnowledgeGraphControllerListNodesParams,
+  KnowledgeGraphOperationsControllerListParams,
   KnowledgeGraphSearchControllerSearchParams,
   McpAccessKeysControllerCreateBody,
   McpAccessKeysControllerListParams,
@@ -616,18 +624,27 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     }
 
 export const getKnowledgeGraphCommandControllerDeleteCuratedNodeUrl = (organizationId: string,
-    nodeId: string,) => {
+    nodeId: string,
+    params: KnowledgeGraphCommandControllerDeleteCuratedNodeParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/organizations/${organizationId}/knowledge-graph/curated/nodes/${nodeId}`
+  return stringifiedParams.length > 0 ? `/organizations/${organizationId}/knowledge-graph/curated/nodes/${nodeId}?${stringifiedParams}` : `/organizations/${organizationId}/knowledge-graph/curated/nodes/${nodeId}`
 }
 
 export const knowledgeGraphCommandControllerDeleteCuratedNode = async (organizationId: string,
-    nodeId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<void> => {
+    nodeId: string,
+    params: KnowledgeGraphCommandControllerDeleteCuratedNodeParams, options?: Parameters<typeof workOsFetcher>[1]): Promise<void> => {
 
-  return workOsFetcher<void>(getKnowledgeGraphCommandControllerDeleteCuratedNodeUrl(organizationId,nodeId),
+  return workOsFetcher<void>(getKnowledgeGraphCommandControllerDeleteCuratedNodeUrl(organizationId,nodeId,params),
   {
     ...options,
     method: 'DELETE'
@@ -657,9 +674,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof knowledgeGraphCommandControllerDeleteCuratedNode>>, KnowledgeGraphCommandControllerDeleteCuratedNodeMutationVariables> = (props) => {
-          const {organizationId,nodeId} = props ?? {};
+          const {organizationId,nodeId,params} = props ?? {};
 
-          return  knowledgeGraphCommandControllerDeleteCuratedNode(organizationId,nodeId,requestOptions)
+          return  knowledgeGraphCommandControllerDeleteCuratedNode(organizationId,nodeId,params,requestOptions)
         }
 
 
@@ -672,7 +689,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type KnowledgeGraphCommandControllerDeleteCuratedNodeMutationResult = NonNullable<Awaited<ReturnType<typeof knowledgeGraphCommandControllerDeleteCuratedNode>>>
 
     export type KnowledgeGraphCommandControllerDeleteCuratedNodeMutationError = ErrorType<ProblemDetails>
-    export type KnowledgeGraphCommandControllerDeleteCuratedNodeMutationVariables = {organizationId: string;nodeId: string}
+    export type KnowledgeGraphCommandControllerDeleteCuratedNodeMutationVariables = {organizationId: string;nodeId: string;params: KnowledgeGraphCommandControllerDeleteCuratedNodeParams}
 
     export const useKnowledgeGraphCommandControllerDeleteCuratedNode = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof knowledgeGraphCommandControllerDeleteCuratedNode>>, TError,KnowledgeGraphCommandControllerDeleteCuratedNodeMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
@@ -856,18 +873,27 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     }
 
 export const getKnowledgeGraphCommandControllerDeleteCuratedEdgeUrl = (organizationId: string,
-    edgeId: string,) => {
+    edgeId: string,
+    params: KnowledgeGraphCommandControllerDeleteCuratedEdgeParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/organizations/${organizationId}/knowledge-graph/curated/edges/${edgeId}`
+  return stringifiedParams.length > 0 ? `/organizations/${organizationId}/knowledge-graph/curated/edges/${edgeId}?${stringifiedParams}` : `/organizations/${organizationId}/knowledge-graph/curated/edges/${edgeId}`
 }
 
 export const knowledgeGraphCommandControllerDeleteCuratedEdge = async (organizationId: string,
-    edgeId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<void> => {
+    edgeId: string,
+    params: KnowledgeGraphCommandControllerDeleteCuratedEdgeParams, options?: Parameters<typeof workOsFetcher>[1]): Promise<void> => {
 
-  return workOsFetcher<void>(getKnowledgeGraphCommandControllerDeleteCuratedEdgeUrl(organizationId,edgeId),
+  return workOsFetcher<void>(getKnowledgeGraphCommandControllerDeleteCuratedEdgeUrl(organizationId,edgeId,params),
   {
     ...options,
     method: 'DELETE'
@@ -897,9 +923,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof knowledgeGraphCommandControllerDeleteCuratedEdge>>, KnowledgeGraphCommandControllerDeleteCuratedEdgeMutationVariables> = (props) => {
-          const {organizationId,edgeId} = props ?? {};
+          const {organizationId,edgeId,params} = props ?? {};
 
-          return  knowledgeGraphCommandControllerDeleteCuratedEdge(organizationId,edgeId,requestOptions)
+          return  knowledgeGraphCommandControllerDeleteCuratedEdge(organizationId,edgeId,params,requestOptions)
         }
 
 
@@ -912,7 +938,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type KnowledgeGraphCommandControllerDeleteCuratedEdgeMutationResult = NonNullable<Awaited<ReturnType<typeof knowledgeGraphCommandControllerDeleteCuratedEdge>>>
 
     export type KnowledgeGraphCommandControllerDeleteCuratedEdgeMutationError = ErrorType<ProblemDetails>
-    export type KnowledgeGraphCommandControllerDeleteCuratedEdgeMutationVariables = {organizationId: string;edgeId: string}
+    export type KnowledgeGraphCommandControllerDeleteCuratedEdgeMutationVariables = {organizationId: string;edgeId: string;params: KnowledgeGraphCommandControllerDeleteCuratedEdgeParams}
 
     export const useKnowledgeGraphCommandControllerDeleteCuratedEdge = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof knowledgeGraphCommandControllerDeleteCuratedEdge>>, TError,KnowledgeGraphCommandControllerDeleteCuratedEdgeMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
@@ -925,17 +951,26 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getKnowledgeGraphCommandControllerDeleteCuratedEdgeMutationOptions(options), queryClient);
     }
 
-export const getKnowledgeGraphCommandControllerEndpointOptionsUrl = (organizationId: string,) => {
+export const getKnowledgeGraphCommandControllerEndpointOptionsUrl = (organizationId: string,
+    params: KnowledgeGraphCommandControllerEndpointOptionsParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/organizations/${organizationId}/knowledge-graph/curated/endpoint-options`
+  return stringifiedParams.length > 0 ? `/organizations/${organizationId}/knowledge-graph/curated/endpoint-options?${stringifiedParams}` : `/organizations/${organizationId}/knowledge-graph/curated/endpoint-options`
 }
 
-export const knowledgeGraphCommandControllerEndpointOptions = async (organizationId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<CuratedEndpointOptions> => {
+export const knowledgeGraphCommandControllerEndpointOptions = async (organizationId: string,
+    params: KnowledgeGraphCommandControllerEndpointOptionsParams, options?: Parameters<typeof workOsFetcher>[1]): Promise<CuratedEndpointOptions> => {
 
-  return workOsFetcher<CuratedEndpointOptions>(getKnowledgeGraphCommandControllerEndpointOptionsUrl(organizationId),
+  return workOsFetcher<CuratedEndpointOptions>(getKnowledgeGraphCommandControllerEndpointOptionsUrl(organizationId,params),
   {
     ...options,
     method: 'GET'
@@ -949,23 +984,25 @@ export const knowledgeGraphCommandControllerEndpointOptions = async (organizatio
 
 
 
-export const getKnowledgeGraphCommandControllerEndpointOptionsQueryKey = (organizationId: string,) => {
+export const getKnowledgeGraphCommandControllerEndpointOptionsQueryKey = (organizationId: string,
+    params?: KnowledgeGraphCommandControllerEndpointOptionsParams,) => {
     return [
-    `/organizations/${organizationId}/knowledge-graph/curated/endpoint-options`
+    `/organizations/${organizationId}/knowledge-graph/curated/endpoint-options`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getKnowledgeGraphCommandControllerEndpointOptionsSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof knowledgeGraphCommandControllerEndpointOptions>>, TError = ErrorType<ProblemDetails>>(organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphCommandControllerEndpointOptions>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+export const getKnowledgeGraphCommandControllerEndpointOptionsSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof knowledgeGraphCommandControllerEndpointOptions>>, TError = ErrorType<ProblemDetails>>(organizationId: string,
+    params: KnowledgeGraphCommandControllerEndpointOptionsParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphCommandControllerEndpointOptions>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getKnowledgeGraphCommandControllerEndpointOptionsQueryKey(organizationId);
+  const queryKey =  queryOptions?.queryKey ?? getKnowledgeGraphCommandControllerEndpointOptionsQueryKey(organizationId,params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof knowledgeGraphCommandControllerEndpointOptions>>> = ({ signal }) => knowledgeGraphCommandControllerEndpointOptions(organizationId, { signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof knowledgeGraphCommandControllerEndpointOptions>>> = ({ signal }) => knowledgeGraphCommandControllerEndpointOptions(organizationId,params, { signal, ...requestOptions });
 
 
 
@@ -979,24 +1016,28 @@ export type KnowledgeGraphCommandControllerEndpointOptionsSuspenseQueryError = E
 
 
 export function useKnowledgeGraphCommandControllerEndpointOptionsSuspense<TData = Awaited<ReturnType<typeof knowledgeGraphCommandControllerEndpointOptions>>, TError = ErrorType<ProblemDetails>>(
- organizationId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphCommandControllerEndpointOptions>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ organizationId: string,
+    params: KnowledgeGraphCommandControllerEndpointOptionsParams, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphCommandControllerEndpointOptions>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useKnowledgeGraphCommandControllerEndpointOptionsSuspense<TData = Awaited<ReturnType<typeof knowledgeGraphCommandControllerEndpointOptions>>, TError = ErrorType<ProblemDetails>>(
- organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphCommandControllerEndpointOptions>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ organizationId: string,
+    params: KnowledgeGraphCommandControllerEndpointOptionsParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphCommandControllerEndpointOptions>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useKnowledgeGraphCommandControllerEndpointOptionsSuspense<TData = Awaited<ReturnType<typeof knowledgeGraphCommandControllerEndpointOptions>>, TError = ErrorType<ProblemDetails>>(
- organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphCommandControllerEndpointOptions>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ organizationId: string,
+    params: KnowledgeGraphCommandControllerEndpointOptionsParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphCommandControllerEndpointOptions>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useKnowledgeGraphCommandControllerEndpointOptionsSuspense<TData = Awaited<ReturnType<typeof knowledgeGraphCommandControllerEndpointOptions>>, TError = ErrorType<ProblemDetails>>(
- organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphCommandControllerEndpointOptions>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ organizationId: string,
+    params: KnowledgeGraphCommandControllerEndpointOptionsParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphCommandControllerEndpointOptions>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getKnowledgeGraphCommandControllerEndpointOptionsSuspenseQueryOptions(organizationId,options)
+  const queryOptions = getKnowledgeGraphCommandControllerEndpointOptionsSuspenseQueryOptions(organizationId,params,options)
 
   const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -1093,17 +1134,26 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getKnowledgeGraphCommandControllerCreateCorrectionMutationOptions(options), queryClient);
     }
 
-export const getKnowledgeGraphCommandControllerListCorrectionsUrl = (organizationId: string,) => {
+export const getKnowledgeGraphCommandControllerListCorrectionsUrl = (organizationId: string,
+    params?: KnowledgeGraphCommandControllerListCorrectionsParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/organizations/${organizationId}/knowledge-graph/corrections`
+  return stringifiedParams.length > 0 ? `/organizations/${organizationId}/knowledge-graph/corrections?${stringifiedParams}` : `/organizations/${organizationId}/knowledge-graph/corrections`
 }
 
-export const knowledgeGraphCommandControllerListCorrections = async (organizationId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<SemanticCorrections> => {
+export const knowledgeGraphCommandControllerListCorrections = async (organizationId: string,
+    params?: KnowledgeGraphCommandControllerListCorrectionsParams, options?: Parameters<typeof workOsFetcher>[1]): Promise<SemanticCorrections> => {
 
-  return workOsFetcher<SemanticCorrections>(getKnowledgeGraphCommandControllerListCorrectionsUrl(organizationId),
+  return workOsFetcher<SemanticCorrections>(getKnowledgeGraphCommandControllerListCorrectionsUrl(organizationId,params),
   {
     ...options,
     method: 'GET'
@@ -1117,23 +1167,25 @@ export const knowledgeGraphCommandControllerListCorrections = async (organizatio
 
 
 
-export const getKnowledgeGraphCommandControllerListCorrectionsQueryKey = (organizationId: string,) => {
+export const getKnowledgeGraphCommandControllerListCorrectionsQueryKey = (organizationId: string,
+    params?: KnowledgeGraphCommandControllerListCorrectionsParams,) => {
     return [
-    `/organizations/${organizationId}/knowledge-graph/corrections`
+    `/organizations/${organizationId}/knowledge-graph/corrections`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getKnowledgeGraphCommandControllerListCorrectionsSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof knowledgeGraphCommandControllerListCorrections>>, TError = ErrorType<ProblemDetails>>(organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphCommandControllerListCorrections>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+export const getKnowledgeGraphCommandControllerListCorrectionsSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof knowledgeGraphCommandControllerListCorrections>>, TError = ErrorType<ProblemDetails>>(organizationId: string,
+    params?: KnowledgeGraphCommandControllerListCorrectionsParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphCommandControllerListCorrections>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getKnowledgeGraphCommandControllerListCorrectionsQueryKey(organizationId);
+  const queryKey =  queryOptions?.queryKey ?? getKnowledgeGraphCommandControllerListCorrectionsQueryKey(organizationId,params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof knowledgeGraphCommandControllerListCorrections>>> = ({ signal }) => knowledgeGraphCommandControllerListCorrections(organizationId, { signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof knowledgeGraphCommandControllerListCorrections>>> = ({ signal }) => knowledgeGraphCommandControllerListCorrections(organizationId,params, { signal, ...requestOptions });
 
 
 
@@ -1147,24 +1199,28 @@ export type KnowledgeGraphCommandControllerListCorrectionsSuspenseQueryError = E
 
 
 export function useKnowledgeGraphCommandControllerListCorrectionsSuspense<TData = Awaited<ReturnType<typeof knowledgeGraphCommandControllerListCorrections>>, TError = ErrorType<ProblemDetails>>(
- organizationId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphCommandControllerListCorrections>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ organizationId: string,
+    params: undefined |  KnowledgeGraphCommandControllerListCorrectionsParams, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphCommandControllerListCorrections>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useKnowledgeGraphCommandControllerListCorrectionsSuspense<TData = Awaited<ReturnType<typeof knowledgeGraphCommandControllerListCorrections>>, TError = ErrorType<ProblemDetails>>(
- organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphCommandControllerListCorrections>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ organizationId: string,
+    params?: KnowledgeGraphCommandControllerListCorrectionsParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphCommandControllerListCorrections>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useKnowledgeGraphCommandControllerListCorrectionsSuspense<TData = Awaited<ReturnType<typeof knowledgeGraphCommandControllerListCorrections>>, TError = ErrorType<ProblemDetails>>(
- organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphCommandControllerListCorrections>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ organizationId: string,
+    params?: KnowledgeGraphCommandControllerListCorrectionsParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphCommandControllerListCorrections>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useKnowledgeGraphCommandControllerListCorrectionsSuspense<TData = Awaited<ReturnType<typeof knowledgeGraphCommandControllerListCorrections>>, TError = ErrorType<ProblemDetails>>(
- organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphCommandControllerListCorrections>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ organizationId: string,
+    params?: KnowledgeGraphCommandControllerListCorrectionsParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphCommandControllerListCorrections>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getKnowledgeGraphCommandControllerListCorrectionsSuspenseQueryOptions(organizationId,options)
+  const queryOptions = getKnowledgeGraphCommandControllerListCorrectionsSuspenseQueryOptions(organizationId,params,options)
 
   const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -3437,17 +3493,26 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getKnowledgeGraphOperationsControllerRequestMutationOptions(options), queryClient);
     }
 
-export const getKnowledgeGraphOperationsControllerListUrl = (organizationId: string,) => {
+export const getKnowledgeGraphOperationsControllerListUrl = (organizationId: string,
+    params: KnowledgeGraphOperationsControllerListParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/organizations/${organizationId}/knowledge-graph/rebuilds`
+  return stringifiedParams.length > 0 ? `/organizations/${organizationId}/knowledge-graph/rebuilds?${stringifiedParams}` : `/organizations/${organizationId}/knowledge-graph/rebuilds`
 }
 
-export const knowledgeGraphOperationsControllerList = async (organizationId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<GraphRebuildList> => {
+export const knowledgeGraphOperationsControllerList = async (organizationId: string,
+    params: KnowledgeGraphOperationsControllerListParams, options?: Parameters<typeof workOsFetcher>[1]): Promise<GraphRebuildList> => {
 
-  return workOsFetcher<GraphRebuildList>(getKnowledgeGraphOperationsControllerListUrl(organizationId),
+  return workOsFetcher<GraphRebuildList>(getKnowledgeGraphOperationsControllerListUrl(organizationId,params),
   {
     ...options,
     method: 'GET'
@@ -3461,23 +3526,25 @@ export const knowledgeGraphOperationsControllerList = async (organizationId: str
 
 
 
-export const getKnowledgeGraphOperationsControllerListQueryKey = (organizationId: string,) => {
+export const getKnowledgeGraphOperationsControllerListQueryKey = (organizationId: string,
+    params?: KnowledgeGraphOperationsControllerListParams,) => {
     return [
-    `/organizations/${organizationId}/knowledge-graph/rebuilds`
+    `/organizations/${organizationId}/knowledge-graph/rebuilds`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getKnowledgeGraphOperationsControllerListSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof knowledgeGraphOperationsControllerList>>, TError = ErrorType<ProblemDetails>>(organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphOperationsControllerList>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+export const getKnowledgeGraphOperationsControllerListSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof knowledgeGraphOperationsControllerList>>, TError = ErrorType<ProblemDetails>>(organizationId: string,
+    params: KnowledgeGraphOperationsControllerListParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphOperationsControllerList>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getKnowledgeGraphOperationsControllerListQueryKey(organizationId);
+  const queryKey =  queryOptions?.queryKey ?? getKnowledgeGraphOperationsControllerListQueryKey(organizationId,params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof knowledgeGraphOperationsControllerList>>> = ({ signal }) => knowledgeGraphOperationsControllerList(organizationId, { signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof knowledgeGraphOperationsControllerList>>> = ({ signal }) => knowledgeGraphOperationsControllerList(organizationId,params, { signal, ...requestOptions });
 
 
 
@@ -3491,24 +3558,28 @@ export type KnowledgeGraphOperationsControllerListSuspenseQueryError = ErrorType
 
 
 export function useKnowledgeGraphOperationsControllerListSuspense<TData = Awaited<ReturnType<typeof knowledgeGraphOperationsControllerList>>, TError = ErrorType<ProblemDetails>>(
- organizationId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphOperationsControllerList>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ organizationId: string,
+    params: KnowledgeGraphOperationsControllerListParams, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphOperationsControllerList>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useKnowledgeGraphOperationsControllerListSuspense<TData = Awaited<ReturnType<typeof knowledgeGraphOperationsControllerList>>, TError = ErrorType<ProblemDetails>>(
- organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphOperationsControllerList>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ organizationId: string,
+    params: KnowledgeGraphOperationsControllerListParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphOperationsControllerList>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useKnowledgeGraphOperationsControllerListSuspense<TData = Awaited<ReturnType<typeof knowledgeGraphOperationsControllerList>>, TError = ErrorType<ProblemDetails>>(
- organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphOperationsControllerList>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ organizationId: string,
+    params: KnowledgeGraphOperationsControllerListParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphOperationsControllerList>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useKnowledgeGraphOperationsControllerListSuspense<TData = Awaited<ReturnType<typeof knowledgeGraphOperationsControllerList>>, TError = ErrorType<ProblemDetails>>(
- organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphOperationsControllerList>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ organizationId: string,
+    params: KnowledgeGraphOperationsControllerListParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphOperationsControllerList>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getKnowledgeGraphOperationsControllerListSuspenseQueryOptions(organizationId,options)
+  const queryOptions = getKnowledgeGraphOperationsControllerListSuspenseQueryOptions(organizationId,params,options)
 
   const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -3783,17 +3854,26 @@ export function useKnowledgeGraphOperationsControllerStatusSuspense<TData = Awai
 
 
 
-export const getKnowledgeGraphControllerExploreUrl = (organizationId: string,) => {
+export const getKnowledgeGraphControllerExploreUrl = (organizationId: string,
+    params: KnowledgeGraphControllerExploreParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/organizations/${organizationId}/knowledge-graph/explore`
+  return stringifiedParams.length > 0 ? `/organizations/${organizationId}/knowledge-graph/explore?${stringifiedParams}` : `/organizations/${organizationId}/knowledge-graph/explore`
 }
 
-export const knowledgeGraphControllerExplore = async (organizationId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<GraphSnapshot> => {
+export const knowledgeGraphControllerExplore = async (organizationId: string,
+    params: KnowledgeGraphControllerExploreParams, options?: Parameters<typeof workOsFetcher>[1]): Promise<GraphSnapshot> => {
 
-  return workOsFetcher<GraphSnapshot>(getKnowledgeGraphControllerExploreUrl(organizationId),
+  return workOsFetcher<GraphSnapshot>(getKnowledgeGraphControllerExploreUrl(organizationId,params),
   {
     ...options,
     method: 'GET'
@@ -3807,23 +3887,25 @@ export const knowledgeGraphControllerExplore = async (organizationId: string, op
 
 
 
-export const getKnowledgeGraphControllerExploreQueryKey = (organizationId: string,) => {
+export const getKnowledgeGraphControllerExploreQueryKey = (organizationId: string,
+    params?: KnowledgeGraphControllerExploreParams,) => {
     return [
-    `/organizations/${organizationId}/knowledge-graph/explore`
+    `/organizations/${organizationId}/knowledge-graph/explore`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getKnowledgeGraphControllerExploreSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof knowledgeGraphControllerExplore>>, TError = ErrorType<ProblemDetails>>(organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerExplore>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+export const getKnowledgeGraphControllerExploreSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof knowledgeGraphControllerExplore>>, TError = ErrorType<ProblemDetails>>(organizationId: string,
+    params: KnowledgeGraphControllerExploreParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerExplore>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getKnowledgeGraphControllerExploreQueryKey(organizationId);
+  const queryKey =  queryOptions?.queryKey ?? getKnowledgeGraphControllerExploreQueryKey(organizationId,params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof knowledgeGraphControllerExplore>>> = ({ signal }) => knowledgeGraphControllerExplore(organizationId, { signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof knowledgeGraphControllerExplore>>> = ({ signal }) => knowledgeGraphControllerExplore(organizationId,params, { signal, ...requestOptions });
 
 
 
@@ -3837,24 +3919,28 @@ export type KnowledgeGraphControllerExploreSuspenseQueryError = ErrorType<Proble
 
 
 export function useKnowledgeGraphControllerExploreSuspense<TData = Awaited<ReturnType<typeof knowledgeGraphControllerExplore>>, TError = ErrorType<ProblemDetails>>(
- organizationId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerExplore>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ organizationId: string,
+    params: KnowledgeGraphControllerExploreParams, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerExplore>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useKnowledgeGraphControllerExploreSuspense<TData = Awaited<ReturnType<typeof knowledgeGraphControllerExplore>>, TError = ErrorType<ProblemDetails>>(
- organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerExplore>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ organizationId: string,
+    params: KnowledgeGraphControllerExploreParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerExplore>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useKnowledgeGraphControllerExploreSuspense<TData = Awaited<ReturnType<typeof knowledgeGraphControllerExplore>>, TError = ErrorType<ProblemDetails>>(
- organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerExplore>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ organizationId: string,
+    params: KnowledgeGraphControllerExploreParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerExplore>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useKnowledgeGraphControllerExploreSuspense<TData = Awaited<ReturnType<typeof knowledgeGraphControllerExplore>>, TError = ErrorType<ProblemDetails>>(
- organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerExplore>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ organizationId: string,
+    params: KnowledgeGraphControllerExploreParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerExplore>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getKnowledgeGraphControllerExploreSuspenseQueryOptions(organizationId,options)
+  const queryOptions = getKnowledgeGraphControllerExploreSuspenseQueryOptions(organizationId,params,options)
 
   const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -3867,17 +3953,26 @@ export function useKnowledgeGraphControllerExploreSuspense<TData = Awaited<Retur
 
 
 
-export const getKnowledgeGraphControllerListNodesUrl = (organizationId: string,) => {
+export const getKnowledgeGraphControllerListNodesUrl = (organizationId: string,
+    params: KnowledgeGraphControllerListNodesParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/organizations/${organizationId}/knowledge-graph/nodes`
+  return stringifiedParams.length > 0 ? `/organizations/${organizationId}/knowledge-graph/nodes?${stringifiedParams}` : `/organizations/${organizationId}/knowledge-graph/nodes`
 }
 
-export const knowledgeGraphControllerListNodes = async (organizationId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<GraphNodeList> => {
+export const knowledgeGraphControllerListNodes = async (organizationId: string,
+    params: KnowledgeGraphControllerListNodesParams, options?: Parameters<typeof workOsFetcher>[1]): Promise<GraphNodeList> => {
 
-  return workOsFetcher<GraphNodeList>(getKnowledgeGraphControllerListNodesUrl(organizationId),
+  return workOsFetcher<GraphNodeList>(getKnowledgeGraphControllerListNodesUrl(organizationId,params),
   {
     ...options,
     method: 'GET'
@@ -3891,23 +3986,25 @@ export const knowledgeGraphControllerListNodes = async (organizationId: string, 
 
 
 
-export const getKnowledgeGraphControllerListNodesQueryKey = (organizationId: string,) => {
+export const getKnowledgeGraphControllerListNodesQueryKey = (organizationId: string,
+    params?: KnowledgeGraphControllerListNodesParams,) => {
     return [
-    `/organizations/${organizationId}/knowledge-graph/nodes`
+    `/organizations/${organizationId}/knowledge-graph/nodes`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getKnowledgeGraphControllerListNodesSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof knowledgeGraphControllerListNodes>>, TError = ErrorType<ProblemDetails>>(organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerListNodes>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+export const getKnowledgeGraphControllerListNodesSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof knowledgeGraphControllerListNodes>>, TError = ErrorType<ProblemDetails>>(organizationId: string,
+    params: KnowledgeGraphControllerListNodesParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerListNodes>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getKnowledgeGraphControllerListNodesQueryKey(organizationId);
+  const queryKey =  queryOptions?.queryKey ?? getKnowledgeGraphControllerListNodesQueryKey(organizationId,params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof knowledgeGraphControllerListNodes>>> = ({ signal }) => knowledgeGraphControllerListNodes(organizationId, { signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof knowledgeGraphControllerListNodes>>> = ({ signal }) => knowledgeGraphControllerListNodes(organizationId,params, { signal, ...requestOptions });
 
 
 
@@ -3921,24 +4018,28 @@ export type KnowledgeGraphControllerListNodesSuspenseQueryError = ErrorType<Prob
 
 
 export function useKnowledgeGraphControllerListNodesSuspense<TData = Awaited<ReturnType<typeof knowledgeGraphControllerListNodes>>, TError = ErrorType<ProblemDetails>>(
- organizationId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerListNodes>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ organizationId: string,
+    params: KnowledgeGraphControllerListNodesParams, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerListNodes>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useKnowledgeGraphControllerListNodesSuspense<TData = Awaited<ReturnType<typeof knowledgeGraphControllerListNodes>>, TError = ErrorType<ProblemDetails>>(
- organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerListNodes>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ organizationId: string,
+    params: KnowledgeGraphControllerListNodesParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerListNodes>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useKnowledgeGraphControllerListNodesSuspense<TData = Awaited<ReturnType<typeof knowledgeGraphControllerListNodes>>, TError = ErrorType<ProblemDetails>>(
- organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerListNodes>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ organizationId: string,
+    params: KnowledgeGraphControllerListNodesParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerListNodes>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useKnowledgeGraphControllerListNodesSuspense<TData = Awaited<ReturnType<typeof knowledgeGraphControllerListNodes>>, TError = ErrorType<ProblemDetails>>(
- organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerListNodes>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ organizationId: string,
+    params: KnowledgeGraphControllerListNodesParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerListNodes>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getKnowledgeGraphControllerListNodesSuspenseQueryOptions(organizationId,options)
+  const queryOptions = getKnowledgeGraphControllerListNodesSuspenseQueryOptions(organizationId,params,options)
 
   const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -3951,17 +4052,26 @@ export function useKnowledgeGraphControllerListNodesSuspense<TData = Awaited<Ret
 
 
 
-export const getKnowledgeGraphControllerListEdgesUrl = (organizationId: string,) => {
+export const getKnowledgeGraphControllerListEdgesUrl = (organizationId: string,
+    params: KnowledgeGraphControllerListEdgesParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/organizations/${organizationId}/knowledge-graph/edges`
+  return stringifiedParams.length > 0 ? `/organizations/${organizationId}/knowledge-graph/edges?${stringifiedParams}` : `/organizations/${organizationId}/knowledge-graph/edges`
 }
 
-export const knowledgeGraphControllerListEdges = async (organizationId: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<GraphEdgeList> => {
+export const knowledgeGraphControllerListEdges = async (organizationId: string,
+    params: KnowledgeGraphControllerListEdgesParams, options?: Parameters<typeof workOsFetcher>[1]): Promise<GraphEdgeList> => {
 
-  return workOsFetcher<GraphEdgeList>(getKnowledgeGraphControllerListEdgesUrl(organizationId),
+  return workOsFetcher<GraphEdgeList>(getKnowledgeGraphControllerListEdgesUrl(organizationId,params),
   {
     ...options,
     method: 'GET'
@@ -3975,23 +4085,25 @@ export const knowledgeGraphControllerListEdges = async (organizationId: string, 
 
 
 
-export const getKnowledgeGraphControllerListEdgesQueryKey = (organizationId: string,) => {
+export const getKnowledgeGraphControllerListEdgesQueryKey = (organizationId: string,
+    params?: KnowledgeGraphControllerListEdgesParams,) => {
     return [
-    `/organizations/${organizationId}/knowledge-graph/edges`
+    `/organizations/${organizationId}/knowledge-graph/edges`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getKnowledgeGraphControllerListEdgesSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof knowledgeGraphControllerListEdges>>, TError = ErrorType<ProblemDetails>>(organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerListEdges>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+export const getKnowledgeGraphControllerListEdgesSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof knowledgeGraphControllerListEdges>>, TError = ErrorType<ProblemDetails>>(organizationId: string,
+    params: KnowledgeGraphControllerListEdgesParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerListEdges>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getKnowledgeGraphControllerListEdgesQueryKey(organizationId);
+  const queryKey =  queryOptions?.queryKey ?? getKnowledgeGraphControllerListEdgesQueryKey(organizationId,params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof knowledgeGraphControllerListEdges>>> = ({ signal }) => knowledgeGraphControllerListEdges(organizationId, { signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof knowledgeGraphControllerListEdges>>> = ({ signal }) => knowledgeGraphControllerListEdges(organizationId,params, { signal, ...requestOptions });
 
 
 
@@ -4005,24 +4117,28 @@ export type KnowledgeGraphControllerListEdgesSuspenseQueryError = ErrorType<Prob
 
 
 export function useKnowledgeGraphControllerListEdgesSuspense<TData = Awaited<ReturnType<typeof knowledgeGraphControllerListEdges>>, TError = ErrorType<ProblemDetails>>(
- organizationId: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerListEdges>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ organizationId: string,
+    params: KnowledgeGraphControllerListEdgesParams, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerListEdges>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useKnowledgeGraphControllerListEdgesSuspense<TData = Awaited<ReturnType<typeof knowledgeGraphControllerListEdges>>, TError = ErrorType<ProblemDetails>>(
- organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerListEdges>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ organizationId: string,
+    params: KnowledgeGraphControllerListEdgesParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerListEdges>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useKnowledgeGraphControllerListEdgesSuspense<TData = Awaited<ReturnType<typeof knowledgeGraphControllerListEdges>>, TError = ErrorType<ProblemDetails>>(
- organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerListEdges>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ organizationId: string,
+    params: KnowledgeGraphControllerListEdgesParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerListEdges>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
   ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useKnowledgeGraphControllerListEdgesSuspense<TData = Awaited<ReturnType<typeof knowledgeGraphControllerListEdges>>, TError = ErrorType<ProblemDetails>>(
- organizationId: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerListEdges>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ organizationId: string,
+    params: KnowledgeGraphControllerListEdgesParams, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof knowledgeGraphControllerListEdges>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
  , queryClient?: QueryClient
  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getKnowledgeGraphControllerListEdgesSuspenseQueryOptions(organizationId,options)
+  const queryOptions = getKnowledgeGraphControllerListEdgesSuspenseQueryOptions(organizationId,params,options)
 
   const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

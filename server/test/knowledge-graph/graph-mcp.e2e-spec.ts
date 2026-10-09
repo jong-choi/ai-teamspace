@@ -673,6 +673,7 @@ function graphNode(
     projectionState: null,
     completeness: 'complete',
     provenance: null,
+    curated: null,
     connectedEdgeCount,
   };
 }
@@ -700,5 +701,6 @@ function graphEdge(source: GraphNode, target: GraphNode): GraphEdge {
     projectionState: null,
     completeness: 'complete',
     provenance: null,
+    curated: null,
   };
 }

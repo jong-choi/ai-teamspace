@@ -1,5 +1,10 @@
 import { Pressable, View } from 'react-native';
 
+import {
+  useKnowledgeGraphControllerEdgeDetailSuspense,
+  useKnowledgeGraphControllerNodeDetailSuspense,
+} from '@repo/client/api-client';
+import type { GraphNode } from '@repo/client/api-client/generated/schemas/graphNode.zod';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import {
@@ -16,9 +21,6 @@ import {
   GraphInspectorSectionTitle,
   GraphInspectorTitle,
 } from '@core/features/knowledge-graph/components/inspector/graph-inspector-frame';
-import type { GraphFixtureNodeOption } from '@core/features/knowledge-graph/fixtures/knowledge-graph-fixture-contract';
-// TODO(graph-05-orval): graph-05 edge 상세의 generated Suspense hook으로 직접 교체한다.
-import { useGraphFixtureEdgeSuspense } from '@core/features/knowledge-graph/fixtures/knowledge-graph-fixture-queries';
 import { getGraphRecordActions } from '@core/features/knowledge-graph/lib/graph-permission';
 import {
   formatPredicate,
@@ -38,10 +40,22 @@ export function GraphEdgeInspector({
   headerClassName?: string;
   organizationId: string;
 }) {
-  const edge = useGraphFixtureEdgeSuspense(organizationId, edgeId).data;
+  const edge = useKnowledgeGraphControllerEdgeDetailSuspense(
+    organizationId,
+    edgeId,
+  ).data;
+  const sourceNode = useKnowledgeGraphControllerNodeDetailSuspense(
+    organizationId,
+    edge.sourceNodeId,
+  ).data;
+  const targetNode = useKnowledgeGraphControllerNodeDetailSuspense(
+    organizationId,
+    edge.targetNodeId,
+  ).data;
   const openDialog = useGraphStudioStore((state) => state.openDialog);
   const actions = getGraphRecordActions(edge);
-  const predicateLabel = GRAPH_PREDICATE_LABELS[edge.predicate];
+  const predicate = edge.predicate ?? edge.relation;
+  const predicateLabel = GRAPH_PREDICATE_LABELS[predicate];
 
   return (
     <GraphInspectorFrame
@@ -50,6 +64,9 @@ export function GraphEdgeInspector({
         <GraphInspectorActions
           actions={actions}
           editLabel="관계 편집"
+          onCorrect={() =>
+            openDialog({ type: 'edge-correct', edgeId: edge.id })
+          }
           onDelete={() => openDialog({ type: 'edge-delete', edgeId: edge.id })}
           onEdit={() => openDialog({ type: 'edge-edit', edgeId: edge.id })}
           readOnlyMessage="확정 관계는 각 업무 화면의 원본에서 바뀝니다."
@@ -61,28 +78,22 @@ export function GraphEdgeInspector({
         id={edge.id}
         title={
           predicateLabel
-            ? `${formatPredicate(edge.predicate)} · ${predicateLabel}`
-            : formatPredicate(edge.predicate)
+            ? `${formatPredicate(predicate)} · ${predicateLabel}`
+            : formatPredicate(predicate)
         }
       />
 
       <View className="gap-2.5">
         <GraphInspectorSectionTitle title="연결 방향" />
         <View className="gap-1.5">
-          <GraphEdgeEndpoint
-            label="출발 노드 (Source)"
-            node={edge.sourceNode}
-          />
+          <GraphEdgeEndpoint label="출발 노드 (Source)" node={sourceNode} />
           <View className="items-center">
             <Icon
               as={edge.directed ? ArrowDown : ArrowUpDown}
               className="size-3.5 text-muted-foreground"
             />
           </View>
-          <GraphEdgeEndpoint
-            label="도착 노드 (Target)"
-            node={edge.targetNode}
-          />
+          <GraphEdgeEndpoint label="도착 노드 (Target)" node={targetNode} />
         </View>
       </View>
 
@@ -92,22 +103,26 @@ export function GraphEdgeInspector({
         </GraphInspectorField>
         <GraphInspectorField label="출처">
           <GraphFactClassBadge factClass={edge.factClass} />
-          <GraphProjectionBadge projection={edge.projection} />
+          <GraphProjectionBadge projection={edge.projectionState} />
         </GraphInspectorField>
-        <GraphInspectorField label="리비전">{`r${edge.revision}`}</GraphInspectorField>
+        {edge.editTarget.kind === 'curated_edge' ? (
+          <GraphInspectorField label="리비전">{`r${edge.editTarget.revision}`}</GraphInspectorField>
+        ) : null}
         <GraphInspectorField label="수정">
-          {formatGraphDate(edge.updatedAt)}
+          {edge.sourceRef?.updatedAt
+            ? formatGraphDate(edge.sourceRef.updatedAt)
+            : '확인 불가'}
         </GraphInspectorField>
       </GraphInspectorFields>
 
-      {edge.evidence ? (
+      {edge.provenance?.evidenceDigest ? (
         <View className="gap-1.5">
           <GraphInspectorSectionTitle title="추출 근거" />
           <Text
             className="text-xs leading-5 text-muted-foreground"
             numberOfLines={4}
           >
-            {edge.evidence}
+            {edge.provenance.evidenceDigest}
           </Text>
         </View>
       ) : null}
@@ -120,7 +135,7 @@ function GraphEdgeEndpoint({
   node,
 }: {
   label: string;
-  node: GraphFixtureNodeOption;
+  node: Pick<GraphNode, 'id' | 'kind' | 'title'>;
 }) {
   const select = useGraphStudioStore((state) => state.select);
   return (

@@ -1,7 +1,9 @@
 import {
   ExploreQuerySchema,
   GraphEdgeListQuerySchema,
+  GraphEdgeSchema,
   GraphNodeListQuerySchema,
+  GraphNodeSchema,
 } from '@/knowledge-graph/dto/graph-snapshot.dto';
 
 describe('U8-07 A2 조회 DTO strict 계약', () => {
@@ -63,5 +65,71 @@ describe('U8-07 A2 조회 DTO strict 계약', () => {
     expect(GraphEdgeListQuerySchema.safeParse({ limit: 0 }).success).toBe(
       false,
     );
+  });
+});
+
+describe('P9 편집 메타데이터 계약', () => {
+  const permissions = {
+    canEdit: true,
+    canDelete: true,
+    canCorrect: false,
+    canSuppress: false,
+  };
+
+  it('curated 노드 상세는 원본 kind·properties와 edit revision을 함께 준다', () => {
+    expect(
+      GraphNodeSchema.parse({
+        id: 'opaque-node',
+        kind: 'curated_node',
+        title: '아키텍처',
+        factClass: 'user_curated',
+        sourceRef: null,
+        permissions,
+        editTarget: {
+          kind: 'curated_node',
+          nodeId: '11111111-1111-4111-8111-111111111111',
+          revision: 3,
+        },
+        projectionState: null,
+        completeness: 'complete',
+        provenance: null,
+        curated: { kind: 'concept', properties: { owner: 'platform' } },
+      }).curated,
+    ).toEqual({ kind: 'concept', properties: { owner: 'platform' } });
+  });
+
+  it('curated 관계 상세는 raw endpoint와 properties를 함께 준다', () => {
+    expect(
+      GraphEdgeSchema.parse({
+        id: 'opaque-edge',
+        relation: 'curated',
+        sourceNodeId: 'opaque-source',
+        targetNodeId: 'opaque-target',
+        directed: true,
+        predicate: 'references',
+        factClass: 'user_curated',
+        sourceRef: null,
+        permissions,
+        editTarget: {
+          kind: 'curated_edge',
+          edgeId: '22222222-2222-4222-8222-222222222222',
+          revision: 4,
+        },
+        projectionState: null,
+        completeness: 'complete',
+        provenance: null,
+        curated: {
+          sourceNodeKind: 'curated_node',
+          sourceNodeId: '11111111-1111-4111-8111-111111111111',
+          targetNodeKind: 'wiki_document',
+          targetNodeId: '33333333-3333-4333-8333-333333333333',
+          properties: { reason: '설계 근거' },
+        },
+      }).curated,
+    ).toMatchObject({
+      sourceNodeKind: 'curated_node',
+      targetNodeKind: 'wiki_document',
+      properties: { reason: '설계 근거' },
+    });
   });
 });

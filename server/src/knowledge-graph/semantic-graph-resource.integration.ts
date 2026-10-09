@@ -59,14 +59,17 @@ describeKnowledgeGraph('실제 CE의 대량 벡터 저장과 연결 자원·검�
   let graph: Awaited<ReturnType<typeof createNeo4jGraph>>;
   let capturedStore: Neo4jVectorStore | undefined;
   let generation: SemanticStageInput;
-  const initialize = Neo4jVectorStore.fromExistingIndex;
   function observeInitialization() {
-    return jest
-      .spyOn(Neo4jVectorStore, 'fromExistingIndex')
-      .mockImplementation(async (...args) => {
-        capturedStore = await initialize.call(Neo4jVectorStore, ...args);
-        return capturedStore;
-      });
+    const initializationMock = jest.spyOn(
+      Neo4jVectorStore,
+      'fromExistingIndex',
+    );
+    const initialize = initializationMock.getMockImplementation();
+    if (!initialize) throw new Error('원본 vector 초기화 구현이 없습니다.');
+    return initializationMock.mockImplementation(async (...args) => {
+      capturedStore = await initialize.call(Neo4jVectorStore, ...args);
+      return capturedStore;
+    });
   }
   let initializeSpy: ReturnType<typeof observeInitialization>;
   function input(organizationId: string, count: number): SemanticStageInput {
@@ -197,22 +200,25 @@ describeKnowledgeGraph('실제 CE의 대량 벡터 저장과 연결 자원·검�
     ).toBe(true);
   });
   it('N7-05 다른 차원 정의는 공식 벡터 driver 생성 전에 거부하고 자기 graph 연결을 종료한다', async () => {
-    const query = Neo4jGraph.prototype.query;
-    const changedDefinition = jest
-      .spyOn(Neo4jGraph.prototype, 'query')
-      .mockImplementation(async function (this: Neo4jGraph, ...args) {
-        if (args[0] === READ_SEMANTIC_VECTOR_INDEX)
-          return [
-            {
-              type: 'VECTOR',
-              labelsOrTypes: ['KGSemanticChunk'],
-              properties: ['embedding'],
-              dimension: '384',
-              similarity: 'COSINE',
-            },
-          ];
-        return query.apply(this, args);
-      });
+    const changedDefinition = jest.spyOn(Neo4jGraph.prototype, 'query');
+    const query = changedDefinition.getMockImplementation();
+    if (!query) throw new Error('원본 graph query 구현이 없습니다.');
+    changedDefinition.mockImplementation(async function (
+      this: Neo4jGraph,
+      ...args
+    ) {
+      if (args[0] === READ_SEMANTIC_VECTOR_INDEX)
+        return [
+          {
+            type: 'VECTOR',
+            labelsOrTypes: ['KGSemanticChunk'],
+            properties: ['embedding'],
+            dimension: '384',
+            similarity: 'COSINE',
+          },
+        ];
+      return query.apply(this, args);
+    });
     const ownApp = await Test.createTestingModule({
       providers: [
         LangchainNeo4jSemanticGraphAdapter,
@@ -241,20 +247,20 @@ describeKnowledgeGraph('실제 CE의 대량 벡터 저장과 연결 자원·검�
   });
   it('GC label을 나눠도 원문의 전체100회·10만 노드 상한을 공유한다', async () => {
     let batches = 0;
-    const query = Neo4jGraph.prototype.query;
-    const deletion = jest
-      .spyOn(Neo4jGraph.prototype, 'query')
-      .mockImplementation(async function (this: Neo4jGraph, ...args) {
-        if (args[0] === deleteSemanticNodesQuery('KGSemanticChunk', false)) {
-          batches++;
-          return [{ deleted: batches < 100 ? '1000' : '500' }];
-        }
-        if (args[0] === deleteSemanticNodesQuery('KGSemanticEntity', false)) {
-          batches++;
-          return [{ deleted: '1000' }];
-        }
-        return query.apply(this, args);
-      });
+    const deletion = jest.spyOn(Neo4jGraph.prototype, 'query');
+    const query = deletion.getMockImplementation();
+    if (!query) throw new Error('원본 graph query 구현이 없습니다.');
+    deletion.mockImplementation(async function (this: Neo4jGraph, ...args) {
+      if (args[0] === deleteSemanticNodesQuery('KGSemanticChunk', false)) {
+        batches++;
+        return [{ deleted: batches < 100 ? '1000' : '500' }];
+      }
+      if (args[0] === deleteSemanticNodesQuery('KGSemanticEntity', false)) {
+        batches++;
+        return [{ deleted: '1000' }];
+      }
+      return query.apply(this, args);
+    });
     try {
       expect(
         await app

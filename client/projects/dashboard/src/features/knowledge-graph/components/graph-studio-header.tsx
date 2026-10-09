@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 
 import { Button } from '@repo/client/rnr/components/ui/button';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
+import { Input } from '@repo/client/rnr/components/ui/input';
 import {
   Tabs,
   TabsList,
@@ -18,16 +20,22 @@ export type GraphStudioView = 'graph' | 'data';
 export function GraphStudioHeader({
   compact,
   onCreate,
+  onSearch,
   onViewChange,
+  searchValue,
   view,
 }: {
   compact: boolean;
   onCreate: () => void;
+  onSearch: (query: string) => void;
   onViewChange: (view: GraphStudioView) => void;
+  searchValue: string;
   view: GraphStudioView;
 }) {
+  const [search, setSearch] = useState(searchValue);
+  useEffect(() => setSearch(searchValue), [searchValue]);
   return (
-    <View className="z-30 h-14 shrink-0 flex-row items-center justify-between gap-3 border-b border-border bg-background/90 px-4 shadow-sm shadow-black/5 md:px-6">
+    <View className="z-30 h-14 shrink-0 flex-row items-center justify-between gap-3 border-b border-border bg-background/90 px-4 shadow-sm md:px-6">
       <View className="min-w-0 flex-row items-center gap-3">
         <View className="items-center justify-center rounded-lg bg-primary p-2">
           <Icon as={Network} className="size-4 text-primary-foreground" />
@@ -46,6 +54,17 @@ export function GraphStudioHeader({
       </View>
 
       <View className="flex-row items-center gap-3">
+        {!compact && view === 'graph' ? (
+          <Input
+            accessibilityLabel="지식 그래프 검색"
+            className="h-8 w-48 text-xs md:text-xs"
+            onChangeText={setSearch}
+            onSubmitEditing={() => onSearch(search.trim())}
+            placeholder="노드 검색..."
+            returnKeyType="search"
+            value={search}
+          />
+        ) : null}
         <Tabs
           onValueChange={(value) =>
             onViewChange(value === 'data' ? 'data' : 'graph')

@@ -1,6 +1,22 @@
 import { useState } from 'react';
 import { View } from 'react-native';
 
+import {
+  getKnowledgeGraphControllerExploreQueryKey,
+  getKnowledgeGraphControllerListNodesQueryKey,
+  getKnowledgeGraphControllerNodeDetailQueryKey,
+  useKnowledgeGraphCommandControllerCreateCorrection,
+  useKnowledgeGraphCommandControllerCreateCuratedNode,
+  useKnowledgeGraphCommandControllerUpdateCuratedNode,
+  useKnowledgeGraphControllerNodeDetailSuspense,
+} from '@repo/client/api-client';
+import {
+  CreateCuratedNodeCommand,
+  type CreateCuratedNodeCommand as CreateCuratedNodeCommandValue,
+  createCuratedNodeCommandTitleMax,
+} from '@repo/client/api-client/generated/schemas/createCuratedNodeCommand.zod';
+import { CreateSemanticCorrectionCommand } from '@repo/client/api-client/generated/schemas/createSemanticCorrectionCommand.zod';
+import type { GraphNode } from '@repo/client/api-client/generated/schemas/graphNode.zod';
 import { Input } from '@repo/client/rnr/components/ui/input';
 import {
   Select,
@@ -9,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@repo/client/rnr/components/ui/select';
+import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 import { DashboardQueryBoundary } from '@core/app/state/dashboard-query-state';
 import {
   GraphDialogFooter,
@@ -16,24 +33,14 @@ import {
   GraphDialogSkeleton,
   GraphFormField,
 } from '@core/features/knowledge-graph/components/dialogs/graph-dialog-frame';
-import {
-  GRAPH_FIXTURE_CURATED_NODE_KINDS,
-  GRAPH_FIXTURE_NODE_KINDS,
-  type GraphFixtureCuratedNodeKind,
-  type GraphFixtureNodeDetail,
-  type GraphFixtureNodeKind,
-} from '@core/features/knowledge-graph/fixtures/knowledge-graph-fixture-contract';
-// TODO(graph-05-orval): graph-05 curated/correction generated mutation hook으로 직접 교체한다.
-import { useGraphFixtureNodeMutations } from '@core/features/knowledge-graph/fixtures/knowledge-graph-fixture-mutations';
-// TODO(graph-05-orval): graph-05 node 상세 generated Suspense hook으로 직접 교체한다.
-import { useGraphFixtureNodeSuspense } from '@core/features/knowledge-graph/fixtures/knowledge-graph-fixture-queries';
-import { GRAPH_NODE_KIND_META } from '@core/features/knowledge-graph/lib/graph-presentation';
+import { useKnowledgeGraphMutationError } from '@core/features/knowledge-graph/hooks/use-knowledge-graph-mutation-error';
 import { useGraphStudioStore } from '@core/features/knowledge-graph/state/graph-studio-provider';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { Box, PencilLine } from 'lucide-react-native';
 
-// TODO(graph-05-orval): 서버 CreateCuratedNode의 trim·min(1)·max(200)과 같다. generated Zod schema의 safeParse로 직접 교체한다.
-const TITLE_MAX_LENGTH = 200;
+const CURATED_NODE_KINDS = CreateCuratedNodeCommand.shape.kind.options;
+const TITLE_MAX_LENGTH = createCuratedNodeCommandTitleMax;
 
 type NodeDialogMode = 'create' | 'edit' | 'correct';
 
@@ -97,7 +104,10 @@ function GraphLoadedNodeForm({
   nodeId: string;
   organizationId: string;
 }) {
-  const node = useGraphFixtureNodeSuspense(organizationId, nodeId).data;
+  const node = useKnowledgeGraphControllerNodeDetailSuspense(
+    organizationId,
+    nodeId,
+  ).data;
   return (
     <GraphNodeForm mode={mode} node={node} organizationId={organizationId} />
   );
@@ -109,25 +119,62 @@ function GraphNodeForm({
   organizationId,
 }: {
   mode: NodeDialogMode;
-  node?: GraphFixtureNodeDetail;
+  node?: GraphNode;
   organizationId: string;
 }) {
   const closeDialog = useGraphStudioStore((state) => state.closeDialog);
-  const select = useGraphStudioStore((state) => state.select);
-  const mutations = useGraphFixtureNodeMutations(organizationId);
+  const queryClient = useQueryClient();
+  const { notifySuccess } = useDashboardPlatform();
+  const notifyError = useKnowledgeGraphMutationError({
+    fallback: '노드를 저장하지 못했습니다.',
+    id: 'knowledge-graph-node',
+    title: '노드 저장 실패',
+  });
+  const create = useKnowledgeGraphCommandControllerCreateCuratedNode({
+    mutation: { onError: notifyError },
+  });
+  const update = useKnowledgeGraphCommandControllerUpdateCuratedNode({
+    mutation: { onError: notifyError },
+  });
+  const correct = useKnowledgeGraphCommandControllerCreateCorrection({
+    mutation: { onError: notifyError },
+  });
   const [titleValue, setTitleValue] = useState(node?.title ?? '');
-  const [kind, setKind] = useState<GraphFixtureNodeKind>(
-    node?.kind ?? 'concept',
+  const [kind, setKind] = useState<CreateCuratedNodeCommandValue['kind']>(
+    node?.curated?.kind ?? 'concept',
   );
   const [titleError, setTitleError] = useState<string | null>(null);
-  const kindOptions: readonly GraphFixtureNodeKind[] =
-    mode === 'correct'
-      ? GRAPH_FIXTURE_NODE_KINDS
-      : GRAPH_FIXTURE_CURATED_NODE_KINDS;
-  const busy =
-    mutations.create.isPending ||
-    mutations.update.isPending ||
-    mutations.correct.isPending;
+  const busy = create.isPending || update.isPending || correct.isPending;
+
+  const invalidate = (detailNodeId?: string) =>
+    Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: getKnowledgeGraphControllerExploreQueryKey(organizationId),
+      }),
+      queryClient.invalidateQueries({
+        queryKey: getKnowledgeGraphControllerListNodesQueryKey(organizationId),
+      }),
+      ...(detailNodeId
+        ? [
+            queryClient.invalidateQueries({
+              queryKey: getKnowledgeGraphControllerNodeDetailQueryKey(
+                organizationId,
+                detailNodeId,
+              ),
+            }),
+          ]
+        : []),
+    ]);
+
+  const saved = (title: string, detailNodeId?: string) => {
+    notifySuccess({
+      title,
+      description:
+        'PostgreSQL에 저장했습니다. 그래프 반영은 잠시 후 완료됩니다.',
+    });
+    closeDialog();
+    return invalidate(detailNodeId);
+  };
 
   const submit = () => {
     const trimmed = titleValue.trim();
@@ -136,41 +183,54 @@ function GraphNodeForm({
       return;
     }
     setTitleError(null);
-    const curatedKind = GRAPH_FIXTURE_CURATED_NODE_KINDS.find(
-      (candidate) => candidate === kind,
-    );
-
     if (mode === 'create') {
-      if (!curatedKind) return;
-      mutations.create.mutate(
-        { kind: curatedKind, title: trimmed },
+      const parsed = CreateCuratedNodeCommand.safeParse({
+        kind,
+        title: trimmed,
+        properties: {},
+      });
+      if (!parsed.success) {
+        setTitleError('입력값을 다시 확인해 주세요.');
+        return;
+      }
+      create.mutate(
+        { organizationId, data: parsed.data },
         {
-          onSuccess: ({ id }) => {
-            closeDialog();
-            select({ kind: 'node', id });
-          },
+          onSuccess: () => saved('노드를 만들었습니다'),
         },
       );
       return;
     }
     if (!node) return;
     if (mode === 'edit') {
-      if (!curatedKind) return;
-      mutations.update.mutate(
+      if (node.editTarget.kind !== 'curated_node') return;
+      update.mutate(
         {
-          nodeId: node.id,
-          input: { kind: curatedKind, title: trimmed, revision: node.revision },
+          organizationId,
+          nodeId: node.editTarget.nodeId,
+          data: {
+            kind,
+            title: trimmed,
+            properties: node.curated?.properties ?? {},
+            expectedRevision: node.editTarget.revision,
+          },
         },
-        { onSuccess: closeDialog },
+        { onSuccess: () => saved('노드를 수정했습니다', node.id) },
       );
       return;
     }
-    mutations.correct.mutate(
-      {
-        nodeId: node.id,
-        input: { kind, title: trimmed, revision: node.revision },
-      },
-      { onSuccess: closeDialog },
+    const correction = CreateSemanticCorrectionCommand.safeParse({
+      action: 'label_override',
+      nodeId: node.id,
+      value: { label: trimmed },
+    });
+    if (!correction.success) {
+      setTitleError('정정할 라벨을 다시 확인해 주세요.');
+      return;
+    }
+    correct.mutate(
+      { organizationId, data: correction.data },
+      { onSuccess: () => saved('추출 결과를 정정했습니다', node.id) },
     );
   };
 
@@ -204,36 +264,38 @@ function GraphNodeForm({
           />
         </GraphFormField>
 
-        <GraphFormField label="카테고리 / 엔티티 유형">
-          <Select
-            disabled={busy}
-            onValueChange={(option) => {
-              const next = kindOptions.find(
-                (candidate) => candidate === option?.value,
-              );
-              if (next) setKind(next);
-            }}
-            value={{ value: kind, label: kindLabel(kind) }}
-          >
-            <SelectTrigger
-              accessibilityLabel="엔티티 유형 선택"
-              className="h-9 w-full"
+        {mode === 'correct' ? null : (
+          <GraphFormField label="카테고리 / 엔티티 유형">
+            <Select
+              disabled={busy}
+              onValueChange={(option) => {
+                const next = CURATED_NODE_KINDS.find(
+                  (candidate) => candidate === option?.value,
+                );
+                if (next) setKind(next);
+              }}
+              value={{ value: kind, label: kindLabel(kind) }}
             >
-              <SelectValue className="text-xs" placeholder="유형 선택" />
-            </SelectTrigger>
-            <SelectContent align="start" side="bottom">
-              {kindOptions.map((candidate) => (
-                <SelectItem
-                  key={candidate}
-                  label={kindLabel(candidate)}
-                  value={candidate}
-                >
-                  {kindLabel(candidate)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </GraphFormField>
+              <SelectTrigger
+                accessibilityLabel="엔티티 유형 선택"
+                className="h-9 w-full"
+              >
+                <SelectValue className="text-xs" placeholder="유형 선택" />
+              </SelectTrigger>
+              <SelectContent align="start" side="bottom">
+                {CURATED_NODE_KINDS.map((candidate) => (
+                  <SelectItem
+                    key={candidate}
+                    label={kindLabel(candidate)}
+                    value={candidate}
+                  >
+                    {kindLabel(candidate)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </GraphFormField>
+        )}
       </View>
 
       <GraphDialogFooter
@@ -246,7 +308,13 @@ function GraphNodeForm({
   );
 }
 
-function kindLabel(kind: GraphFixtureNodeKind | GraphFixtureCuratedNodeKind) {
-  const meta = GRAPH_NODE_KIND_META[kind];
-  return `${meta.code} (${meta.label})`;
+function kindLabel(kind: CreateCuratedNodeCommandValue['kind']) {
+  const labels: Record<CreateCuratedNodeCommandValue['kind'], string> = {
+    custom: 'Custom (사용자 정의)',
+    concept: 'Concept (개념)',
+    topic: 'Topic (주제)',
+    technology: 'Technology (기술)',
+    reference: 'Reference (참고 자료)',
+  };
+  return labels[kind];
 }

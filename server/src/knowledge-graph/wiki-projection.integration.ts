@@ -27,7 +27,7 @@ describeKnowledgeGraph('Neo4j Community의 Wiki 원본 fencing', () => {
   let graph: Awaited<ReturnType<typeof createNeo4jGraph>>;
 
   beforeAll(async () => {
-    const config = await knowledgeGraphConfig();
+    const config = knowledgeGraphConfig();
     if (!config.url || !config.username || !config.password)
       throw new Error('Neo4j 검증 연결이 없습니다.');
     graph = await createNeo4jGraph({

@@ -32,23 +32,26 @@ describeKnowledgeGraph(
       const active = (await state.current(scope))?.state?.activeGenerationId;
       await context.queue.pause();
       let writes = 0;
-      const add = Neo4jVectorStore.prototype.addVectors;
-      jest
-        .spyOn(Neo4jVectorStore.prototype, 'addVectors')
-        .mockImplementation(async function (
-          this: Neo4jVectorStore,
-          vectors,
-          docs,
-          metadata,
-          ids,
-        ) {
-          const result = await add.call(this, vectors, docs, metadata, ids);
-          if (metadata?.some((row) => row.sourceId === source.id)) {
-            writes++;
-            throw new Error('실제 vector 저장 뒤 장애');
-          }
-          return result;
-        });
+      const addVectorsMock = jest.spyOn(
+        Neo4jVectorStore.prototype,
+        'addVectors',
+      );
+      const add = addVectorsMock.getMockImplementation();
+      if (!add) throw new Error('원본 vector 저장 구현이 없습니다.');
+      addVectorsMock.mockImplementation(async function (
+        this: Neo4jVectorStore,
+        vectors,
+        docs,
+        metadata,
+        ids,
+      ) {
+        const result = await add.call(this, vectors, docs, metadata, ids);
+        if (metadata?.some((row) => row.sourceId === source.id)) {
+          writes++;
+          throw new Error('실제 vector 저장 뒤 장애');
+        }
+        return result;
+      });
       const requested = await context.refresh.requestManualRefresh(
         context.org,
         source.id,

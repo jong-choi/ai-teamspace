@@ -14,8 +14,11 @@ const correctionCommandActionSchema = z.enum([
 const labelValueSchema = z
   .object({ label: z.string().trim().min(1).max(200) })
   .strict();
+export const SemanticRelationshipSchema = z
+  .enum(semanticOntology.allowedRelationships)
+  .meta({ id: 'SemanticRelationship' });
 const predicateValueSchema = z
-  .object({ predicate: z.enum(semanticOntology.allowedRelationships) })
+  .object({ predicate: SemanticRelationshipSchema })
   .strict();
 
 export const CreateSemanticCorrectionCommandSchema = z

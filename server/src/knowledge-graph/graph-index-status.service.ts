@@ -11,9 +11,11 @@ import {
   type WikiKnowledgeGraphStatus,
   WikiKnowledgeGraphStatusSchema,
 } from '@/knowledge-graph/dto/wiki-knowledge-graph.dto';
+import { sourceNodeId } from '@/knowledge-graph/graph-read-support';
 import { SemanticSourceStateRepository } from '@/knowledge-graph/infrastructure/persistence/semantic-source-state.repository';
 import { GraphSourceAccessProvider } from '@/knowledge-graph/infrastructure/source-access/graph-source-access.provider';
 import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
+import type { SemanticSourceScope } from '@/outbox/domain/semantic-source';
 import { WikiProjectionQueryService } from '@/wiki/wiki-projection-query.service';
 
 @Injectable()
@@ -47,9 +49,9 @@ export class GraphIndexStatusService {
     await this.access.assertReadable(actor, organizationId);
     const owner = await this.wiki.currentSemantic(organizationId, documentId);
     if (!owner) throw new KnowledgeGraphWikiDocumentNotFoundError();
-    const scope = {
+    const scope: SemanticSourceScope = {
       organizationId,
-      aggregateKind: 'wiki_document' as const,
+      aggregateKind: 'wiki_document',
       aggregateId: documentId,
     };
     let current = await this.state.current(scope);
@@ -71,6 +73,7 @@ export class GraphIndexStatusService {
     const status = derived?.status ?? 'not_indexed';
     const quietRemainingMs = derived?.quietRemainingMs ?? null;
     return WikiKnowledgeGraphStatusSchema.parse({
+      graphNodeId: sourceNodeId('wiki_document', documentId),
       status,
       sourceUpdatedAt: owner.updatedAt.toISOString(),
       indexedSourceUpdatedAt:

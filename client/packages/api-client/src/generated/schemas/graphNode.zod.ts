@@ -23,6 +23,12 @@ export const graphNodeProvenanceExtractedNameMax = 500;
 export const graphNodeProvenanceGenerationIdRegExp = new RegExp('^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$');
 export const graphNodeProvenanceEvidenceDigestMax = 256;
 
+export const graphNodeCuratedPropertiesOneOneMax = 4096;
+
+export const graphNodeCuratedPropertiesTwoItemOneMax = 4096;
+
+export const graphNodeCuratedPropertiesTwoMax = 64;
+
 export const graphNodeConnectedEdgeCountMin = 0;
 export const graphNodeConnectedEdgeCountMax = 9007199254740991;
 
@@ -52,6 +58,10 @@ export const GraphNode = zod.object({
   "extractedName": zod.string().min(1).max(graphNodeProvenanceExtractedNameMax).nullable(),
   "generationId": zod.uuid().regex(graphNodeProvenanceGenerationIdRegExp).nullable(),
   "evidenceDigest": zod.string().min(1).max(graphNodeProvenanceEvidenceDigestMax).nullable()
+}).nullable(),
+  "curated": zod.object({
+  "kind": zod.enum(['custom', 'concept', 'topic', 'technology', 'reference']),
+  "properties": zod.record(zod.string(), zod.union([zod.union([zod.string().max(graphNodeCuratedPropertiesOneOneMax),zod.number(),zod.boolean(),zod.literal(null).nullable()]),zod.array(zod.union([zod.string().max(graphNodeCuratedPropertiesTwoItemOneMax),zod.number(),zod.boolean(),zod.literal(null).nullable()])).max(graphNodeCuratedPropertiesTwoMax)]))
 }).nullable(),
   "connectedEdgeCount": zod.int().min(graphNodeConnectedEdgeCountMin).max(graphNodeConnectedEdgeCountMax).optional()
 });

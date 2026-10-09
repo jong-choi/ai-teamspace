@@ -42,7 +42,7 @@ describeKnowledgeGraph('Wiki의 PG commit과 실제 Jobs·Neo4j 투영', () => {
       original.set(key, process.env[key]);
       process.env[key] = value;
     }
-    const config = await knowledgeGraphConfig();
+    const config = knowledgeGraphConfig();
     if (!config.url || !config.username || !config.password)
       throw new Error('검증 Neo4j 설정이 없습니다.');
     graph = await createNeo4jGraph({

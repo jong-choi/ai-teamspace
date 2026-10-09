@@ -23,7 +23,7 @@ export function GraphInspectorPanel({
 }) {
   const selection = useGraphStudioStore((state) => state.selection);
   return (
-    <View className="w-80 shrink-0 border-l border-border bg-background/95 shadow-lg shadow-black/5">
+    <View className="w-80 shrink-0 border-l border-border bg-background/95 shadow-lg">
       <GraphInspectorBody
         organizationId={organizationId}
         selection={selection}

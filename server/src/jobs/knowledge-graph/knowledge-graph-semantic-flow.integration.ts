@@ -30,11 +30,11 @@ describeKnowledgeGraph(
             parentDocumentId: null,
             title: '현재 의미 제목',
             position: 0,
-            contentMarkdown: doc.getText('markdown').toString(),
+            contentMarkdown: doc.getText('markdown').toJSON(),
           },
           {
             encodedState: Y.encodeStateAsUpdate(doc),
-            contentMarkdown: doc.getText('markdown').toString(),
+            contentMarkdown: doc.getText('markdown').toJSON(),
           },
           1,
         );
@@ -189,11 +189,11 @@ describeKnowledgeGraph(
             parentDocumentId: null,
             title: '바쁜 의미 원본',
             position: 1,
-            contentMarkdown: doc.getText('markdown').toString(),
+            contentMarkdown: doc.getText('markdown').toJSON(),
           },
           {
             encodedState: Y.encodeStateAsUpdate(doc),
-            contentMarkdown: doc.getText('markdown').toString(),
+            contentMarkdown: doc.getText('markdown').toJSON(),
           },
           1,
         );

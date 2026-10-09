@@ -56,6 +56,7 @@ describe('위키 지식 그래프 HTTP DTO', () => {
 
   it('status 응답은 nullable 메타데이터와 strict 계약을 유지한다', () => {
     const response = {
+      graphNodeId: 'opaque-wiki-node',
       status: 'not_indexed',
       sourceUpdatedAt: timestamp,
       indexedSourceUpdatedAt: null,
@@ -78,6 +79,7 @@ describe('위키 지식 그래프 HTTP DTO', () => {
 
   it('latestRequest는 요청 ID·시각·satisfied만 허용한다', () => {
     const response = {
+      graphNodeId: 'opaque-wiki-node',
       status: 'accepted',
       sourceUpdatedAt: timestamp,
       indexedSourceUpdatedAt: null,

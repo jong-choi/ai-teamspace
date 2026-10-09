@@ -31,6 +31,7 @@ const latestRequestSchema = z
 
 export const WikiKnowledgeGraphStatusSchema = z
   .object({
+    graphNodeId: z.string().min(1).max(512),
     status: SemanticIndexStatusSchema,
     sourceUpdatedAt: z.iso.datetime(),
     indexedSourceUpdatedAt: z.iso.datetime().nullable(),

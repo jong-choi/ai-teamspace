@@ -257,9 +257,10 @@ describeKnowledgeGraph('R8-09~13 rebuild worker PostgreSQL', () => {
 
   it('R8-13 cancel·조직 삭제·requester 강등은 다음 page intent 0으로 종단한다', async () => {
     const cancelled = await seedRequest('cancel_requested');
+    const sourcesListIdsMock = jest.fn(async () => [{ id: 'must-not-run' }]);
     const sources = {
       organizationExists: jest.fn(async () => true),
-      listIds: jest.fn(async () => [{ id: 'must-not-run' }]),
+      listIds: sourcesListIdsMock,
     } as unknown as WorkosSourceProvider;
     const adminAccess = {
       isAdministrator: jest.fn(async () => true),
@@ -271,7 +272,7 @@ describeKnowledgeGraph('R8-09~13 rebuild worker PostgreSQL', () => {
       { projection: jest.fn(), semantic: jest.fn() } as never,
     );
     await expect(workflow.run(cancelled.id)).resolves.toEqual({ kind: 'done' });
-    expect(sources.listIds).not.toHaveBeenCalled();
+    expect(sourcesListIdsMock).not.toHaveBeenCalled();
     expect(
       (
         await database.db
@@ -289,7 +290,7 @@ describeKnowledgeGraph('R8-09~13 rebuild worker PostgreSQL', () => {
       .delete(organization)
       .where(eq(organization.id, organizationId));
     await expect(workflow.run(deleted.id)).resolves.toEqual({ kind: 'done' });
-    expect(sources.listIds).not.toHaveBeenCalled();
+    expect(sourcesListIdsMock).not.toHaveBeenCalled();
 
     await database.db.insert(organization).values({
       id: organizationId,
@@ -317,6 +318,6 @@ describeKnowledgeGraph('R8-09~13 rebuild worker PostgreSQL', () => {
       status: 'failed',
       lastErrorCode: 'REBUILD_REQUESTER_FORBIDDEN',
     });
-    expect(sources.listIds).not.toHaveBeenCalled();
+    expect(sourcesListIdsMock).not.toHaveBeenCalled();
   });
 });

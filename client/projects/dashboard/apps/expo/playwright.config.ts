@@ -36,13 +36,14 @@ export default defineConfig({
         BETTER_AUTH_URL: apiURL,
         APP_TRUSTED_ORIGINS: webURL,
         AGENT_MIGRATE_ON_STARTUP: 'false',
+        KG_QUERY_ENABLED: 'true',
       },
       reuseExistingServer: true,
       timeout: 120_000,
       url: `${apiURL}/api/auth/ok`,
     },
     {
-      command: `npx expo start --web --port ${webPort}`,
+      command: `npx expo start --web --no-dev --port ${webPort}`,
       // 개발 서버(8082)와 Metro transform cache를 공유하면 다른 API 주소가 inline된 bundle을 받는다.
       env: {
         CI: '1',

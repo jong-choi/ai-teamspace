@@ -64,6 +64,7 @@ export class GraphCuratedAssemblerService {
       projectionState,
       completeness,
       provenance: null,
+      curated: { kind: row.kind, properties: row.properties },
       ...(connectedEdgeCount === undefined ? {} : { connectedEdgeCount }),
     };
   }
@@ -117,6 +118,13 @@ export class GraphCuratedAssemblerService {
       projectionState,
       completeness,
       provenance: null,
+      curated: {
+        sourceNodeKind: row.sourceNodeKind,
+        sourceNodeId: row.sourceNodeId,
+        targetNodeKind: row.targetNodeKind,
+        targetNodeId: row.targetNodeId,
+        properties: row.properties,
+      },
     };
   }
 

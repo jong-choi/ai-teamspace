@@ -5,6 +5,7 @@
  * OpenAPI spec version: 1.0
  */
 import * as zod from 'zod';
+import { SemanticRelationship } from './semanticRelationship.zod';
 
 export const createSemanticCorrectionCommandNodeIdMax = 512;
 
@@ -21,7 +22,7 @@ export const CreateSemanticCorrectionCommand = zod.object({
   "value": zod.union([zod.object({
   "label": zod.string().min(1).max(createSemanticCorrectionCommandValueOneLabelMax)
 }),zod.object({
-  "predicate": zod.enum(['RELATED_TO', 'PART_OF', 'USES', 'DEPENDS_ON', 'RESPONSIBLE_FOR', 'PARTICIPATES_IN', 'DECIDES', 'AFFECTS'])
+  "predicate": SemanticRelationship
 })]).optional()
 });
 

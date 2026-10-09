@@ -53,12 +53,14 @@ describe('외부 MCP aggregate tool session', () => {
       name: 'extexample2__search',
       invoke: jest.fn().mockResolvedValue('ok'),
     } as unknown as StructuredTool;
+    const repositoryRecordHealthMock = jest.fn().mockResolvedValue(first);
     const repository = {
       listEnabledForActor: jest.fn().mockResolvedValue([first, second]),
-      recordHealth: jest.fn().mockResolvedValue(first),
+      recordHealth: repositoryRecordHealthMock,
     } as unknown as AgentMcpConnectionRepository;
-    const connections = {
-      open: jest.fn().mockImplementation(async (_actor, current) => {
+    const connectionsOpenMock = jest
+      .fn()
+      .mockImplementation(async (_actor, current) => {
         if (current.id === first.id) {
           throw new Error('remote secret-like failure must not escape');
         }
@@ -80,7 +82,9 @@ describe('외부 MCP aggregate tool session', () => {
           ]),
           close,
         };
-      }),
+      });
+    const connections = {
+      open: connectionsOpenMock,
     } as unknown as ExternalMcpConnectionSessionProvider;
     const adapter = new ExternalMcpToolSessionAdapter(
       repository,
@@ -97,7 +101,7 @@ describe('외부 MCP aggregate tool session', () => {
       source: 'external',
       connectionId: second.id,
     });
-    expect(repository.recordHealth).toHaveBeenCalledWith(
+    expect(repositoryRecordHealthMock).toHaveBeenCalledWith(
       actor.userId,
       actor.organizationId,
       first.id,
@@ -119,25 +123,26 @@ describe('외부 MCP aggregate tool session', () => {
     const repository = {
       listEnabledForActor: jest.fn().mockResolvedValue([current]),
     } as unknown as AgentMcpConnectionRepository;
+    const connectionsOpenMock = jest.fn().mockResolvedValue({
+      tools: [tool],
+      readOnlyTools: [],
+      interruptOn: { [tool.name]: true },
+      toolIdentities: new Map([
+        [
+          tool.name,
+          {
+            source: 'external' as const,
+            connectionId: current.id,
+            namespace: current.namespace,
+            originalToolName: 'search',
+            schemaFingerprint: 'a'.repeat(64),
+          },
+        ],
+      ]),
+      close: jest.fn().mockResolvedValue(undefined),
+    });
     const connections = {
-      open: jest.fn().mockResolvedValue({
-        tools: [tool],
-        readOnlyTools: [],
-        interruptOn: { [tool.name]: true },
-        toolIdentities: new Map([
-          [
-            tool.name,
-            {
-              source: 'external' as const,
-              connectionId: current.id,
-              namespace: current.namespace,
-              originalToolName: 'search',
-              schemaFingerprint: 'a'.repeat(64),
-            },
-          ],
-        ]),
-        close: jest.fn().mockResolvedValue(undefined),
-      }),
+      open: connectionsOpenMock,
     } as unknown as ExternalMcpConnectionSessionProvider;
     const publish = jest.fn().mockResolvedValue(undefined);
     const auditPublisher = {
@@ -178,14 +183,15 @@ describe('외부 MCP aggregate tool session', () => {
         .fn()
         .mockResolvedValue([connection(1), connection(2)]),
     } as unknown as AgentMcpConnectionRepository;
+    const connectionsOpenMock = jest.fn().mockResolvedValue({
+      tools: [],
+      readOnlyTools: [],
+      interruptOn: {},
+      toolIdentities: new Map(),
+      close: jest.fn().mockResolvedValue(undefined),
+    });
     const connections = {
-      open: jest.fn().mockResolvedValue({
-        tools: [],
-        readOnlyTools: [],
-        interruptOn: {},
-        toolIdentities: new Map(),
-        close: jest.fn().mockResolvedValue(undefined),
-      }),
+      open: connectionsOpenMock,
     } as unknown as ExternalMcpConnectionSessionProvider;
     const adapter = new ExternalMcpToolSessionAdapter(
       repository,
@@ -195,6 +201,6 @@ describe('외부 MCP aggregate tool session', () => {
 
     await adapter.open(actor);
 
-    expect(connections.open).toHaveBeenCalledTimes(1);
+    expect(connectionsOpenMock).toHaveBeenCalledTimes(1);
   });
 });

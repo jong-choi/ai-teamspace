@@ -16,6 +16,7 @@ import {
 import { ApiOkResponse, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import type { Auth } from '@/auth/auth';
+import { ApiZodQuery } from '@/common/http/api-zod-query.decorator';
 import { TrustedOriginGuard } from '@/common/http/trusted-origin.guard';
 import { GraphOperationsStatusDto } from '@/knowledge-graph/dto/graph-operations.dto';
 import {
@@ -27,6 +28,7 @@ import {
   GraphRebuildListDto,
   type GraphRebuildListQuery,
   GraphRebuildListQueryDto,
+  GraphRebuildListQuerySchema,
   GraphRebuildProgressDto,
 } from '@/knowledge-graph/dto/graph-rebuild.dto';
 import { GraphRebuildService } from '@/knowledge-graph/graph-rebuild.service';
@@ -69,6 +71,7 @@ export class KnowledgeGraphOperationsController {
   }
 
   @Get('rebuilds')
+  @ApiZodQuery(GraphRebuildListQuerySchema)
   @ApiOkResponse({ standardSchema: GraphRebuildListDto.schema })
   list(
     @Session() session: UserSession<Auth>,

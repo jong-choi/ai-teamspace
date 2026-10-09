@@ -11,18 +11,22 @@ import {
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
 import type { Auth } from '@/auth/auth';
+import { ApiZodQuery } from '@/common/http/api-zod-query.decorator';
 import { TrustedOriginGuard } from '@/common/http/trusted-origin.guard';
 import {
   type ExploreQuery,
   ExploreQueryDto,
+  ExploreQuerySchema,
   GraphEdgeDto,
   GraphEdgeListDto,
   type GraphEdgeListQuery,
   GraphEdgeListQueryDto,
+  GraphEdgeListQuerySchema,
   GraphNodeDto,
   GraphNodeListDto,
   type GraphNodeListQuery,
   GraphNodeListQueryDto,
+  GraphNodeListQuerySchema,
   GraphSnapshotDto,
 } from '@/knowledge-graph/dto/graph-snapshot.dto';
 import { KnowledgeGraphDetailService } from '@/knowledge-graph/knowledge-graph-detail.service';
@@ -54,6 +58,7 @@ export class KnowledgeGraphController {
   ) {}
 
   @Get('explore')
+  @ApiZodQuery(ExploreQuerySchema)
   @ApiOkResponse({ standardSchema: GraphSnapshotDto.schema })
   explore(
     @Session() session: UserSession<Auth>,
@@ -69,6 +74,7 @@ export class KnowledgeGraphController {
   }
 
   @Get('nodes')
+  @ApiZodQuery(GraphNodeListQuerySchema)
   @ApiOkResponse({ standardSchema: GraphNodeListDto.schema })
   listNodes(
     @Session() session: UserSession<Auth>,
@@ -84,6 +90,7 @@ export class KnowledgeGraphController {
   }
 
   @Get('edges')
+  @ApiZodQuery(GraphEdgeListQuerySchema)
   @ApiOkResponse({ standardSchema: GraphEdgeListDto.schema })
   listEdges(
     @Session() session: UserSession<Auth>,

@@ -61,7 +61,7 @@ export class CombinedMcpToolSessionAdapter extends WorkOsToolSessionProvider {
       readOnlyTools: workOsSession.readOnlyTools,
       interruptOn: {
         ...workOsSession.interruptOn,
-        ...(externalSession?.interruptOn ?? {}),
+        ...externalSession?.interruptOn,
       },
       toolIdentities,
       close,

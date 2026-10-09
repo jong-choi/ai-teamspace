@@ -1,12 +1,10 @@
 import { View } from 'react-native';
 
+import type { GraphNode } from '@repo/client/api-client/generated/schemas/graphNode.zod';
+import type { GraphProjectionState } from '@repo/client/api-client/generated/schemas/graphProjectionState.zod';
 import { Badge } from '@repo/client/rnr/components/ui/badge';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
-import type {
-  GraphFixtureFactClass,
-  GraphFixtureProjectionState,
-} from '@core/features/knowledge-graph/fixtures/knowledge-graph-fixture-contract';
 import {
   GRAPH_FACT_CLASS_META,
   GRAPH_PROJECTION_META,
@@ -38,7 +36,7 @@ export function GraphMetaBadge({
 export function GraphFactClassBadge({
   factClass,
 }: {
-  factClass: GraphFixtureFactClass;
+  factClass: GraphNode['factClass'];
 }) {
   return (
     <Badge
@@ -64,14 +62,14 @@ export function GraphFactClassBadge({
 export function GraphProjectionBadge({
   projection,
 }: {
-  projection: GraphFixtureProjectionState;
+  projection: GraphProjectionState | null;
 }) {
-  if (projection === 'synchronized') return null;
+  if (!projection || projection.status === 'applied') return null;
   return (
     <Badge className="rounded-md" variant="secondary">
       <View className="size-1.5 rounded-full bg-muted-foreground" />
       <Text className="text-[10px] font-medium">
-        {GRAPH_PROJECTION_META[projection].label}
+        {GRAPH_PROJECTION_META[projection.status].label}
       </Text>
     </Badge>
   );

@@ -79,7 +79,9 @@ describe('Ollama SDK와 기존 Tool Calling transformer의 실제 HTTP 연결', 
     ]);
     expect(fetch.mock.calls.length).toBe(2);
     for (const [input, init] of fetch.mock.calls) {
-      expect(new URL(String(input)).href).toBe('https://ollama.com/api/chat');
+      expect(new URL(input instanceof Request ? input.url : input).href).toBe(
+        'https://ollama.com/api/chat',
+      );
       expect(new Headers(init?.headers).get('authorization')).toBe(
         'Bearer test-placeholder-key',
       );

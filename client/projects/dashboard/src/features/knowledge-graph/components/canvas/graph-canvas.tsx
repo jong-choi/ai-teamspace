@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { type LayoutChangeEvent, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -10,30 +10,33 @@ import Animated, {
 import Svg, { G } from 'react-native-svg';
 
 import { Text } from '@repo/client/rnr/components/ui/text';
+import { GraphCanvasAccessibleList } from '@core/features/knowledge-graph/components/canvas/graph-canvas-accessible-list';
 import { GraphCanvasGrid } from '@core/features/knowledge-graph/components/canvas/graph-canvas-grid';
 import {
   GraphCanvasQuickActions,
   GraphCanvasToolbar,
 } from '@core/features/knowledge-graph/components/canvas/graph-canvas-overlays';
+import {
+  mergeGraphPositions,
+  toGraphLayoutInput,
+} from '@core/features/knowledge-graph/components/canvas/graph-canvas-position';
 import { GraphCanvasScene } from '@core/features/knowledge-graph/components/canvas/graph-canvas-scene';
-import type {
-  GraphFixtureExplore,
-  GraphFixtureExploreParams,
-} from '@core/features/knowledge-graph/fixtures/knowledge-graph-fixture-contract';
-// TODO(graph-05-orval): graph-05 explore의 generated Suspense hook으로 직접 교체한다.
-import { useGraphFixtureExploreSuspense } from '@core/features/knowledge-graph/fixtures/knowledge-graph-fixture-queries';
 import { useGraphCanvasPointer } from '@core/features/knowledge-graph/hooks/use-graph-canvas-pointer';
 import { useGraphThemePalette } from '@core/features/knowledge-graph/hooks/use-graph-theme-palette';
 import {
+  graphStatusLabel,
+  useProgressiveGraphExplore,
+} from '@core/features/knowledge-graph/hooks/use-progressive-graph-explore';
+import {
   fitViewport,
   getGraphBounds,
-  type GraphPositions,
   type GraphViewport,
   layoutGraph,
   resetViewport,
   toWorldPoint,
   zoomViewportAt,
 } from '@core/features/knowledge-graph/lib/graph-layout';
+import type { GraphExploreParams } from '@core/features/knowledge-graph/lib/graph-route-params';
 import {
   getEdgeGeometry,
   getParallelOffsets,
@@ -42,7 +45,10 @@ import {
   hitTestNode,
 } from '@core/features/knowledge-graph/lib/graph-view-model';
 import { useGraphStudioStore } from '@core/features/knowledge-graph/state/graph-studio-provider';
-import type { GraphPoint } from '@core/features/knowledge-graph/state/graph-studio-store';
+import type {
+  GraphPoint,
+  GraphSelection,
+} from '@core/features/knowledge-graph/state/graph-studio-store';
 
 const BUTTON_ZOOM_IN = 1.15;
 const BUTTON_ZOOM_OUT = 0.85;
@@ -60,28 +66,16 @@ type PanSession =
   | { mode: 'canvas'; origin: GraphViewport }
   | null;
 
-function toLayoutInput(explore: GraphFixtureExplore) {
-  return {
-    nodeIds: explore.nodes.map(({ id }) => id),
-    links: explore.edges.map(({ sourceNodeId, targetNodeId }) => ({
-      sourceId: sourceNodeId,
-      targetId: targetNodeId,
-    })),
-    focusId: explore.focusNodeId,
-  };
-}
-
 export function GraphCanvas({
   exploreParams,
   organizationId,
 }: {
-  exploreParams: GraphFixtureExploreParams;
+  exploreParams: GraphExploreParams;
   organizationId: string;
 }) {
-  const explore = useGraphFixtureExploreSuspense(
-    organizationId,
-    exploreParams,
-  ).data;
+  const { canExpand, canLoadMore, expand, explore, loadMore } =
+    useProgressiveGraphExplore(organizationId, exploreParams);
+  const focusNodeId = exploreParams.focusId ?? null;
   const palette = useGraphThemePalette();
   const selection = useGraphStudioStore((state) => state.selection);
   const select = useGraphStudioStore((state) => state.select);
@@ -90,15 +84,17 @@ export function GraphCanvas({
   const pinnedPositions = useGraphStudioStore((state) => state.pinnedPositions);
   const pinNode = useGraphStudioStore((state) => state.pinNode);
 
-  // refetch·노드 추가 뒤에도 이전 좌표를 유지하고 새 노드만 배치한다.
   const [layout, setLayout] = useState(() => ({
     source: explore,
-    positions: layoutGraph(toLayoutInput(explore)),
+    positions: layoutGraph(toGraphLayoutInput(explore, focusNodeId)),
   }));
   if (layout.source !== explore) {
     setLayout({
       source: explore,
-      positions: layoutGraph(toLayoutInput(explore), layout.positions),
+      positions: layoutGraph(
+        toGraphLayoutInput(explore, focusNodeId),
+        layout.positions,
+      ),
     });
   }
 
@@ -116,26 +112,35 @@ export function GraphCanvas({
   const translateY = useSharedValue(0);
   const scale = useSharedValue(1);
 
-  const positions = toPositionMap(layout.positions, pinnedPositions, drag);
+  const positions = mergeGraphPositions(
+    layout.positions,
+    pinnedPositions,
+    drag,
+  );
   const edges = getRenderableEdges(explore.nodes, explore.edges);
   const offsets = getParallelOffsets(edges);
-  const geometries = new Map(
-    edges.flatMap((edge) => {
-      const source = positions.get(edge.sourceNodeId);
-      const target = positions.get(edge.targetNodeId);
-      if (!source || !target) return [];
-      return [
-        [
-          edge.id,
-          getEdgeGeometry(source, target, {
-            directed: edge.directed,
-            offset: offsets.get(edge.id) ?? 0,
-            selfLoop: edge.sourceNodeId === edge.targetNodeId,
-          }),
-        ] as const,
-      ];
-    }),
-  );
+  const geometries = new Map<string, ReturnType<typeof getEdgeGeometry>>();
+  for (const edge of edges) {
+    const source = positions.get(edge.sourceNodeId);
+    const target = positions.get(edge.targetNodeId);
+    if (!source || !target) continue;
+    geometries.set(
+      edge.id,
+      getEdgeGeometry(source, target, {
+        directed: edge.directed,
+        offset: offsets.get(edge.id) ?? 0,
+        selfLoop: edge.sourceNodeId === edge.targetNodeId,
+      }),
+    );
+  }
+  useEffect(() => {
+    if (!selection) return;
+    const exists =
+      selection.kind === 'node'
+        ? explore.nodes.some(({ id }) => id === selection.id)
+        : edges.some(({ id }) => id === selection.id);
+    if (!exists) clearSelection();
+  }, [clearSelection, edges, explore.nodes, selection]);
   const bounds = getGraphBounds([...positions.values()]);
   const world = {
     x: (bounds?.minX ?? 0) - WORLD_PADDING,
@@ -201,13 +206,13 @@ export function GraphCanvas({
     setSize(next);
   };
 
-  const hitAt = (screen: GraphPoint) => {
+  const hitAt = (screen: GraphPoint): GraphSelection | null => {
     const viewport = currentViewport();
     const point = toWorldPoint(viewport, screen);
     const nodeId = hitTestNode(positions, point);
-    if (nodeId) return { kind: 'node' as const, id: nodeId };
+    if (nodeId) return { kind: 'node', id: nodeId };
     const edgeId = hitTestEdge(geometries, point, viewport.scale);
-    return edgeId ? { kind: 'edge' as const, id: edgeId } : null;
+    return edgeId ? { kind: 'edge', id: edgeId } : null;
   };
 
   const pan = Gesture.Pan()
@@ -284,7 +289,18 @@ export function GraphCanvas({
 
   const gesture = Gesture.Simultaneous(pinch, Gesture.Exclusive(pan, tap));
   const focusMissing =
-    Boolean(exploreParams.focusId) && explore.focusNodeId === null;
+    Boolean(exploreParams.focusId) &&
+    !explore.nodes.some(({ id }) => id === exploreParams.focusId);
+  const selectedNode =
+    selection?.kind === 'node'
+      ? explore.nodes.find(({ id }) => id === selection.id)
+      : undefined;
+  const edgeSourceNodeId =
+    selectedNode &&
+    selectedNode.factClass !== 'extracted' &&
+    selectedNode.kind !== 'member'
+      ? selectedNode.id
+      : null;
 
   return (
     <View
@@ -294,6 +310,7 @@ export function GraphCanvas({
       ref={setPointerTarget}
     >
       <GraphCanvasGrid color={palette.grid} />
+      <GraphCanvasAccessibleList nodes={explore.nodes} />
       <GestureDetector gesture={gesture}>
         <View className="absolute inset-0" collapsable={false}>
           <Animated.View
@@ -318,7 +335,7 @@ export function GraphCanvas({
               <G transform={`translate(${-world.x}, ${-world.y})`}>
                 <GraphCanvasScene
                   edges={edges}
-                  focusNodeId={explore.focusNodeId}
+                  focusNodeId={focusNodeId}
                   geometries={geometries}
                   nodes={explore.nodes}
                   palette={palette}
@@ -343,17 +360,22 @@ export function GraphCanvas({
       ) : null}
 
       <GraphCanvasToolbar
+        canExpand={canExpand}
+        canLoadMore={canLoadMore}
         edgeCount={edges.length}
         nodeCount={explore.nodes.length}
+        onExpand={expand}
         onFit={fit}
+        onLoadMore={loadMore}
         onReset={reset}
         onZoomIn={() => zoomBy(BUTTON_ZOOM_IN)}
         onZoomOut={() => zoomBy(BUTTON_ZOOM_OUT)}
         zoomPercent={zoomPercent}
+        statusLabel={graphStatusLabel(explore)}
       />
 
       {focusMissing ? (
-        <View className="absolute right-4 top-4 z-20 max-w-xs rounded-xl border border-border bg-background/90 px-3 py-1.5 shadow-sm shadow-black/5">
+        <View className="absolute right-4 top-4 z-20 max-w-xs rounded-xl border border-border bg-background/90 px-3 py-1.5 shadow-sm">
           <Text className="text-xs text-muted-foreground">
             이 원본은 아직 그래프에 반영되지 않아 전체 그래프를 표시합니다.
           </Text>
@@ -364,25 +386,11 @@ export function GraphCanvas({
         onAddEdge={() =>
           openDialog({
             type: 'edge-create',
-            sourceNodeId: selection?.kind === 'node' ? selection.id : null,
+            sourceNodeId: edgeSourceNodeId,
           })
         }
         onAddNode={() => openDialog({ type: 'node-create' })}
       />
     </View>
   );
-}
-
-function toPositionMap(
-  layout: GraphPositions,
-  pinned: GraphPositions,
-  drag: { nodeId: string; point: GraphPoint } | null,
-): ReadonlyMap<string, GraphPoint> {
-  const positions = new Map(Object.entries(layout));
-  for (const [nodeId, point] of Object.entries(pinned)) {
-    if (positions.has(nodeId)) positions.set(nodeId, point);
-  }
-  if (drag && positions.has(drag.nodeId))
-    positions.set(drag.nodeId, drag.point);
-  return positions;
 }

@@ -2,6 +2,7 @@ import { ScrollView, View } from 'react-native';
 
 import type { OrganizationAccess } from '@repo/client/api-client/schemas';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
+import { DashboardRoutePlaceholder } from '@core/app/shell/dashboard-route-placeholder';
 import { DashboardShell } from '@core/app/shell/dashboard-shell';
 import {
   DashboardLoading,
@@ -26,10 +27,12 @@ export function OrganizationMembersRoute({
   if (sessionPending) {
     return (
       <DashboardShell activeNavigationItem="members">
-        <DashboardLoading
-          className="min-h-32 py-10"
-          label="세션을 확인하는 중..."
-        />
+        <DashboardRoutePlaceholder title="조직 멤버 관리">
+          <DashboardLoading
+            className="min-h-32 py-10"
+            label="세션을 확인하는 중..."
+          />
+        </DashboardRoutePlaceholder>
       </DashboardShell>
     );
   }
@@ -37,7 +40,9 @@ export function OrganizationMembersRoute({
   if (!currentUserId) {
     return (
       <DashboardShell activeNavigationItem="members">
-        <AuthenticationRequiredState className="py-10" />
+        <DashboardRoutePlaceholder title="조직 멤버 관리">
+          <AuthenticationRequiredState className="py-10" />
+        </DashboardRoutePlaceholder>
       </DashboardShell>
     );
   }
@@ -45,11 +50,13 @@ export function OrganizationMembersRoute({
   if (!organizationId) {
     return (
       <DashboardShell activeNavigationItem="members">
-        <DashboardState
-          className="py-10"
-          description="조직을 선택한 뒤 멤버 관리 화면을 다시 열어 주세요."
-          title="조직을 찾을 수 없습니다"
-        />
+        <DashboardRoutePlaceholder title="조직 멤버 관리">
+          <DashboardState
+            className="py-10"
+            description="조직을 선택한 뒤 멤버 관리 화면을 다시 열어 주세요."
+            title="조직을 찾을 수 없습니다"
+          />
+        </DashboardRoutePlaceholder>
       </DashboardShell>
     );
   }
@@ -58,10 +65,12 @@ export function OrganizationMembersRoute({
     <DashboardQueryBoundary
       fallback={
         <DashboardShell activeNavigationItem="members">
-          <DashboardLoading
-            className="min-h-32 py-10"
-            label="조직 정보를 불러오는 중..."
-          />
+          <DashboardRoutePlaceholder title="조직 멤버 관리">
+            <DashboardLoading
+              className="min-h-32 py-10"
+              label="조직 정보를 불러오는 중..."
+            />
+          </DashboardRoutePlaceholder>
         </DashboardShell>
       }
       resetKeys={[organizationId]}

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
+import { DashboardRoutePlaceholder } from '@core/app/shell/dashboard-route-placeholder';
 import { DashboardShell } from '@core/app/shell/dashboard-shell';
 import {
   DashboardLoading,
@@ -22,7 +23,9 @@ export function ProjectsRouteFrame({
   if (sessionPending) {
     return (
       <DashboardShell activeNavigationItem="projects">
-        <DashboardLoading label="세션을 확인하는 중..." />
+        <DashboardRoutePlaceholder title="프로젝트">
+          <DashboardLoading label="세션을 확인하는 중..." />
+        </DashboardRoutePlaceholder>
       </DashboardShell>
     );
   }
@@ -30,7 +33,9 @@ export function ProjectsRouteFrame({
   if (!currentUserId) {
     return (
       <DashboardShell activeNavigationItem="projects">
-        <AuthenticationRequiredState />
+        <DashboardRoutePlaceholder title="프로젝트">
+          <AuthenticationRequiredState />
+        </DashboardRoutePlaceholder>
       </DashboardShell>
     );
   }
@@ -39,7 +44,9 @@ export function ProjectsRouteFrame({
     <DashboardQueryBoundary
       fallback={
         <DashboardShell activeNavigationItem="projects">
-          <DashboardLoading label="활성 조직을 불러오는 중..." />
+          <DashboardRoutePlaceholder title="프로젝트">
+            <DashboardLoading label="활성 조직을 불러오는 중..." />
+          </DashboardRoutePlaceholder>
         </DashboardShell>
       }
       resetKeys={[currentUserId]}
@@ -66,10 +73,12 @@ function AuthenticatedProjectsFrame({
       organizationName={activeOrganization?.organization.name}
     >
       {!activeOrganization ? (
-        <DashboardState
-          description="프로젝트는 활성 조직 범위에서 동작합니다. 조직을 선택한 뒤 다시 열어 주세요."
-          title="활성 조직이 없습니다"
-        />
+        <DashboardRoutePlaceholder title="프로젝트">
+          <DashboardState
+            description="프로젝트는 활성 조직 범위에서 동작합니다. 조직을 선택한 뒤 다시 열어 주세요."
+            title="활성 조직이 없습니다"
+          />
+        </DashboardRoutePlaceholder>
       ) : (
         children(activeOrganization.organization.id)
       )}

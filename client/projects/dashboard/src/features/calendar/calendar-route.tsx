@@ -9,6 +9,7 @@ import {
 } from '@repo/client/rnr/components/ui/dialog';
 import { cn } from '@repo/client/rnr/lib/utils';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
+import { DashboardRoutePlaceholder } from '@core/app/shell/dashboard-route-placeholder';
 import { DashboardShell } from '@core/app/shell/dashboard-shell';
 import {
   DashboardLoading,
@@ -54,7 +55,9 @@ export function CalendarRoute() {
   if (sessionPending) {
     return (
       <DashboardShell activeNavigationItem="calendar">
-        <DashboardLoading label="세션을 확인하는 중..." />
+        <DashboardRoutePlaceholder title="회의일정">
+          <DashboardLoading label="세션을 확인하는 중..." />
+        </DashboardRoutePlaceholder>
       </DashboardShell>
     );
   }
@@ -62,7 +65,9 @@ export function CalendarRoute() {
   if (!currentUserId) {
     return (
       <DashboardShell activeNavigationItem="calendar">
-        <AuthenticationRequiredState />
+        <DashboardRoutePlaceholder title="회의일정">
+          <AuthenticationRequiredState />
+        </DashboardRoutePlaceholder>
       </DashboardShell>
     );
   }
@@ -71,7 +76,9 @@ export function CalendarRoute() {
     <DashboardQueryBoundary
       fallback={
         <DashboardShell activeNavigationItem="calendar">
-          <DashboardLoading label="활성 조직을 불러오는 중..." />
+          <DashboardRoutePlaceholder title="회의일정">
+            <DashboardLoading label="활성 조직을 불러오는 중..." />
+          </DashboardRoutePlaceholder>
         </DashboardShell>
       }
       resetKeys={[currentUserId]}
@@ -95,10 +102,12 @@ function AuthenticatedCalendarRoute({
       organizationName={activeOrganization?.organization.name}
     >
       {!activeOrganization ? (
-        <DashboardState
-          description="회의일정은 활성 조직 범위에서 동작합니다. 조직을 선택한 뒤 다시 열어 주세요."
-          title="활성 조직이 없습니다"
-        />
+        <DashboardRoutePlaceholder title="회의일정">
+          <DashboardState
+            description="회의일정은 활성 조직 범위에서 동작합니다. 조직을 선택한 뒤 다시 열어 주세요."
+            title="활성 조직이 없습니다"
+          />
+        </DashboardRoutePlaceholder>
       ) : (
         <CalendarWorkspace
           currentUserId={currentUserId}

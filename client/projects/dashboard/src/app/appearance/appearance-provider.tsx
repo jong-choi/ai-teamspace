@@ -6,7 +6,11 @@ import {
   useMemo,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import {
+  Platform,
+  useColorScheme as useSystemColorScheme,
+  View,
+} from 'react-native';
 
 import {
   APPEARANCE_ROOT_CLASS_NAMES,
@@ -57,6 +61,15 @@ export function AppearanceProvider({
   const applied = useStore(store, (state) => state.applied);
   const { colorScheme, setColorScheme } = useColorScheme();
   const [tokens, setTokens] = useState<AppearanceTokens | null>(null);
+  const systemColorScheme = useSystemColorScheme();
+  // Web의 NativeWind는 시스템 모드를 적용할 때 dark class를 떼어 버려서 화면만 라이트가 된다.
+  // 그래서 Web에서는 시스템 모드를 라이트·다크로 먼저 풀어 명시값으로 넘긴다.
+  const themePreference =
+    Platform.OS === 'web' && applied.themePreference === 'system'
+      ? systemColorScheme === 'dark'
+        ? 'dark'
+        : 'light'
+      : applied.themePreference;
 
   const classNames = useMemo(
     () => [
@@ -85,8 +98,8 @@ export function AppearanceProvider({
   );
 
   useEffect(() => {
-    setColorScheme(applied.themePreference);
-  }, [applied.themePreference, setColorScheme]);
+    setColorScheme(themePreference);
+  }, [themePreference, setColorScheme]);
 
   // colorScheme이 바뀌면 같은 class라도 계산된 색이 달라지므로 다시 읽는다.
   useEffect(() => {
@@ -95,11 +108,11 @@ export function AppearanceProvider({
         classNames,
         removableClassNames: APPEARANCE_ROOT_CLASS_NAMES,
         removableVariables: THEME_TOKEN_CSS_VARIABLES,
-        themePreference: applied.themePreference,
+        themePreference,
         variables,
       }),
     );
-  }, [applied.themePreference, classNames, colorScheme, syncRoot, variables]);
+  }, [themePreference, classNames, colorScheme, syncRoot, variables]);
 
   return (
     <AppearanceStoreContext.Provider value={store}>

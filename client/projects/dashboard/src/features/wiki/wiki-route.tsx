@@ -6,6 +6,7 @@ import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
+import { DashboardRoutePlaceholder } from '@core/app/shell/dashboard-route-placeholder';
 import { DashboardShell } from '@core/app/shell/dashboard-shell';
 import {
   DashboardLoading,
@@ -44,7 +45,9 @@ export function WikiRoute({ documentId }: WikiRouteProps) {
   if (sessionPending) {
     return (
       <DashboardShell activeNavigationItem="wiki">
-        <DashboardLoading label="세션을 확인하는 중..." />
+        <DashboardRoutePlaceholder title="위키">
+          <DashboardLoading label="세션을 확인하는 중..." />
+        </DashboardRoutePlaceholder>
       </DashboardShell>
     );
   }
@@ -52,7 +55,9 @@ export function WikiRoute({ documentId }: WikiRouteProps) {
   if (!currentUserId) {
     return (
       <DashboardShell activeNavigationItem="wiki">
-        <AuthenticationRequiredState />
+        <DashboardRoutePlaceholder title="위키">
+          <AuthenticationRequiredState />
+        </DashboardRoutePlaceholder>
       </DashboardShell>
     );
   }
@@ -61,7 +66,9 @@ export function WikiRoute({ documentId }: WikiRouteProps) {
     <DashboardQueryBoundary
       fallback={
         <DashboardShell activeNavigationItem="wiki">
-          <DashboardLoading label="활성 조직을 불러오는 중..." />
+          <DashboardRoutePlaceholder title="위키">
+            <DashboardLoading label="활성 조직을 불러오는 중..." />
+          </DashboardRoutePlaceholder>
         </DashboardShell>
       }
       resetKeys={[currentUserId]}
@@ -81,13 +88,19 @@ function AuthenticatedWikiRoute({ documentId }: WikiRouteProps) {
       organizationName={activeOrganization?.organization.name}
     >
       {!activeOrganization ? (
-        <DashboardState
-          description="위키는 활성 조직 범위에서 동작합니다. 조직을 선택한 뒤 다시 열어 주세요."
-          title="활성 조직이 없습니다"
-        />
+        <DashboardRoutePlaceholder title="위키">
+          <DashboardState
+            description="위키는 활성 조직 범위에서 동작합니다. 조직을 선택한 뒤 다시 열어 주세요."
+            title="활성 조직이 없습니다"
+          />
+        </DashboardRoutePlaceholder>
       ) : (
         <DashboardQueryBoundary
-          fallback={<DashboardLoading label="위키 탐색기를 불러오는 중..." />}
+          fallback={
+            <DashboardRoutePlaceholder title="위키">
+              <DashboardLoading label="위키 탐색기를 불러오는 중..." />
+            </DashboardRoutePlaceholder>
+          }
           resetKeys={[activeOrganization.organization.id]}
           title="위키를 불러오지 못했습니다"
         >

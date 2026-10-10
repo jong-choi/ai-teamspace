@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import { View } from 'react-native';
 import { useRouter } from 'expo-router';
 
@@ -40,6 +46,7 @@ export function ChatMessageFeed({
     () => flattenChatMessageHistory(messagesQuery.data),
     [messagesQuery.data],
   );
+  const latestMessageId = messages.at(-1)?.id;
   const focusedIndex = focusedMessageId
     ? messages.findIndex(({ id }) => id === focusedMessageId)
     : -1;
@@ -96,6 +103,16 @@ export function ChatMessageFeed({
     messagesQuery.isFetchingNextPage,
   ]);
 
+  // 새 메시지가 오면 보던 위치와 상관없이 맨 아래로 바로 보낸다.
+  // 이전 메시지를 더 불러올 때는 마지막 메시지가 그대로라서 움직이지 않는다.
+  const shownLatestMessageId = useRef(latestMessageId);
+  useLayoutEffect(() => {
+    if (shownLatestMessageId.current === latestMessageId) return;
+    shownLatestMessageId.current = latestMessageId;
+    if (focusedMessageId) return;
+    void listRef.current?.scrollToEnd({ animated: false });
+  }, [focusedMessageId, latestMessageId]);
+
   if (messages.length === 0) {
     return (
       <View className="min-h-0 flex-1">
@@ -115,8 +132,10 @@ export function ChatMessageFeed({
         contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 16 }}
         data={messages}
         extraData={focusedMessageId}
+        // 방을 열면 맨 아래에서 시작한다. 특정 메시지를 가리키는 주소로 왔을 때는 그 메시지로 간다.
+        initialScrollAtEnd={!focusedMessageId}
         keyExtractor={(message) => message.id}
-        maintainScrollAtEnd={{ animated: true }}
+        maintainScrollAtEnd
         maintainVisibleContentPosition={{ data: true }}
         onStartReached={() => {
           if (messagesQuery.hasNextPage && !messagesQuery.isFetchingNextPage) {

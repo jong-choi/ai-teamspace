@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useOrganizationsControllerGetActiveSuspense } from '@repo/client/api-client';
 import type { OrganizationAccess } from '@repo/client/api-client/schemas';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
+import { DashboardRoutePlaceholder } from '@core/app/shell/dashboard-route-placeholder';
 import { DashboardShell } from '@core/app/shell/dashboard-shell';
 import {
   DashboardLoading,
@@ -33,7 +34,9 @@ export function KnowledgeGraphLayout({ children }: { children: ReactNode }) {
   if (sessionPending) {
     return (
       <DashboardShell activeNavigationItem="knowledge-graph">
-        <DashboardLoading label="세션을 확인하는 중..." />
+        <DashboardRoutePlaceholder title="지식 그래프">
+          <DashboardLoading label="세션을 확인하는 중..." />
+        </DashboardRoutePlaceholder>
       </DashboardShell>
     );
   }
@@ -41,7 +44,9 @@ export function KnowledgeGraphLayout({ children }: { children: ReactNode }) {
   if (!currentUserId) {
     return (
       <DashboardShell activeNavigationItem="knowledge-graph">
-        <AuthenticationRequiredState />
+        <DashboardRoutePlaceholder title="지식 그래프">
+          <AuthenticationRequiredState />
+        </DashboardRoutePlaceholder>
       </DashboardShell>
     );
   }
@@ -50,7 +55,9 @@ export function KnowledgeGraphLayout({ children }: { children: ReactNode }) {
     <DashboardQueryBoundary
       fallback={
         <DashboardShell activeNavigationItem="knowledge-graph">
-          <DashboardLoading label="활성 조직을 불러오는 중..." />
+          <DashboardRoutePlaceholder title="지식 그래프">
+            <DashboardLoading label="활성 조직을 불러오는 중..." />
+          </DashboardRoutePlaceholder>
         </DashboardShell>
       }
       resetKeys={[currentUserId]}

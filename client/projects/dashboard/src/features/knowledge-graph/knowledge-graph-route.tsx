@@ -120,7 +120,8 @@ export function KnowledgeGraphRoute({ view }: { view: GraphStudioView }) {
       }
       onViewChange={(nextView) => {
         if (nextView === view) return;
-        router.replace(
+        // 보기 전환은 history에 남겨 뒤로가기로 이전 보기에 돌아올 수 있게 한다.
+        router.push(
           nextView === 'data' ? '/knowledge-graph/data' : '/knowledge-graph',
         );
       }}

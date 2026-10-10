@@ -28,7 +28,9 @@ import {
   SelectValue,
 } from '@repo/client/rnr/components/ui/select';
 import { Text } from '@repo/client/rnr/components/ui/text';
+import { cn } from '@repo/client/rnr/lib/utils';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
+import { DIALOG_WIDTH } from '@core/app/ui/dialog-width';
 import { useCalendarRescheduleAvailabilityPreview } from '@core/features/calendar/calendar-availability-mutations';
 import { useRescheduleCalendarMeeting } from '@core/features/calendar/calendar-scheduling-mutations';
 import { CalendarAvailabilityStatus } from '@core/features/calendar/components/calendar-availability-status';
@@ -203,7 +205,7 @@ export function CalendarRescheduleDialog({
 
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
-      <DialogContent className="max-h-[92vh] max-w-lg">
+      <DialogContent className={cn('max-h-[92vh]', DIALOG_WIDTH.lg)}>
         <DialogHeader className="border-b border-border pb-3">
           <DialogTitle className="text-sm">회의 일정 변경</DialogTitle>
           <DialogDescription className="text-xs">

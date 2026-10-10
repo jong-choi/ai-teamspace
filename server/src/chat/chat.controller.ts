@@ -107,7 +107,11 @@ export class ChatController {
     @Body({ schema: CreateChatChannelDto.schema })
     input: CreateChatChannelInput,
   ): Promise<ChatConversationDto> {
-    return this.chatService.createChannel(session.user.id, input);
+    return this.chatService.createChannel(
+      session.user.id,
+      input,
+      session.session.activeOrganizationId ?? undefined,
+    );
   }
 
   @Post('direct')
@@ -117,7 +121,11 @@ export class ChatController {
     @Session() session: UserSession<Auth>,
     @Body({ schema: CreateChatDirectDto.schema }) input: CreateChatDirectInput,
   ): Promise<ChatConversationDto> {
-    return this.chatService.createDirect(session.user.id, input);
+    return this.chatService.createDirect(
+      session.user.id,
+      input,
+      session.session.activeOrganizationId ?? undefined,
+    );
   }
 
   @Get('conversations/:conversationId')

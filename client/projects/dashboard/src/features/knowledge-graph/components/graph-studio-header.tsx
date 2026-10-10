@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 
 import { Button } from '@repo/client/rnr/components/ui/button';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
-import { Input } from '@repo/client/rnr/components/ui/input';
 import {
   Tabs,
   TabsList,
@@ -14,6 +13,7 @@ import {
   DashboardBreadcrumbSeparator,
   DashboardPageHeader,
 } from '@core/app/shell/dashboard-page-header';
+import { DashboardSearchInput } from '@core/app/ui/dashboard-search-input';
 
 import { Plus, Share2, Table } from 'lucide-react-native';
 
@@ -42,9 +42,9 @@ export function GraphStudioHeader({
       actions={
         <>
           {!compact && view === 'graph' ? (
-            <Input
+            <DashboardSearchInput
               accessibilityLabel="지식 그래프 검색"
-              className="h-8 w-48 text-xs md:text-xs"
+              className="w-48"
               onChangeText={setSearch}
               onSubmitEditing={() => onSearch(search.trim())}
               placeholder="노드 검색..."

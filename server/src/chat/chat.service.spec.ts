@@ -3,6 +3,8 @@ import { ChatService } from '@/chat/chat.service';
 import {
   ChatAccessDeniedError,
   ChatConversationNotFoundError,
+  ChatDirectConversationConflictError,
+  ChatParticipantUnavailableError,
 } from '@/chat/domain/chat.error';
 import type { ChatConversation } from '@/chat/domain/chat-conversation';
 import type { ChatConversationState } from '@/chat/domain/chat-conversation-state';
@@ -10,6 +12,7 @@ import type { ChatMessage } from '@/chat/domain/chat-message';
 import { decodeChatMessageCursor } from '@/chat/domain/chat-message-cursor';
 import { ChatRepository } from '@/chat/infrastructure/persistence/chat.repository';
 import { ChatRealtimeProvider } from '@/chat/infrastructure/realtime/chat-realtime.provider';
+import type { OrganizationProvider } from '@/organizations/infrastructure/organization/organization.provider';
 
 import { jest } from '@jest/globals';
 import { EMPTY } from 'rxjs';
@@ -35,6 +38,10 @@ class FakeAuthUserDirectory {
   resolveExactUsername =
     jest.fn<AuthUserDirectoryService['resolveExactUsername']>();
   findByIds = jest.fn<AuthUserDirectoryService['findByIds']>();
+}
+
+class FakeOrganizationMembership {
+  hasMemberUser = jest.fn<OrganizationProvider['hasMemberUser']>();
 }
 
 class FakeChatRealtimeProvider extends ChatRealtimeProvider {
@@ -132,13 +139,15 @@ describe('채팅 서비스', () => {
   let repository: FakeChatRepository;
   let directory: FakeAuthUserDirectory;
   let realtime: FakeChatRealtimeProvider;
+  let organizations: FakeOrganizationMembership;
   let service: ChatService;
 
   beforeEach(() => {
     repository = new FakeChatRepository();
     directory = new FakeAuthUserDirectory();
     realtime = new FakeChatRealtimeProvider();
-    service = new ChatService(repository, directory, realtime);
+    organizations = new FakeOrganizationMembership();
+    service = new ChatService(repository, directory, realtime, organizations);
   });
 
   it('조직 초대는 수신자 system 대화에 참조 기반 structured message로 전달한다', async () => {
@@ -346,6 +355,69 @@ describe('채팅 서비스', () => {
 
     expect(result.id).toBe(conversationId);
     expect(repository.createChannelConversation).not.toHaveBeenCalled();
+  });
+
+  it('활성 조직의 멤버는 user ID로 일대일 대화를 열 수 있다', async () => {
+    organizations.hasMemberUser.mockResolvedValue(true);
+    repository.findDirectByKey.mockResolvedValue(conversation());
+    repository.findConversationState.mockResolvedValue(state());
+    directory.findByIds.mockResolvedValue(directoryUsers());
+
+    const result = await service.createDirect(
+      actorUserId,
+      { recipientUserId },
+      'organization-a',
+    );
+
+    expect(result.id).toBe(conversationId);
+    expect(organizations.hasMemberUser).toHaveBeenCalledWith(
+      'organization-a',
+      recipientUserId,
+    );
+    expect(directory.resolveExactUsername).not.toHaveBeenCalled();
+  });
+
+  it('같은 활성 조직 멤버가 아닌 user ID로는 일대일 대화를 열 수 없다', async () => {
+    organizations.hasMemberUser.mockImplementation((_organizationId, userId) =>
+      Promise.resolve(userId === actorUserId),
+    );
+
+    await expect(
+      service.createDirect(actorUserId, { recipientUserId }, 'organization-a'),
+    ).rejects.toBeInstanceOf(ChatDirectConversationConflictError);
+    await expect(
+      service.createDirect(actorUserId, { recipientUserId }),
+    ).rejects.toBeInstanceOf(ChatDirectConversationConflictError);
+    expect(repository.createDirectConversation).not.toHaveBeenCalled();
+  });
+
+  it('채널 참여자 user ID는 활성 조직 멤버일 때만 추가한다', async () => {
+    organizations.hasMemberUser.mockResolvedValue(true);
+    repository.createChannelConversation.mockResolvedValue(
+      conversation({ kind: 'channel', name: 'general', directKey: null }),
+    );
+    repository.findConversationState.mockResolvedValue(state());
+    directory.findByIds.mockResolvedValue(directoryUsers());
+
+    await service.createChannel(
+      actorUserId,
+      { name: 'general', participantUserIds: [recipientUserId] },
+      'organization-a',
+    );
+
+    expect(repository.createChannelConversation).toHaveBeenCalledWith(
+      expect.anything(),
+      [actorUserId, recipientUserId],
+    );
+
+    organizations.hasMemberUser.mockResolvedValue(false);
+    await expect(
+      service.createChannel(
+        actorUserId,
+        { name: 'general', participantUserIds: [otherUserId] },
+        'organization-a',
+      ),
+    ).rejects.toBeInstanceOf(ChatParticipantUnavailableError);
   });
 
   it('일대일 대화 동시 생성 충돌 뒤에는 고유 제약으로 생성된 기존 대화를 재조회한다', async () => {

@@ -6,8 +6,6 @@ import type {
   ProjectsControllerListTicketsParams,
   ProjectSummary,
 } from '@repo/client/api-client/schemas';
-import { Icon } from '@repo/client/rnr/components/ui/icon';
-import { Input } from '@repo/client/rnr/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -15,10 +13,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@repo/client/rnr/components/ui/select';
+import { DashboardSearchInput } from '@core/app/ui/dashboard-search-input';
 import { getProjectColumnPresentation } from '@core/features/projects/lib/project-column-presentation';
 import { TICKET_PRIORITY_OPTIONS } from '@core/features/projects/lib/ticket-priority-presentation';
-
-import { Search } from 'lucide-react-native';
 
 const ALL = '__all__';
 
@@ -65,18 +62,13 @@ export function ProjectToolbar({
 
   return (
     <View className="flex-row flex-wrap items-center gap-2.5 border-b border-border bg-muted/30 px-4 py-2.5 lg:px-6">
-      <View className="relative min-w-[200px] flex-1 sm:max-w-72">
-        <View className="pointer-events-none absolute inset-y-0 left-3 z-10 items-center justify-center">
-          <Icon as={Search} className="size-3.5 text-muted-foreground" />
-        </View>
-        <Input
-          accessibilityLabel="이슈 검색"
-          className="h-8 pl-8 text-xs"
-          onChangeText={onSearchChange}
-          placeholder="이슈 검색..."
-          value={search}
-        />
-      </View>
+      <DashboardSearchInput
+        accessibilityLabel="이슈 검색"
+        className="min-w-[200px] flex-1 sm:max-w-72"
+        onChangeText={onSearchChange}
+        placeholder="이슈 검색..."
+        value={search}
+      />
 
       <CompactSelect
         accessibilityLabel="프로젝트 필터"

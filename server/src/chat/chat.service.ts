@@ -31,6 +31,7 @@ import type { SendChatMessageInput } from '@/chat/dto/send-chat-message.dto';
 import type { UpdateChatMessageInput } from '@/chat/dto/update-chat-message.dto';
 import { ChatRepository } from '@/chat/infrastructure/persistence/chat.repository';
 import { ChatRealtimeProvider } from '@/chat/infrastructure/realtime/chat-realtime.provider';
+import { OrganizationProvider } from '@/organizations/infrastructure/organization/organization.provider';
 
 export type DeliverOrganizationInvitationInput = {
   recipientUserId: string;
@@ -46,6 +47,7 @@ type ChatUserDirectory = Pick<
   AuthUserDirectoryService,
   'resolveExactUsername' | 'findByIds'
 >;
+type ChatOrganizationMembership = Pick<OrganizationProvider, 'hasMemberUser'>;
 
 @Injectable()
 export class ChatService {
@@ -56,6 +58,8 @@ export class ChatService {
     @Inject(AuthUserDirectoryService)
     private readonly userDirectory: ChatUserDirectory,
     private readonly realtime: ChatRealtimeProvider,
+    @Inject(OrganizationProvider)
+    private readonly organizations: ChatOrganizationMembership,
   ) {}
 
   events(userId: string): ReturnType<ChatRealtimeProvider['events']> {
@@ -133,7 +137,19 @@ export class ChatService {
   async createChannel(
     userId: string,
     input: CreateChatChannelInput,
+    activeOrganizationId?: string,
   ): Promise<ChatConversationResponse> {
+    const memberUserIds = [...new Set(input.participantUserIds ?? [])];
+    if (
+      !(await this.areActiveOrganizationMembers(
+        userId,
+        activeOrganizationId,
+        memberUserIds,
+      ))
+    ) {
+      throw new ChatParticipantUnavailableError();
+    }
+
     const participantUsernames = [
       ...new Set(
         (input.participantUsernames ?? []).map((username) =>
@@ -153,6 +169,7 @@ export class ChatService {
     const participantUserIds = [
       ...new Set([
         userId,
+        ...memberUserIds,
         ...resolvedParticipants.flatMap((participant) =>
           participant ? [participant.id] : [],
         ),
@@ -174,15 +191,18 @@ export class ChatService {
   async createDirect(
     userId: string,
     input: CreateChatDirectInput,
+    activeOrganizationId?: string,
   ): Promise<ChatConversationResponse> {
-    const recipient = await this.userDirectory.resolveExactUsername(
-      input.recipientUsername,
+    const recipientId = await this.resolveDirectRecipientId(
+      userId,
+      input,
+      activeOrganizationId,
     );
-    if (!recipient || recipient.id === userId) {
+    if (!recipientId || recipientId === userId) {
       throw new ChatDirectConversationConflictError();
     }
 
-    const participantUserIds = [userId, recipient.id].sort();
+    const participantUserIds = [userId, recipientId].sort();
     const directKey = createDirectConversationKey(participantUserIds);
     const existing = await this.chatRepository.findDirectByKey(
       directKey,
@@ -212,6 +232,42 @@ export class ChatService {
       return this.getConversation(userId, concurrent.id);
     }
     throw new ChatDirectConversationConflictError();
+  }
+
+  private async resolveDirectRecipientId(
+    userId: string,
+    input: CreateChatDirectInput,
+    activeOrganizationId?: string,
+  ): Promise<string | null> {
+    if (input.recipientUserId !== undefined) {
+      const allowed = await this.areActiveOrganizationMembers(
+        userId,
+        activeOrganizationId,
+        [input.recipientUserId],
+      );
+      return allowed ? input.recipientUserId : null;
+    }
+    if (input.recipientUsername === undefined) return null;
+    const recipient = await this.userDirectory.resolveExactUsername(
+      input.recipientUsername,
+    );
+    return recipient?.id ?? null;
+  }
+
+  // user ID로 지정한 참여자는 요청자와 같은 활성 조직의 멤버여야 한다. 임의 ID로 대화를 여는 것을 막는다.
+  private async areActiveOrganizationMembers(
+    userId: string,
+    activeOrganizationId: string | undefined,
+    memberUserIds: readonly string[],
+  ): Promise<boolean> {
+    if (memberUserIds.length === 0) return true;
+    if (!activeOrganizationId) return false;
+    const memberships = await Promise.all(
+      [userId, ...memberUserIds].map((memberUserId) =>
+        this.organizations.hasMemberUser(activeOrganizationId, memberUserId),
+      ),
+    );
+    return memberships.every(Boolean);
   }
 
   async listMessages(

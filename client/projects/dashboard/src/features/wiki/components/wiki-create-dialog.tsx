@@ -11,6 +11,7 @@ import {
 } from '@repo/client/rnr/components/ui/dialog';
 import { Input } from '@repo/client/rnr/components/ui/input';
 import { Text } from '@repo/client/rnr/components/ui/text';
+import { DIALOG_WIDTH } from '@core/app/ui/dialog-width';
 import { useWikiMutations } from '@core/features/wiki/use-wiki-mutations';
 
 type WikiCreateDialogProps = {
@@ -56,7 +57,7 @@ export function WikiCreateDialog({
 
   return (
     <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && close()}>
-      <DialogContent className="max-w-md">
+      <DialogContent className={DIALOG_WIDTH.md}>
         <DialogHeader>
           <DialogTitle>새 문서</DialogTitle>
         </DialogHeader>

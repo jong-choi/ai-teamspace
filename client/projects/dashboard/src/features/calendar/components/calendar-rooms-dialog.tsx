@@ -14,6 +14,7 @@ import {
 import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
+import { DIALOG_WIDTH } from '@core/app/ui/dialog-width';
 import type { CalendarCreateRequest } from '@core/features/calendar/components/calendar-create-dialog';
 import { CALENDAR_CATEGORY_META } from '@core/features/calendar/lib/calendar-category';
 import { formatDateKeyLabel } from '@core/features/calendar/lib/calendar-format';
@@ -63,7 +64,7 @@ export function CalendarRoomsDialog({
 
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
-      <DialogContent className="max-h-[92vh] max-w-4xl">
+      <DialogContent className={cn('max-h-[92vh]', DIALOG_WIDTH['4xl'])}>
         <DialogHeader className="border-b border-border pb-3">
           <View className="flex-row items-center gap-2.5">
             <View className="size-8 items-center justify-center rounded-lg bg-emerald-500/10">

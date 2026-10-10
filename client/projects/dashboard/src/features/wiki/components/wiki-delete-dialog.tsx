@@ -11,6 +11,7 @@ import {
 } from '@repo/client/rnr/components/ui/dialog';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
+import { DIALOG_WIDTH } from '@core/app/ui/dialog-width';
 import type { WikiTreeTarget } from '@core/features/wiki/components/wiki-tree';
 import { useWikiMutations } from '@core/features/wiki/use-wiki-mutations';
 
@@ -62,7 +63,7 @@ export function WikiDeleteDialog({
       open={open}
       onOpenChange={(nextOpen) => !mutations.pending && onOpenChange(nextOpen)}
     >
-      <DialogContent className="max-w-md">
+      <DialogContent className={DIALOG_WIDTH.md}>
         <DialogHeader>
           <DialogTitle>문서 삭제</DialogTitle>
           <DialogDescription>

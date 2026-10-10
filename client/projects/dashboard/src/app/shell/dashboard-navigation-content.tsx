@@ -28,7 +28,6 @@ import {
   MessageSquare,
   Network,
   Plus,
-  Search,
   Settings,
   UserRound,
   Users,
@@ -74,10 +73,6 @@ export function DashboardNavigationContent({
           onNavigate={onNavigate}
           organizationName={organizationName}
         />
-
-        <View className="hidden lg:flex">
-          <QuickSearch />
-        </View>
 
         <View className="hidden lg:flex">
           <Text className="mb-1.5 px-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
@@ -215,20 +210,6 @@ function OrganizationSwitcher({
       {createOpen ? (
         <CreateOrganizationDialog onOpenChange={setCreateOpen} />
       ) : null}
-    </View>
-  );
-}
-
-function QuickSearch() {
-  return (
-    <View className="mb-4 flex-row items-center justify-between rounded-md border border-border bg-muted/60 px-3 py-1.5">
-      <View className="flex-row items-center gap-2">
-        <Icon as={Search} className="size-3.5 text-muted-foreground" />
-        <Text className="text-xs text-muted-foreground">검색 및 실행...</Text>
-      </View>
-      <View className="rounded border border-input bg-secondary/80 px-1.5 py-0.5">
-        <Text className="font-mono text-[10px] text-muted-foreground">⌘K</Text>
-      </View>
     </View>
   );
 }

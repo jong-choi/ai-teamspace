@@ -31,14 +31,7 @@ import { useAgentChatStore } from '@core/features/agent-chat/agent-chat-provider
 import { useAgentChatWideLayout } from '@core/features/agent-chat/lib/use-agent-chat-layout';
 import { useAgentChatOutsidePress } from '@core/features/agent-chat/lib/use-agent-chat-outside-press';
 
-import {
-  Building2,
-  Menu,
-  Search,
-  Sparkles,
-  UserRound,
-  X,
-} from 'lucide-react-native';
+import { Building2, Menu, Sparkles, UserRound, X } from 'lucide-react-native';
 
 const DashboardShellContext = createContext(false);
 
@@ -192,15 +185,6 @@ export function DashboardShell({
                 open={agentChatOpen}
                 pendingApproval={agentChatPendingApproval}
               />
-              <Button
-                accessibilityLabel="검색"
-                className="h-8 w-8"
-                disabled
-                size="icon"
-                variant="ghost"
-              >
-                <Icon as={Search} className="size-4 text-muted-foreground" />
-              </Button>
               <ThemeToggle />
               <View className="ml-1 size-7 items-center justify-center rounded-full bg-secondary">
                 <Icon

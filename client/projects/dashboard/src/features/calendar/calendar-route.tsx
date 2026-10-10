@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@repo/client/rnr/components/ui/dialog';
+import { cn } from '@repo/client/rnr/lib/utils';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 import { DashboardShell } from '@core/app/shell/dashboard-shell';
 import {
@@ -14,6 +15,7 @@ import {
   DashboardQueryBoundary,
   DashboardState,
 } from '@core/app/state/dashboard-query-state';
+import { DIALOG_WIDTH } from '@core/app/ui/dialog-width';
 import { AuthenticationRequiredState } from '@core/features/auth/authentication-required-state';
 import {
   useCalendarActiveOrganization,
@@ -256,7 +258,9 @@ function CalendarWorkspace({
       </View>
 
       <Dialog onOpenChange={setPanelDialogOpen} open={panelDialogOpen}>
-        <DialogContent className="max-h-[90vh] max-w-sm xl:hidden">
+        <DialogContent
+          className={cn('max-h-[90vh] xl:hidden', DIALOG_WIDTH.sm)}
+        >
           <DialogHeader>
             <DialogTitle className="text-sm">캘린더 탐색</DialogTitle>
           </DialogHeader>
@@ -302,7 +306,7 @@ function CalendarWorkspace({
                 setCreateRequest(null);
               }}
             >
-              <DialogContent>
+              <DialogContent className={DIALOG_WIDTH.lg}>
                 <DashboardLoading label="회의 화면을 준비하는 중..." />
               </DialogContent>
             </Dialog>
@@ -433,7 +437,7 @@ function CalendarDialogs({
         <DashboardQueryBoundary
           fallback={
             <Dialog open onOpenChange={setRoomDialogOpen}>
-              <DialogContent>
+              <DialogContent className={DIALOG_WIDTH['4xl']}>
                 <DashboardLoading label="회의실 일정을 불러오는 중..." />
               </DialogContent>
             </Dialog>

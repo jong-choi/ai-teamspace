@@ -12,8 +12,8 @@ const mockSelf = {
   email: 'self@example.test',
   image: null,
 };
-jest.mock('@core/features/calendar/calendar-queries', () => ({
-  useCalendarMembers: () => ({
+jest.mock('@core/features/organizations/organization-members-query', () => ({
+  useOrganizationMemberPage: () => ({
     data: { items: [{ userId: 'user-1', user: mockSelf }] },
   }),
 }));
@@ -38,7 +38,8 @@ describe('회의 참석자 본인 선택', () => {
     await fireEvent.press(view.getByLabelText('본인 참여자에서 제거'));
     expect(view.getByText('0명 선택')).toBeTruthy();
     await fireEvent.changeText(view.getByLabelText('참여자 검색'), '본인');
-    await fireEvent.press(view.getByLabelText('본인 참여자로 추가'));
+    // 검색은 입력이 멈춘 뒤 debounce를 거쳐 실행된다.
+    await fireEvent.press(await view.findByLabelText('본인 참여자로 추가'));
     expect(view.getByText('1명 선택')).toBeTruthy();
   });
 });

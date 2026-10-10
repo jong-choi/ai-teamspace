@@ -13,6 +13,7 @@ import {
   DashboardLoading,
   DashboardQueryBoundary,
 } from '@core/app/state/dashboard-query-state';
+import { DIALOG_WIDTH } from '@core/app/ui/dialog-width';
 import { useCalendarMeetingDetail } from '@core/features/calendar/calendar-queries';
 import { CalendarMeetingActions } from '@core/features/calendar/components/calendar-meeting-actions';
 import {
@@ -45,7 +46,7 @@ export function CalendarMeetingDetailDialog({
 }) {
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
-      <DialogContent className="max-h-[90vh] max-w-lg">
+      <DialogContent className={cn('max-h-[90vh]', DIALOG_WIDTH.lg)}>
         {meetingId ? (
           <DashboardQueryBoundary
             errorFallbackClassName="min-h-72"

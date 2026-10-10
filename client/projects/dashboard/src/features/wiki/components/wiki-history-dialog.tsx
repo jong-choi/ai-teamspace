@@ -14,6 +14,7 @@ import {
   DashboardQueryBoundary,
   DashboardState,
 } from '@core/app/state/dashboard-query-state';
+import { DIALOG_WIDTH } from '@core/app/ui/dialog-width';
 import { WikiMarkdownContent } from '@core/features/wiki/components/wiki-document-viewer';
 import {
   useWikiDocumentHistory,
@@ -35,7 +36,7 @@ export function WikiHistoryDialog({
 }: WikiHistoryDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className={DIALOG_WIDTH['3xl']}>
         <DialogHeader>
           <DialogTitle>문서 기록</DialogTitle>
         </DialogHeader>

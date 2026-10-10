@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from '@repo/client/rnr/components/ui/dialog';
 import { Text } from '@repo/client/rnr/components/ui/text';
+import { DIALOG_WIDTH } from '@core/app/ui/dialog-width';
 import {
   OrganizationCreateFields,
   useOrganizationCreateForm,
@@ -37,7 +38,7 @@ export function CreateOrganizationDialog({
   return (
     <Dialog onOpenChange={(nextOpen) => !nextOpen && close()} open>
       {/* Web의 Radix 래퍼가 폭을 갖지 않아 max-w-xl 폭을 직접 준다. */}
-      <DialogContent className="sm:max-w-xl web:w-[min(36rem,calc(100vw-2rem))]">
+      <DialogContent className={DIALOG_WIDTH.xl}>
         {/* 보이는 제목은 두지 않고 스크린리더용 이름만 남긴다. */}
         <DialogTitle className="sr-only">새 조직</DialogTitle>
         <OrganizationCreateFields

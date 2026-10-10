@@ -5,7 +5,9 @@ import {
   DialogContent,
   DialogTitle,
 } from '@repo/client/rnr/components/ui/dialog';
+import { cn } from '@repo/client/rnr/lib/utils';
 import { DashboardQueryBoundary } from '@core/app/state/dashboard-query-state';
+import { DIALOG_WIDTH } from '@core/app/ui/dialog-width';
 import { GraphEdgeInspector } from '@core/features/knowledge-graph/components/inspector/graph-edge-inspector';
 import {
   GraphInspectorEmpty,
@@ -50,7 +52,12 @@ export function GraphInspectorDialog({
       }}
       open={selection !== null && !editing}
     >
-      <DialogContent className="h-[80%] max-h-[640px] gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-md web:w-[min(28rem,calc(100vw-2rem))]">
+      <DialogContent
+        className={cn(
+          'h-[80%] max-h-[640px] gap-0 overflow-hidden rounded-2xl p-0',
+          DIALOG_WIDTH.md,
+        )}
+      >
         <DialogTitle className="sr-only">엔티티 상세</DialogTitle>
         {selection ? (
           <GraphInspectorBody

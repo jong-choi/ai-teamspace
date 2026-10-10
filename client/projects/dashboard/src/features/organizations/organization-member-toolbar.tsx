@@ -1,7 +1,5 @@
 import { View } from 'react-native';
 
-import { Icon } from '@repo/client/rnr/components/ui/icon';
-import { Input } from '@repo/client/rnr/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -10,14 +8,13 @@ import {
   SelectValue,
 } from '@repo/client/rnr/components/ui/select';
 import { Text } from '@repo/client/rnr/components/ui/text';
+import { DashboardSearchInput } from '@core/app/ui/dashboard-search-input';
 import type { OrganizationMemberFilters } from '@core/features/organizations/organization-member-filters';
 import {
   getOrganizationMemberRoleLabel,
   ORGANIZATION_MEMBER_ROLES,
   parseOrganizationMemberRole,
 } from '@core/features/organizations/organization-member-model';
-
-import { Search } from 'lucide-react-native';
 
 const ALL_ROLE_OPTION = {
   label: '전체 역할',
@@ -40,19 +37,14 @@ export function OrganizationMemberToolbar({
 
   return (
     <View className="gap-3 border-b border-border p-4 md:flex-row md:items-center md:justify-between">
-      <View className="relative w-full max-w-sm flex-1">
-        <View className="pointer-events-none absolute inset-y-0 left-3 z-10 justify-center">
-          <Icon as={Search} className="size-4 text-muted-foreground" />
-        </View>
-        <Input
-          accessibilityLabel="멤버 검색"
-          className="h-8 pl-9 text-xs"
-          maxLength={100}
-          onChangeText={filters.setSearchInput}
-          placeholder="등록 멤버 이름 또는 이메일 검색..."
-          value={filters.searchInput}
-        />
-      </View>
+      <DashboardSearchInput
+        accessibilityLabel="멤버 검색"
+        className="w-full max-w-sm flex-1"
+        maxLength={100}
+        onChangeText={filters.setSearchInput}
+        placeholder="등록 멤버 이름 또는 이메일 검색..."
+        value={filters.searchInput}
+      />
 
       <View className="flex-row items-center gap-2">
         <Text className="text-xs font-medium text-muted-foreground">

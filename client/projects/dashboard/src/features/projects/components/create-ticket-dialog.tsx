@@ -23,6 +23,8 @@ import {
   SelectValue,
 } from '@repo/client/rnr/components/ui/select';
 import { Text } from '@repo/client/rnr/components/ui/text';
+import { cn } from '@repo/client/rnr/lib/utils';
+import { DIALOG_WIDTH } from '@core/app/ui/dialog-width';
 import { TicketDescriptionInput } from '@core/features/projects/components/ticket-description-input';
 import { getProjectColumnPresentation } from '@core/features/projects/lib/project-column-presentation';
 import {
@@ -111,7 +113,7 @@ export function CreateTicketDialog({
       }}
       open={open}
     >
-      <DialogContent className="gap-0 rounded-xl p-0 sm:max-w-lg">
+      <DialogContent className={cn('gap-0 rounded-xl p-0', DIALOG_WIDTH.lg)}>
         <DialogHeader className="border-b border-border px-6 pb-4 pt-6 pr-12">
           <DialogTitle className="text-base">새 이슈</DialogTitle>
         </DialogHeader>

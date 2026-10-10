@@ -10,6 +10,8 @@ import {
   DialogTitle,
 } from '@repo/client/rnr/components/ui/dialog';
 import { Text } from '@repo/client/rnr/components/ui/text';
+import { cn } from '@repo/client/rnr/lib/utils';
+import { DIALOG_WIDTH } from '@core/app/ui/dialog-width';
 import {
   getOrganizationInvitationRecipientLabel,
   type PendingOrganizationInvitation,
@@ -41,7 +43,7 @@ export function CancelOrganizationInvitationDialog({
       }}
       open={open}
     >
-      <DialogContent className="rounded-xl">
+      <DialogContent className={cn('rounded-xl', DIALOG_WIDTH.lg)}>
         <DialogHeader>
           <DialogTitle>조직 초대 취소</DialogTitle>
           <DialogDescription>

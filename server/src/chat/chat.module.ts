@@ -6,9 +6,15 @@ import { ChatService } from '@/chat/chat.service';
 import { ChatDrizzlePersistenceModule } from '@/chat/infrastructure/persistence/drizzle/drizzle-persistence.module';
 import { ChatRealtimeModule } from '@/chat/infrastructure/realtime/redis/chat-realtime.module';
 import { TrustedOriginGuard } from '@/common/http/trusted-origin.guard';
+import { BetterAuthOrganizationModule } from '@/organizations/infrastructure/organization/better-auth/better-auth-organization.module';
 
 @Module({
-  imports: [AuthModule, ChatDrizzlePersistenceModule, ChatRealtimeModule],
+  imports: [
+    AuthModule,
+    BetterAuthOrganizationModule,
+    ChatDrizzlePersistenceModule,
+    ChatRealtimeModule,
+  ],
   controllers: [ChatController],
   providers: [ChatService, TrustedOriginGuard],
   exports: [ChatService],

@@ -9,15 +9,15 @@ import {
 } from '@repo/client/rnr/components/ui/avatar';
 import { Button } from '@repo/client/rnr/components/ui/button';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
-import { Input } from '@repo/client/rnr/components/ui/input';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
+import { DashboardSearchInput } from '@core/app/ui/dashboard-search-input';
 import { getConversationDisplay } from '@core/features/chat/chat-presenter';
 import { useChatConversations } from '@core/features/chat/chat-query';
 import { ChatLoading, ChatQueryBoundary } from '@core/features/chat/chat-state';
 
 import { LegendList } from '@legendapp/list/react-native';
-import { Bell, Hash, Plus, Search } from 'lucide-react-native';
+import { Bell, Hash, Plus } from 'lucide-react-native';
 
 type ConversationSidebarProps = {
   activeConversationId?: string;
@@ -58,18 +58,13 @@ export function ChatConversationSidebar({
       )}
     >
       <View className="shrink-0 flex-row items-center gap-2 border-b border-border p-3">
-        <View className="relative min-w-0 flex-1">
-          <Icon
-            as={Search}
-            className="absolute left-2.5 top-2.5 z-10 size-3.5 text-muted-foreground"
-          />
-          <Input
-            className="h-8 pl-8 text-xs md:text-xs"
-            onChangeText={setSearch}
-            placeholder="채널 또는 동료 검색..."
-            value={search}
-          />
-        </View>
+        <DashboardSearchInput
+          accessibilityLabel="채널 또는 동료 검색"
+          className="min-w-0 flex-1"
+          onChangeText={setSearch}
+          placeholder="채널 또는 동료 검색..."
+          value={search}
+        />
         <Button
           accessibilityLabel="새 대화 만들기"
           className="h-8 w-8"

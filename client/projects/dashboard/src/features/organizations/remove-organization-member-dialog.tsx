@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from '@repo/client/rnr/components/ui/dialog';
 import { Text } from '@repo/client/rnr/components/ui/text';
+import { DIALOG_WIDTH } from '@core/app/ui/dialog-width';
 
 export function RemoveOrganizationMemberDialog({
   member,
@@ -34,7 +35,7 @@ export function RemoveOrganizationMemberDialog({
       }}
       open={open}
     >
-      <DialogContent>
+      <DialogContent className={DIALOG_WIDTH.lg}>
         <DialogHeader>
           <DialogTitle>조직에서 멤버 제거</DialogTitle>
           <DialogDescription>

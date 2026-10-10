@@ -37,14 +37,14 @@ describe('조직 초대 UI 모델', () => {
     expect(parseOrganizationInvitationRole('owner')).toBeUndefined();
   });
 
-  it('입력한 사용자 이름의 공백과 표시용 @를 제거한다', () => {
+  it('입력한 사용자명의 공백과 표시용 @를 제거한다', () => {
     expect(normalizeOrganizationInvitationUsername('  @invitee  ')).toBe(
       'invitee',
     );
     expect(normalizeOrganizationInvitationUsername('invitee')).toBe('invitee');
   });
 
-  it('recipient 표시는 이름, 사용자 이름, 이메일 순서로 안전하게 fallback한다', () => {
+  it('recipient 표시는 이름, 사용자명, 이메일 순서로 안전하게 fallback한다', () => {
     expect(
       getOrganizationInvitationRecipientLabel({
         ...invitation,

@@ -21,6 +21,8 @@ import {
   SelectValue,
 } from '@repo/client/rnr/components/ui/select';
 import { Text } from '@repo/client/rnr/components/ui/text';
+import { cn } from '@repo/client/rnr/lib/utils';
+import { DIALOG_WIDTH } from '@core/app/ui/dialog-width';
 import {
   normalizeOrganizationInvitationUsername,
   ORGANIZATION_INVITATION_ROLES,
@@ -87,19 +89,19 @@ export function InviteOrganizationMemberDialog({
       }}
       open={open}
     >
-      <DialogContent className="gap-0 rounded-xl p-0 sm:max-w-lg">
+      <DialogContent className={cn('gap-0 rounded-xl p-0', DIALOG_WIDTH.lg)}>
         <DialogHeader className="border-b border-border px-6 pb-4 pt-6 pr-12">
           <DialogTitle className="text-base">조직에 새 멤버 초대</DialogTitle>
           <DialogDescription className="text-xs leading-5">
-            정확한 사용자 이름으로 {organizationName} 조직 초대를 보냅니다.
+            정확한 사용자명으로 {organizationName} 조직 초대를 보냅니다.
           </DialogDescription>
         </DialogHeader>
 
         <View className="gap-4 px-6 py-5">
           <View className="gap-1.5">
-            <Text className="text-xs font-medium">사용자 이름</Text>
+            <Text className="text-xs font-medium">사용자명</Text>
             <Input
-              accessibilityLabel="초대할 사용자 이름"
+              accessibilityLabel="초대할 사용자명"
               autoCapitalize="none"
               autoCorrect={false}
               className="h-9 text-xs"
@@ -107,11 +109,11 @@ export function InviteOrganizationMemberDialog({
               maxLength={255}
               onChangeText={setRecipientUsername}
               onSubmitEditing={submit}
-              placeholder="@username"
+              placeholder="사용자명"
               value={recipientUsername}
             />
             <Text className="text-[11px] leading-4 text-muted-foreground">
-              사용자 검색이나 자동완성 없이 정확한 사용자 이름을 입력합니다.
+              사용자 검색이나 자동완성 없이 정확한 사용자명을 입력합니다.
             </Text>
           </View>
 

@@ -14,11 +14,16 @@ export const chatControllerCreateChannelBodyParticipantUsernamesItemMax = 255;
 
 export const chatControllerCreateChannelBodyParticipantUsernamesMax = 49;
 
+export const chatControllerCreateChannelBodyParticipantUserIdsItemMax = 255;
+
+export const chatControllerCreateChannelBodyParticipantUserIdsMax = 49;
+
 
 export const ChatControllerCreateChannelBody = zod.object({
   "name": zod.string().min(1).max(chatControllerCreateChannelBodyNameMax),
   "topic": zod.string().max(chatControllerCreateChannelBodyTopicMax).nullish(),
-  "participantUsernames": zod.array(zod.string().min(1).max(chatControllerCreateChannelBodyParticipantUsernamesItemMax)).max(chatControllerCreateChannelBodyParticipantUsernamesMax).optional()
+  "participantUsernames": zod.array(zod.string().min(1).max(chatControllerCreateChannelBodyParticipantUsernamesItemMax)).max(chatControllerCreateChannelBodyParticipantUsernamesMax).optional(),
+  "participantUserIds": zod.array(zod.string().min(1).max(chatControllerCreateChannelBodyParticipantUserIdsItemMax)).max(chatControllerCreateChannelBodyParticipantUserIdsMax).optional()
 })
 
 export type ChatControllerCreateChannelBody = zod.input<typeof ChatControllerCreateChannelBody>;

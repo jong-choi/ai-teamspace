@@ -8,9 +8,12 @@ import * as zod from 'zod';
 
 export const chatControllerCreateDirectBodyRecipientUsernameMax = 255;
 
+export const chatControllerCreateDirectBodyRecipientUserIdMax = 255;
+
 
 export const ChatControllerCreateDirectBody = zod.object({
-  "recipientUsername": zod.string().min(1).max(chatControllerCreateDirectBodyRecipientUsernameMax)
+  "recipientUsername": zod.string().min(1).max(chatControllerCreateDirectBodyRecipientUsernameMax).optional(),
+  "recipientUserId": zod.string().min(1).max(chatControllerCreateDirectBodyRecipientUserIdMax).optional()
 })
 
 export type ChatControllerCreateDirectBody = zod.input<typeof ChatControllerCreateDirectBody>;

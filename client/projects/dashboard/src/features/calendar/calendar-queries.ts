@@ -3,14 +3,12 @@ import {
   useCalendarControllerListMeetingRoomsSuspense,
   useCalendarControllerListMeetingsSuspense,
   useOrganizationsControllerGetActiveSuspense,
-  useOrganizationsControllerListMembersSuspense,
 } from '@repo/client/api-client';
 import type {
   MeetingDetail,
   MeetingList,
   MeetingRoomList,
   OrganizationAccess,
-  OrganizationMemberList,
 } from '@repo/client/api-client/schemas';
 import type { CalendarCategory } from '@core/features/calendar/lib/calendar-category';
 
@@ -60,17 +58,5 @@ export function useCalendarMeetingDetail(
   return useCalendarControllerGetMeetingSuspense<MeetingDetail>(
     organizationId,
     meetingId,
-  );
-}
-
-export function useCalendarMembers(organizationId: string, search: string) {
-  const normalizedSearch = search.trim();
-  return useOrganizationsControllerListMembersSuspense<OrganizationMemberList>(
-    organizationId,
-    {
-      limit: 100,
-      offset: 0,
-      search: normalizedSearch.length > 0 ? normalizedSearch : undefined,
-    },
   );
 }

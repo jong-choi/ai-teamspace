@@ -29,7 +29,9 @@ import {
   SelectValue,
 } from '@repo/client/rnr/components/ui/select';
 import { Text } from '@repo/client/rnr/components/ui/text';
+import { cn } from '@repo/client/rnr/lib/utils';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
+import { DIALOG_WIDTH } from '@core/app/ui/dialog-width';
 import { useCalendarAvailabilityPreview } from '@core/features/calendar/calendar-availability-mutations';
 import { useCreateCalendarMeeting } from '@core/features/calendar/calendar-scheduling-mutations';
 import { CalendarAttendeePicker } from '@core/features/calendar/components/calendar-attendee-picker';
@@ -269,7 +271,7 @@ export function CalendarCreateDialog({
 
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
-      <DialogContent className="max-h-[92vh] max-w-lg">
+      <DialogContent className={cn('max-h-[92vh]', DIALOG_WIDTH.lg)}>
         <DialogHeader className="border-b border-border pb-3">
           <View className="flex-row items-center gap-2">
             <Icon as={CalendarPlus} className="size-4 text-emerald-500" />

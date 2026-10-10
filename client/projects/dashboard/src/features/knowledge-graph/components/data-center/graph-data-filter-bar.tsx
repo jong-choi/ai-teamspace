@@ -1,8 +1,6 @@
 import { useRef, useState } from 'react';
 import { View } from 'react-native';
 
-import { Icon } from '@repo/client/rnr/components/ui/icon';
-import { Input } from '@repo/client/rnr/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -11,6 +9,7 @@ import {
   SelectValue,
 } from '@repo/client/rnr/components/ui/select';
 import { Text } from '@repo/client/rnr/components/ui/text';
+import { DashboardSearchInput } from '@core/app/ui/dashboard-search-input';
 import { GRAPH_NODE_KIND_META } from '@core/features/knowledge-graph/lib/graph-presentation';
 import {
   GRAPH_EDGE_RELATIONS,
@@ -18,8 +17,6 @@ import {
   GRAPH_PAGE_SIZES,
   type GraphDataCenterParams,
 } from '@core/features/knowledge-graph/lib/graph-route-params';
-
-import { Search } from 'lucide-react-native';
 
 const SEARCH_COMMIT_DELAY_MS = 300;
 const ALL = 'all';
@@ -43,28 +40,22 @@ export function GraphDataFilterBar({
     <View className="mb-4 flex-row flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-3 shadow-sm">
       <View className="min-w-[240px] flex-1 flex-row items-center gap-2">
         {params.tab === 'nodes' ? (
-          <View className="relative flex-1 justify-center">
-            <Icon
-              as={Search}
-              className="absolute left-3 z-10 size-4 text-muted-foreground"
-            />
-            <Input
-              accessibilityLabel="이름, ID 또는 키워드 검색"
-              className="h-8 pl-9 text-xs sm:h-8 md:text-xs"
-              onChangeText={(next) => {
-                setSearch(next);
-                if (commitTimer.current) clearTimeout(commitTimer.current);
-                commitTimer.current = setTimeout(
-                  () => commitSearch(next),
-                  SEARCH_COMMIT_DELAY_MS,
-                );
-              }}
-              onSubmitEditing={() => commitSearch(search)}
-              placeholder="이름, ID 또는 키워드 검색..."
-              returnKeyType="search"
-              value={search}
-            />
-          </View>
+          <DashboardSearchInput
+            accessibilityLabel="이름, ID 또는 키워드 검색"
+            className="flex-1"
+            onChangeText={(next) => {
+              setSearch(next);
+              if (commitTimer.current) clearTimeout(commitTimer.current);
+              commitTimer.current = setTimeout(
+                () => commitSearch(next),
+                SEARCH_COMMIT_DELAY_MS,
+              );
+            }}
+            onSubmitEditing={() => commitSearch(search)}
+            placeholder="이름, ID 또는 키워드 검색..."
+            returnKeyType="search"
+            value={search}
+          />
         ) : null}
         {params.tab === 'nodes' ? (
           <Select

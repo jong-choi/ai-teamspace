@@ -14,6 +14,8 @@ import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Label } from '@repo/client/rnr/components/ui/label';
 import { Skeleton } from '@repo/client/rnr/components/ui/skeleton';
 import { Text } from '@repo/client/rnr/components/ui/text';
+import { cn } from '@repo/client/rnr/lib/utils';
+import { DIALOG_WIDTH } from '@core/app/ui/dialog-width';
 
 import type { LucideIcon } from 'lucide-react-native';
 
@@ -45,7 +47,7 @@ export function GraphDialogFrame({
       open
     >
       {/* Web의 Radix 래퍼가 폭을 갖지 않아 max-w-md 폭을 직접 준다. */}
-      <DialogContent className="gap-5 rounded-2xl p-6 sm:max-w-md web:w-[min(28rem,calc(100vw-2rem))]">
+      <DialogContent className={cn('gap-5 rounded-2xl p-6', DIALOG_WIDTH.md)}>
         <DialogHeader className="flex-row items-center gap-2 border-b border-border/60 pb-3 pr-6">
           <View className="rounded-lg bg-muted p-1.5">
             <Icon as={icon} className="size-4" />

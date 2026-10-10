@@ -1,7 +1,6 @@
 import { Pressable, ScrollView, View } from 'react-native';
 
 import { Icon } from '@repo/client/rnr/components/ui/icon';
-import { Input } from '@repo/client/rnr/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -13,6 +12,7 @@ import { Skeleton } from '@repo/client/rnr/components/ui/skeleton';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
 import { DashboardQueryBoundary } from '@core/app/state/dashboard-query-state';
+import { DashboardSearchInput } from '@core/app/ui/dashboard-search-input';
 import { useCalendarRooms } from '@core/features/calendar/calendar-queries';
 import {
   CALENDAR_CATEGORIES,
@@ -20,7 +20,7 @@ import {
   type CalendarCategory,
 } from '@core/features/calendar/lib/calendar-category';
 
-import { ChevronLeft, ChevronRight, Search } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 
 export function CalendarToolbar({
   category,
@@ -79,20 +79,14 @@ export function CalendarToolbar({
       </View>
 
       <View className="min-w-0 flex-1 gap-2 md:max-w-xl md:flex-row md:items-center md:justify-end">
-        <View className="relative min-w-[180px] flex-1">
-          <Icon
-            as={Search}
-            className="pointer-events-none absolute left-2.5 top-2.5 z-10 size-3.5 text-muted-foreground"
-          />
-          <Input
-            accessibilityLabel="회의 일정 검색"
-            className="h-8 py-1 pl-8 text-xs sm:h-8 md:text-xs"
-            maxLength={100}
-            onChangeText={onSearchChange}
-            placeholder="회의명, 참석자, 장소 검색..."
-            value={search}
-          />
-        </View>
+        <DashboardSearchInput
+          accessibilityLabel="회의 일정 검색"
+          className="min-w-[180px] flex-1"
+          maxLength={100}
+          onChangeText={onSearchChange}
+          placeholder="회의명, 참석자, 장소 검색..."
+          value={search}
+        />
         <ScrollView
           className="max-w-full"
           contentContainerClassName="flex-row gap-1.5"

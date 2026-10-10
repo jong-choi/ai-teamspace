@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from '@repo/client/rnr/components/ui/select';
 import { Text } from '@repo/client/rnr/components/ui/text';
+import { DIALOG_WIDTH } from '@core/app/ui/dialog-width';
 import type { WikiTreeTarget } from '@core/features/wiki/components/wiki-tree';
 import { useWikiMutations } from '@core/features/wiki/use-wiki-mutations';
 import {
@@ -81,7 +82,7 @@ export function WikiManageDialog({
       open={open}
       onOpenChange={(nextOpen) => !mutations.pending && onOpenChange(nextOpen)}
     >
-      <DialogContent className="max-w-md">
+      <DialogContent className={DIALOG_WIDTH.md}>
         <DialogHeader>
           <DialogTitle>문서 변경</DialogTitle>
         </DialogHeader>

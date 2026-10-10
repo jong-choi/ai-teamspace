@@ -1,18 +1,18 @@
+import { useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 
 import { Icon } from '@repo/client/rnr/components/ui/icon';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@repo/client/rnr/components/ui/select';
+import { Select, SelectContent } from '@repo/client/rnr/components/ui/select';
 import { Skeleton } from '@repo/client/rnr/components/ui/skeleton';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
 import { DashboardQueryBoundary } from '@core/app/state/dashboard-query-state';
 import { DashboardSearchInput } from '@core/app/ui/dashboard-search-input';
+import {
+  DashboardSelectItem,
+  DashboardSelectTrigger,
+  DashboardSelectValue,
+} from '@core/app/ui/dashboard-select';
 import { useCalendarRooms } from '@core/features/calendar/calendar-queries';
 import {
   CALENDAR_CATEGORIES,
@@ -21,6 +21,9 @@ import {
 } from '@core/features/calendar/lib/calendar-category';
 
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
+
+// 이동 버튼·기간 제목과 검색·분류·회의실을 한 줄에 놓을 수 있는 최소 너비다.
+const SINGLE_ROW_MIN_WIDTH = 900;
 
 export function CalendarToolbar({
   category,
@@ -47,9 +50,19 @@ export function CalendarToolbar({
   organizationId: string;
   search: string;
 }) {
+  // Agent 패널이 열리면 창이 넓어도 본문은 좁다. 그래서 툴바가 실제로 받은 너비를 본다.
+  const [width, setWidth] = useState<number | null>(null);
+  const singleRow = width !== null && width >= SINGLE_ROW_MIN_WIDTH;
+
   return (
-    <View className="shrink-0 gap-3 border-b border-border bg-muted/20 px-4 py-2.5 md:flex-row md:items-center md:justify-between sm:px-6">
-      <View className="flex-row items-center gap-2">
+    <View
+      className={cn(
+        'shrink-0 gap-3 border-b border-border bg-muted/20 px-4 py-2.5 sm:px-6',
+        singleRow && 'flex-row items-center justify-between',
+      )}
+      onLayout={({ nativeEvent }) => setWidth(nativeEvent.layout.width)}
+    >
+      <View className="shrink-0 flex-row items-center gap-2">
         <View className="flex-row items-center rounded-md border border-border bg-background p-0.5">
           <Pressable
             accessibilityLabel="이전 기간"
@@ -78,7 +91,14 @@ export function CalendarToolbar({
         <Text className="ml-1 text-sm font-bold">{periodTitle}</Text>
       </View>
 
-      <View className="min-w-0 flex-1 gap-2 md:max-w-xl md:flex-row md:items-center md:justify-end">
+      <View
+        className={cn(
+          'min-w-0 gap-2',
+          singleRow
+            ? 'max-w-xl flex-1 flex-row items-center justify-end'
+            : 'flex-row flex-wrap items-center',
+        )}
+      >
         <DashboardSearchInput
           accessibilityLabel="회의 일정 검색"
           className="min-w-[180px] flex-1"
@@ -180,7 +200,7 @@ function CalendarRoomFilter({
   const rooms = useCalendarRooms(organizationId).data.items;
   const selectedRoom = rooms.find((room) => room.id === roomId) ?? null;
   return (
-    <View className="min-w-[150px] md:w-44">
+    <View className="w-44">
       <Select
         onValueChange={(option) =>
           onRoomChange(
@@ -193,24 +213,24 @@ function CalendarRoomFilter({
             : { label: '모든 회의실', value: 'all' }
         }
       >
-        <SelectTrigger
+        <DashboardSelectTrigger
           accessibilityLabel="회의실 필터"
-          className="h-8 w-full px-2 py-1 sm:h-8 sm:py-1"
+          className="w-full px-2 py-1 sm:py-1"
           size="sm"
         >
-          <SelectValue className="text-xs" placeholder="회의실" />
-        </SelectTrigger>
+          <DashboardSelectValue placeholder="회의실" />
+        </DashboardSelectTrigger>
         <SelectContent side="bottom">
-          <SelectItem
+          <DashboardSelectItem
             className="py-1 sm:py-1"
             textClassName="text-xs"
             label="모든 회의실"
             value="all"
           >
             <Text className="text-xs">모든 회의실</Text>
-          </SelectItem>
+          </DashboardSelectItem>
           {rooms.map((room) => (
-            <SelectItem
+            <DashboardSelectItem
               className="py-1 sm:py-1"
               textClassName="text-xs"
               key={room.id}
@@ -221,7 +241,7 @@ function CalendarRoomFilter({
                 {room.name}
                 {room.active ? '' : ' · 비활성'}
               </Text>
-            </SelectItem>
+            </DashboardSelectItem>
           ))}
         </SelectContent>
       </Select>

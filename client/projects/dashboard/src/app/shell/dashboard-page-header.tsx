@@ -21,7 +21,7 @@ export function DashboardPageHeader({
   return (
     <View
       className={cn(
-        'min-h-[60px] shrink-0 flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-border bg-background px-4 py-3 sm:min-h-14 lg:px-6',
+        'min-h-[60px] shrink-0 flex-row flex-wrap content-center items-center justify-between gap-x-3 gap-y-2 border-b border-border bg-background px-4 py-3 sm:min-h-14 lg:px-6',
         className,
       )}
     >

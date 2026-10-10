@@ -11,6 +11,14 @@ import { describe, expect, it, jest } from '@jest/globals';
 import type { Thread } from '@langchain/langgraph-sdk';
 import { fireEvent, render } from '@testing-library/react-native';
 
+// 마크다운은 테마 설정을 읽는다. 테스트에서는 provider 없이 기본 글자 크기와 기본 색을 쓴다.
+jest.mock('@core/app/appearance/appearance-provider', () => ({
+  useAppearanceStore: (
+    selector: (state: { applied: { fontSizePreference: string } }) => unknown,
+  ) => selector({ applied: { fontSizePreference: 'small' } }),
+  useAppearanceTokens: () => null,
+}));
+
 jest.mock('@core/app/platform/dashboard-platform', () => ({
   useDashboardPlatform: () => ({
     copyText: jest.fn(async () => undefined),

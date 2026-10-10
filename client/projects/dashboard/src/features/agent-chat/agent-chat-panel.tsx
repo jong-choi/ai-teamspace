@@ -86,7 +86,7 @@ export function AgentChatPanel() {
         wide
           ? expanded
             ? 'min-w-0 flex-1'
-            : 'w-[400px] shrink-0 border-l border-border'
+            : 'w-[360px] shrink-0 border-l border-border'
           : 'min-w-0 flex-1',
         !open && 'hidden',
       )}

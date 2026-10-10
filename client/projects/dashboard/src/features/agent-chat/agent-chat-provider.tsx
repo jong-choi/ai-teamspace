@@ -1,10 +1,18 @@
-import { createContext, type ReactNode, useContext, useState } from 'react';
+import {
+  createContext,
+  type ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
+import { Dimensions, Platform } from 'react-native';
 
 import {
   type AgentChatState,
   type AgentChatStore,
   createAgentChatStore,
 } from '@core/features/agent-chat/lib/agent-chat-store';
+import { AGENT_CHAT_WIDE_MIN_WIDTH } from '@core/features/agent-chat/lib/use-agent-chat-layout';
 
 import { useStore } from 'zustand';
 
@@ -24,6 +32,17 @@ export function AgentChatProvider({
   initialState?: Partial<AgentChatState>;
 }) {
   const [store] = useState(() => createAgentChatStore(initialState));
+
+  // Web의 넓은 창에서는 패널을 연 채로 시작한다. 좁은 창과 native는 닫힌 채로 둔다.
+  useEffect(() => {
+    if (
+      Platform.OS === 'web' &&
+      Dimensions.get('window').width >= AGENT_CHAT_WIDE_MIN_WIDTH
+    ) {
+      store.getState().openPanel();
+    }
+  }, [store]);
+
   return (
     <AgentChatStoreContext.Provider value={store}>
       {children}

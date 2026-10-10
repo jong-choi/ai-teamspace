@@ -1,14 +1,13 @@
 import { View } from 'react-native';
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@repo/client/rnr/components/ui/select';
+import { Select, SelectContent } from '@repo/client/rnr/components/ui/select';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { DashboardSearchInput } from '@core/app/ui/dashboard-search-input';
+import {
+  DashboardSelectItem,
+  DashboardSelectTrigger,
+  DashboardSelectValue,
+} from '@core/app/ui/dashboard-select';
 import type { OrganizationMemberFilters } from '@core/features/organizations/organization-member-filters';
 import {
   getOrganizationMemberRoleLabel,
@@ -36,10 +35,10 @@ export function OrganizationMemberToolbar({
     : ALL_ROLE_OPTION;
 
   return (
-    <View className="gap-3 border-b border-border p-4 md:flex-row md:items-center md:justify-between">
+    <View className="flex-row flex-wrap items-center justify-between gap-3 border-b border-border p-4">
       <DashboardSearchInput
         accessibilityLabel="멤버 검색"
-        className="w-full max-w-sm flex-1"
+        className="min-w-[200px] max-w-sm flex-1"
         maxLength={100}
         onChangeText={filters.setSearchInput}
         placeholder="등록 멤버 이름 또는 이메일 검색..."
@@ -60,24 +59,24 @@ export function OrganizationMemberToolbar({
           }}
           value={selectedRole}
         >
-          <SelectTrigger className="min-w-32" size="sm">
-            <SelectValue placeholder="전체 역할" />
-          </SelectTrigger>
+          <DashboardSelectTrigger className="min-w-32" size="sm">
+            <DashboardSelectValue placeholder="전체 역할" />
+          </DashboardSelectTrigger>
           <SelectContent align="end" side="bottom">
-            <SelectItem
+            <DashboardSelectItem
               label={ALL_ROLE_OPTION.label}
               value={ALL_ROLE_OPTION.value}
             >
               {ALL_ROLE_OPTION.label}
-            </SelectItem>
+            </DashboardSelectItem>
             {ROLE_OPTIONS.map((option) => (
-              <SelectItem
+              <DashboardSelectItem
                 key={option.value}
                 label={option.label}
                 value={option.value}
               >
                 {option.label}
-              </SelectItem>
+              </DashboardSelectItem>
             ))}
           </SelectContent>
         </Select>

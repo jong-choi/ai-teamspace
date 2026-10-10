@@ -61,9 +61,7 @@ export function GraphStudioHeader({
             <TabsList className="h-auto rounded-lg border border-border p-0.5">
               <TabsTrigger className="px-2.5 py-1" value="graph">
                 <Icon as={Share2} className="size-3.5 text-muted-foreground" />
-                <Text className="text-xs">
-                  {compact ? '그래프' : '인터랙티브 그래프 뷰'}
-                </Text>
+                <Text className="text-xs">그래프</Text>
               </TabsTrigger>
               <TabsTrigger className="px-2.5 py-1" value="data">
                 <Icon as={Table} className="size-3.5 text-muted-foreground" />

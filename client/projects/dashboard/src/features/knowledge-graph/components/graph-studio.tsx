@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useWindowDimensions, View } from 'react-native';
 
 import { Button } from '@repo/client/rnr/components/ui/button';
@@ -28,6 +29,8 @@ import { ArrowRight } from 'lucide-react-native';
 
 // dashboard sidebar(lg)와 320px inspector를 함께 둘 수 있는 폭이다.
 const WIDE_LAYOUT_MIN_WIDTH = 1024;
+// 헤더의 검색창과 긴 버튼 글자를 다 보여 줄 수 있는 최소 너비다.
+const FULL_HEADER_MIN_WIDTH = 860;
 
 export function GraphStudio({
   dataParams,
@@ -49,11 +52,16 @@ export function GraphStudio({
   const { width } = useWindowDimensions();
   const wide = width >= WIDE_LAYOUT_MIN_WIDTH;
   const openDialog = useGraphStudioStore((state) => state.openDialog);
+  // Agent 패널이 열리면 창이 넓어도 본문은 좁다. 그래서 본문이 실제로 받은 너비를 본다.
+  const [contentWidth, setContentWidth] = useState<number | null>(null);
 
   return (
-    <View className="min-h-0 flex-1 bg-background">
+    <View
+      className="min-h-0 flex-1 bg-background"
+      onLayout={({ nativeEvent }) => setContentWidth(nativeEvent.layout.width)}
+    >
       <GraphStudioHeader
-        compact={width < 768}
+        compact={(contentWidth ?? width) < FULL_HEADER_MIN_WIDTH}
         onCreate={() => openDialog({ type: 'node-create' })}
         onSearch={onExploreSearch}
         onViewChange={onViewChange}

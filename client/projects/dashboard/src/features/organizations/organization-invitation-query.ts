@@ -14,15 +14,3 @@ export function useOrganizationPendingInvitations(organizationId: string) {
     ORGANIZATION_PENDING_INVITATIONS_PARAMS,
   );
 }
-
-export function useOrganizationPendingInvitationTotal(organizationId: string) {
-  return useOrganizationInvitationsControllerListSuspense<number>(
-    organizationId,
-    ORGANIZATION_PENDING_INVITATIONS_PARAMS,
-    {
-      query: {
-        select: (response) => response.total,
-      },
-    },
-  );
-}

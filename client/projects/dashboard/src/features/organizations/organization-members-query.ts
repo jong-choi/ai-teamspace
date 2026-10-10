@@ -14,15 +14,3 @@ export function useOrganizationMemberPage(
 ) {
   return useOrganizationsControllerListMembersSuspense(organizationId, params);
 }
-
-export function useOrganizationMemberTotal(organizationId: string) {
-  return useOrganizationsControllerListMembersSuspense<number>(
-    organizationId,
-    { limit: 1, offset: 0 },
-    {
-      query: {
-        select: (response) => response.total,
-      },
-    },
-  );
-}

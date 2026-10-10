@@ -11,7 +11,6 @@ import {
 import { AuthenticationRequiredState } from '@core/features/auth/authentication-required-state';
 import { useOrganizationMemberFilters } from '@core/features/organizations/organization-member-filters';
 import { OrganizationMemberList } from '@core/features/organizations/organization-member-list';
-import { OrganizationMemberMetrics } from '@core/features/organizations/organization-member-metrics';
 import { canManageOrganizationInvitations } from '@core/features/organizations/organization-member-permissions';
 import { OrganizationMemberToolbar } from '@core/features/organizations/organization-member-toolbar';
 import { OrganizationMembersHeader } from '@core/features/organizations/organization-members-header';
@@ -119,22 +118,6 @@ function OrganizationMembersPage({
           access={access}
           organizationId={organizationId}
         />
-
-        <DashboardQueryBoundary
-          fallback={
-            <DashboardLoading
-              className="min-h-32 py-10"
-              label="멤버 및 초대 현황을 불러오는 중..."
-            />
-          }
-          resetKeys={[organizationId]}
-          title="멤버 및 초대 현황을 불러오지 못했습니다"
-        >
-          <OrganizationMemberMetrics
-            actorRole={access.role}
-            organizationId={organizationId}
-          />
-        </DashboardQueryBoundary>
 
         <View className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
           <OrganizationMemberToolbar filters={filters} />

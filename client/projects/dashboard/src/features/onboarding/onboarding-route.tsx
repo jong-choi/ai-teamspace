@@ -135,7 +135,7 @@ function OrganizationOnboardingForm() {
                       form.setValue('slug', toOrganizationSlug(value));
                     }
                   }}
-                  placeholder="Acme 팀"
+                  placeholder="example"
                   value={field.value}
                 />
                 {fieldState.error?.message ? (
@@ -163,9 +163,11 @@ function OrganizationOnboardingForm() {
                   maxLength={255}
                   onBlur={field.onBlur}
                   onChangeText={(value) =>
-                    field.onChange(toOrganizationSlug(value))
+                    field.onChange(
+                      value.toLowerCase().replace(/[^a-z0-9-]/g, ''),
+                    )
                   }
-                  placeholder="acme-team"
+                  placeholder="example-team"
                   value={field.value}
                 />
                 <Text className="text-xs text-muted-foreground">

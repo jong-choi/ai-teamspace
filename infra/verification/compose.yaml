@@ -32,7 +32,8 @@ services:
   redis:
     image: redis:8.2.10-alpine
     container_name: workos-graph-verification-redis
-    command: ['redis-server', '--appendonly', 'yes', '--appendfsync', 'everysec']
+    command:
+      ['redis-server', '--appendonly', 'yes', '--appendfsync', 'everysec']
     volumes:
       - redis-data:/data
     restart: unless-stopped
@@ -64,7 +65,8 @@ services:
       - neo4j-data:/data
     restart: unless-stopped
     healthcheck:
-      test: ['CMD-SHELL', 'wget -q -O /dev/null http://localhost:7474 || exit 1']
+      test:
+        ['CMD-SHELL', 'wget -q -O /dev/null http://localhost:7474 || exit 1']
       interval: 5s
       timeout: 5s
       retries: 30

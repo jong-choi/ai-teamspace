@@ -34,6 +34,7 @@ describe('MCP access key management service', () => {
       authMethods: ['oauth', 'personal-access-key'],
       accessKey: {
         prefix: 'wos_mcp_',
+        urlParameter: 'wos_token',
         maxActiveKeys: 10,
         defaultExpiresInDays: 30,
         maxExpiresInDays: 365,

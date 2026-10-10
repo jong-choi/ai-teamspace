@@ -6,7 +6,6 @@ import type {
   McpConnectionInfo,
 } from '@repo/client/api-client/schemas';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
-import { Input } from '@repo/client/rnr/components/ui/input';
 import { Label } from '@repo/client/rnr/components/ui/label';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
@@ -15,8 +14,10 @@ import {
   DashboardQueryBoundary,
 } from '@core/app/state/dashboard-query-state';
 import { ChoiceChip } from '@core/app/ui/choice-chip';
+import { DashboardInput } from '@core/app/ui/dashboard-input';
 import { McpPermissionTable } from '@core/features/mcp-access/components/policies/mcp-permission-table';
 import type { McpAccessScope } from '@core/features/mcp-access/mcp-access-presentation';
+import { MCP_DOMAIN_ROWS } from '@core/features/mcp-access/mcp-access-presentation';
 
 import { Check } from 'lucide-react-native';
 
@@ -47,9 +48,8 @@ export function McpAccessKeyFields({
         <Label className="text-xs" nativeID="mcp-access-key-name">
           이름
         </Label>
-        <Input
+        <DashboardInput
           accessibilityLabel="접근 키 이름"
-          className="h-9 text-xs md:text-xs"
           editable={!disabled}
           maxLength={32}
           onChangeText={(name) => onChange({ ...draft, name })}
@@ -72,6 +72,7 @@ export function McpAccessKeyFields({
             })
           }
           selectedScopes={draft.scopes}
+          rows={MCP_DOMAIN_ROWS}
         />
       </View>
 

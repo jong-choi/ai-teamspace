@@ -3,7 +3,12 @@ import { randomUUID } from 'node:crypto';
 import { Inject, Injectable, Optional } from '@nestjs/common';
 
 import type { McpAuthContext } from '@/mcp/contracts/mcp-auth-context';
-import { MCP_SCOPES, type McpScope } from '@/mcp/contracts/mcp-scope';
+import {
+  MCP_SCOPES,
+  type McpScope,
+  withoutPersonalMcpScopes,
+  withPersonalMcpScopes,
+} from '@/mcp/contracts/mcp-scope';
 import {
   McpOrganizationMembershipRequiredError,
   McpOrganizationPolicyForbiddenError,
@@ -81,7 +86,9 @@ export class McpAccessService {
     );
     const effectiveAccess = toMcpEffectiveAccess({
       deploymentScopes: MCP_SCOPES,
-      organizationAllowedScopes: organizationPolicy.allowedScopes,
+      organizationAllowedScopes: withPersonalMcpScopes(
+        organizationPolicy.allowedScopes,
+      ),
       userRequestedScopes: userPolicy.requestedScopes,
     });
 
@@ -109,7 +116,10 @@ export class McpAccessService {
       organizationPolicy.allowedScopes,
     );
 
-    const allowed = new Set<McpScope>(organizationPolicy.allowedScopes);
+    // 채팅 같은 개인 scope는 조직 정책과 무관하게 본인이 고른다.
+    const allowed = new Set<McpScope>(
+      withPersonalMcpScopes(organizationPolicy.allowedScopes),
+    );
     if (input.requestedScopes.some((scope) => !allowed.has(scope))) {
       throw new McpScopeNotAllowedByOrganizationError();
     }
@@ -162,7 +172,8 @@ export class McpAccessService {
 
     const result = await this.repository.updateOrganizationPolicyAndPruneUsers({
       organizationId,
-      allowedScopes: input.allowedScopes,
+      // 개인 scope는 조직 정책에 저장하지 않는다.
+      allowedScopes: withoutPersonalMcpScopes(input.allowedScopes),
       expectedRevision: input.expectedRevision,
       updatedByUserId: actor.userId,
     });
@@ -233,7 +244,9 @@ export class McpAccessService {
       credentialScopes: input.auth.scopes,
       credentialOrganizationIds: input.auth.allowedOrganizationIds,
       organizationId: input.organizationId,
-      organizationAllowedScopes: policies.organizationPolicy.allowedScopes,
+      organizationAllowedScopes: withPersonalMcpScopes(
+        policies.organizationPolicy.allowedScopes,
+      ),
       userRequestedScopes: policies.userPolicy.requestedScopes,
       hasMembership,
     });
@@ -425,7 +438,9 @@ export class McpAccessService {
 
     return toMcpEffectiveAccess({
       deploymentScopes: MCP_SCOPES,
-      organizationAllowedScopes: organizationPolicy.allowedScopes,
+      organizationAllowedScopes: withPersonalMcpScopes(
+        organizationPolicy.allowedScopes,
+      ),
       userRequestedScopes: userPolicy.requestedScopes,
     }).effectiveScopes;
   }

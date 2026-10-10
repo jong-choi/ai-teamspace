@@ -19,6 +19,23 @@ export const MCP_DOMAIN_ROWS = [
   description: string;
 }[];
 
+// 채팅은 조직에 속하지 않아서 조직 정책과 무관하게 본인만 켜고 끈다.
+const MCP_PERSONAL_DOMAINS: readonly McpAccessDomain[] = ['chat'];
+
+export function isPersonalMcpScope(scope: McpAccessScope): boolean {
+  return MCP_PERSONAL_DOMAINS.some((domain) => scope.startsWith(`${domain}:`));
+}
+
+export type McpDomainRow = (typeof MCP_DOMAIN_ROWS)[number];
+
+// 조직 정책을 따르는 영역이다.
+export const MCP_ORGANIZATION_ROWS: readonly McpDomainRow[] =
+  MCP_DOMAIN_ROWS.filter((row) => !MCP_PERSONAL_DOMAINS.includes(row.domain));
+
+// 본인만 설정하는 영역이다.
+export const MCP_PERSONAL_ROWS: readonly McpDomainRow[] =
+  MCP_DOMAIN_ROWS.filter((row) => MCP_PERSONAL_DOMAINS.includes(row.domain));
+
 export const MCP_ACTION_COLUMNS = [
   { action: 'read', label: '조회' },
   { action: 'write', label: '변경' },

@@ -54,18 +54,29 @@ describe('MCP access policy domain', () => {
     });
   });
 
-  it('conservative default는 canonical read scope만 선택한다', () => {
+  it('조직 기본값은 조직 영역의 조회와 변경을 모두 허용하고 개인 scope는 담지 않는다', () => {
     expect(getDefaultOrganizationMcpScopes()).toEqual([
       'organizations:read',
-      'chat:read',
+      'organizations:write',
       'wiki:read',
+      'wiki:write',
       'projects:read',
+      'projects:write',
       'calendar:read',
+      'calendar:write',
     ]);
+  });
 
+  it('사용자 기본값은 조직이 허용한 scope에 개인 scope를 더한다', () => {
     expect(
       getDefaultUserMcpScopes(['wiki:read', 'wiki:write', 'calendar:read']),
-    ).toEqual(['wiki:read', 'calendar:read']);
+    ).toEqual([
+      'chat:read',
+      'chat:write',
+      'wiki:read',
+      'wiki:write',
+      'calendar:read',
+    ]);
   });
 
   it('effective scope intersection을 canonical 순서로 반환한다', () => {

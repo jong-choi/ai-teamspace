@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { View } from 'react-native';
 
@@ -20,7 +20,11 @@ import {
   McpPolicySaveBar,
 } from '@core/features/mcp-access/components/policies/mcp-policy-save-bar';
 import { useMcpAccessMutations } from '@core/features/mcp-access/mcp-access-mutations';
-import type { McpAccessScope } from '@core/features/mcp-access/mcp-access-presentation';
+import {
+  isPersonalMcpScope,
+  MCP_ORGANIZATION_ROWS,
+  type McpAccessScope,
+} from '@core/features/mcp-access/mcp-access-presentation';
 
 type OrganizationPolicyForm = {
   allowedScopes: McpAccessScope[];
@@ -34,14 +38,19 @@ export function McpOrganizationPolicy({
   const { updateOrganizationPolicy, handleError } = useMcpAccessMutations(
     access.organizationId,
   );
+  // 채팅 같은 개인 영역은 조직 정책 대상이 아니라서 이 화면에서 다루지 않는다.
+  const savedScopes = useMemo(
+    () =>
+      access.organizationPolicy.allowedScopes.filter(
+        (scope) => !isPersonalMcpScope(scope),
+      ),
+    [access.organizationPolicy.allowedScopes],
+  );
   const form = useForm<OrganizationPolicyForm>({
-    defaultValues: {
-      allowedScopes: access.organizationPolicy.allowedScopes,
-    },
+    defaultValues: { allowedScopes: savedScopes },
   });
   const [confirmShrink, setConfirmShrink] = useState(false);
   const selectedScopes = form.watch('allowedScopes');
-  const savedScopes = access.organizationPolicy.allowedScopes;
   const removedCount = savedScopes.filter(
     (scope) => !selectedScopes.includes(scope),
   ).length;
@@ -49,12 +58,10 @@ export function McpOrganizationPolicy({
 
   useEffect(() => {
     if (!form.formState.isDirty) {
-      form.reset({
-        allowedScopes: access.organizationPolicy.allowedScopes,
-      });
+      form.reset({ allowedScopes: savedScopes });
     }
   }, [
-    access.organizationPolicy.allowedScopes,
+    savedScopes,
     access.organizationPolicy.revision,
     form,
     form.formState.isDirty,
@@ -82,7 +89,9 @@ export function McpOrganizationPolicy({
         },
       });
       form.reset({
-        allowedScopes: result.organizationPolicy.allowedScopes,
+        allowedScopes: result.organizationPolicy.allowedScopes.filter(
+          (scope) => !isPersonalMcpScope(scope),
+        ),
       });
     } catch (error) {
       await handleError(
@@ -100,6 +109,7 @@ export function McpOrganizationPolicy({
         availableScopes={access.capabilities.map(({ scope }) => scope)}
         disabled={!canManage || updateOrganizationPolicy.isPending}
         onToggle={toggleScope}
+        rows={MCP_ORGANIZATION_ROWS}
         selectedScopes={selectedScopes}
       />
       {canManage ? (
@@ -131,8 +141,8 @@ export function McpOrganizationPolicy({
                 권한 {removedCount}개를 조직에서 막을까요?
               </DialogTitle>
               <DialogDescription>
-                모든 멤버의 권한에서 즉시 빠집니다. 나중에 다시 허용해도 멤버가
-                골라 둔 권한은 자동으로 돌아오지 않습니다.
+                모든 멤버의 권한에서 즉시 빠집니다. 나중에 다시 허용하면 멤버
+                권한에도 다시 켜집니다.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>

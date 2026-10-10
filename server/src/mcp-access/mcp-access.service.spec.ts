@@ -347,7 +347,7 @@ describe('McpAccessService', () => {
     );
   });
 
-  it('제거 후 재가입 reconciliation은 과거 policy를 복원하지 않고 conservative default를 다시 ensure한다', async () => {
+  it('제거 후 재가입 reconciliation은 과거 policy를 복원하지 않고 기본값을 다시 ensure한다', async () => {
     hasMemberUserMock.mockResolvedValueOnce(false).mockResolvedValueOnce(true);
 
     await expect(
@@ -366,7 +366,12 @@ describe('McpAccessService', () => {
     expect(repository.ensureUserPolicy).toHaveBeenCalledWith({
       organizationId: 'org-a',
       userId: 'user-a',
-      requestedScopes: ['organizations:read', 'wiki:read'],
+      requestedScopes: [
+        'organizations:read',
+        'chat:read',
+        'chat:write',
+        'wiki:read',
+      ],
     });
   });
 

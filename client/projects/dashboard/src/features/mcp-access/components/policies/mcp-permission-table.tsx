@@ -5,8 +5,8 @@ import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
 import {
   MCP_ACTION_COLUMNS,
-  MCP_DOMAIN_ROWS,
   type McpAccessScope,
+  type McpDomainRow,
 } from '@core/features/mcp-access/mcp-access-presentation';
 
 import { Check, LockKeyhole } from 'lucide-react-native';
@@ -17,12 +17,14 @@ export function McpPermissionTable({
   disabled = false,
   lockedScopes = [],
   onToggle,
+  rows,
   selectedScopes,
 }: {
   availableScopes: readonly McpAccessScope[];
   disabled?: boolean;
   lockedScopes?: readonly McpAccessScope[];
   onToggle: (scope: McpAccessScope) => void;
+  rows: readonly McpDomainRow[];
   selectedScopes: readonly McpAccessScope[];
 }) {
   const hasLockedCell = lockedScopes.length > 0;
@@ -47,7 +49,7 @@ export function McpPermissionTable({
           ))}
         </View>
 
-        {MCP_DOMAIN_ROWS.map((row, index) => (
+        {rows.map((row, index) => (
           <View
             className={cn(
               'flex-row items-center px-3 py-1.5',

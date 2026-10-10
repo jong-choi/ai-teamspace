@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 
 import { DatabaseService } from '@/database/database.service';
-import { type McpScope, normalizeMcpScopes } from '@/mcp/contracts/mcp-scope';
+import {
+  isPersonalMcpScope,
+  type McpScope,
+  normalizeMcpScopes,
+} from '@/mcp/contracts/mcp-scope';
 import type { McpOrganizationPolicy } from '@/mcp-access/domain/mcp-organization-policy';
 import type { McpUserPolicy } from '@/mcp-access/domain/mcp-user-policy';
 import {
@@ -285,13 +289,22 @@ export class McpAccessDrizzleRepository extends McpAccessRepository {
         .where(eq(mcpUserPolicy.organizationId, input.organizationId))
         .for('update');
       const allowedSet = new Set<McpScope>(allowedScopes);
+      const previouslyAllowed = new Set<McpScope>(current.allowedScopes);
+      // 조직이 새로 허용한 scope는 멤버가 따로 켜지 않아도 바로 쓸 수 있게 한다.
+      const addedScopes = allowedScopes.filter(
+        (scope) => !previouslyAllowed.has(scope),
+      );
       let affectedUserCount = 0;
 
       for (const row of userRows) {
         const userPolicy = toMcpUserPolicyDomain(row);
-        const requestedScopes = userPolicy.requestedScopes.filter((scope) =>
-          allowedSet.has(scope),
-        );
+        // 조직이 막은 scope는 빼되, 조직 정책과 무관한 개인 scope는 그대로 둔다.
+        const requestedScopes = normalizeMcpScopes([
+          ...userPolicy.requestedScopes.filter(
+            (scope) => allowedSet.has(scope) || isPersonalMcpScope(scope),
+          ),
+          ...addedScopes,
+        ]);
         if (sameScopes(userPolicy.requestedScopes, requestedScopes)) continue;
 
         await transaction

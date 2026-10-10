@@ -39,9 +39,11 @@ import { ProjectsRouteFrame } from '@core/features/projects/projects-route-frame
 import { Plus } from 'lucide-react-native';
 
 export function ProjectKanbanRoute({
+  initialTicketId,
   projectId,
   view,
 }: {
+  initialTicketId?: string;
   projectId: string;
   view: 'board' | 'list';
 }) {
@@ -50,6 +52,7 @@ export function ProjectKanbanRoute({
       {(organizationId) => (
         <ProjectWorkspace
           key={projectId}
+          initialTicketId={initialTicketId}
           organizationId={organizationId}
           projectId={projectId}
           view={view}
@@ -60,10 +63,12 @@ export function ProjectKanbanRoute({
 }
 
 function ProjectWorkspace({
+  initialTicketId,
   organizationId,
   projectId,
   view,
 }: {
+  initialTicketId?: string;
   organizationId: string;
   projectId: string;
   view: 'board' | 'list';
@@ -78,7 +83,9 @@ function ProjectWorkspace({
     useState<ProjectsControllerListTicketsParams['priority']>();
   const [createColumnId, setCreateColumnId] = useState<string | undefined>();
   const [createOpen, setCreateOpen] = useState(false);
-  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(
+    initialTicketId ?? null,
+  );
   const params = useMemo<ProjectsControllerListTicketsParams>(
     () => ({
       ...(deferredSearch ? { search: deferredSearch } : {}),

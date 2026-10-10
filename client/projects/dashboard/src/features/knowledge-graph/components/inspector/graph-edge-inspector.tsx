@@ -61,16 +61,19 @@ export function GraphEdgeInspector({
     <GraphInspectorFrame
       badge="Edge"
       footer={
-        <GraphInspectorActions
-          actions={actions}
-          editLabel="관계 편집"
-          onCorrect={() =>
-            openDialog({ type: 'edge-correct', edgeId: edge.id })
-          }
-          onDelete={() => openDialog({ type: 'edge-delete', edgeId: edge.id })}
-          onEdit={() => openDialog({ type: 'edge-edit', edgeId: edge.id })}
-          readOnlyMessage="확정 관계는 각 업무 화면의 원본에서 바뀝니다."
-        />
+        actions.size > 0 ? (
+          <GraphInspectorActions
+            actions={actions}
+            editLabel="관계 편집"
+            onCorrect={() =>
+              openDialog({ type: 'edge-correct', edgeId: edge.id })
+            }
+            onDelete={() =>
+              openDialog({ type: 'edge-delete', edgeId: edge.id })
+            }
+            onEdit={() => openDialog({ type: 'edge-edit', edgeId: edge.id })}
+          />
+        ) : null
       }
       headerClassName={headerClassName}
     >

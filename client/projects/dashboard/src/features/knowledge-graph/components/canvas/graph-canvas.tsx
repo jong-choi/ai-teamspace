@@ -375,7 +375,7 @@ export function GraphCanvas({
       />
 
       {focusMissing ? (
-        <View className="absolute right-4 top-4 z-20 max-w-xs rounded-xl border border-border bg-background/90 px-3 py-1.5 shadow-sm">
+        <View className="absolute right-4 top-20 z-20 max-w-xs rounded-xl border border-border bg-background/90 px-3 py-1.5 shadow-sm">
           <Text className="text-xs text-muted-foreground">
             이 원본은 아직 그래프에 반영되지 않아 전체 그래프를 표시합니다.
           </Text>

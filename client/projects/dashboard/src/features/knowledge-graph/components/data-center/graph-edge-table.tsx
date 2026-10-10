@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { View } from 'react-native';
 
 import {
@@ -7,6 +7,7 @@ import {
 } from '@repo/client/api-client';
 import type { GraphEdge } from '@repo/client/api-client/generated/schemas/graphEdge.zod';
 import type { KnowledgeGraphControllerListEdgesParams } from '@repo/client/api-client/generated/schemas/knowledgeGraphControllerListEdgesParams.zod';
+import { Skeleton } from '@repo/client/rnr/components/ui/skeleton';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import {
   GraphPagination,
@@ -77,12 +78,15 @@ export function GraphEdgeTable({
           <GraphTableEmpty message="검색 조건에 일치하는 관계가 없습니다." />
         ) : (
           page.items.map((edge) => (
-            <GraphEdgeRow
-              edge={edge}
-              key={edge.id}
-              organizationId={organizationId}
-              selected={selection?.kind === 'edge' && selection.id === edge.id}
-            />
+            <Suspense fallback={<GraphEdgeRowSkeleton />} key={edge.id}>
+              <GraphEdgeRow
+                edge={edge}
+                organizationId={organizationId}
+                selected={
+                  selection?.kind === 'edge' && selection.id === edge.id
+                }
+              />
+            </Suspense>
           ))
         )}
       </GraphTable>
@@ -114,6 +118,22 @@ export function GraphEdgeTable({
         pageIndex={navigation.previous.length}
       />
     </View>
+  );
+}
+
+function GraphEdgeRowSkeleton() {
+  return (
+    <GraphTableRow selected={false}>
+      {GRAPH_EDGE_TABLE_COLUMNS.map((column) => (
+        <GraphTableCell
+          align={column.align}
+          className={column.className}
+          key={column.key}
+        >
+          <Skeleton className="h-3.5 w-3/4" />
+        </GraphTableCell>
+      ))}
+    </GraphTableRow>
   );
 }
 

@@ -1,11 +1,10 @@
-import { type ReactNode, Suspense, useDeferredValue } from 'react';
+import { useEffect } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 
 import {
-  useKnowledgeGraphControllerListEdgesSuspense,
-  useKnowledgeGraphControllerListNodesSuspense,
+  getKnowledgeGraphControllerListEdgesSuspenseQueryOptions,
+  getKnowledgeGraphControllerListNodesSuspenseQueryOptions,
 } from '@repo/client/api-client';
-import { Badge } from '@repo/client/rnr/components/ui/badge';
 import { Button } from '@repo/client/rnr/components/ui/button';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
@@ -24,6 +23,7 @@ import { GraphTableSkeleton } from '@core/features/knowledge-graph/components/da
 import type { GraphDataCenterParams } from '@core/features/knowledge-graph/lib/graph-route-params';
 import { useGraphStudioStore } from '@core/features/knowledge-graph/state/graph-studio-provider';
 
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Database,
   GitCommit,
@@ -43,13 +43,53 @@ export function GraphDataCenter({
   organizationId: string;
   params: GraphDataCenterParams;
 }) {
+  const queryClient = useQueryClient();
+  const clearSelection = useGraphStudioStore((state) => state.clearSelection);
   const openDialog = useGraphStudioStore((state) => state.openDialog);
-  // 새 page가 준비될 때까지 이전 표를 유지해 skeleton 깜빡임을 줄인다.
-  const deferredParams = useDeferredValue(params);
-  const stale = deferredParams !== params;
+  const nodeParams = {
+    q: params.search || undefined,
+    kind: params.kind === ALL_KINDS ? undefined : params.kind,
+    limit: params.pageSize,
+  };
+  const edgeParams = {
+    relation: params.relation === ALL_KINDS ? undefined : params.relation,
+    limit: params.pageSize,
+  };
+
+  // 어느 탭을 먼저 열어도 첫 페이지는 캐시에서 바로 시작하도록 함께 준비한다.
+  useEffect(() => {
+    void Promise.all([
+      queryClient.prefetchQuery(
+        getKnowledgeGraphControllerListNodesSuspenseQueryOptions(
+          organizationId,
+          nodeParams,
+        ),
+      ),
+      queryClient.prefetchQuery(
+        getKnowledgeGraphControllerListEdgesSuspenseQueryOptions(
+          organizationId,
+          edgeParams,
+        ),
+      ),
+    ]);
+  }, [
+    edgeParams.limit,
+    edgeParams.relation,
+    nodeParams.kind,
+    nodeParams.limit,
+    nodeParams.q,
+    organizationId,
+    queryClient,
+  ]);
+
   // 검색·필터·page size가 바뀌면 cursor를 처음으로 되돌린다.
   const change = (patch: Partial<GraphDataCenterParams>) =>
     onParamsChange({ ...params, cursor: null, ...patch });
+  const switchTab = (tab: GraphDataCenterParams['tab']) => {
+    if (tab === params.tab) return;
+    clearSelection();
+    change({ tab });
+  };
 
   return (
     <ScrollView
@@ -94,17 +134,15 @@ export function GraphDataCenter({
         >
           <GraphDataSubTab
             active={params.tab === 'nodes'}
-            count={<GraphNodeCount organizationId={organizationId} />}
             icon={Database}
             label="노드 관리 (Entities)"
-            onPress={() => change({ tab: 'nodes' })}
+            onPress={() => switchTab('nodes')}
           />
           <GraphDataSubTab
             active={params.tab === 'edges'}
-            count={<GraphEdgeCount organizationId={organizationId} />}
             icon={GitCommit}
             label="관계 관리 (Edges)"
-            onPress={() => change({ tab: 'edges' })}
+            onPress={() => switchTab('edges')}
           />
         </ScrollView>
 
@@ -114,35 +152,31 @@ export function GraphDataCenter({
           params={params}
         />
 
-        <View className={cn(stale && 'opacity-60')}>
+        <View key={`${organizationId}:${params.tab}`}>
           <DashboardQueryBoundary
             errorFallbackClassName="py-12"
             fallback={
               <GraphTableSkeleton
                 columns={
-                  deferredParams.tab === 'nodes'
+                  params.tab === 'nodes'
                     ? GRAPH_NODE_TABLE_COLUMNS
                     : GRAPH_EDGE_TABLE_COLUMNS
                 }
+                rowCount={params.pageSize}
               />
             }
-            resetKeys={[deferredParams.tab]}
+            resetKeys={[organizationId, params.tab]}
             title="표를 불러오지 못했습니다"
           >
-            {deferredParams.tab === 'nodes' ? (
+            {params.tab === 'nodes' ? (
               <GraphNodeTable
                 onCursorChange={(cursor) =>
                   onParamsChange({ ...params, cursor })
                 }
                 organizationId={organizationId}
                 params={{
-                  q: deferredParams.search || undefined,
-                  kind:
-                    deferredParams.kind === ALL_KINDS
-                      ? undefined
-                      : deferredParams.kind,
-                  limit: deferredParams.pageSize,
-                  cursor: deferredParams.cursor ?? undefined,
+                  ...nodeParams,
+                  cursor: params.cursor ?? undefined,
                 }}
               />
             ) : (
@@ -152,12 +186,8 @@ export function GraphDataCenter({
                 }
                 organizationId={organizationId}
                 params={{
-                  relation:
-                    deferredParams.relation === ALL_KINDS
-                      ? undefined
-                      : deferredParams.relation,
-                  limit: deferredParams.pageSize,
-                  cursor: deferredParams.cursor ?? undefined,
+                  ...edgeParams,
+                  cursor: params.cursor ?? undefined,
                 }}
               />
             )}
@@ -170,13 +200,11 @@ export function GraphDataCenter({
 
 function GraphDataSubTab({
   active,
-  count,
   icon,
   label,
   onPress,
 }: {
   active: boolean;
-  count: ReactNode;
   icon: LucideIcon;
   label: string;
   onPress: () => void;
@@ -206,30 +234,6 @@ function GraphDataSubTab({
       >
         {label}
       </Text>
-      <Suspense fallback={<GraphTabCount value="–" />}>{count}</Suspense>
     </Pressable>
   );
-}
-
-function GraphTabCount({ value }: { value: number | string }) {
-  return (
-    <Badge className="ml-1 bg-muted" variant="outline">
-      <Text className="font-mono text-2xs">{value}</Text>
-    </Badge>
-  );
-}
-
-// 탭 배지는 필터와 무관한 전체 건수다. 표와 다른 작은 경계로 둬 표 로딩을 기다리지 않는다.
-function GraphNodeCount({ organizationId }: { organizationId: string }) {
-  const total = useKnowledgeGraphControllerListNodesSuspense(organizationId, {
-    limit: 5,
-  }).data.totalCount;
-  return <GraphTabCount value={total ?? '?'} />;
-}
-
-function GraphEdgeCount({ organizationId }: { organizationId: string }) {
-  const total = useKnowledgeGraphControllerListEdgesSuspense(organizationId, {
-    limit: 5,
-  }).data.totalCount;
-  return <GraphTabCount value={total ?? '?'} />;
 }

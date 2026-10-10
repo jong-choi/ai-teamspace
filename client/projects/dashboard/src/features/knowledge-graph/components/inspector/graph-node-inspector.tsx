@@ -68,37 +68,81 @@ export function GraphNodeInspector({
     neighborhood.nodes.map(({ id, title }) => [id, title]),
   );
   const connections = getNodeConnections(node.id, neighborhood.edges);
+  const ticketProject =
+    node.kind === 'ticket'
+      ? neighborhood.nodes.find(
+          (candidate) =>
+            candidate.kind === 'project' &&
+            neighborhood.edges.some(
+              (edge) =>
+                edge.relation === 'ticket_project' &&
+                edge.sourceNodeId === node.id &&
+                edge.targetNodeId === candidate.id,
+            ),
+        )
+      : null;
+  const openSourceLabel =
+    node.editTarget.kind === 'owner'
+      ? `${node.editTarget.ownerKind === 'wiki_document' ? 'wiki' : node.editTarget.ownerKind} 열기`
+      : undefined;
 
   return (
     <GraphInspectorFrame
       badge={GRAPH_NODE_KIND_META[node.kind].code}
       footer={
-        <GraphInspectorActions
-          actions={actions}
-          editLabel="노드 편집"
-          onCorrect={() =>
-            openDialog({ type: 'node-correct', nodeId: node.id })
-          }
-          onDelete={() => openDialog({ type: 'node-delete', nodeId: node.id })}
-          onEdit={() => openDialog({ type: 'node-edit', nodeId: node.id })}
-          onOpenSource={() => {
-            if (node.editTarget.kind !== 'owner') return;
-            onNavigate?.();
-            if (node.editTarget.ownerKind === 'wiki_document') {
-              router.push({
-                pathname: '/wiki/[documentId]',
-                params: { documentId: node.editTarget.sourceId },
-              });
+        actions.size > 0 ? (
+          <GraphInspectorActions
+            actions={actions}
+            editLabel="노드 편집"
+            onCorrect={() =>
+              openDialog({ type: 'node-correct', nodeId: node.id })
             }
-            if (node.editTarget.ownerKind === 'project') {
-              router.push({
-                pathname: '/projects/[projectId]',
-                params: { projectId: node.editTarget.sourceId },
-              });
+            onDelete={() =>
+              openDialog({ type: 'node-delete', nodeId: node.id })
             }
-          }}
-          readOnlyMessage="확정 원본은 각 업무 화면에서 수정합니다."
-        />
+            onEdit={() => openDialog({ type: 'node-edit', nodeId: node.id })}
+            onOpenSource={() => {
+              if (node.editTarget.kind !== 'owner') return;
+              onNavigate?.();
+              if (node.editTarget.ownerKind === 'wiki_document') {
+                router.push({
+                  pathname: '/wiki/[documentId]',
+                  params: { documentId: node.editTarget.sourceId },
+                });
+              }
+              if (node.editTarget.ownerKind === 'project') {
+                router.push({
+                  pathname: '/projects/[projectId]',
+                  params: { projectId: node.editTarget.sourceId },
+                });
+              }
+              if (node.editTarget.ownerKind === 'ticket') {
+                const projectId = ticketProject?.sourceRef?.id;
+                if (!projectId) return;
+                router.push({
+                  pathname: '/projects/[projectId]',
+                  params: {
+                    projectId,
+                    ticketId: node.editTarget.sourceId,
+                  },
+                });
+              }
+              if (node.editTarget.ownerKind === 'meeting') {
+                router.push({
+                  pathname: '/calendar',
+                  params: { meetingId: node.editTarget.sourceId },
+                });
+              }
+              if (node.editTarget.ownerKind === 'member') {
+                router.push({
+                  pathname: '/organizations/[organizationId]/members',
+                  params: { organizationId, search: node.title },
+                });
+              }
+            }}
+            openSourceLabel={openSourceLabel}
+          />
+        ) : null
       }
       headerClassName={headerClassName}
     >

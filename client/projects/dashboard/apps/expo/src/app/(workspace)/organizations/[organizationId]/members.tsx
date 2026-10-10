@@ -3,10 +3,14 @@ import { useLocalSearchParams } from 'expo-router';
 import { OrganizationMembersRoute } from '@core/features/organizations/organization-members-route';
 
 export default function OrganizationMembersScreen() {
-  const params = useLocalSearchParams<{ organizationId: string }>();
+  const params = useLocalSearchParams<{
+    organizationId: string;
+    search?: string | string[];
+  }>();
 
   return (
     <OrganizationMembersRoute
+      initialSearch={firstParam(params.search)}
       organizationId={firstParam(params.organizationId)}
     />
   );

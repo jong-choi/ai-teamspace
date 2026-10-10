@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useWindowDimensions, View } from 'react-native';
 
+import { useKnowledgeGraphControllerListNodesSuspense } from '@repo/client/api-client';
 import { Button } from '@repo/client/rnr/components/ui/button';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { DashboardQueryBoundary } from '@core/app/state/dashboard-query-state';
 import { GraphCanvas } from '@core/features/knowledge-graph/components/canvas/graph-canvas';
 import { GraphCanvasGrid } from '@core/features/knowledge-graph/components/canvas/graph-canvas-grid';
+import { GraphFloatingSearch } from '@core/features/knowledge-graph/components/canvas/graph-floating-search';
 import { GraphSearchSummary } from '@core/features/knowledge-graph/components/canvas/graph-search-summary';
 import { GraphDataCenter } from '@core/features/knowledge-graph/components/data-center/graph-data-center';
 import { GraphDialogCoordinator } from '@core/features/knowledge-graph/components/dialogs/graph-dialog-coordinator';
@@ -63,49 +65,48 @@ export function GraphStudio({
       <GraphStudioHeader
         compact={(contentWidth ?? width) < FULL_HEADER_MIN_WIDTH}
         onCreate={() => openDialog({ type: 'node-create' })}
-        onSearch={onExploreSearch}
         onViewChange={onViewChange}
-        searchValue={exploreParams.q ?? ''}
         view={view}
       />
 
       {view === 'graph' ? (
         <View className="min-h-0 flex-1 flex-row">
-          {/* 캔버스와 인스펙터는 서로 다른 query 경계라 선택을 바꿔도 캔버스가 다시 로딩되지 않는다. */}
-          <DashboardQueryBoundary
-            errorFallbackClassName="flex-1 bg-muted/30"
-            fallback={<GraphCanvasLoading />}
-            resetKeys={[
-              exploreParams.focusKind,
-              exploreParams.focusId,
-              exploreParams.q,
-            ]}
-            title="그래프를 불러오지 못했습니다"
-          >
-            {exploreParams.q ||
-            (exploreParams.focusKind && exploreParams.focusId) ? (
-              <GraphCanvas
-                exploreParams={exploreParams}
-                key={`${exploreParams.focusKind ?? ''}:${exploreParams.focusId ?? ''}:${exploreParams.q ?? ''}`}
-                organizationId={organizationId}
-              />
-            ) : (
-              <GraphCanvasStart onOpenData={() => onViewChange('data')} />
-            )}
-          </DashboardQueryBoundary>
-          {exploreParams.q ? (
+          <View className="relative min-w-0 flex-1">
+            <GraphFloatingSearch
+              onSearch={onExploreSearch}
+              value={exploreParams.q ?? ''}
+            />
+            {/* 캔버스와 인스펙터는 서로 다른 query 경계라 선택을 바꿔도 캔버스가 다시 로딩되지 않는다. */}
             <DashboardQueryBoundary
-              errorFallbackClassName="absolute bottom-4 right-4 z-20 max-w-xs"
-              fallback={null}
-              resetKeys={[organizationId, exploreParams.q]}
-              title="의미 검색 결과를 불러오지 못했습니다"
+              errorFallbackClassName="flex-1 bg-muted/30"
+              fallback={<GraphCanvasLoading />}
+              resetKeys={[
+                exploreParams.focusKind,
+                exploreParams.focusId,
+                exploreParams.q,
+              ]}
+              title="그래프를 불러오지 못했습니다"
             >
-              <GraphSearchSummary
+              <GraphCanvasContent
+                exploreParams={exploreParams}
+                onOpenData={() => onViewChange('data')}
                 organizationId={organizationId}
-                query={exploreParams.q}
               />
             </DashboardQueryBoundary>
-          ) : null}
+            {exploreParams.q ? (
+              <DashboardQueryBoundary
+                errorFallbackClassName="absolute bottom-4 right-4 z-20 max-w-xs"
+                fallback={null}
+                resetKeys={[organizationId, exploreParams.q]}
+                title="의미 검색 결과를 불러오지 못했습니다"
+              >
+                <GraphSearchSummary
+                  organizationId={organizationId}
+                  query={exploreParams.q}
+                />
+              </DashboardQueryBoundary>
+            ) : null}
+          </View>
           {wide ? (
             <GraphInspectorPanel organizationId={organizationId} />
           ) : null}
@@ -126,7 +127,58 @@ export function GraphStudio({
   );
 }
 
-// 그래프는 검색어나 시작 노드가 있어야 그려진다. 둘 다 없을 때는 창 없이 그 조건만 안내한다.
+function GraphCanvasContent({
+  exploreParams,
+  onOpenData,
+  organizationId,
+}: {
+  exploreParams: GraphExploreParams;
+  onOpenData: () => void;
+  organizationId: string;
+}) {
+  if (exploreParams.q || (exploreParams.focusKind && exploreParams.focusId)) {
+    return (
+      <GraphCanvas
+        exploreParams={exploreParams}
+        key={`${exploreParams.focusKind ?? ''}:${exploreParams.focusId ?? ''}:${exploreParams.q ?? ''}`}
+        organizationId={organizationId}
+      />
+    );
+  }
+  return (
+    <DefaultGraphCanvas
+      onOpenData={onOpenData}
+      organizationId={organizationId}
+    />
+  );
+}
+
+function DefaultGraphCanvas({
+  onOpenData,
+  organizationId,
+}: {
+  onOpenData: () => void;
+  organizationId: string;
+}) {
+  const firstWiki = useKnowledgeGraphControllerListNodesSuspense(
+    organizationId,
+    { kind: 'wiki_document', limit: 1 },
+  ).data.items[0];
+  if (!firstWiki) return <GraphCanvasStart onOpenData={onOpenData} />;
+  const defaultExploreParams: GraphExploreParams = {
+    focusKind: firstWiki.kind,
+    focusId: firstWiki.id,
+  };
+  return (
+    <GraphCanvas
+      exploreParams={defaultExploreParams}
+      key={`default:${firstWiki.id}`}
+      organizationId={organizationId}
+    />
+  );
+}
+
+// 기본으로 잡을 위키 노드도 없을 때만 데이터 테이블 진입을 안내한다.
 function GraphCanvasStart({ onOpenData }: { onOpenData: () => void }) {
   const palette = useGraphThemePalette();
   return (

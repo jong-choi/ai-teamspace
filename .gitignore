@@ -13,6 +13,10 @@ dist/
 coverage/
 **/coverage/
 
+# Compiled output emitted next to the TypeScript test sources.
+/server/test/**/*.js
+/server/test/**/*.js.map
+
 /.temp/
 
 .env

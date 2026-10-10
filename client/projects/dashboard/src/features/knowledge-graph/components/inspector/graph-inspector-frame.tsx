@@ -1,13 +1,15 @@
 import type { ReactNode } from 'react';
 import { ScrollView, View } from 'react-native';
 
+import { Button } from '@repo/client/rnr/components/ui/button';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Skeleton } from '@repo/client/rnr/components/ui/skeleton';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
+import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 import { GraphMetaBadge } from '@core/features/knowledge-graph/components/graph-badges';
 
-import { MousePointer } from 'lucide-react-native';
+import { Copy, MousePointer } from 'lucide-react-native';
 
 /** graph.html 인스펙터: 작은 대문자 제목+배지, 스크롤 본문, 하단 고정 액션. */
 export function GraphInspectorFrame({
@@ -102,14 +104,43 @@ export function GraphInspectorTitle({
   id: string;
   title: string;
 }) {
+  const { copyText, notifyError, notifySuccess } = useDashboardPlatform();
+  const copyId = async () => {
+    try {
+      await copyText(id);
+      notifySuccess({
+        id: 'knowledge-graph-inspector-copy-id',
+        title: 'ID를 복사했습니다',
+      });
+    } catch {
+      notifyError({
+        id: 'knowledge-graph-inspector-copy-id',
+        title: 'ID를 복사하지 못했습니다',
+      });
+    }
+  };
+
   return (
     <View className="gap-1">
-      <Text
-        className="font-mono text-2xs uppercase text-muted-foreground"
-        selectable
-      >
-        ID: {id}
-      </Text>
+      <View className="min-w-0 flex-row items-center gap-1">
+        <Text
+          className="min-w-0 flex-1 font-mono text-2xs uppercase text-muted-foreground"
+          ellipsizeMode="tail"
+          numberOfLines={1}
+        >
+          ID: {id}
+        </Text>
+        <Button
+          accessibilityLabel={`${title} ID 복사`}
+          className="h-6 w-6 shrink-0 rounded-md"
+          hitSlop={6}
+          onPress={() => void copyId()}
+          size="icon"
+          variant="ghost"
+        >
+          <Icon as={Copy} className="size-3 text-muted-foreground" />
+        </Button>
+      </View>
       <Text className="text-base font-bold tracking-tight">{title}</Text>
     </View>
   );

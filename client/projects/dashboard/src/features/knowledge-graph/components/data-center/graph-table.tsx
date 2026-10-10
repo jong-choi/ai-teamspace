@@ -136,26 +136,44 @@ export function GraphTableEmpty({ message }: { message: string }) {
 
 export function GraphTableSkeleton({
   columns,
+  rowCount,
 }: {
   columns: readonly GraphTableColumn[];
+  rowCount: number;
 }) {
   return (
-    <GraphTable columns={columns}>
-      <View
-        accessibilityLabel="표를 불러오는 중"
-        accessibilityRole="progressbar"
-      >
-        {Array.from({ length: 5 }, (_, index) => (
-          <View className="flex-row border-b border-border/60" key={index}>
-            {columns.map((column) => (
-              <View className={cn('p-3.5', column.className)} key={column.key}>
-                <Skeleton className="h-3.5 w-3/4" />
-              </View>
-            ))}
-          </View>
-        ))}
+    <View className="gap-4">
+      <GraphTable columns={columns}>
+        <View
+          accessibilityLabel="표를 불러오는 중"
+          accessibilityRole="progressbar"
+        >
+          {Array.from({ length: rowCount }, (_, index) => (
+            <GraphTableRow key={index} selected={false}>
+              {columns.map((column) => (
+                <GraphTableCell
+                  align={column.align}
+                  className={column.className}
+                  key={column.key}
+                >
+                  <View className="h-7 w-full justify-center">
+                    <Skeleton className="h-3.5 w-3/4" />
+                  </View>
+                </GraphTableCell>
+              ))}
+            </GraphTableRow>
+          ))}
+        </View>
+      </GraphTable>
+      <View className="h-8 flex-row items-center justify-between px-1">
+        <Skeleton className="h-3.5 w-40" />
+        <View className="flex-row items-center gap-2">
+          {Array.from({ length: 3 }, (_, index) => (
+            <Skeleton className="h-7 w-10 rounded-lg" key={index} />
+          ))}
+        </View>
       </View>
-    </GraphTable>
+    </View>
   );
 }
 

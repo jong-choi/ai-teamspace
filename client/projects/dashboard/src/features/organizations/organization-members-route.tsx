@@ -18,8 +18,10 @@ import { OrganizationMembersHeader } from '@core/features/organizations/organiza
 import { useOrganizationAccess } from '@core/features/organizations/organization-members-query';
 
 export function OrganizationMembersRoute({
+  initialSearch,
   organizationId,
 }: {
+  initialSearch?: string;
   organizationId?: string;
 }) {
   const { currentUserId, sessionPending } = useDashboardPlatform();
@@ -78,6 +80,7 @@ export function OrganizationMembersRoute({
     >
       <AuthenticatedOrganizationMembersRoute
         currentUserId={currentUserId}
+        initialSearch={initialSearch}
         organizationId={organizationId}
       />
     </DashboardQueryBoundary>
@@ -86,9 +89,11 @@ export function OrganizationMembersRoute({
 
 function AuthenticatedOrganizationMembersRoute({
   currentUserId,
+  initialSearch,
   organizationId,
 }: {
   currentUserId: string;
+  initialSearch?: string;
   organizationId: string;
 }) {
   const access = useOrganizationAccess(organizationId).data;
@@ -101,6 +106,7 @@ function AuthenticatedOrganizationMembersRoute({
       <OrganizationMembersPage
         access={access}
         currentUserId={currentUserId}
+        initialSearch={initialSearch}
         organizationId={organizationId}
       />
     </DashboardShell>
@@ -110,13 +116,15 @@ function AuthenticatedOrganizationMembersRoute({
 function OrganizationMembersPage({
   access,
   currentUserId,
+  initialSearch,
   organizationId,
 }: {
   access: OrganizationAccess;
   currentUserId: string;
+  initialSearch?: string;
   organizationId: string;
 }) {
-  const filters = useOrganizationMemberFilters();
+  const filters = useOrganizationMemberFilters(initialSearch);
   const canManageInvitations = canManageOrganizationInvitations(access.role);
   const listLabel = canManageInvitations ? '멤버 및 초대 목록' : '멤버 목록';
 

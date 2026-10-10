@@ -1,5 +1,3 @@
-import { useEffect, useState } from 'react';
-
 import { Button } from '@repo/client/rnr/components/ui/button';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
 import {
@@ -13,45 +11,27 @@ import {
   DashboardBreadcrumbSeparator,
   DashboardPageHeader,
 } from '@core/app/shell/dashboard-page-header';
-import { DashboardSearchInput } from '@core/app/ui/dashboard-search-input';
 
 import { Plus, Share2, Table } from 'lucide-react-native';
 
 export type GraphStudioView = 'graph' | 'data';
 
-/** 공통 상단 바 위의 지식 그래프 도구: 검색 · 보기 전환 · 새 엔티티 추가. */
+/** 공통 상단 바 위의 지식 그래프 도구: 보기 전환 · 새 엔티티 추가. */
 export function GraphStudioHeader({
   compact,
   onCreate,
-  onSearch,
   onViewChange,
-  searchValue,
   view,
 }: {
   compact: boolean;
   onCreate: () => void;
-  onSearch: (query: string) => void;
   onViewChange: (view: GraphStudioView) => void;
-  searchValue: string;
   view: GraphStudioView;
 }) {
-  const [search, setSearch] = useState(searchValue);
-  useEffect(() => setSearch(searchValue), [searchValue]);
   return (
     <DashboardPageHeader
       actions={
         <>
-          {!compact && view === 'graph' ? (
-            <DashboardSearchInput
-              accessibilityLabel="지식 그래프 검색"
-              className="w-48"
-              onChangeText={setSearch}
-              onSubmitEditing={() => onSearch(search.trim())}
-              placeholder="노드 검색..."
-              returnKeyType="search"
-              value={search}
-            />
-          ) : null}
           <Tabs
             onValueChange={(value) =>
               onViewChange(value === 'data' ? 'data' : 'graph')

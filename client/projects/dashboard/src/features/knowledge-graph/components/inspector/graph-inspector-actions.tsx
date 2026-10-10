@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { Button } from '@repo/client/rnr/components/ui/button';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
+import { cn } from '@repo/client/rnr/lib/utils';
 import type { GraphRecordAction } from '@core/features/knowledge-graph/lib/graph-permission';
 
 import {
@@ -24,7 +25,7 @@ export function GraphInspectorActions({
   onDelete,
   onEdit,
   onOpenSource,
-  readOnlyMessage,
+  openSourceLabel,
 }: {
   actions: ReadonlySet<GraphRecordAction>;
   editLabel: string;
@@ -32,24 +33,28 @@ export function GraphInspectorActions({
   onDelete: () => void;
   onEdit: () => void;
   onOpenSource?: () => void;
-  readOnlyMessage: string;
+  openSourceLabel?: string;
 }) {
   const removable = actions.has('delete') || actions.has('suppress');
   const primary = actions.has('edit')
-    ? { icon: Edit3, label: editLabel, onPress: onEdit }
+    ? { icon: Edit3, label: editLabel, onPress: onEdit, uppercase: false }
     : actions.has('correct') && onCorrect
-      ? { icon: PencilLine, label: '추출 결과 정정', onPress: onCorrect }
+      ? {
+          icon: PencilLine,
+          label: '추출 결과 정정',
+          onPress: onCorrect,
+          uppercase: false,
+        }
       : actions.has('open-source') && onOpenSource
-        ? { icon: ExternalLink, label: '원본 열기', onPress: onOpenSource }
+        ? {
+            icon: ExternalLink,
+            label: openSourceLabel ?? 'source 열기',
+            onPress: onOpenSource,
+            uppercase: true,
+          }
         : null;
 
-  if (!primary && !removable) {
-    return (
-      <Text className="text-center text-xs leading-4 text-muted-foreground">
-        {readOnlyMessage}
-      </Text>
-    );
-  }
+  if (!primary && !removable) return null;
 
   return (
     <View className="flex-row gap-2">
@@ -61,7 +66,14 @@ export function GraphInspectorActions({
           variant="outline"
         >
           <Icon as={primary.icon} className="size-3.5 text-muted-foreground" />
-          <Text className="text-xs font-semibold">{primary.label}</Text>
+          <Text
+            className={cn(
+              'text-xs font-semibold',
+              primary.uppercase && 'uppercase',
+            )}
+          >
+            {primary.label}
+          </Text>
         </Button>
       ) : null}
       {removable ? (

@@ -21,11 +21,6 @@ export function getGraphRecordActions(record: {
     if (record.permissions.canCorrect) actions.add('correct');
     if (record.permissions.canSuppress) actions.add('suppress');
   }
-  if (
-    record.editTarget.kind === 'owner' &&
-    (record.editTarget.ownerKind === 'wiki_document' ||
-      record.editTarget.ownerKind === 'project')
-  )
-    actions.add('open-source');
+  if (record.editTarget.kind === 'owner') actions.add('open-source');
   return actions;
 }

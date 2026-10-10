@@ -49,7 +49,11 @@ import {
   todayDateKey,
 } from '@core/features/calendar/lib/calendar-time-zone';
 
-export function CalendarRoute() {
+export function CalendarRoute({
+  initialMeetingId,
+}: {
+  initialMeetingId?: string;
+}) {
   const { currentUserId, sessionPending } = useDashboardPlatform();
 
   if (sessionPending) {
@@ -84,15 +88,20 @@ export function CalendarRoute() {
       resetKeys={[currentUserId]}
       title="활성 조직을 불러오지 못했습니다"
     >
-      <AuthenticatedCalendarRoute currentUserId={currentUserId} />
+      <AuthenticatedCalendarRoute
+        currentUserId={currentUserId}
+        initialMeetingId={initialMeetingId}
+      />
     </DashboardQueryBoundary>
   );
 }
 
 function AuthenticatedCalendarRoute({
   currentUserId,
+  initialMeetingId,
 }: {
   currentUserId: string;
+  initialMeetingId?: string;
 }) {
   const activeOrganization = useCalendarActiveOrganization().data;
 
@@ -111,6 +120,7 @@ function AuthenticatedCalendarRoute({
       ) : (
         <CalendarWorkspace
           currentUserId={currentUserId}
+          initialMeetingId={initialMeetingId}
           organizationId={activeOrganization.organization.id}
         />
       )}
@@ -120,9 +130,11 @@ function AuthenticatedCalendarRoute({
 
 function CalendarWorkspace({
   currentUserId,
+  initialMeetingId,
   organizationId,
 }: {
   currentUserId: string;
+  initialMeetingId?: string;
   organizationId: string;
 }) {
   const timeZone = useMemo(getSystemTimeZone, []);
@@ -134,7 +146,7 @@ function CalendarWorkspace({
   const [category, setCategory] = useState<CalendarCategory | 'all'>('all');
   const [roomId, setRoomId] = useState<string | null>(null);
   const [selectedMeetingId, setSelectedMeetingId] = useState<string | null>(
-    null,
+    initialMeetingId ?? null,
   );
   const [roomDialogOpen, setRoomDialogOpen] = useState(false);
   const [panelDialogOpen, setPanelDialogOpen] = useState(false);

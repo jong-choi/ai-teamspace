@@ -8,8 +8,8 @@ import { seedCalendar } from '#seed/seed-calendar.ts';
 import { seedChat } from '#seed/seed-chat.ts';
 import { activateOrganization, seedIdentity } from '#seed/seed-identity.ts';
 import {
-  seedKnowledgeGraph,
   type KnowledgeGraphSeedTarget,
+  seedKnowledgeGraph,
 } from '#seed/seed-knowledge-graph.ts';
 import { seedProjects } from '#seed/seed-projects.ts';
 import { seedWiki } from '#seed/seed-wiki.ts';

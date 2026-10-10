@@ -16,8 +16,10 @@ export type OrganizationMemberFilters = {
   setSearchInput: (value: string) => void;
 };
 
-export function useOrganizationMemberFilters(): OrganizationMemberFilters {
-  const [searchInput, setSearchInputState] = useState('');
+export function useOrganizationMemberFilters(
+  initialSearch = '',
+): OrganizationMemberFilters {
+  const [searchInput, setSearchInputState] = useState(initialSearch);
   const [role, setRoleState] = useState<OrganizationMemberRole>();
   const [pageIndex, setPageIndex] = useState(0);
   const deferredSearch = useDeferredValue(searchInput.trim());

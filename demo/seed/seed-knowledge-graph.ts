@@ -1,14 +1,14 @@
 import { createHash, randomUUID } from 'node:crypto';
 
-import type { KnowledgeGraphSeed, Workspace } from '#seed/source.ts';
-
 import {
   auth,
-  driver,
   type Driver,
+  driver,
   type ManagedTransaction,
 } from 'neo4j-driver';
 import pg from 'pg';
+
+import type { KnowledgeGraphSeed, Workspace } from '#seed/source.ts';
 
 export type KnowledgeGraphSeedTarget = {
   documentId: string;

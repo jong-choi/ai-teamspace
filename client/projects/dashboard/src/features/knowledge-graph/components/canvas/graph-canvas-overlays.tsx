@@ -14,7 +14,7 @@ import {
   ZoomOut,
 } from 'lucide-react-native';
 
-/** 좌상단 overlay: 확대·축소·화면 맞춤·원점 + 배율, 그 아래 통계 한 줄. */
+/** 플로팅 검색 아래 좌상단 overlay: 확대·축소·화면 맞춤·원점 + 배율, 그 아래 통계 한 줄. */
 export function GraphCanvasToolbar({
   edgeCount,
   canExpand,
@@ -43,7 +43,10 @@ export function GraphCanvasToolbar({
   statusLabel: string;
 }) {
   return (
-    <View className="absolute left-4 top-4 z-20 gap-2" pointerEvents="box-none">
+    <View
+      className="absolute left-4 top-20 z-20 gap-2"
+      pointerEvents="box-none"
+    >
       <View className="flex-row items-center gap-1 self-start rounded-xl border border-border bg-background/90 p-1.5 shadow-sm">
         <GraphToolbarButton icon={ZoomIn} label="확대 (+)" onPress={onZoomIn} />
         <GraphToolbarButton

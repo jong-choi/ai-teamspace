@@ -5,41 +5,34 @@ import { describe, expect, it, jest } from '@jest/globals';
 import { fireEvent, render } from '@testing-library/react-native';
 
 describe('지식 그래프 상단 도구', () => {
-  it('웹 그래프 검색은 공백을 정리해 route callback으로 보낸다', async () => {
-    const onSearch = jest.fn();
+  it('그래프와 데이터 센터 보기를 전환한다', async () => {
+    const onViewChange = jest.fn();
     const view = await render(
       <AgentChatProvider>
         <GraphStudioHeader
           compact={false}
           onCreate={jest.fn()}
-          onSearch={onSearch}
-          onViewChange={jest.fn()}
-          searchValue=""
+          onViewChange={onViewChange}
           view="graph"
         />
       </AgentChatProvider>,
     );
-    const search = view.getByLabelText('지식 그래프 검색');
-    await fireEvent.changeText(search, '  neo4j  ');
-    await fireEvent(search, 'submitEditing');
-    expect(onSearch).toHaveBeenCalledWith('neo4j');
+    await fireEvent.press(view.getByText('데이터 센터'));
+    expect(onViewChange).toHaveBeenCalledWith('data');
   });
 
-  it('좁은 화면에서는 검색 input을 숨기고 보기 전환을 유지한다', async () => {
+  it('좁은 화면에서는 짧은 데이터 보기 이름을 사용한다', async () => {
     const onViewChange = jest.fn();
     const view = await render(
       <AgentChatProvider>
         <GraphStudioHeader
           compact
           onCreate={jest.fn()}
-          onSearch={jest.fn()}
           onViewChange={onViewChange}
-          searchValue=""
           view="graph"
         />
       </AgentChatProvider>,
     );
-    expect(view.queryByLabelText('지식 그래프 검색')).toBeNull();
     await fireEvent.press(view.getByText('데이터'));
     expect(onViewChange).toHaveBeenCalledWith('data');
   });

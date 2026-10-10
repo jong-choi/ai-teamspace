@@ -5,7 +5,6 @@ import { Button } from '@repo/client/rnr/components/ui/button';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -60,11 +59,6 @@ export function WikiCreateDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>새 문서</DialogTitle>
-          <DialogDescription>
-            {parentDocumentId
-              ? '선택한 문서 아래에 새 하위 문서를 만듭니다.'
-              : '위키 루트에 새 문서를 만듭니다.'}
-          </DialogDescription>
         </DialogHeader>
         <View className="gap-1.5">
           <Text className="text-xs font-medium">문서 이름</Text>
@@ -76,10 +70,6 @@ export function WikiCreateDialog({
             placeholder="예: API 설계"
             value={title}
           />
-          <Text className="text-[10px] leading-4 text-muted-foreground">
-            같은 위치에 동일한 이름이 있으면 서버가 (01), (02) suffix를
-            붙입니다.
-          </Text>
         </View>
         <DialogFooter>
           <Button

@@ -359,10 +359,6 @@ function WikiLanding() {
       <Text className="text-base font-semibold">
         첫 위키 문서를 만들어 보세요
       </Text>
-      <Text className="mt-1 max-w-md text-center text-xs leading-5 text-muted-foreground">
-        위키 탐색기에서 새 문서를 만들면 조직의 실제 Wiki tree에 바로
-        반영됩니다.
-      </Text>
     </View>
   );
 }

@@ -4,6 +4,11 @@ import Markdown from 'react-native-markdown-display';
 
 import type { WikiDocument } from '@repo/client/api-client/schemas';
 import { Text } from '@repo/client/rnr/components/ui/text';
+import {
+  PRODUCT_MARKDOWN_TABLE_CELL_MIN_WIDTH,
+  productMarkdownTableRules,
+} from '@core/app/markdown/product-markdown-table';
+import { getProductInlineCodeStyle } from '@core/app/markdown/product-markdown-theme';
 import { getWikiMarkdownPalette } from '@core/features/wiki/wiki-markdown-theme';
 
 import { useColorScheme } from 'nativewind';
@@ -53,12 +58,16 @@ export function WikiMarkdownContent({
     );
   }
 
-  return <Markdown style={markdownStyles}>{contentMarkdown}</Markdown>;
+  return (
+    <Markdown rules={productMarkdownTableRules} style={markdownStyles}>
+      {contentMarkdown}
+    </Markdown>
+  );
 }
 
 function createMarkdownStyles(dark: boolean) {
-  const { border, foreground, link, muted, surface } =
-    getWikiMarkdownPalette(dark);
+  const palette = getWikiMarkdownPalette(dark);
+  const { border, foreground, link, muted, surface } = palette;
 
   return StyleSheet.create({
     body: {
@@ -123,17 +132,7 @@ function createMarkdownStyles(dark: boolean) {
       marginBottom: 14,
       paddingLeft: 14,
     },
-    code_inline: {
-      backgroundColor: surface,
-      borderColor: border,
-      borderRadius: 4,
-      borderWidth: StyleSheet.hairlineWidth,
-      color: foreground,
-      fontFamily: 'monospace',
-      fontSize: 12,
-      paddingHorizontal: 4,
-      paddingVertical: 2,
-    },
+    code_inline: getProductInlineCodeStyle(palette),
     code_block: {
       backgroundColor: surface,
       borderColor: border,
@@ -177,10 +176,12 @@ function createMarkdownStyles(dark: boolean) {
     th: {
       color: foreground,
       fontWeight: '600',
+      minWidth: PRODUCT_MARKDOWN_TABLE_CELL_MIN_WIDTH,
       padding: 8,
     },
     td: {
       color: foreground,
+      minWidth: PRODUCT_MARKDOWN_TABLE_CELL_MIN_WIDTH,
       padding: 8,
     },
   });

@@ -62,10 +62,6 @@ export function GraphDataCenter({
             <Text className="text-xl font-bold tracking-tight">
               지식 그래프 데이터 관리자
             </Text>
-            <Text className="mt-1 text-xs text-muted-foreground">
-              노드(Entities)와 관계(Relationships) 데이터를 별도 모드로 분리하여
-              효율적으로 관리합니다.
-            </Text>
           </View>
           <Button
             className="rounded-lg"

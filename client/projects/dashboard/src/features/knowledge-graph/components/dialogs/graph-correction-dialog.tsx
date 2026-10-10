@@ -59,7 +59,6 @@ export function GraphCorrectionDialog({
   const closeDialog = useGraphStudioStore((state) => state.closeDialog);
   return (
     <GraphDialogFrame
-      description="보정은 PostgreSQL에 기록되며 다음 재색인 뒤에도 다시 매칭됩니다."
       icon={PencilLine}
       onOpenChange={closeDialog}
       title={nodeId ? 'AI 추출 노드 정정' : 'AI 추출 관계 정정'}

@@ -21,15 +21,22 @@ import {
 } from '@core/features/agent-chat/lib/agent-chat-store';
 import { isAgentComposerSubmitKey } from '@core/features/agent-chat/lib/agent-composer-keys';
 
-import { ArrowUp, Clock3, ListPlus, Square, X } from 'lucide-react-native';
+import {
+  ArrowUp,
+  Brain,
+  Clock3,
+  ListPlus,
+  Square,
+  X,
+} from 'lucide-react-native';
 
 const MIN_INPUT_HEIGHT = 44;
 const MAX_INPUT_HEIGHT = 160;
 
 const reasoningLabels: Record<AgentReasoningEffort, string> = {
-  low: '추론 낮음',
-  medium: '추론 중간',
-  high: '추론 높음',
+  low: '낮음',
+  medium: '중간',
+  high: '높음',
 };
 
 export type AgentComposerReasoning = {
@@ -154,7 +161,7 @@ export function AgentComposer({
       <View className="rounded-xl border border-border/70 bg-muted/20">
         <Textarea
           accessibilityLabel="Agent에게 보낼 메시지"
-          className="border-0 bg-transparent px-3.5 pt-3 text-sm shadow-none web:focus-visible:ring-0 dark:bg-transparent"
+          className="border-0 bg-transparent px-3.5 pt-3 text-[13px] shadow-none web:focus-visible:ring-0 md:text-[13px] dark:bg-transparent"
           editable={!blocked}
           numberOfLines={1}
           onChangeText={onChangeDraft}
@@ -204,16 +211,24 @@ export function AgentComposer({
               className="h-7 gap-1 border-transparent bg-transparent px-2 shadow-none dark:bg-transparent"
               size="sm"
             >
-              <SelectValue
-                className="text-xs text-muted-foreground"
-                placeholder="추론 수준"
-              />
+              <View className="flex-row items-center gap-1.5">
+                <Icon
+                  aria-hidden
+                  as={Brain}
+                  className="size-3.5 text-muted-foreground"
+                />
+                <SelectValue
+                  className="text-xs text-muted-foreground"
+                  placeholder="추론 수준"
+                />
+              </View>
             </SelectTrigger>
             <SelectContent align="start">
               {reasoning.options.map((value) => (
                 <SelectItem
                   key={value}
                   label={reasoningLabels[value]}
+                  textClassName="text-xs text-muted-foreground"
                   value={value}
                 >
                   {reasoningLabels[value]}

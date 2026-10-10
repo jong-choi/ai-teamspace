@@ -28,10 +28,6 @@ export function AgentChatHome({
         <Text className="text-lg font-semibold tracking-tight">
           Work OS Agent
         </Text>
-        <Text className="text-center text-xs leading-5 text-muted-foreground">
-          현재 조직의 프로젝트, 위키, 일정과 업무 맥락을 바탕으로 질문하고
-          작업을 요청할 수 있습니다. 변경 작업은 실행 전에 승인을 요청합니다.
-        </Text>
         <View className="mt-2 w-full gap-1.5">
           {examplePrompts.map((prompt) => (
             <Pressable

@@ -44,9 +44,6 @@ export function InvitationDetail({
           </View>
           <View className="min-w-0 flex-1">
             <Text className="text-base font-bold">조직 초대</Text>
-            <Text className="mt-0.5 text-xs text-muted-foreground">
-              최신 초대 상태를 확인하고 응답합니다.
-            </Text>
           </View>
           <View className="rounded-full border border-border bg-muted px-2.5 py-1">
             <Text className="text-[10px] font-semibold text-muted-foreground">

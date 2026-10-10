@@ -287,14 +287,7 @@ function GraphEdgeForm({
           options={mergeEndpoint(options, sourceEndpoint)}
           value={source}
         />
-        <GraphFormField
-          hint={
-            predicate === 'references'
-              ? 'references는 권한 있는 업무 원본과도 연결할 수 있습니다.'
-              : '이 서술어의 허용 종단은 서버 정책으로 제한됩니다.'
-          }
-          label="관계 서술어 (Predicate Relationship)"
-        >
+        <GraphFormField label="관계 서술어 (Predicate Relationship)">
           <Select
             disabled={busy}
             onValueChange={(option) => {

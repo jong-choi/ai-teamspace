@@ -31,3 +31,19 @@ export function getProductMarkdownPalette(
         surface: '#f4f4f5',
       };
 }
+
+// 읽기 전용 렌더러의 inline code 스타일이다. react-native-markdown-display 기본값의
+// padding 10과 테두리를 지워 줄 높이를 넘지 않는 옅은 배경 칩으로 보이게 한다.
+export function getProductInlineCodeStyle(palette: ProductMarkdownPalette) {
+  return {
+    backgroundColor: palette.surface,
+    borderRadius: 4,
+    borderWidth: 0,
+    color: palette.foreground,
+    fontFamily: 'monospace',
+    fontSize: 12,
+    padding: 0,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+  } as const;
+}

@@ -4,7 +4,6 @@ import { Pressable, ScrollView, View } from 'react-native';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@repo/client/rnr/components/ui/dialog';
@@ -39,9 +38,6 @@ export function WikiHistoryDialog({
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>문서 기록</DialogTitle>
-          <DialogDescription>
-            저장된 revision과 당시 Markdown 내용을 확인합니다.
-          </DialogDescription>
         </DialogHeader>
         {open ? (
           <DashboardQueryBoundary

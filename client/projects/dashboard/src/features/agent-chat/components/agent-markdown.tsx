@@ -2,7 +2,14 @@ import { useMemo } from 'react';
 import { StyleSheet } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 
-import { getProductMarkdownPalette } from '@core/app/markdown/product-markdown-theme';
+import {
+  PRODUCT_MARKDOWN_TABLE_CELL_MIN_WIDTH,
+  productMarkdownTableRules,
+} from '@core/app/markdown/product-markdown-table';
+import {
+  getProductInlineCodeStyle,
+  getProductMarkdownPalette,
+} from '@core/app/markdown/product-markdown-theme';
 
 import { useColorScheme } from 'nativewind';
 
@@ -14,12 +21,16 @@ export function AgentMarkdown({ content }: { content: string }) {
     [colorScheme],
   );
 
-  return <Markdown style={styles}>{content}</Markdown>;
+  return (
+    <Markdown rules={productMarkdownTableRules} style={styles}>
+      {content}
+    </Markdown>
+  );
 }
 
 function createAgentMarkdownStyles(dark: boolean) {
-  const { border, foreground, link, muted, surface } =
-    getProductMarkdownPalette(dark);
+  const palette = getProductMarkdownPalette(dark);
+  const { border, foreground, link, muted, surface } = palette;
 
   return StyleSheet.create({
     body: { color: foreground, fontSize: 13, lineHeight: 21 },
@@ -59,16 +70,7 @@ function createAgentMarkdownStyles(dark: boolean) {
       marginBottom: 8,
       paddingLeft: 10,
     },
-    code_inline: {
-      backgroundColor: surface,
-      borderColor: border,
-      borderRadius: 4,
-      borderWidth: StyleSheet.hairlineWidth,
-      color: foreground,
-      fontFamily: 'monospace',
-      fontSize: 12,
-      paddingHorizontal: 4,
-    },
+    code_inline: getProductInlineCodeStyle(palette),
     code_block: {
       backgroundColor: surface,
       borderColor: border,
@@ -94,8 +96,8 @@ function createAgentMarkdownStyles(dark: boolean) {
       borderWidth: StyleSheet.hairlineWidth,
       marginBottom: 8,
     },
-    th: { padding: 6 },
-    td: { padding: 6 },
+    th: { minWidth: PRODUCT_MARKDOWN_TABLE_CELL_MIN_WIDTH, padding: 6 },
+    td: { minWidth: PRODUCT_MARKDOWN_TABLE_CELL_MIN_WIDTH, padding: 6 },
     tr: { borderColor: border },
     hr: { backgroundColor: border, marginVertical: 10 },
   });

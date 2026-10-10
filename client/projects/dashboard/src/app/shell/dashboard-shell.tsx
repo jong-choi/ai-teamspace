@@ -29,6 +29,7 @@ import { ThemeToggle } from '@core/app/shell/theme-toggle';
 import { AgentChatPanel } from '@core/features/agent-chat/agent-chat-panel';
 import { useAgentChatStore } from '@core/features/agent-chat/agent-chat-provider';
 import { useAgentChatWideLayout } from '@core/features/agent-chat/lib/use-agent-chat-layout';
+import { useAgentChatOutsidePress } from '@core/features/agent-chat/lib/use-agent-chat-outside-press';
 
 import {
   Building2,
@@ -80,6 +81,7 @@ export function DashboardShell({
   );
   const toggleAgentChat = useAgentChatStore((state) => state.togglePanel);
   const wide = useAgentChatWideLayout();
+  const agentChatOutsidePress = useAgentChatOutsidePress();
   // 모바일에서 열렸거나 웹에서 확장되면 업무 본문은 숨기기만 하고 mount는 유지한다.
   const agentChatCoversBody = agentChatOpen && (!wide || agentChatExpanded);
   const previousLayoutWidth = useRef<number | null>(null);
@@ -117,6 +119,7 @@ export function DashboardShell({
         onLayout={handleLayout}
       >
         <View
+          {...agentChatOutsidePress}
           className={cn(
             'absolute inset-y-0 left-0 z-50 min-h-0 w-72 overflow-hidden border-r border-border bg-sidebar px-4 pb-4',
             'web:transition-transform web:duration-200',

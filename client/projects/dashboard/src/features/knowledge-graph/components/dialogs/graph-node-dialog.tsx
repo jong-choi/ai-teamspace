@@ -237,15 +237,12 @@ function GraphNodeForm({
   return (
     <>
       <View className="gap-4">
-        <GraphFormField
-          hint={node ? '고유 ID는 서버가 만들며 바꿀 수 없습니다.' : undefined}
-          label="노드 고유 ID"
-        >
+        <GraphFormField label="노드 고유 ID">
           <Input
             accessibilityLabel="노드 고유 ID"
             className="h-9 font-mono text-xs md:text-xs"
             editable={false}
-            placeholder="저장하면 서버가 만듭니다"
+            placeholder="저장하면 자동으로 만들어집니다"
             value={node?.id ?? ''}
           />
         </GraphFormField>

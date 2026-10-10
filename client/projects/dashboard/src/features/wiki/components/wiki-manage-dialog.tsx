@@ -6,7 +6,6 @@ import { Button } from '@repo/client/rnr/components/ui/button';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -85,10 +84,6 @@ export function WikiManageDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>문서 변경</DialogTitle>
-          <DialogDescription>
-            이름을 바꾸거나 다른 문서 아래로 이동합니다. 이름 충돌은 서버가
-            canonical suffix로 해결합니다.
-          </DialogDescription>
         </DialogHeader>
 
         <View className="gap-4">

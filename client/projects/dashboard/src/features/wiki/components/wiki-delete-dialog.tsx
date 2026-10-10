@@ -66,8 +66,7 @@ export function WikiDeleteDialog({
         <DialogHeader>
           <DialogTitle>문서 삭제</DialogTitle>
           <DialogDescription>
-            “{target.item.title}”을 삭제합니다. 하위 문서가 있으면 서버가 삭제를
-            거부합니다.
+            “{target.item.title}”을 삭제합니다.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

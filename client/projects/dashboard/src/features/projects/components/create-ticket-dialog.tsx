@@ -10,7 +10,6 @@ import { Button } from '@repo/client/rnr/components/ui/button';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -115,10 +114,6 @@ export function CreateTicketDialog({
       <DialogContent className="gap-0 rounded-xl p-0 sm:max-w-lg">
         <DialogHeader className="border-b border-border px-6 pb-4 pt-6 pr-12">
           <DialogTitle className="text-base">새 이슈</DialogTitle>
-          <DialogDescription className="text-xs leading-5">
-            현재 Project의 실제 컬럼에 이슈를 생성합니다. 번호와 정렬 위치는
-            서버가 배정합니다.
-          </DialogDescription>
         </DialogHeader>
 
         <View className="gap-4 px-6 py-5">

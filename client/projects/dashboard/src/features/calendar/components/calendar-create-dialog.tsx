@@ -15,7 +15,6 @@ import { Button } from '@repo/client/rnr/components/ui/button';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -276,9 +275,6 @@ export function CalendarCreateDialog({
             <Icon as={CalendarPlus} className="size-4 text-emerald-500" />
             <DialogTitle className="text-sm">새 회의 예약</DialogTitle>
           </View>
-          <DialogDescription className="text-xs">
-            참여자, 장소와 회의 안건을 지정해 일정을 예약합니다.
-          </DialogDescription>
         </DialogHeader>
 
         <ScrollView

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { type Href, useRouter } from 'expo-router';
 
@@ -6,7 +7,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@repo/client/rnr/components/ui/dropdown-menu';
@@ -16,6 +16,8 @@ import { cn } from '@repo/client/rnr/lib/utils';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 import { ThemeToggle } from '@core/app/shell/theme-toggle';
 import { DashboardQueryBoundary } from '@core/app/state/dashboard-query-state';
+import { CreateOrganizationDialog } from '@core/features/organizations/create-organization-dialog';
+import { OrganizationSwitcherItems } from '@core/features/organizations/organization-switcher-items';
 
 import {
   Building2,
@@ -25,6 +27,7 @@ import {
   FolderKanban,
   MessageSquare,
   Network,
+  Plus,
   Search,
   Settings,
   Sparkles,
@@ -75,7 +78,10 @@ export function DashboardNavigationContent({
         contentContainerStyle={{ paddingBottom: 12 }}
         showsVerticalScrollIndicator={false}
       >
-        <SidebarOrganizationSwitcher organizationName={organizationName} />
+        <SidebarOrganizationSwitcher
+          onNavigate={onNavigate}
+          organizationName={organizationName}
+        />
 
         <View className="hidden lg:flex">
           <QuickSearch />
@@ -148,15 +154,20 @@ export function DashboardNavigationContent({
 }
 
 function OrganizationSwitcher({
+  onNavigate,
   organizationName,
 }: {
+  onNavigate?: () => void;
   organizationName?: string;
 }) {
+  const { currentUserId } = useDashboardPlatform();
+  const [createOpen, setCreateOpen] = useState(false);
+
   return (
     <View className="mb-4">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Pressable className="w-full flex-row items-center justify-between rounded-lg border border-border bg-card p-2 shadow-sm web:hover:bg-accent">
+          <Pressable className="w-full flex-row items-center justify-between rounded-lg border border-border bg-card p-2 web:hover:bg-accent">
             <View className="min-w-0 flex-1 flex-row items-center gap-2.5">
               <View className="size-7 shrink-0 items-center justify-center rounded bg-primary">
                 <Icon
@@ -179,18 +190,51 @@ function OrganizationSwitcher({
             />
           </Pressable>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-60 p-1.5" side="bottom">
-          <DropdownMenuLabel className="px-2 py-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-            조직 선택
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem disabled>
-            <Text className="text-xs text-muted-foreground">
-              {organizationName ?? '연결된 조직 정보가 없습니다.'}
-            </Text>
-          </DropdownMenuItem>
+        {/* 웹에서는 메뉴 폭을 트리거 폭에 맞춰 좌우 끝이 어긋나지 않게 한다. */}
+        <DropdownMenuContent
+          align="start"
+          className="w-60 rounded-lg p-1.5 shadow-none web:w-[var(--radix-dropdown-menu-trigger-width)]"
+          side="bottom"
+        >
+          {currentUserId ? (
+            <>
+              <DashboardQueryBoundary
+                fallback={
+                  <DropdownMenuItem disabled>
+                    <Text className="text-xs text-muted-foreground">
+                      조직 목록을 불러오는 중...
+                    </Text>
+                  </DropdownMenuItem>
+                }
+                resetKeys={[currentUserId]}
+                title="조직 목록을 불러오지 못했습니다"
+              >
+                <OrganizationSwitcherItems onSwitched={onNavigate} />
+              </DashboardQueryBoundary>
+              <DropdownMenuSeparator />
+              {/* dialog는 메뉴 밖에서 렌더한다. 메뉴는 항목을 누르면 스스로 닫힌다. */}
+              <DropdownMenuItem
+                onPress={() => {
+                  onNavigate?.();
+                  setCreateOpen(true);
+                }}
+              >
+                <Icon as={Plus} className="size-3.5 text-muted-foreground" />
+                <Text className="text-xs">새 조직</Text>
+              </DropdownMenuItem>
+            </>
+          ) : (
+            <DropdownMenuItem disabled>
+              <Text className="text-xs text-muted-foreground">
+                로그인하면 조직을 선택할 수 있습니다.
+              </Text>
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
+      {createOpen ? (
+        <CreateOrganizationDialog onOpenChange={setCreateOpen} />
+      ) : null}
     </View>
   );
 }
@@ -240,27 +284,39 @@ function AccountFooter() {
 }
 
 function SidebarOrganizationSwitcher({
+  onNavigate,
   organizationName,
 }: {
+  onNavigate?: () => void;
   organizationName?: string;
 }) {
   const { currentUserId } = useDashboardPlatform();
   if (organizationName || !currentUserId)
-    return <OrganizationSwitcher organizationName={organizationName} />;
+    return (
+      <OrganizationSwitcher
+        onNavigate={onNavigate}
+        organizationName={organizationName}
+      />
+    );
   return (
     <DashboardQueryBoundary
-      fallback={<OrganizationSwitcher />}
+      fallback={<OrganizationSwitcher onNavigate={onNavigate} />}
       resetKeys={[currentUserId]}
       title="활성 조직을 불러오지 못했습니다"
     >
-      <ResolvedOrganizationSwitcher />
+      <ResolvedOrganizationSwitcher onNavigate={onNavigate} />
     </DashboardQueryBoundary>
   );
 }
-function ResolvedOrganizationSwitcher() {
+function ResolvedOrganizationSwitcher({
+  onNavigate,
+}: {
+  onNavigate?: () => void;
+}) {
   const { data } = useOrganizationsControllerGetActiveSuspense();
   return (
     <OrganizationSwitcher
+      onNavigate={onNavigate}
       organizationName={data.activeOrganization?.organization.name}
     />
   );

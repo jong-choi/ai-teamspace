@@ -8,6 +8,11 @@ import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Skeleton } from '@repo/client/rnr/components/ui/skeleton';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import {
+  DashboardBreadcrumbItem,
+  DashboardBreadcrumbSeparator,
+  DashboardPageHeader,
+} from '@core/app/shell/dashboard-page-header';
+import {
   DashboardLoading,
   DashboardQueryBoundary,
 } from '@core/app/state/dashboard-query-state';
@@ -104,34 +109,33 @@ function ProjectWorkspace({
   };
   return (
     <View className="min-h-0 flex-1 bg-background">
-      <View className="shrink-0 flex-row items-center justify-between gap-3 border-b border-border px-4 py-3 lg:px-6">
-        <View className="min-w-0 flex-1 flex-row items-center gap-1.5">
-          <Text className="text-xs text-muted-foreground">프로젝트</Text>
-          <Text className="text-xs text-muted-foreground">/</Text>
-          <DashboardQueryBoundary
-            fallback={<Skeleton className="h-4 w-28" />}
-            resetKeys={[organizationId, projectId]}
-          >
-            <ProjectName
-              organizationId={organizationId}
-              projectId={projectId}
+      <DashboardPageHeader
+        actions={
+          <>
+            <ProjectViewSwitcher
+              activeView={view}
+              onSelectView={navigateView}
             />
-          </DashboardQueryBoundary>
-          <Text className="hidden text-xs text-muted-foreground sm:flex">
-            /
-          </Text>
-          <Text className="hidden text-xs text-muted-foreground sm:flex">
-            {view === 'board' ? '보드' : '목록'}
-          </Text>
-        </View>
-        <View className="flex-row items-center gap-2">
-          <ProjectViewSwitcher activeView={view} onSelectView={navigateView} />
-          <Button onPress={() => openCreateTicket()} size="sm">
-            <Icon as={Plus} className="size-3.5 text-primary-foreground" />
-            <Text className="text-xs text-primary-foreground">새 이슈</Text>
-          </Button>
-        </View>
-      </View>
+            <Button onPress={() => openCreateTicket()} size="sm">
+              <Icon as={Plus} className="size-3.5 text-primary-foreground" />
+              <Text className="text-xs text-primary-foreground">새 이슈</Text>
+            </Button>
+          </>
+        }
+      >
+        <DashboardBreadcrumbItem>프로젝트</DashboardBreadcrumbItem>
+        <DashboardBreadcrumbSeparator />
+        <DashboardQueryBoundary
+          fallback={<Skeleton className="h-4 w-28" />}
+          resetKeys={[organizationId, projectId]}
+        >
+          <ProjectName organizationId={organizationId} projectId={projectId} />
+        </DashboardQueryBoundary>
+        <DashboardBreadcrumbSeparator className="hidden sm:flex" />
+        <DashboardBreadcrumbItem className="hidden sm:flex">
+          {view === 'board' ? '보드' : '목록'}
+        </DashboardBreadcrumbItem>
+      </DashboardPageHeader>
       <DashboardQueryBoundary
         fallback={
           <ProjectToolbar
@@ -212,9 +216,9 @@ function ProjectName({
 }) {
   const project = useProject(organizationId, projectId).data;
   return (
-    <Text className="max-w-48 truncate text-xs font-semibold">
+    <DashboardBreadcrumbItem className="max-w-48 truncate" current>
       {project.name}
-    </Text>
+    </DashboardBreadcrumbItem>
   );
 }
 function ProjectToolbarContent({

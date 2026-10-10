@@ -1,6 +1,12 @@
 import { ScrollView, View } from 'react-native';
+import { Link } from 'expo-router';
 
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
+import {
+  DashboardBreadcrumbItem,
+  DashboardBreadcrumbSeparator,
+  DashboardPageHeader,
+} from '@core/app/shell/dashboard-page-header';
 import { DashboardShell } from '@core/app/shell/dashboard-shell';
 import {
   DashboardLoading,
@@ -72,21 +78,34 @@ function AuthenticatedAgentIntegrationsRoute({
           title="활성 조직이 없습니다"
         />
       ) : (
-        <DashboardQueryBoundary
-          fallback={<DashboardLoading label="외부 MCP 연결을 불러오는 중..." />}
-          resetKeys={[currentUserId, activeOrganization.organization.id]}
-          title="외부 MCP 연결을 불러오지 못했습니다"
-        >
-          <ScrollView
-            className="min-h-0 flex-1"
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
+        <View className="min-h-0 flex-1 bg-background">
+          <DashboardPageHeader>
+            <DashboardBreadcrumbItem>설정</DashboardBreadcrumbItem>
+            <DashboardBreadcrumbSeparator />
+            <Link href="/settings/mcp">
+              <DashboardBreadcrumbItem>MCP 권한</DashboardBreadcrumbItem>
+            </Link>
+            <DashboardBreadcrumbSeparator />
+            <DashboardBreadcrumbItem current>외부 연결</DashboardBreadcrumbItem>
+          </DashboardPageHeader>
+          <DashboardQueryBoundary
+            fallback={
+              <DashboardLoading label="외부 MCP 연결을 불러오는 중..." />
+            }
+            resetKeys={[currentUserId, activeOrganization.organization.id]}
+            title="외부 MCP 연결을 불러오지 못했습니다"
           >
-            <View className="mx-auto w-full max-w-5xl p-4 sm:p-6 lg:p-8">
-              <AgentIntegrationsPage openAuthorization={openAuthorization} />
-            </View>
-          </ScrollView>
-        </DashboardQueryBoundary>
+            <ScrollView
+              className="min-h-0 flex-1"
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              <View className="mx-auto w-full max-w-5xl p-4 sm:p-6 lg:p-8">
+                <AgentIntegrationsPage openAuthorization={openAuthorization} />
+              </View>
+            </ScrollView>
+          </DashboardQueryBoundary>
+        </View>
       )}
     </DashboardShell>
   );

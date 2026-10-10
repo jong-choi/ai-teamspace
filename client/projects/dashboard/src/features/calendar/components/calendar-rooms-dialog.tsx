@@ -8,7 +8,6 @@ import type {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@repo/client/rnr/components/ui/dialog';
@@ -30,7 +29,6 @@ import {
   Building2,
   CalendarDays,
   Clock3,
-  Layers3,
   Plus,
   Users,
 } from 'lucide-react-native';
@@ -73,9 +71,6 @@ export function CalendarRoomsDialog({
             </View>
             <View className="min-w-0 flex-1">
               <DialogTitle>회의실 현황 및 타임라인</DialogTitle>
-              <DialogDescription className="text-xs">
-                실제 예약 일정에서 빈 시간대를 확인하고 바로 회의를 예약합니다.
-              </DialogDescription>
             </View>
             <View className="hidden flex-row items-center gap-1.5 rounded-md bg-muted px-2.5 py-1 sm:flex">
               <Icon as={CalendarDays} className="size-3.5 text-emerald-500" />
@@ -235,18 +230,6 @@ export function CalendarRoomsDialog({
                     ))}
                   </View>
                 </ScrollView>
-
-                <View className="flex-row items-start gap-1.5 border-t border-border pt-2">
-                  <Icon
-                    as={Layers3}
-                    className="mt-0.5 size-3 text-muted-foreground"
-                  />
-                  <Text className="flex-1 text-[10px] leading-4 text-muted-foreground">
-                    타임라인은 실제 Meeting 범위 조회에서 파생한 표시입니다.
-                    최종 예약 가능 여부는 예약 창의 서버 충돌 검사에서 다시
-                    확인합니다.
-                  </Text>
-                </View>
               </View>
             ) : null}
           </View>

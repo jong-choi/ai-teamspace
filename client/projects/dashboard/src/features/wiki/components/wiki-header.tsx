@@ -9,6 +9,11 @@ import { Button } from '@repo/client/rnr/components/ui/button';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
+import {
+  DashboardBreadcrumbItem,
+  DashboardBreadcrumbSeparator,
+  DashboardPageHeader,
+} from '@core/app/shell/dashboard-page-header';
 import type { WikiCollaborator } from '@core/features/wiki/collaboration/wiki-awareness';
 import type {
   WikiCollaborationIndicator,
@@ -59,8 +64,71 @@ export function WikiHeader({
   const actionsEnabled = Boolean(activeDocument);
 
   return (
-    <View className="h-12 shrink-0 flex-row items-center justify-between gap-2 border-b border-border bg-background/95 px-3 md:px-6">
-      <View className="min-w-0 flex-1 flex-row items-center gap-1.5">
+    <DashboardPageHeader
+      actions={
+        <>
+          <WikiCollaboratorFacepile collaborators={collaborators} />
+          <View
+            accessibilityLabel={`동기화 상태: ${saveIndicator.label}`}
+            accessible
+            className="flex-row items-center gap-1.5"
+          >
+            <View
+              className={cn(
+                'size-1.5 rounded-full',
+                indicatorDotClass(saveIndicator.tone),
+              )}
+            />
+            <Text className="hidden text-[11px] text-muted-foreground sm:flex">
+              {saveIndicator.label}
+            </Text>
+          </View>
+
+          <View className="flex-row items-center rounded-lg border border-border bg-muted p-0.5">
+            <WikiModeButton
+              active={mode === 'view'}
+              disabled={false}
+              label="보기"
+              onPress={() => onModeChange?.('view')}
+            />
+            <WikiModeButton
+              active={mode === 'edit'}
+              disabled={!actionsEnabled || editModeDisabled}
+              label="편집"
+              onPress={() => onModeChange?.('edit')}
+            />
+            <WikiModeButton
+              active={mode === 'split'}
+              disabled={!actionsEnabled || editModeDisabled}
+              label="분할"
+              onPress={() => onModeChange?.('split')}
+            />
+          </View>
+
+          {knowledgeGraphActions}
+          <Button
+            accessibilityLabel="문서 기록 보기"
+            className="h-8 w-8"
+            disabled={!actionsEnabled}
+            onPress={onOpenHistory}
+            size="icon"
+            variant="ghost"
+          >
+            <Icon as={History} className="size-4 text-muted-foreground" />
+          </Button>
+          <Button
+            accessibilityLabel="마크다운 다운로드"
+            className="h-8 w-8"
+            disabled={!actionsEnabled}
+            onPress={onExport}
+            size="icon"
+            variant="ghost"
+          >
+            <Icon as={Download} className="size-4 text-muted-foreground" />
+          </Button>
+        </>
+      }
+      leading={
         <Button
           accessibilityLabel="위키 탐색기 열기"
           className="mr-1 h-8 w-8 md:hidden"
@@ -70,110 +138,37 @@ export function WikiHeader({
         >
           <Icon as={FolderTree} className="size-4 text-muted-foreground" />
         </Button>
-        <ScrollView
-          contentContainerClassName="items-center gap-1.5"
-          horizontal
-          showsHorizontalScrollIndicator={false}
-        >
-          {breadcrumb.map((segment, index) => {
-            const current = index === breadcrumb.length - 1;
-            return (
-              <View
-                className="flex-row items-center gap-1.5"
-                key={`${segment.kind}-${segment.id}`}
-              >
-                {index > 0 ? (
-                  <Text className="text-xs text-border">/</Text>
-                ) : null}
-                {segment.kind === 'root' ? (
-                  <Pressable onPress={onOpenWikiRoot}>
-                    <Text
-                      className={cn(
-                        'text-xs text-muted-foreground',
-                        current && 'font-semibold text-foreground',
-                      )}
-                    >
-                      {segment.label}
-                    </Text>
-                  </Pressable>
-                ) : (
-                  <Text
-                    className={cn(
-                      'text-xs text-muted-foreground',
-                      current && 'font-semibold text-foreground',
-                    )}
-                  >
+      }
+    >
+      <ScrollView
+        contentContainerClassName="items-center gap-1.5"
+        horizontal
+        showsHorizontalScrollIndicator={false}
+      >
+        {breadcrumb.map((segment, index) => {
+          const current = index === breadcrumb.length - 1;
+          return (
+            <View
+              className="flex-row items-center gap-1.5"
+              key={`${segment.kind}-${segment.id}`}
+            >
+              {index > 0 ? <DashboardBreadcrumbSeparator /> : null}
+              {segment.kind === 'root' ? (
+                <Pressable onPress={onOpenWikiRoot}>
+                  <DashboardBreadcrumbItem current={current}>
                     {segment.label}
-                  </Text>
-                )}
-              </View>
-            );
-          })}
-        </ScrollView>
-      </View>
-
-      <View className="shrink-0 flex-row items-center gap-2 md:gap-3">
-        <WikiCollaboratorFacepile collaborators={collaborators} />
-        <View
-          accessibilityLabel={`동기화 상태: ${saveIndicator.label}`}
-          accessible
-          className="flex-row items-center gap-1.5"
-        >
-          <View
-            className={cn(
-              'size-1.5 rounded-full',
-              indicatorDotClass(saveIndicator.tone),
-            )}
-          />
-          <Text className="hidden text-[11px] text-muted-foreground sm:flex">
-            {saveIndicator.label}
-          </Text>
-        </View>
-
-        <View className="flex-row items-center rounded-lg border border-border bg-muted p-0.5">
-          <WikiModeButton
-            active={mode === 'view'}
-            disabled={false}
-            label="보기"
-            onPress={() => onModeChange?.('view')}
-          />
-          <WikiModeButton
-            active={mode === 'edit'}
-            disabled={!actionsEnabled || editModeDisabled}
-            label="편집"
-            onPress={() => onModeChange?.('edit')}
-          />
-          <WikiModeButton
-            active={mode === 'split'}
-            disabled={!actionsEnabled || editModeDisabled}
-            label="분할"
-            onPress={() => onModeChange?.('split')}
-          />
-        </View>
-
-        {knowledgeGraphActions}
-        <Button
-          accessibilityLabel="문서 기록 보기"
-          className="h-8 w-8"
-          disabled={!actionsEnabled}
-          onPress={onOpenHistory}
-          size="icon"
-          variant="ghost"
-        >
-          <Icon as={History} className="size-4 text-muted-foreground" />
-        </Button>
-        <Button
-          accessibilityLabel="마크다운 다운로드"
-          className="h-8 w-8"
-          disabled={!actionsEnabled}
-          onPress={onExport}
-          size="icon"
-          variant="ghost"
-        >
-          <Icon as={Download} className="size-4 text-muted-foreground" />
-        </Button>
-      </View>
-    </View>
+                  </DashboardBreadcrumbItem>
+                </Pressable>
+              ) : (
+                <DashboardBreadcrumbItem current={current}>
+                  {segment.label}
+                </DashboardBreadcrumbItem>
+              )}
+            </View>
+          );
+        })}
+      </ScrollView>
+    </DashboardPageHeader>
   );
 }
 

@@ -9,7 +9,6 @@ import { Button } from '@repo/client/rnr/components/ui/button';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -132,9 +131,6 @@ export function ChatCreateConversationDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>새 대화 만들기</DialogTitle>
-          <DialogDescription>
-            채널을 만들거나 정확한 사용자 이름으로 다이렉트 메시지를 시작합니다.
-          </DialogDescription>
         </DialogHeader>
 
         <View className="flex-row rounded-lg bg-muted p-1">

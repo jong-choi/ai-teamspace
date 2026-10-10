@@ -112,40 +112,44 @@ function OrganizationMembersPage({
   const listLabel = canManageInvitations ? '멤버 및 초대 목록' : '멤버 목록';
 
   return (
-    <ScrollView className="min-h-0 flex-1" showsVerticalScrollIndicator={false}>
-      <View className="mx-auto w-full max-w-7xl gap-6 p-4 sm:p-6 lg:p-8">
-        <OrganizationMembersHeader
-          access={access}
-          organizationId={organizationId}
-        />
-
-        <View className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-          <OrganizationMemberToolbar filters={filters} />
-          <DashboardQueryBoundary
-            fallback={
-              <DashboardLoading
-                className="min-h-32 py-10"
-                label={`${listLabel}을 불러오는 중...`}
+    <View className="min-h-0 flex-1 bg-background">
+      <OrganizationMembersHeader
+        access={access}
+        organizationId={organizationId}
+      />
+      <ScrollView
+        className="min-h-0 flex-1"
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="mx-auto w-full max-w-7xl gap-6 p-4 sm:p-6 lg:p-8">
+          <View className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+            <OrganizationMemberToolbar filters={filters} />
+            <DashboardQueryBoundary
+              fallback={
+                <DashboardLoading
+                  className="min-h-32 py-10"
+                  label={`${listLabel}을 불러오는 중...`}
+                />
+              }
+              resetKeys={[
+                organizationId,
+                filters.params.offset,
+                filters.params.role,
+                filters.params.search,
+              ]}
+              title={`${listLabel}을 불러오지 못했습니다`}
+            >
+              <OrganizationMemberList
+                actorRole={access.role}
+                actorUserId={currentUserId}
+                filters={filters}
+                organizationId={organizationId}
+                organizationName={access.organization.name}
               />
-            }
-            resetKeys={[
-              organizationId,
-              filters.params.offset,
-              filters.params.role,
-              filters.params.search,
-            ]}
-            title={`${listLabel}을 불러오지 못했습니다`}
-          >
-            <OrganizationMemberList
-              actorRole={access.role}
-              actorUserId={currentUserId}
-              filters={filters}
-              organizationId={organizationId}
-              organizationName={access.organization.name}
-            />
-          </DashboardQueryBoundary>
+            </DashboardQueryBoundary>
+          </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }

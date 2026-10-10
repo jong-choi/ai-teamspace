@@ -7,7 +7,6 @@ import { Button } from '@repo/client/rnr/components/ui/button';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -95,10 +94,6 @@ export function CreateProjectDialog({
       <DialogContent className="gap-0 rounded-xl p-0 sm:max-w-lg">
         <DialogHeader className="border-b border-border px-6 pb-4 pt-6 pr-12">
           <DialogTitle className="text-base">새 프로젝트</DialogTitle>
-          <DialogDescription className="text-xs leading-5">
-            Project가 하나의 Kanban 작업공간을 소유합니다. 키는 생성 후 이슈
-            번호에 사용됩니다.
-          </DialogDescription>
         </DialogHeader>
 
         <View className="gap-4 px-6 py-5">

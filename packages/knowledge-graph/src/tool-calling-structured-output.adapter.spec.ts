@@ -1,5 +1,5 @@
 import { Document } from '@langchain/core/documents';
-import { AIMessage } from '@langchain/core/messages';
+import { AIMessage, type BaseMessage } from '@langchain/core/messages';
 import { RunnableLambda } from '@langchain/core/runnables';
 import { FakeListChatModel } from '@langchain/core/utils/testing';
 
@@ -19,17 +19,19 @@ function fakeToolCallingModel(messages: AIMessage[]) {
   const model = new FakeListChatModel({ responses: ['사용하지 않는 응답'] });
   let invocations = 0;
   const toolsBound: unknown[] = [];
+  const inputs: BaseMessage[][] = [];
   Object.defineProperty(model, 'bindTools', {
     value: (tools: unknown[]) => {
       toolsBound.push(...tools);
-      return RunnableLambda.from(async () => {
+      return RunnableLambda.from(async (input: BaseMessage[]) => {
+        inputs.push([...input]);
         const message = messages[Math.min(invocations, messages.length - 1)];
         invocations += 1;
         return message;
       });
     },
   });
-  return { model, toolsBound, getInvocations: () => invocations };
+  return { model, toolsBound, inputs, getInvocations: () => invocations };
 }
 
 const validGraph = {
@@ -96,11 +98,64 @@ describe('Structured Output 미지원 모델의 Tool Calling 어댑터', () => {
     expect(fake.getInvocations()).toBe(2);
   });
 
+  it('재시도할 때 거절한 답과 검증 실패 이유를 대화에 붙여 보낸다', async () => {
+    const rejected = messageWithGraph({
+      nodes: [{ id: '지윤', label: 'person' }],
+      relationships: [],
+    });
+    const fake = fakeToolCallingModel([rejected, messageWithGraph(validGraph)]);
+    const transformer = createToolCallingGraphTransformer({
+      llm: fake.model,
+      allowedNodes: ['Person', 'Technology'],
+      allowedRelationships: ['USES'],
+    });
+
+    await transformer.processResponse(
+      new Document({ pageContent: '지윤은 Neo4j를 사용한다.' }),
+    );
+
+    const [first, second] = fake.inputs;
+    const added = second.slice(first.length);
+    expect(added[0]).toBe(rejected);
+    expect(added[1].getType()).toBe('tool');
+    expect(added[1]).toMatchObject({ tool_call_id: '호출-1', status: 'error' });
+    expect(added[1].content).toContain('nodes.0.type');
+  });
+
+  it('도구를 호출하지 않은 답에는 사용자 메시지로 이유를 돌려준다', async () => {
+    const fake = fakeToolCallingModel([
+      new AIMessage({ content: '일반 텍스트' }),
+      messageWithGraph(validGraph),
+    ]);
+    const transformer = createToolCallingGraphTransformer({ llm: fake.model });
+
+    await transformer.processResponse(new Document({ pageContent: '입력' }));
+
+    const [first, second] = fake.inputs;
+    const added = second.slice(first.length);
+    expect(added).toHaveLength(1);
+    expect(added[0].getType()).toBe('human');
+    expect(added[0].content).toContain('extract_graph');
+  });
+
+  it('재시도 횟수를 정하지 않으면 다섯 번까지 시도한다', async () => {
+    const fake = fakeToolCallingModel([messageWithGraph({ nodes: [] })]);
+    const transformer = createToolCallingGraphTransformer({ llm: fake.model });
+
+    await expect(
+      transformer.processResponse(new Document({ pageContent: '입력' })),
+    ).rejects.toThrow('그래프 스키마를 통과하지 못했습니다.');
+    expect(fake.getInvocations()).toBe(5);
+  });
+
   it('도구를 호출하지 않고 일반 텍스트를 반환하면 오류를 던진다', async () => {
     const fake = fakeToolCallingModel([
       new AIMessage({ content: '{"nodes":[],"relationships":[]}' }),
     ]);
-    const transformer = createToolCallingGraphTransformer({ llm: fake.model });
+    const transformer = createToolCallingGraphTransformer({
+      llm: fake.model,
+      maxToolCallRetries: 1,
+    });
 
     await expect(
       transformer.processResponse(new Document({ pageContent: '입력' })),

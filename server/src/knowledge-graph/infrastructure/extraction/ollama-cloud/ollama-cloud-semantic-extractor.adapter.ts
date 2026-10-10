@@ -51,7 +51,6 @@ export class OllamaCloudSemanticExtractorAdapter extends SemanticGraphExtractor 
       allowedNodes: [...semanticOntology.allowedNodes],
       allowedRelationships: [...semanticOntology.allowedRelationships],
       strictMode: true,
-      maxToolCallRetries: 1,
     });
     const [graph] = await transformer.convertToGraphDocuments([
       new Document({ pageContent: text, metadata: { chunkIndex } }),

@@ -92,7 +92,7 @@ describe('Ollama SDK와 기존 Tool Calling transformer의 실제 HTTP 연결', 
       expect(init.body.includes('"think"')).toBe(false);
     }
   });
-  it('U7-11 유효하지 않은 schema는 기존transformer에서1회만 재시도한다', async () => {
+  it('U7-11 유효하지 않은 schema는 기존 transformer에서 다섯 번까지 시도한다', async () => {
     const fetch = jest.spyOn(globalThis, 'fetch').mockImplementation(async () =>
       response({
         nodes: [{ id: '잘못된 종류', type: 'Admin' }],
@@ -102,7 +102,7 @@ describe('Ollama SDK와 기존 Tool Calling transformer의 실제 HTTP 연결', 
     await expect(
       adapter.extract('본문', 0, new AbortController().signal),
     ).rejects.toMatchObject({ reason: 'schema_mismatch' });
-    expect(fetch.mock.calls.length).toBe(2);
+    expect(fetch.mock.calls.length).toBe(5);
   });
   it('U7-13 HTTP401은LangChain 내부추가재시도 없이고정코드1회로끝난다', async () => {
     const fetch = jest

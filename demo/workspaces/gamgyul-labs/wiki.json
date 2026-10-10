@@ -1,0 +1,78 @@
+{
+  "documents": [
+    {
+      "key": "lab-guide",
+      "title": "랩 운영 안내",
+      "file": "lab-guide.md",
+      "author": "youngsoo.noh",
+      "createdAt": {
+        "workday": -52,
+        "time": "10:30"
+      }
+    },
+    {
+      "key": "research",
+      "title": "연구 노트",
+      "file": "research.md",
+      "author": "sungmin.moon",
+      "createdAt": {
+        "workday": -40,
+        "time": "11:00"
+      }
+    },
+    {
+      "key": "rec-design",
+      "title": "추천 모델 2.0 설계",
+      "file": "rec-design.md",
+      "author": "sungmin.moon",
+      "createdAt": {
+        "workday": -19,
+        "time": "14:20"
+      },
+      "parent": "research"
+    },
+    {
+      "key": "offline-eval",
+      "title": "오프라인 평가 방법",
+      "file": "offline-eval.md",
+      "author": "hyunwoo.cho",
+      "createdAt": {
+        "workday": -15,
+        "time": "16:45"
+      },
+      "parent": "research"
+    },
+    {
+      "key": "data",
+      "title": "데이터",
+      "file": "data.md",
+      "author": "jihyun.ryu",
+      "createdAt": {
+        "workday": -38,
+        "time": "09:50"
+      }
+    },
+    {
+      "key": "pipeline-architecture",
+      "title": "파이프라인 구조",
+      "file": "pipeline-architecture.md",
+      "author": "jaeseok.hwang",
+      "createdAt": {
+        "workday": -25,
+        "time": "13:10"
+      },
+      "parent": "data"
+    },
+    {
+      "key": "data-quality",
+      "title": "데이터 품질 기준",
+      "file": "data-quality.md",
+      "author": "eunseo.ko",
+      "createdAt": {
+        "workday": -2,
+        "time": "17:00"
+      },
+      "parent": "data"
+    }
+  ]
+}

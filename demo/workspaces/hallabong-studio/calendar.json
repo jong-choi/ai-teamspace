@@ -1,0 +1,328 @@
+{
+  "rooms": [
+    {
+      "name": "한라산",
+      "capacity": 8,
+      "floor": "3층",
+      "description": "대형 모니터와 화상 회의 장비가 있는 회의실"
+    },
+    {
+      "name": "우도",
+      "capacity": 6,
+      "floor": "2층",
+      "description": "화이트보드 벽면이 있는 회의실"
+    },
+    {
+      "name": "성산일출봉",
+      "capacity": 4,
+      "floor": "3층",
+      "description": "일대일 면담용 작은 방"
+    }
+  ],
+  "meetings": [
+    {
+      "title": "주간 스프린트 플래닝",
+      "category": "sprint",
+      "organizer": "doyun.kim",
+      "startAt": {
+        "week": -2,
+        "weekday": "mon",
+        "time": "10:00"
+      },
+      "durationMinutes": 60,
+      "locationType": "meeting_room",
+      "attendees": [
+        "yujin.choi",
+        "minjae.kang",
+        "taeyang.oh",
+        "junho.park",
+        "donghyun.seo",
+        "subin.lim",
+        "sangcheol.han"
+      ],
+      "room": "한라산",
+      "project": "APP",
+      "agenda": "- 지난 스프린트 남은 일 확인\n- 이번 스프린트 목표 정하기\n- 티켓 담당자 배정",
+      "repeatWeeks": 6
+    },
+    {
+      "title": "주간 전체 회의",
+      "category": "allhands",
+      "organizer": "doyun.kim",
+      "startAt": {
+        "week": -2,
+        "weekday": "fri",
+        "time": "16:00"
+      },
+      "durationMinutes": 45,
+      "locationType": "online",
+      "attendees": [
+        "seoyeon.lee",
+        "junho.park",
+        "haeun.jung",
+        "yujin.choi",
+        "minjae.kang",
+        "jia.yoon",
+        "sangcheol.han",
+        "taeyang.oh",
+        "subin.lim",
+        "donghyun.seo",
+        "yerin.shin"
+      ],
+      "locationText": "화상 회의",
+      "agenda": "- 팀별 한 줄 공유\n- 이번 주 숫자\n- 다음 주 일정",
+      "repeatWeeks": 6
+    },
+    {
+      "title": "캠페인 킥오프",
+      "category": "team",
+      "organizer": "haeun.jung",
+      "startAt": {
+        "workday": -1,
+        "time": "15:00"
+      },
+      "durationMinutes": 60,
+      "locationType": "meeting_room",
+      "attendees": ["yerin.shin", "jia.yoon", "doyun.kim"],
+      "room": "한라산",
+      "project": "MKT",
+      "agenda": "- 캠페인 목표와 기간\n- 역할 나누기\n- 첫 주 할 일",
+      "notes": "## 결정\n- 핵심 문구는 \"오늘 딴 귤, 내일 우리 집\"으로 간다.\n- 사전 예약은 랜딩 페이지 하나로 받는다.\n\n## 할 일\n- 지아: 랜딩 시안 두 가지\n- 예린: 쿠폰 문의 답변 기준 초안\n- 하은: 농가 촬영 일정 확정",
+      "rsvp": {
+        "yerin.shin": "accepted",
+        "jia.yoon": "accepted",
+        "doyun.kim": "accepted"
+      }
+    },
+    {
+      "title": "인프라 비용 점검",
+      "category": "team",
+      "organizer": "donghyun.seo",
+      "startAt": {
+        "workday": -1,
+        "time": "11:00"
+      },
+      "durationMinutes": 45,
+      "locationType": "online",
+      "attendees": ["sangcheol.han", "junho.park"],
+      "notes": "- 이미지 저장 비용이 전월보다 늘었다. 원본 보관 기간을 줄이는 안을 다음 주에 정리한다.",
+      "rsvp": {
+        "sangcheol.han": "accepted",
+        "junho.park": "accepted"
+      }
+    },
+    {
+      "title": "QA 시나리오 점검",
+      "category": "team",
+      "organizer": "subin.lim",
+      "startAt": {
+        "workday": -2,
+        "time": "13:30"
+      },
+      "durationMinutes": 30,
+      "locationType": "online",
+      "attendees": ["taeyang.oh", "minjae.kang"],
+      "project": "APP",
+      "rsvp": {
+        "taeyang.oh": "accepted",
+        "minjae.kang": "accepted"
+      }
+    },
+    {
+      "title": "1:1 도윤 · 유진",
+      "category": "1on1",
+      "organizer": "doyun.kim",
+      "startAt": {
+        "workday": -3,
+        "time": "11:00"
+      },
+      "durationMinutes": 30,
+      "locationType": "meeting_room",
+      "attendees": ["yujin.choi"],
+      "room": "성산일출봉",
+      "rsvp": {
+        "yujin.choi": "accepted"
+      }
+    },
+    {
+      "title": "결제 장애 회고",
+      "category": "team",
+      "organizer": "junho.park",
+      "startAt": {
+        "workday": 0,
+        "time": "11:00"
+      },
+      "durationMinutes": 45,
+      "locationType": "online",
+      "attendees": ["donghyun.seo", "sangcheol.han", "subin.lim", "doyun.kim"],
+      "project": "PAY",
+      "agenda": "- 타임라인 정리\n- 왜 늦게 알았나\n- 다시 생기지 않게 할 일",
+      "rsvp": {
+        "donghyun.seo": "accepted",
+        "sangcheol.han": "accepted",
+        "subin.lim": "tentative",
+        "doyun.kim": "accepted"
+      }
+    },
+    {
+      "title": "앱 리뉴얼 디자인 리뷰",
+      "category": "team",
+      "organizer": "seoyeon.lee",
+      "startAt": {
+        "workday": 0,
+        "time": "14:00"
+      },
+      "durationMinutes": 60,
+      "locationType": "meeting_room",
+      "attendees": ["jia.yoon", "yujin.choi", "minjae.kang", "doyun.kim"],
+      "room": "우도",
+      "project": "APP",
+      "agenda": "- 주문 내역 화면 취소 상태\n- 농가 소개 페이지 구성\n- 다크 모드 대비 점검 범위",
+      "rsvp": {
+        "jia.yoon": "accepted",
+        "yujin.choi": "accepted",
+        "minjae.kang": "accepted"
+      }
+    },
+    {
+      "title": "1:1 도윤 · 서연",
+      "category": "1on1",
+      "organizer": "doyun.kim",
+      "startAt": {
+        "workday": 0,
+        "time": "17:00"
+      },
+      "durationMinutes": 30,
+      "locationType": "meeting_room",
+      "attendees": ["seoyeon.lee"],
+      "room": "성산일출봉",
+      "rsvp": {
+        "seoyeon.lee": "accepted"
+      }
+    },
+    {
+      "title": "PG사 계약 조건 미팅",
+      "category": "client",
+      "organizer": "junho.park",
+      "startAt": {
+        "workday": 1,
+        "time": "14:00"
+      },
+      "durationMinutes": 90,
+      "locationType": "other",
+      "attendees": ["doyun.kim", "sangcheol.han"],
+      "locationText": "PG사 본사 7층 회의실",
+      "project": "PAY",
+      "agenda": "- 수수료 구간 변경\n- 정산 주기\n- 장애 발생 시 연락 체계",
+      "rsvp": {
+        "doyun.kim": "accepted",
+        "sangcheol.han": "accepted"
+      }
+    },
+    {
+      "title": "1:1 도윤 · 준호",
+      "category": "1on1",
+      "organizer": "doyun.kim",
+      "startAt": {
+        "workday": 1,
+        "time": "17:00"
+      },
+      "durationMinutes": 30,
+      "locationType": "meeting_room",
+      "attendees": ["junho.park"],
+      "room": "성산일출봉"
+    },
+    {
+      "title": "접근성 점검 워크숍",
+      "category": "team",
+      "organizer": "yujin.choi",
+      "startAt": {
+        "workday": 2,
+        "time": "11:00"
+      },
+      "durationMinutes": 90,
+      "locationType": "meeting_room",
+      "attendees": ["taeyang.oh", "jia.yoon", "subin.lim", "seoyeon.lee"],
+      "room": "한라산",
+      "project": "APP",
+      "agenda": "- 글자 크기 최대일 때 화면 점검\n- 화면 읽기 기능으로 주문 끝까지 해 보기",
+      "rsvp": {
+        "taeyang.oh": "accepted",
+        "jia.yoon": "accepted",
+        "subin.lim": "accepted"
+      }
+    },
+    {
+      "title": "캠페인 소재 리뷰",
+      "category": "team",
+      "organizer": "haeun.jung",
+      "startAt": {
+        "workday": 2,
+        "time": "15:00"
+      },
+      "durationMinutes": 45,
+      "locationType": "meeting_room",
+      "attendees": ["jia.yoon", "yerin.shin", "doyun.kim"],
+      "room": "우도",
+      "project": "MKT",
+      "rsvp": {
+        "jia.yoon": "accepted"
+      }
+    },
+    {
+      "title": "릴리스 Go/No-Go",
+      "category": "sprint",
+      "organizer": "doyun.kim",
+      "startAt": {
+        "workday": 3,
+        "time": "14:00"
+      },
+      "durationMinutes": 30,
+      "locationType": "online",
+      "attendees": [
+        "sangcheol.han",
+        "yujin.choi",
+        "junho.park",
+        "subin.lim",
+        "minjae.kang"
+      ],
+      "project": "APP",
+      "agenda": "- 남은 버그 목록\n- 출시 여부 결정"
+    },
+    {
+      "title": "CS 이슈 공유",
+      "category": "team",
+      "organizer": "yerin.shin",
+      "startAt": {
+        "workday": 4,
+        "time": "11:00"
+      },
+      "durationMinutes": 30,
+      "locationType": "online",
+      "attendees": ["subin.lim", "doyun.kim"]
+    },
+    {
+      "title": "스프린트 회고",
+      "category": "sprint",
+      "organizer": "doyun.kim",
+      "startAt": {
+        "workday": 5,
+        "time": "14:00"
+      },
+      "durationMinutes": 60,
+      "locationType": "meeting_room",
+      "attendees": [
+        "yujin.choi",
+        "minjae.kang",
+        "taeyang.oh",
+        "junho.park",
+        "donghyun.seo",
+        "subin.lim",
+        "sangcheol.han"
+      ],
+      "room": "한라산",
+      "project": "APP",
+      "agenda": "- 잘된 것\n- 아쉬운 것\n- 다음에 바꿀 한 가지"
+    }
+  ]
+}

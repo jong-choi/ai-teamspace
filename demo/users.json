@@ -1,0 +1,307 @@
+{
+  "demoUsername": "doyun.kim",
+  "organizations": [
+    {
+      "slug": "hallabong-studio",
+      "name": "한라봉 스튜디오"
+    },
+    {
+      "slug": "gamgyul-labs",
+      "name": "감귤랩스"
+    }
+  ],
+  "users": [
+    {
+      "name": "김도윤",
+      "username": "doyun.kim",
+      "email": "doyun.kim@workos.demo",
+      "avatar": "avatar-01.webp",
+      "memberships": [
+        {
+          "organization": "hallabong-studio",
+          "role": "owner"
+        },
+        {
+          "organization": "gamgyul-labs",
+          "role": "member"
+        }
+      ]
+    },
+    {
+      "name": "이서연",
+      "username": "seoyeon.lee",
+      "email": "seoyeon.lee@workos.demo",
+      "avatar": "avatar-02.webp",
+      "memberships": [
+        {
+          "organization": "hallabong-studio",
+          "role": "admin"
+        }
+      ]
+    },
+    {
+      "name": "박준호",
+      "username": "junho.park",
+      "email": "junho.park@workos.demo",
+      "avatar": "avatar-03.webp",
+      "memberships": [
+        {
+          "organization": "hallabong-studio",
+          "role": "member"
+        }
+      ]
+    },
+    {
+      "name": "정하은",
+      "username": "haeun.jung",
+      "email": "haeun.jung@workos.demo",
+      "avatar": "avatar-04.webp",
+      "memberships": [
+        {
+          "organization": "hallabong-studio",
+          "role": "member"
+        }
+      ]
+    },
+    {
+      "name": "최유진",
+      "username": "yujin.choi",
+      "email": "yujin.choi@workos.demo",
+      "avatar": "avatar-05.webp",
+      "memberships": [
+        {
+          "organization": "hallabong-studio",
+          "role": "member"
+        }
+      ]
+    },
+    {
+      "name": "강민재",
+      "username": "minjae.kang",
+      "email": "minjae.kang@workos.demo",
+      "avatar": "avatar-06.webp",
+      "memberships": [
+        {
+          "organization": "hallabong-studio",
+          "role": "member"
+        }
+      ]
+    },
+    {
+      "name": "윤지아",
+      "username": "jia.yoon",
+      "email": "jia.yoon@workos.demo",
+      "avatar": "avatar-07.webp",
+      "memberships": [
+        {
+          "organization": "hallabong-studio",
+          "role": "member"
+        }
+      ]
+    },
+    {
+      "name": "한상철",
+      "username": "sangcheol.han",
+      "email": "sangcheol.han@workos.demo",
+      "avatar": "avatar-08.webp",
+      "memberships": [
+        {
+          "organization": "hallabong-studio",
+          "role": "admin"
+        }
+      ]
+    },
+    {
+      "name": "오태양",
+      "username": "taeyang.oh",
+      "email": "taeyang.oh@workos.demo",
+      "avatar": "avatar-09.webp",
+      "memberships": [
+        {
+          "organization": "hallabong-studio",
+          "role": "member"
+        }
+      ]
+    },
+    {
+      "name": "임수빈",
+      "username": "subin.lim",
+      "email": "subin.lim@workos.demo",
+      "avatar": "avatar-10.webp",
+      "memberships": [
+        {
+          "organization": "hallabong-studio",
+          "role": "member"
+        }
+      ]
+    },
+    {
+      "name": "서동현",
+      "username": "donghyun.seo",
+      "email": "donghyun.seo@workos.demo",
+      "avatar": "avatar-11.webp",
+      "memberships": [
+        {
+          "organization": "hallabong-studio",
+          "role": "member"
+        }
+      ]
+    },
+    {
+      "name": "신예린",
+      "username": "yerin.shin",
+      "email": "yerin.shin@workos.demo",
+      "avatar": "avatar-12.webp",
+      "memberships": [
+        {
+          "organization": "hallabong-studio",
+          "role": "member"
+        }
+      ]
+    },
+    {
+      "name": "조현우",
+      "username": "hyunwoo.cho",
+      "email": "hyunwoo.cho@workos.demo",
+      "avatar": "avatar-13.webp",
+      "memberships": [
+        {
+          "organization": "gamgyul-labs",
+          "role": "member"
+        }
+      ]
+    },
+    {
+      "name": "배소윤",
+      "username": "soyoon.bae",
+      "email": "soyoon.bae@workos.demo",
+      "avatar": "avatar-14.webp",
+      "memberships": [
+        {
+          "organization": "gamgyul-labs",
+          "role": "member"
+        }
+      ]
+    },
+    {
+      "name": "문성민",
+      "username": "sungmin.moon",
+      "email": "sungmin.moon@workos.demo",
+      "avatar": "avatar-15.webp",
+      "memberships": [
+        {
+          "organization": "gamgyul-labs",
+          "role": "admin"
+        }
+      ]
+    },
+    {
+      "name": "권나연",
+      "username": "nayeon.kwon",
+      "email": "nayeon.kwon@workos.demo",
+      "avatar": "avatar-16.webp",
+      "memberships": [
+        {
+          "organization": "gamgyul-labs",
+          "role": "member"
+        }
+      ]
+    },
+    {
+      "name": "황재석",
+      "username": "jaeseok.hwang",
+      "email": "jaeseok.hwang@workos.demo",
+      "avatar": "avatar-17.webp",
+      "memberships": [
+        {
+          "organization": "gamgyul-labs",
+          "role": "member"
+        }
+      ]
+    },
+    {
+      "name": "송다은",
+      "username": "daeun.song",
+      "email": "daeun.song@workos.demo",
+      "avatar": "avatar-18.webp",
+      "memberships": [
+        {
+          "organization": "gamgyul-labs",
+          "role": "member"
+        }
+      ]
+    },
+    {
+      "name": "안시우",
+      "username": "siwoo.ahn",
+      "email": "siwoo.ahn@workos.demo",
+      "avatar": "avatar-19.webp",
+      "memberships": [
+        {
+          "organization": "gamgyul-labs",
+          "role": "member"
+        }
+      ]
+    },
+    {
+      "name": "류지현",
+      "username": "jihyun.ryu",
+      "email": "jihyun.ryu@workos.demo",
+      "avatar": "avatar-20.webp",
+      "memberships": [
+        {
+          "organization": "gamgyul-labs",
+          "role": "admin"
+        }
+      ]
+    },
+    {
+      "name": "홍채원",
+      "username": "chaewon.hong",
+      "email": "chaewon.hong@workos.demo",
+      "avatar": "avatar-21.webp",
+      "memberships": [
+        {
+          "organization": "gamgyul-labs",
+          "role": "member"
+        }
+      ]
+    },
+    {
+      "name": "노영수",
+      "username": "youngsoo.noh",
+      "email": "youngsoo.noh@workos.demo",
+      "avatar": "avatar-22.webp",
+      "memberships": [
+        {
+          "organization": "gamgyul-labs",
+          "role": "owner"
+        }
+      ]
+    },
+    {
+      "name": "고은서",
+      "username": "eunseo.ko",
+      "email": "eunseo.ko@workos.demo",
+      "avatar": "avatar-23.webp",
+      "memberships": [
+        {
+          "organization": "gamgyul-labs",
+          "role": "member"
+        }
+      ]
+    },
+    {
+      "name": "전우진",
+      "username": "woojin.jeon",
+      "email": "woojin.jeon@workos.demo",
+      "avatar": "avatar-24.webp",
+      "memberships": [
+        {
+          "organization": "gamgyul-labs",
+          "role": "member"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,434 @@
+{
+  "projects": [
+    {
+      "key": "REC",
+      "name": "추천 모델 2.0",
+      "createdBy": "youngsoo.noh",
+      "lead": "sungmin.moon",
+      "description": "귤밭 앱 홈 화면의 상품 추천을 구매 이력 기반에서 제철·지역·취향을 함께 보는 모델로 바꾼다.",
+      "labels": [
+        {
+          "name": "모델",
+          "color": "violet"
+        },
+        {
+          "name": "평가",
+          "color": "blue"
+        },
+        {
+          "name": "서빙",
+          "color": "amber"
+        },
+        {
+          "name": "실험",
+          "color": "green"
+        }
+      ],
+      "tickets": [
+        {
+          "title": "기존 추천 모델 성능 기준선 측정",
+          "column": "Done",
+          "priority": "high",
+          "reporter": "sungmin.moon",
+          "createdAt": {
+            "workday": -20,
+            "time": "10:15"
+          },
+          "assignee": "hyunwoo.cho",
+          "dueAt": {
+            "workday": -15
+          },
+          "description": "새 모델과 비교할 기준 숫자를 정한다. 지난 분기 주문 기록으로 상위 10개 추천의 적중률을 잰다.",
+          "labels": ["평가"],
+          "comments": [
+            {
+              "author": "hyunwoo.cho",
+              "content": "기준선 나왔습니다. 재구매 상품에서는 높고, 처음 사는 상품에서는 거의 못 맞힙니다.",
+              "at": {
+                "workday": -16,
+                "time": "15:40"
+              }
+            },
+            {
+              "author": "sungmin.moon",
+              "content": "예상대로네요. 새 모델의 목표는 처음 사는 상품 쪽으로 잡읍시다.",
+              "at": {
+                "workday": -16,
+                "time": "16:05"
+              }
+            }
+          ]
+        },
+        {
+          "title": "제철 정보 피처 설계",
+          "column": "Done",
+          "priority": "medium",
+          "reporter": "sungmin.moon",
+          "createdAt": {
+            "workday": -17,
+            "time": "11:00"
+          },
+          "assignee": "daeun.song",
+          "dueAt": {
+            "workday": -11
+          },
+          "description": "품목별 수확 시기를 모델이 쓸 수 있는 값으로 만든다. 농가가 입력한 수확 예정일을 우선하고, 없으면 품목 평균을 쓴다.",
+          "labels": ["모델"]
+        },
+        {
+          "title": "후보 생성 모델 학습",
+          "column": "In Review",
+          "priority": "high",
+          "reporter": "sungmin.moon",
+          "createdAt": {
+            "workday": -12,
+            "time": "09:30"
+          },
+          "assignee": "hyunwoo.cho",
+          "dueAt": {
+            "workday": 1
+          },
+          "description": "## 구성\n- 고객과 상품을 같은 공간의 벡터로 만든다.\n- 가까운 상품 200개를 후보로 뽑는다.\n\n## 확인할 것\n- 신규 상품이 후보에 들어오는가\n- 품절 상품이 빠지는가",
+          "labels": ["모델"],
+          "checklists": [
+            {
+              "title": "리뷰 전 확인",
+              "items": [
+                {
+                  "title": "학습 재현 스크립트",
+                  "completed": true
+                },
+                {
+                  "title": "평가 리포트",
+                  "completed": true
+                },
+                {
+                  "title": "품절 상품 제외",
+                  "completed": false
+                }
+              ]
+            }
+          ],
+          "comments": [
+            {
+              "author": "hyunwoo.cho",
+              "content": "학습 끝났습니다. 처음 사는 상품 적중률이 기준선의 두 배 조금 넘습니다.",
+              "at": {
+                "workday": -3,
+                "time": "14:25"
+              }
+            },
+            {
+              "author": "daeun.song",
+              "content": "평가 데이터에 학습 기간 주문이 섞이지 않았는지 한 번 더 봐 주세요.",
+              "at": {
+                "workday": -2,
+                "time": "10:12"
+              }
+            },
+            {
+              "author": "hyunwoo.cho",
+              "content": "기간 겹침 없습니다. 분리 기준을 리포트에 적어 뒀어요.",
+              "at": {
+                "workday": -2,
+                "time": "11:30"
+              }
+            }
+          ]
+        },
+        {
+          "title": "순위 모델에 지역 배송 가능 여부 반영",
+          "column": "In Progress",
+          "priority": "high",
+          "reporter": "doyun.kim",
+          "createdAt": {
+            "workday": -9,
+            "time": "13:45"
+          },
+          "assignee": "daeun.song",
+          "dueAt": {
+            "workday": 3
+          },
+          "description": "배송이 안 되는 지역의 고객에게 해당 농가 상품이 추천되는 일이 있다. 순위를 매기기 전에 걸러 낸다.",
+          "labels": ["모델"],
+          "comments": [
+            {
+              "author": "doyun.kim",
+              "content": "고객 문의로 꾸준히 들어오는 건입니다. 추천에 떴는데 주문이 안 된다는 내용이에요.",
+              "at": {
+                "workday": -9,
+                "time": "13:50"
+              }
+            },
+            {
+              "author": "daeun.song",
+              "content": "배송 가능 지역 데이터를 받아서 필터로 넣는 중입니다.",
+              "at": {
+                "workday": -4,
+                "time": "16:20"
+              }
+            }
+          ]
+        },
+        {
+          "title": "오프라인 평가 파이프라인 자동화",
+          "column": "In Progress",
+          "priority": "medium",
+          "reporter": "sungmin.moon",
+          "createdAt": {
+            "workday": -8,
+            "time": "15:10"
+          },
+          "assignee": "hyunwoo.cho",
+          "dueAt": {
+            "workday": 4
+          },
+          "labels": ["평가"]
+        },
+        {
+          "title": "A/B 테스트 설계",
+          "column": "Todo",
+          "priority": "high",
+          "reporter": "sungmin.moon",
+          "createdAt": {
+            "workday": -6,
+            "time": "10:40"
+          },
+          "assignee": "nayeon.kwon",
+          "dueAt": {
+            "workday": 2
+          },
+          "description": "새 모델을 일부 고객에게만 보여 주고 비교한다. 나눌 비율, 기간, 볼 지표를 정한다.",
+          "labels": ["실험"]
+        },
+        {
+          "title": "추천 응답 속도 측정",
+          "column": "Todo",
+          "priority": "medium",
+          "reporter": "siwoo.ahn",
+          "createdAt": {
+            "workday": -5,
+            "time": "14:00"
+          },
+          "assignee": "siwoo.ahn",
+          "dueAt": {
+            "workday": 5
+          },
+          "labels": ["서빙"]
+        },
+        {
+          "title": "추천 이유 문구 표시",
+          "column": "Backlog",
+          "priority": "low",
+          "reporter": "doyun.kim",
+          "createdAt": {
+            "workday": -3,
+            "time": "11:25"
+          },
+          "description": "\"지금이 제철이에요\", \"지난번에 산 농가의 새 상품\" 같은 이유를 카드에 한 줄로 보여 준다.",
+          "labels": ["실험"]
+        },
+        {
+          "title": "신규 가입 고객용 기본 추천",
+          "column": "Backlog",
+          "priority": "medium",
+          "reporter": "nayeon.kwon",
+          "createdAt": {
+            "workday": -2,
+            "time": "16:35"
+          },
+          "labels": ["모델"]
+        }
+      ]
+    },
+    {
+      "key": "DATA",
+      "name": "데이터 파이프라인 정비",
+      "createdBy": "youngsoo.noh",
+      "lead": "jihyun.ryu",
+      "description": "주문·상품·농가 데이터를 매일 같은 시각에 같은 품질로 쓸 수 있게 만든다.",
+      "labels": [
+        {
+          "name": "장애",
+          "color": "red"
+        },
+        {
+          "name": "품질",
+          "color": "green"
+        },
+        {
+          "name": "비용",
+          "color": "amber"
+        },
+        {
+          "name": "문서",
+          "color": "neutral"
+        }
+      ],
+      "tickets": [
+        {
+          "title": "주문 데이터 적재 지연 원인 분석",
+          "column": "Done",
+          "priority": "urgent",
+          "reporter": "jihyun.ryu",
+          "createdAt": {
+            "workday": -10,
+            "time": "09:05"
+          },
+          "assignee": "jaeseok.hwang",
+          "dueAt": {
+            "workday": -8
+          },
+          "description": "아침 리포트가 비어 있었다. 전날 주문 데이터 적재가 네 시간 늦게 끝났다.",
+          "labels": ["장애"],
+          "comments": [
+            {
+              "author": "jaeseok.hwang",
+              "content": "상위 작업 하나가 재시도를 반복하면서 뒤 작업이 전부 밀렸습니다.",
+              "at": {
+                "workday": -9,
+                "time": "11:20"
+              }
+            },
+            {
+              "author": "woojin.jeon",
+              "content": "재시도 횟수 제한이 없었네요. 세 번으로 막고 알림을 붙였습니다.",
+              "at": {
+                "workday": -9,
+                "time": "15:45"
+              }
+            },
+            {
+              "author": "jihyun.ryu",
+              "content": "포스트모템에서 정리합시다.",
+              "at": {
+                "workday": -8,
+                "time": "09:30"
+              }
+            }
+          ]
+        },
+        {
+          "title": "작업 재시도 횟수 제한과 알림",
+          "column": "Done",
+          "priority": "high",
+          "reporter": "jihyun.ryu",
+          "createdAt": {
+            "workday": -9,
+            "time": "16:00"
+          },
+          "assignee": "woojin.jeon",
+          "dueAt": {
+            "workday": -6
+          },
+          "labels": ["장애"]
+        },
+        {
+          "title": "데이터 품질 검사 규칙 정의",
+          "column": "In Review",
+          "priority": "high",
+          "reporter": "jihyun.ryu",
+          "createdAt": {
+            "workday": -7,
+            "time": "10:30"
+          },
+          "assignee": "eunseo.ko",
+          "dueAt": {
+            "workday": 1
+          },
+          "description": "테이블마다 \"이 조건을 어기면 데이터가 틀린 것\"이라는 규칙을 적는다.",
+          "labels": ["품질", "문서"],
+          "checklists": [
+            {
+              "title": "1차 대상",
+              "items": [
+                {
+                  "title": "주문",
+                  "completed": true
+                },
+                {
+                  "title": "상품",
+                  "completed": true
+                },
+                {
+                  "title": "농가",
+                  "completed": false
+                },
+                {
+                  "title": "배송",
+                  "completed": false
+                }
+              ]
+            }
+          ],
+          "comments": [
+            {
+              "author": "eunseo.ko",
+              "content": "주문과 상품 테이블 규칙 초안을 위키에 올렸습니다.",
+              "at": {
+                "workday": -2,
+                "time": "17:05"
+              }
+            }
+          ]
+        },
+        {
+          "title": "중복 주문 행 제거",
+          "column": "In Progress",
+          "priority": "medium",
+          "reporter": "eunseo.ko",
+          "createdAt": {
+            "workday": -6,
+            "time": "13:20"
+          },
+          "assignee": "jaeseok.hwang",
+          "dueAt": {
+            "workday": 3
+          },
+          "description": "결제 재시도 때 주문 행이 두 번 들어오는 경우가 있다.",
+          "labels": ["품질"]
+        },
+        {
+          "title": "안 쓰는 테이블 정리",
+          "column": "Todo",
+          "priority": "low",
+          "reporter": "woojin.jeon",
+          "createdAt": {
+            "workday": -5,
+            "time": "11:15"
+          },
+          "assignee": "woojin.jeon",
+          "dueAt": {
+            "workday": 8
+          },
+          "labels": ["비용"]
+        },
+        {
+          "title": "테이블 설명 문서 채우기",
+          "column": "Todo",
+          "priority": "medium",
+          "reporter": "soyoon.bae",
+          "createdAt": {
+            "workday": -4,
+            "time": "15:50"
+          },
+          "assignee": "eunseo.ko",
+          "dueAt": {
+            "workday": 6
+          },
+          "labels": ["문서"]
+        },
+        {
+          "title": "피처 스토어 도입 검토",
+          "column": "Backlog",
+          "priority": "medium",
+          "reporter": "sungmin.moon",
+          "createdAt": {
+            "workday": -3,
+            "time": "10:05"
+          }
+        }
+      ]
+    }
+  ]
+}

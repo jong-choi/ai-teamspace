@@ -1,0 +1,529 @@
+{
+  "channels": [
+    {
+      "name": "공지",
+      "topic": "모두가 알아야 하는 소식",
+      "creator": "doyun.kim",
+      "participants": [
+        "seoyeon.lee",
+        "junho.park",
+        "haeun.jung",
+        "yujin.choi",
+        "minjae.kang",
+        "jia.yoon",
+        "sangcheol.han",
+        "taeyang.oh",
+        "subin.lim",
+        "donghyun.seo",
+        "yerin.shin"
+      ],
+      "unread": 0,
+      "messages": [
+        {
+          "from": "doyun.kim",
+          "text": "이번 분기 목표를 위키 \"팀 핸드북\" 아래에 올렸습니다. 금요일 전체 회의 전에 한 번씩 읽어 주세요.",
+          "at": {
+            "workday": -9,
+            "time": "09:10"
+          }
+        },
+        {
+          "from": "sangcheol.han",
+          "text": "결제 대기 시간 조정이 운영에 나갔습니다. 간편결제 실패율은 원래 수준으로 돌아왔어요.",
+          "at": {
+            "workday": -8,
+            "time": "10:35"
+          }
+        },
+        {
+          "from": "seoyeon.lee",
+          "text": "디자인 시스템 2.1 배포했습니다. 버튼과 입력창 높이가 조금 바뀌었으니 화면에서 어색한 곳 보이면 알려 주세요.",
+          "at": {
+            "workday": -6,
+            "time": "14:02"
+          }
+        },
+        {
+          "from": "haeun.jung",
+          "text": "가을 수확 캠페인 문구가 \"오늘 딴 귤, 내일 우리 집\"으로 확정됐습니다 🍊",
+          "at": {
+            "workday": -5,
+            "time": "09:31"
+          }
+        },
+        {
+          "from": "yerin.shin",
+          "text": "이번 주 고객 문의 1위는 정산서 파일 요청입니다. 진행 상황은 결제-정산 채널에 공유할게요.",
+          "at": {
+            "workday": -3,
+            "time": "11:20"
+          }
+        },
+        {
+          "from": "doyun.kim",
+          "text": "다음 주 수요일은 접근성 점검 워크숍이 있습니다. 개발·디자인 분들은 일정 비워 주세요.",
+          "at": {
+            "workday": -1,
+            "time": "17:05"
+          }
+        }
+      ]
+    },
+    {
+      "name": "앱-리뉴얼",
+      "topic": "귤밭 앱 리뉴얼 진행 상황",
+      "creator": "yujin.choi",
+      "participants": [
+        "doyun.kim",
+        "seoyeon.lee",
+        "jia.yoon",
+        "minjae.kang",
+        "taeyang.oh",
+        "subin.lim",
+        "sangcheol.han"
+      ],
+      "unread": 3,
+      "messages": [
+        {
+          "from": "yujin.choi",
+          "text": "홈 화면 새 레이아웃 머지했습니다. 내부 배포 버전에서 확인할 수 있어요.",
+          "at": {
+            "workday": -6,
+            "time": "11:15"
+          }
+        },
+        {
+          "from": "subin.lim",
+          "text": "확인 중입니다. 작은 화면에서 배너 아래 첫 카드가 살짝 잘리는데 의도인가요?",
+          "at": {
+            "workday": -6,
+            "time": "11:48"
+          }
+        },
+        {
+          "from": "yujin.choi",
+          "text": "아니요, 그건 버그네요. 바로 볼게요.",
+          "at": {
+            "workday": -6,
+            "time": "11:50"
+          }
+        },
+        {
+          "from": "jia.yoon",
+          "text": "배너 높이는 시안도 같이 줄였어요. 지금 값이 맞습니다.",
+          "at": {
+            "workday": -6,
+            "time": "13:05"
+          }
+        },
+        {
+          "from": "minjae.kang",
+          "text": "이미지 뷰어 교체도 끝났습니다. 확대하다가 옆으로 넘어가던 문제까지 잡았어요.",
+          "at": {
+            "workday": -5,
+            "time": "16:22"
+          }
+        },
+        {
+          "from": "doyun.kim",
+          "text": "좋습니다. 주문 내역 화면은 이번 스프린트 안에 가능할까요?",
+          "at": {
+            "workday": -4,
+            "time": "09:40"
+          }
+        },
+        {
+          "from": "taeyang.oh",
+          "text": "취소 상태 디자인만 나오면 가능합니다. 나머지는 리뷰 올려 뒀어요.",
+          "at": {
+            "workday": -4,
+            "time": "09:52"
+          }
+        },
+        {
+          "from": "jia.yoon",
+          "text": "취소 상태 시안 오늘 올릴게요.",
+          "at": {
+            "workday": -4,
+            "time": "10:01"
+          }
+        },
+        {
+          "from": "subin.lim",
+          "text": "검색 결과가 200개 넘으면 스크롤이 끊깁니다. 구형 Android에서 특히 심해요. 티켓 만들었습니다.",
+          "at": {
+            "workday": -3,
+            "time": "15:25"
+          }
+        },
+        {
+          "from": "yujin.choi",
+          "text": "원본 이미지를 그대로 받고 있었네요. 목록용 작은 이미지로 바꾸는 중입니다.",
+          "at": {
+            "workday": -3,
+            "time": "15:40"
+          }
+        },
+        {
+          "from": "sangcheol.han",
+          "text": "서버에서 크기 변환은 이미 됩니다. 주소에 크기만 붙이면 돼요.",
+          "at": {
+            "workday": -3,
+            "time": "15:44"
+          }
+        },
+        {
+          "from": "taeyang.oh",
+          "text": "글자 크기 최대로 하면 결제 버튼이 잘리는 것도 같이 보고 있습니다.",
+          "at": {
+            "workday": -2,
+            "time": "10:30"
+          }
+        },
+        {
+          "from": "yujin.choi",
+          "text": "검색 스크롤 수정본 내부 배포에 올렸습니다. 수빈님 확인 부탁드려요.",
+          "at": {
+            "workday": -1,
+            "time": "16:10"
+          }
+        },
+        {
+          "from": "subin.lim",
+          "text": "훨씬 낫습니다. 다만 맨 아래까지 내리면 한 번 멈칫해요. 영상 찍어서 티켓에 붙일게요.",
+          "at": {
+            "workday": -1,
+            "time": "17:32"
+          }
+        },
+        {
+          "from": "seoyeon.lee",
+          "text": "내일 디자인 리뷰 때 농가 소개 페이지 구성도 같이 봤으면 합니다.",
+          "at": {
+            "workday": -1,
+            "time": "18:04"
+          }
+        }
+      ]
+    },
+    {
+      "name": "결제-정산",
+      "topic": "결제와 농가 정산",
+      "creator": "junho.park",
+      "participants": [
+        "doyun.kim",
+        "donghyun.seo",
+        "sangcheol.han",
+        "subin.lim",
+        "yerin.shin"
+      ],
+      "unread": 2,
+      "messages": [
+        {
+          "from": "junho.park",
+          "text": "간편결제 실패 원인 찾았습니다. PG사 응답이 3초를 넘기면 우리 쪽에서 먼저 끊고 있었어요.",
+          "at": {
+            "workday": -12,
+            "time": "14:12"
+          }
+        },
+        {
+          "from": "donghyun.seo",
+          "text": "대기 시간을 8초로 늘리고 재시도는 한 번만 하도록 바꿔서 배포했습니다.",
+          "at": {
+            "workday": -11,
+            "time": "10:33"
+          }
+        },
+        {
+          "from": "sangcheol.han",
+          "text": "수고했습니다. 실패율 그래프 내일까지 지켜봅시다.",
+          "at": {
+            "workday": -11,
+            "time": "10:41"
+          }
+        },
+        {
+          "from": "yerin.shin",
+          "text": "정산서를 파일로 달라는 문의가 이번 주에만 여섯 건입니다. 일정이 나오면 알려 주세요.",
+          "at": {
+            "workday": -4,
+            "time": "11:31"
+          }
+        },
+        {
+          "from": "donghyun.seo",
+          "text": "다음 주 안에 내려받기 기능 넣을 수 있습니다.",
+          "at": {
+            "workday": -4,
+            "time": "13:10"
+          }
+        },
+        {
+          "from": "junho.park",
+          "text": "일 단위 정산 설계 문서 올렸습니다. 환불은 다음 정산에서 차감하는 방식이에요.",
+          "at": {
+            "workday": -3,
+            "time": "15:31"
+          }
+        },
+        {
+          "from": "doyun.kim",
+          "text": "차감 내역이 농가 정산서에 따로 보여야 합니다. 한 줄로 빼 주세요.",
+          "at": {
+            "workday": -2,
+            "time": "10:21"
+          }
+        },
+        {
+          "from": "junho.park",
+          "text": "반영했고 정산서 예시도 넣었습니다. 내일 회고 끝나고 PG사 미팅 준비 잠깐 맞춰요.",
+          "at": {
+            "workday": -1,
+            "time": "15:02"
+          }
+        }
+      ]
+    },
+    {
+      "name": "마케팅",
+      "topic": "캠페인과 콘텐츠",
+      "creator": "haeun.jung",
+      "participants": ["doyun.kim", "jia.yoon", "yerin.shin"],
+      "unread": 1,
+      "messages": [
+        {
+          "from": "haeun.jung",
+          "text": "농가 세 곳 촬영 일정 확정했습니다. 질문지도 보냈어요.",
+          "at": {
+            "workday": -5,
+            "time": "10:15"
+          }
+        },
+        {
+          "from": "jia.yoon",
+          "text": "랜딩 시안 A, B 올렸습니다. A는 사진 중심, B는 혜택 중심입니다.",
+          "at": {
+            "workday": -2,
+            "time": "17:11"
+          }
+        },
+        {
+          "from": "haeun.jung",
+          "text": "A가 좋은데 혜택 문구가 첫 화면에 없어요. 위로 올릴 수 있을까요?",
+          "at": {
+            "workday": -1,
+            "time": "10:26"
+          }
+        },
+        {
+          "from": "jia.yoon",
+          "text": "사진 위에 띠 형태로 올려 볼게요.",
+          "at": {
+            "workday": -1,
+            "time": "10:40"
+          }
+        },
+        {
+          "from": "yerin.shin",
+          "text": "쿠폰 문의 답변 기준 초안 썼습니다. 중복 사용과 취소 후 재발급 부분 확인 부탁드려요.",
+          "at": {
+            "workday": -1,
+            "time": "14:18"
+          }
+        }
+      ]
+    },
+    {
+      "name": "잡담",
+      "topic": "점심, 날씨, 귤 이야기",
+      "creator": "yerin.shin",
+      "participants": [
+        "doyun.kim",
+        "seoyeon.lee",
+        "junho.park",
+        "haeun.jung",
+        "yujin.choi",
+        "minjae.kang",
+        "jia.yoon",
+        "sangcheol.han",
+        "taeyang.oh",
+        "subin.lim",
+        "donghyun.seo"
+      ],
+      "unread": 0,
+      "messages": [
+        {
+          "from": "yerin.shin",
+          "text": "농가에서 첫 수확 귤 한 상자 보내 주셨어요. 3층 탕비실에 있습니다 🍊",
+          "at": {
+            "workday": -4,
+            "time": "13:02"
+          }
+        },
+        {
+          "from": "taeyang.oh",
+          "text": "벌써 반이 없어요.",
+          "at": {
+            "workday": -4,
+            "time": "13:40"
+          }
+        },
+        {
+          "from": "minjae.kang",
+          "text": "점심 국수 가실 분?",
+          "at": {
+            "workday": -2,
+            "time": "11:45"
+          }
+        },
+        {
+          "from": "jia.yoon",
+          "text": "저요!",
+          "at": {
+            "workday": -2,
+            "time": "11:46"
+          }
+        },
+        {
+          "from": "donghyun.seo",
+          "text": "저도 갑니다.",
+          "at": {
+            "workday": -2,
+            "time": "11:47"
+          }
+        }
+      ]
+    }
+  ],
+  "directs": [
+    {
+      "between": ["doyun.kim", "yujin.choi"],
+      "unread": 1,
+      "messages": [
+        {
+          "from": "doyun.kim",
+          "text": "유진님, 주문 내역 화면 일정 괜찮을까요? 무리면 범위를 줄여도 됩니다.",
+          "at": {
+            "workday": -3,
+            "time": "16:05"
+          }
+        },
+        {
+          "from": "yujin.choi",
+          "text": "취소 상태만 빼면 이번 스프린트에 됩니다. 태양님이 잘 따라오고 있어요.",
+          "at": {
+            "workday": -3,
+            "time": "16:20"
+          }
+        },
+        {
+          "from": "doyun.kim",
+          "text": "좋아요. 검색 성능 건이 더 급하면 그쪽을 먼저 해도 됩니다.",
+          "at": {
+            "workday": -3,
+            "time": "16:24"
+          }
+        },
+        {
+          "from": "yujin.choi",
+          "text": "검색 수정은 어제 올렸고 수빈님 확인 기다리는 중이에요. 릴리스 회의 전까지 정리해서 공유드릴게요.",
+          "at": {
+            "workday": -1,
+            "time": "17:40"
+          }
+        }
+      ]
+    },
+    {
+      "between": ["seoyeon.lee", "doyun.kim"],
+      "unread": 0,
+      "messages": [
+        {
+          "from": "seoyeon.lee",
+          "text": "도윤님, 오늘 1:1 때 디자이너 채용 얘기 잠깐 해도 될까요?",
+          "at": {
+            "workday": -1,
+            "time": "09:20"
+          }
+        },
+        {
+          "from": "doyun.kim",
+          "text": "네, 그 얘기부터 하죠. 지원자 포트폴리오도 같이 봅시다.",
+          "at": {
+            "workday": -1,
+            "time": "09:34"
+          }
+        }
+      ]
+    },
+    {
+      "between": ["doyun.kim", "junho.park"],
+      "unread": 0,
+      "messages": [
+        {
+          "from": "doyun.kim",
+          "text": "PG사 미팅 자료는 누가 준비하나요?",
+          "at": {
+            "workday": -2,
+            "time": "11:02"
+          }
+        },
+        {
+          "from": "junho.park",
+          "text": "제가 초안 쓰고 상철님이 수수료 부분 봐 주시기로 했습니다.",
+          "at": {
+            "workday": -2,
+            "time": "11:15"
+          }
+        },
+        {
+          "from": "doyun.kim",
+          "text": "미팅 전날까지 공유 부탁해요.",
+          "at": {
+            "workday": -2,
+            "time": "11:16"
+          }
+        }
+      ]
+    },
+    {
+      "between": ["haeun.jung", "doyun.kim"],
+      "unread": 2,
+      "messages": [
+        {
+          "from": "haeun.jung",
+          "text": "캠페인 예산안 정리했습니다. 광고비 비중이 지난번보다 조금 높아요.",
+          "at": {
+            "workday": -2,
+            "time": "15:30"
+          }
+        },
+        {
+          "from": "doyun.kim",
+          "text": "확인했습니다. 영상 제작비는 이 정도로 충분한가요?",
+          "at": {
+            "workday": -2,
+            "time": "16:02"
+          }
+        },
+        {
+          "from": "haeun.jung",
+          "text": "촬영을 하루에 몰아서 가능합니다. 대신 자막 검수 인력이 반나절 필요해요.",
+          "at": {
+            "workday": -1,
+            "time": "10:05"
+          }
+        },
+        {
+          "from": "haeun.jung",
+          "text": "소재 리뷰 회의 때 최종안 들고 갈게요.",
+          "at": {
+            "workday": -1,
+            "time": "10:06"
+          }
+        }
+      ]
+    }
+  ]
+}

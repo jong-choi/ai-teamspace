@@ -1,0 +1,255 @@
+{
+  "channels": [
+    {
+      "name": "랩-공지",
+      "topic": "감귤랩스 전체 소식",
+      "creator": "youngsoo.noh",
+      "participants": [
+        "doyun.kim",
+        "hyunwoo.cho",
+        "soyoon.bae",
+        "sungmin.moon",
+        "nayeon.kwon",
+        "jaeseok.hwang",
+        "daeun.song",
+        "siwoo.ahn",
+        "jihyun.ryu",
+        "chaewon.hong",
+        "eunseo.ko",
+        "woojin.jeon"
+      ],
+      "unread": 1,
+      "messages": [
+        {
+          "from": "youngsoo.noh",
+          "text": "이번 분기 로드맵 공유 일정을 캘린더에 올렸습니다. 질문은 미리 이 채널에 남겨 주세요.",
+          "at": {
+            "workday": -7,
+            "time": "10:05"
+          }
+        },
+        {
+          "from": "jihyun.ryu",
+          "text": "전날 주문 데이터 적재가 늦어져 아침 리포트가 비었습니다. 원인은 찾았고 재발 방지 조치까지 넣었어요.",
+          "at": {
+            "workday": -6,
+            "time": "11:40"
+          }
+        },
+        {
+          "from": "soyoon.bae",
+          "text": "회의실 \"귤나무\" 화상 장비를 교체했습니다. 연결이 안 되면 저에게 알려 주세요.",
+          "at": {
+            "workday": -4,
+            "time": "14:10"
+          }
+        },
+        {
+          "from": "youngsoo.noh",
+          "text": "주간 연구 세미나 다음 발표는 현우님입니다. 주제는 후보 생성 모델 평가 결과예요.",
+          "at": {
+            "workday": -1,
+            "time": "16:30"
+          }
+        }
+      ]
+    },
+    {
+      "name": "추천-모델",
+      "topic": "추천 모델 2.0 실험과 평가",
+      "creator": "sungmin.moon",
+      "participants": [
+        "doyun.kim",
+        "hyunwoo.cho",
+        "daeun.song",
+        "nayeon.kwon",
+        "chaewon.hong",
+        "siwoo.ahn"
+      ],
+      "unread": 2,
+      "messages": [
+        {
+          "from": "hyunwoo.cho",
+          "text": "기준선 측정 끝났습니다. 재구매 상품은 잘 맞히는데 처음 사는 상품은 거의 못 맞혀요.",
+          "at": {
+            "workday": -16,
+            "time": "15:42"
+          }
+        },
+        {
+          "from": "sungmin.moon",
+          "text": "새 모델 목표를 처음 사는 상품 쪽에 두겠습니다.",
+          "at": {
+            "workday": -16,
+            "time": "16:06"
+          }
+        },
+        {
+          "from": "doyun.kim",
+          "text": "앱에서는 \"처음 보는 농가\"를 발견하게 해 주는 게 제일 중요합니다. 방향 좋아요.",
+          "at": {
+            "workday": -15,
+            "time": "09:20"
+          }
+        },
+        {
+          "from": "daeun.song",
+          "text": "제철 정보는 농가가 넣은 수확 예정일을 먼저 쓰고, 없으면 품목 평균으로 채웠습니다.",
+          "at": {
+            "workday": -11,
+            "time": "17:15"
+          }
+        },
+        {
+          "from": "doyun.kim",
+          "text": "배송이 안 되는 지역 고객에게 추천이 뜨는 문의가 계속 들어옵니다. 티켓으로 올렸어요.",
+          "at": {
+            "workday": -9,
+            "time": "13:52"
+          }
+        },
+        {
+          "from": "daeun.song",
+          "text": "배송 가능 지역 데이터 받아서 순위 매기기 전에 걸러 내도록 하는 중입니다.",
+          "at": {
+            "workday": -4,
+            "time": "16:22"
+          }
+        },
+        {
+          "from": "hyunwoo.cho",
+          "text": "후보 생성 모델 학습 끝났습니다. 처음 사는 상품 적중률이 기준선의 두 배를 조금 넘어요.",
+          "at": {
+            "workday": -3,
+            "time": "14:27"
+          }
+        },
+        {
+          "from": "nayeon.kwon",
+          "text": "A/B 테스트는 2주면 판단할 수 있을 것 같습니다. 설계 회의 때 숫자 가져갈게요.",
+          "at": {
+            "workday": -2,
+            "time": "15:10"
+          }
+        },
+        {
+          "from": "sungmin.moon",
+          "text": "평가 리뷰 때 지역 필터 적용 전후를 같이 비교해 봅시다.",
+          "at": {
+            "workday": -1,
+            "time": "17:20"
+          }
+        },
+        {
+          "from": "hyunwoo.cho",
+          "text": "비교표 만들어 두겠습니다.",
+          "at": {
+            "workday": -1,
+            "time": "17:26"
+          }
+        }
+      ]
+    },
+    {
+      "name": "데이터-파이프라인",
+      "topic": "적재 상태와 데이터 품질",
+      "creator": "jihyun.ryu",
+      "participants": [
+        "jaeseok.hwang",
+        "woojin.jeon",
+        "eunseo.ko",
+        "soyoon.bae",
+        "siwoo.ahn"
+      ],
+      "unread": 0,
+      "messages": [
+        {
+          "from": "jaeseok.hwang",
+          "text": "상위 작업 하나가 재시도를 반복해서 뒤 작업이 다 밀렸습니다.",
+          "at": {
+            "workday": -9,
+            "time": "11:22"
+          }
+        },
+        {
+          "from": "woojin.jeon",
+          "text": "재시도를 세 번으로 막고, 한 시간 넘게 밀리면 알림이 오게 했습니다.",
+          "at": {
+            "workday": -9,
+            "time": "15:47"
+          }
+        },
+        {
+          "from": "eunseo.ko",
+          "text": "주문과 상품 테이블의 품질 규칙 초안 올렸습니다. 농가와 배송은 다음 주에 이어서 쓸게요.",
+          "at": {
+            "workday": -2,
+            "time": "17:06"
+          }
+        },
+        {
+          "from": "jihyun.ryu",
+          "text": "고맙습니다. 품질 지표 합의 회의에서 같이 보죠.",
+          "at": {
+            "workday": -1,
+            "time": "09:15"
+          }
+        }
+      ]
+    }
+  ],
+  "directs": [
+    {
+      "between": ["youngsoo.noh", "doyun.kim"],
+      "unread": 1,
+      "messages": [
+        {
+          "from": "youngsoo.noh",
+          "text": "도윤 대표님, 새 추천 모델을 앱 홈에 붙이는 일정은 그쪽 릴리스와 맞출 수 있을까요?",
+          "at": {
+            "workday": -4,
+            "time": "10:30"
+          }
+        },
+        {
+          "from": "doyun.kim",
+          "text": "다음 릴리스에는 자리만 만들어 두고, A/B 테스트 결과가 나온 뒤에 켜는 게 좋겠습니다.",
+          "at": {
+            "workday": -4,
+            "time": "11:05"
+          }
+        },
+        {
+          "from": "youngsoo.noh",
+          "text": "좋습니다. 테스트 설계 회의에 들어와 주시면 그 자리에서 일정까지 정하죠.",
+          "at": {
+            "workday": -1,
+            "time": "14:40"
+          }
+        }
+      ]
+    },
+    {
+      "between": ["doyun.kim", "sungmin.moon"],
+      "unread": 0,
+      "messages": [
+        {
+          "from": "doyun.kim",
+          "text": "성민님, 배송 불가 지역 추천 건은 고객 문의가 많아서 먼저 봐 주시면 좋겠습니다.",
+          "at": {
+            "workday": -8,
+            "time": "16:10"
+          }
+        },
+        {
+          "from": "sungmin.moon",
+          "text": "네, 다은님이 이번 주에 필터를 넣고 있습니다. 평가 리뷰 때 결과 보여 드릴게요.",
+          "at": {
+            "workday": -8,
+            "time": "16:32"
+          }
+        }
+      ]
+    }
+  ]
+}

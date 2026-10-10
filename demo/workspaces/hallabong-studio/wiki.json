@@ -1,0 +1,132 @@
+{
+  "documents": [
+    {
+      "key": "handbook",
+      "title": "팀 핸드북",
+      "file": "handbook.md",
+      "author": "doyun.kim",
+      "createdAt": {
+        "workday": -58,
+        "time": "10:00"
+      }
+    },
+    {
+      "key": "onboarding",
+      "title": "온보딩 가이드",
+      "file": "onboarding.md",
+      "author": "seoyeon.lee",
+      "createdAt": {
+        "workday": -55,
+        "time": "14:30"
+      },
+      "parent": "handbook"
+    },
+    {
+      "key": "meeting-rules",
+      "title": "회의 운영 원칙",
+      "file": "meeting-rules.md",
+      "author": "doyun.kim",
+      "createdAt": {
+        "workday": -50,
+        "time": "11:10"
+      },
+      "parent": "handbook"
+    },
+    {
+      "key": "time-off",
+      "title": "휴가와 재택 규칙",
+      "file": "time-off.md",
+      "author": "doyun.kim",
+      "createdAt": {
+        "workday": -48,
+        "time": "16:20"
+      },
+      "parent": "handbook"
+    },
+    {
+      "key": "product",
+      "title": "제품",
+      "file": "product.md",
+      "author": "doyun.kim",
+      "createdAt": {
+        "workday": -40,
+        "time": "09:40"
+      }
+    },
+    {
+      "key": "app-renewal-spec",
+      "title": "귤밭 앱 리뉴얼 기획서",
+      "file": "app-renewal-spec.md",
+      "author": "doyun.kim",
+      "createdAt": {
+        "workday": -22,
+        "time": "13:15"
+      },
+      "parent": "product"
+    },
+    {
+      "key": "design-system",
+      "title": "디자인 시스템 가이드",
+      "file": "design-system.md",
+      "author": "seoyeon.lee",
+      "createdAt": {
+        "workday": -30,
+        "time": "10:50"
+      },
+      "parent": "product"
+    },
+    {
+      "key": "payment-architecture",
+      "title": "결제와 정산 구조",
+      "file": "payment-architecture.md",
+      "author": "junho.park",
+      "createdAt": {
+        "workday": -12,
+        "time": "15:05"
+      },
+      "parent": "product"
+    },
+    {
+      "key": "engineering",
+      "title": "개발",
+      "file": "engineering.md",
+      "author": "sangcheol.han",
+      "createdAt": {
+        "workday": -45,
+        "time": "10:20"
+      }
+    },
+    {
+      "key": "release-process",
+      "title": "배포 절차",
+      "file": "release-process.md",
+      "author": "donghyun.seo",
+      "createdAt": {
+        "workday": -35,
+        "time": "11:30"
+      },
+      "parent": "engineering"
+    },
+    {
+      "key": "incident-runbook",
+      "title": "장애 대응 런북",
+      "file": "incident-runbook.md",
+      "author": "sangcheol.han",
+      "createdAt": {
+        "workday": -10,
+        "time": "17:10"
+      },
+      "parent": "engineering"
+    },
+    {
+      "key": "campaign-brief",
+      "title": "가을 수확 캠페인 브리프",
+      "file": "campaign-brief.md",
+      "author": "haeun.jung",
+      "createdAt": {
+        "workday": -11,
+        "time": "10:05"
+      }
+    }
+  ]
+}

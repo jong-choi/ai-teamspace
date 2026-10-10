@@ -1,0 +1,170 @@
+{
+  "rooms": [
+    {
+      "name": "귤나무",
+      "capacity": 6,
+      "floor": "5층",
+      "description": "화상 회의 장비가 있는 회의실"
+    },
+    {
+      "name": "돌담",
+      "capacity": 4,
+      "floor": "5층",
+      "description": "작은 논의용 방"
+    }
+  ],
+  "meetings": [
+    {
+      "title": "주간 연구 세미나",
+      "category": "team",
+      "organizer": "sungmin.moon",
+      "startAt": {
+        "week": -2,
+        "weekday": "wed",
+        "time": "13:00"
+      },
+      "durationMinutes": 60,
+      "locationType": "meeting_room",
+      "attendees": [
+        "doyun.kim",
+        "hyunwoo.cho",
+        "daeun.song",
+        "nayeon.kwon",
+        "chaewon.hong",
+        "jihyun.ryu",
+        "youngsoo.noh"
+      ],
+      "room": "귤나무",
+      "agenda": "- 이번 주 읽은 논문 한 편\n- 실험 결과 공유\n- 다음 주 발표자 정하기",
+      "repeatWeeks": 6
+    },
+    {
+      "title": "1:1 영수 · 도윤",
+      "category": "1on1",
+      "organizer": "youngsoo.noh",
+      "startAt": {
+        "workday": -3,
+        "time": "11:30"
+      },
+      "durationMinutes": 30,
+      "locationType": "meeting_room",
+      "attendees": ["doyun.kim"],
+      "room": "돌담",
+      "rsvp": {
+        "doyun.kim": "accepted"
+      }
+    },
+    {
+      "title": "파이프라인 장애 포스트모템",
+      "category": "team",
+      "organizer": "jihyun.ryu",
+      "startAt": {
+        "workday": -1,
+        "time": "09:30"
+      },
+      "durationMinutes": 45,
+      "locationType": "online",
+      "attendees": ["jaeseok.hwang", "woojin.jeon", "siwoo.ahn"],
+      "project": "DATA",
+      "notes": "## 원인\n상위 작업 하나가 제한 없이 재시도하면서 뒤 작업이 모두 밀렸다.\n\n## 조치\n- 재시도는 세 번까지\n- 한 시간 넘게 밀리면 알림\n\n## 남은 일\n- 작업 사이 의존 관계를 문서로 정리",
+      "rsvp": {
+        "jaeseok.hwang": "accepted",
+        "woojin.jeon": "accepted",
+        "siwoo.ahn": "accepted"
+      }
+    },
+    {
+      "title": "추천 모델 오프라인 평가 리뷰",
+      "category": "team",
+      "organizer": "sungmin.moon",
+      "startAt": {
+        "workday": 0,
+        "time": "15:30"
+      },
+      "durationMinutes": 30,
+      "locationType": "meeting_room",
+      "attendees": ["hyunwoo.cho", "daeun.song", "doyun.kim"],
+      "room": "귤나무",
+      "project": "REC",
+      "agenda": "- 후보 생성 모델 평가 결과\n- 지역 배송 필터 진행 상황",
+      "rsvp": {
+        "hyunwoo.cho": "accepted",
+        "daeun.song": "accepted",
+        "doyun.kim": "accepted"
+      }
+    },
+    {
+      "title": "A/B 테스트 설계",
+      "category": "team",
+      "organizer": "sungmin.moon",
+      "startAt": {
+        "workday": 1,
+        "time": "11:30"
+      },
+      "durationMinutes": 60,
+      "locationType": "meeting_room",
+      "attendees": ["nayeon.kwon", "chaewon.hong", "doyun.kim"],
+      "room": "돌담",
+      "project": "REC",
+      "agenda": "- 나눌 비율과 기간\n- 볼 지표 세 가지\n- 중단 기준",
+      "rsvp": {
+        "nayeon.kwon": "accepted",
+        "chaewon.hong": "accepted"
+      }
+    },
+    {
+      "title": "데이터 품질 지표 합의",
+      "category": "team",
+      "organizer": "jihyun.ryu",
+      "startAt": {
+        "workday": 2,
+        "time": "09:30"
+      },
+      "durationMinutes": 45,
+      "locationType": "online",
+      "attendees": ["eunseo.ko", "soyoon.bae", "woojin.jeon"],
+      "project": "DATA"
+    },
+    {
+      "title": "분기 로드맵 공유",
+      "category": "allhands",
+      "organizer": "youngsoo.noh",
+      "startAt": {
+        "workday": 3,
+        "time": "15:00"
+      },
+      "durationMinutes": 60,
+      "locationType": "online",
+      "attendees": [
+        "doyun.kim",
+        "hyunwoo.cho",
+        "soyoon.bae",
+        "sungmin.moon",
+        "nayeon.kwon",
+        "jaeseok.hwang",
+        "daeun.song",
+        "siwoo.ahn",
+        "jihyun.ryu",
+        "chaewon.hong",
+        "eunseo.ko",
+        "woojin.jeon"
+      ],
+      "locationText": "화상 회의",
+      "agenda": "- 지난 분기 돌아보기\n- 이번 분기 목표\n- 질문과 답"
+    },
+    {
+      "title": "피처 스토어 도입 검토",
+      "category": "team",
+      "organizer": "jaeseok.hwang",
+      "startAt": {
+        "workday": 4,
+        "time": "09:30"
+      },
+      "durationMinutes": 60,
+      "locationType": "meeting_room",
+      "attendees": ["hyunwoo.cho", "sungmin.moon", "jihyun.ryu"],
+      "room": "귤나무",
+      "project": "DATA"
+    }
+  ]
+}

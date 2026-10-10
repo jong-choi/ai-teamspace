@@ -15,8 +15,10 @@ import appConfig from '@/config/app.config';
 import credentialCryptoConfig from '@/credential-crypto/config/credential-crypto.config';
 import databaseConfig from '@/database/config/database.config';
 import mcpConfig from '@/mcp/config/mcp.config';
+import objectStorageConfig from '@/object-storage/config/object-storage.config';
 import { createOpenApiDocument } from '@/openapi';
 import queueConfig from '@/queue/config/queue.config';
+import { UserProfileModule } from '@/user-profile/user-profile.module';
 import collaborationConfig from '@/wiki/infrastructure/collaboration/config/collaboration.config';
 
 import { AuthService } from '@thallesp/nestjs-better-auth';
@@ -34,12 +36,14 @@ import { AuthService } from '@thallesp/nestjs-better-auth';
         credentialCryptoConfig,
         databaseConfig,
         mcpConfig,
+        objectStorageConfig,
         queueConfig,
       ],
       envFilePath: ['.env'],
     }),
     AppCoreModule,
     AgentMcpConnectionsModule,
+    UserProfileModule,
   ],
 })
 class OpenApiModule {}

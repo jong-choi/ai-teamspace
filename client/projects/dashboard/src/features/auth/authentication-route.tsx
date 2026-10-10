@@ -146,6 +146,7 @@ export function SignupRoute() {
       email: '',
       name: '',
       password: '',
+      username: '',
     },
     mode: 'onBlur',
     reValidateMode: 'onChange',
@@ -160,6 +161,7 @@ export function SignupRoute() {
       email: values.email,
       name: values.name,
       password: values.password,
+      username: values.username,
     });
     if (result.error) {
       form.setError('root', {
@@ -199,6 +201,36 @@ export function SignupRoute() {
                 onChangeText={field.onChange}
                 placeholder="홍길동"
                 value={field.value}
+              />
+              <FieldError message={fieldState.error?.message} />
+            </View>
+          )}
+        />
+        <Controller
+          control={form.control}
+          name="username"
+          rules={{
+            pattern: {
+              message: '영문, 숫자, 밑줄, 마침표로 3~30자를 입력해 주세요.',
+              value: /^[A-Za-z0-9_.]{3,30}$/,
+            },
+            required: '사용자명을 입력해 주세요.',
+          }}
+          render={({ field, fieldState }) => (
+            <View className="gap-1.5">
+              <Label nativeID="signup-username">사용자명</Label>
+              <Input
+                accessibilityLabel="사용자명"
+                aria-invalid={fieldState.invalid}
+                autoCapitalize="none"
+                autoComplete="username"
+                autoCorrect={false}
+                className="shadow-none"
+                editable={!form.formState.isSubmitting}
+                onBlur={field.onBlur}
+                onChangeText={field.onChange}
+                placeholder="gildong"
+                value={field.value ?? ''}
               />
               <FieldError message={fieldState.error?.message} />
             </View>

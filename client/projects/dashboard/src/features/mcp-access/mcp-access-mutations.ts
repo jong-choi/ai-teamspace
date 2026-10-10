@@ -21,7 +21,7 @@ export function useMcpAccessMutations(organizationId: string) {
     mutation: {
       onSuccess: (result) => {
         queryClient.setQueryData(queryKey, result);
-        notifySuccess({ title: '내 MCP 권한 요청을 저장했습니다.' });
+        notifySuccess({ title: '내 권한을 저장했습니다.' });
       },
     },
   });
@@ -31,7 +31,7 @@ export function useMcpAccessMutations(organizationId: string) {
       mutation: {
         onSuccess: (result) => {
           queryClient.setQueryData(queryKey, result);
-          notifySuccess({ title: '조직 MCP 정책을 저장했습니다.' });
+          notifySuccess({ title: '조직 정책을 저장했습니다.' });
         },
       },
     });
@@ -54,7 +54,7 @@ export function useMcpAccessMutations(organizationId: string) {
     const problem = getProblemDetails(error);
     notifyError({
       id: 'mcp-access-update-error',
-      title: 'MCP 권한을 저장하지 못했습니다',
+      title: '권한을 저장하지 못했습니다',
       description: problem?.detail ?? fallback,
     });
     return 'error';

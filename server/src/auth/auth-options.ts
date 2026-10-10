@@ -25,13 +25,7 @@ export const authOptions = {
   emailAndPassword: {
     enabled: true,
   },
-  plugins: [
-    expo(),
-    username({
-      immutableUsername: true,
-    }),
-    organizationPlugin,
-  ],
+  plugins: [expo(), username(), organizationPlugin],
 } as const satisfies BetterAuthOptions;
 
 export const MCP_LOGIN_PAGE = '/login';

@@ -3,9 +3,11 @@ import { useForm } from 'react-hook-form';
 import { View } from 'react-native';
 
 import type { McpAccessComposite } from '@repo/client/api-client/schemas';
-import { Button } from '@repo/client/rnr/components/ui/button';
-import { Text } from '@repo/client/rnr/components/ui/text';
-import { McpPermissionList } from '@core/features/mcp-access/components/policies/mcp-permission-list';
+import { McpPermissionTable } from '@core/features/mcp-access/components/policies/mcp-permission-table';
+import {
+  countChangedScopes,
+  McpPolicySaveBar,
+} from '@core/features/mcp-access/components/policies/mcp-policy-save-bar';
 import { useMcpAccessMutations } from '@core/features/mcp-access/mcp-access-mutations';
 import type { McpAccessScope } from '@core/features/mcp-access/mcp-access-presentation';
 
@@ -68,37 +70,22 @@ export function McpPersonalPermissions({
   });
 
   return (
-    <View className="gap-4 rounded-xl border border-border bg-card p-4 shadow-sm">
-      <View>
-        <Text className="text-base font-semibold">내 Agent 권한</Text>
-        <Text className="mt-1 text-xs text-muted-foreground">
-          조직이 허용한 범위 안에서 Agent가 나를 대신해 사용할 capability를
-          선택합니다. 변경 권한은 기본적으로 꺼져 있습니다.
-        </Text>
-      </View>
-
-      <McpPermissionList
+    <View className="gap-3">
+      <McpPermissionTable
         capabilities={access.capabilities}
         disabled={updateMyPolicy.isPending}
         mode="personal"
         onToggle={toggleScope}
         selectedScopes={selectedScopes}
       />
-
-      <View className="flex-row items-center justify-between gap-3">
-        <Text className="text-[11px] text-muted-foreground">
-          revision {access.myPolicy.revision}
-        </Text>
-        <Button
-          disabled={!form.formState.isDirty || updateMyPolicy.isPending}
-          onPress={() => void submit()}
-          size="sm"
-        >
-          <Text className="text-primary-foreground">
-            {updateMyPolicy.isPending ? '저장 중...' : '내 권한 저장'}
-          </Text>
-        </Button>
-      </View>
+      <McpPolicySaveBar
+        changedCount={countChangedScopes(
+          access.myPolicy.requestedScopes,
+          selectedScopes,
+        )}
+        onSave={() => void submit()}
+        pending={updateMyPolicy.isPending}
+      />
     </View>
   );
 }

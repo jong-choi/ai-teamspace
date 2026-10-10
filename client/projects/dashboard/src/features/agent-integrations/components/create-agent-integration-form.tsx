@@ -123,7 +123,7 @@ export function CreateAgentIntegrationForm({
       form.setError('root', {
         message: agentIntegrationErrorMessage(
           error,
-          '외부 MCP 연결을 확인하지 못했습니다. 주소와 인증 정보를 확인해 주세요.',
+          'MCP 연결을 확인하지 못했습니다. 주소와 인증 정보를 확인해 주세요.',
         ),
       });
       form.setValue('bearerToken', undefined);
@@ -132,23 +132,21 @@ export function CreateAgentIntegrationForm({
   });
 
   return (
-    <View className="gap-4 rounded-xl border border-border bg-card p-4 shadow-sm">
-      <View className="gap-1">
-        <Text className="text-base font-semibold">외부 MCP 추가</Text>
-        <Text className="text-xs leading-5 text-muted-foreground">
-          HTTPS Streamable HTTP endpoint를 등록합니다. 연결은 검증과 도구 선택을
-          마치기 전까지 Agent에서 사용되지 않습니다.
-        </Text>
-      </View>
-
+    <View className="gap-4">
       <Controller
         control={form.control}
         name="displayName"
         render={({ field, fieldState }) => (
           <View className="gap-1.5">
-            <Label nativeID="agent-integration-display-name">표시 이름</Label>
+            <Label
+              className="text-xs"
+              nativeID="agent-integration-display-name"
+            >
+              이름
+            </Label>
             <Input
-              accessibilityLabel="외부 MCP 표시 이름"
+              accessibilityLabel="MCP 이름"
+              className="h-9 text-xs md:text-xs"
               aria-invalid={fieldState.invalid}
               editable={!pending}
               maxLength={100}
@@ -160,7 +158,7 @@ export function CreateAgentIntegrationForm({
             <FieldError message={fieldState.error?.message} />
           </View>
         )}
-        rules={{ required: '표시 이름을 입력해 주세요.' }}
+        rules={{ required: '이름을 입력해 주세요.' }}
       />
 
       <Controller
@@ -168,9 +166,12 @@ export function CreateAgentIntegrationForm({
         name="endpoint"
         render={({ field, fieldState }) => (
           <View className="gap-1.5">
-            <Label nativeID="agent-integration-endpoint">MCP endpoint</Label>
+            <Label className="text-xs" nativeID="agent-integration-endpoint">
+              MCP 주소
+            </Label>
             <Input
-              accessibilityLabel="외부 MCP endpoint"
+              accessibilityLabel="MCP 주소"
+              className="h-9 text-xs md:text-xs"
               aria-invalid={fieldState.invalid}
               autoCapitalize="none"
               autoComplete="off"
@@ -182,17 +183,18 @@ export function CreateAgentIntegrationForm({
               value={field.value}
             />
             <Text className="text-[11px] leading-4 text-muted-foreground">
-              HTTPS URL만 허용되며 redirect와 private network 접근은 서버
-              정책으로 제한됩니다.
+              HTTPS 주소만 쓸 수 있습니다.
             </Text>
             <FieldError message={fieldState.error?.message} />
           </View>
         )}
-        rules={{ required: 'MCP endpoint를 입력해 주세요.' }}
+        rules={{ required: 'MCP 주소를 입력해 주세요.' }}
       />
 
       <View className="gap-1.5">
-        <Label nativeID="agent-integration-auth-kind">인증 방식</Label>
+        <Label className="text-xs" nativeID="agent-integration-auth-kind">
+          인증 방식
+        </Label>
         <View className="flex-row flex-wrap gap-2">
           {AUTH_KIND_OPTIONS.map((option) => (
             <Button
@@ -202,7 +204,7 @@ export function CreateAgentIntegrationForm({
               size="sm"
               variant={authKind === option.value ? 'secondary' : 'outline'}
             >
-              <Text>{option.label}</Text>
+              <Text className="text-xs">{option.label}</Text>
             </Button>
           ))}
         </View>
@@ -214,21 +216,24 @@ export function CreateAgentIntegrationForm({
           name="bearerToken"
           render={({ field, fieldState }) => (
             <View className="gap-1.5">
-              <Label nativeID="agent-integration-bearer-token">
+              <Label
+                className="text-xs"
+                nativeID="agent-integration-bearer-token"
+              >
                 Bearer token
               </Label>
               <View className="relative">
                 <Input
-                  accessibilityLabel="외부 MCP Bearer token"
+                  accessibilityLabel="MCP Bearer token"
                   aria-invalid={fieldState.invalid}
                   autoCapitalize="none"
                   autoComplete="off"
-                  className="pr-11"
+                  className="h-9 pr-11 text-xs md:text-xs"
                   editable={!pending}
                   maxLength={16_384}
                   onBlur={field.onBlur}
                   onChangeText={field.onChange}
-                  placeholder="Token은 저장 성공 후 이 입력에서 지워집니다"
+                  placeholder="Bearer token"
                   secureTextEntry={!secretVisible}
                   value={field.value ?? ''}
                 />
@@ -236,7 +241,7 @@ export function CreateAgentIntegrationForm({
                   accessibilityLabel={
                     secretVisible ? 'Bearer token 숨기기' : 'Bearer token 보기'
                   }
-                  className="absolute right-0 top-0 h-10 w-10 rounded-l-none sm:h-9 sm:w-9"
+                  className="absolute right-0 top-0 h-9 w-9 rounded-l-none sm:h-9 sm:w-9"
                   disabled={pending}
                   onPress={() => setSecretVisible((visible) => !visible)}
                   size="icon"
@@ -260,8 +265,8 @@ export function CreateAgentIntegrationForm({
 
       <Button disabled={pending} onPress={() => void submit()}>
         {pending ? <ActivityIndicator color="white" size="small" /> : null}
-        <Text>
-          {authKind === 'oauth' ? '저장하고 OAuth 인증' : '연결 검증하고 추가'}
+        <Text className="text-primary-foreground">
+          {authKind === 'oauth' ? 'OAuth 인증하고 추가' : '추가'}
         </Text>
       </Button>
     </View>

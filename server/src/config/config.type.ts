@@ -9,6 +9,7 @@ import type { CredentialCryptoConfig } from '@/credential-crypto/config/credenti
 import type { DatabaseConfig } from '@/database/config/database-config.type';
 import type knowledgeGraphConfig from '@/knowledge-graph/config/knowledge-graph.config';
 import type { McpConfig } from '@/mcp/config/mcp-config.type';
+import type { ObjectStorageConfig } from '@/object-storage/config/object-storage-config.type';
 import type { QueueConfig } from '@/queue/config/queue-config.type';
 import type { CollaborationConfig } from '@/wiki/infrastructure/collaboration/config/collaboration-config.type';
 
@@ -23,5 +24,6 @@ export type AllConfigType = {
   database: DatabaseConfig;
   knowledgeGraph: ConfigType<typeof knowledgeGraphConfig>;
   mcp: McpConfig;
+  objectStorage: ObjectStorageConfig;
   queue: QueueConfig;
 };

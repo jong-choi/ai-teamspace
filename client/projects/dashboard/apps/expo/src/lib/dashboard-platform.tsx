@@ -14,6 +14,7 @@ import {
   DashboardNotificationsProvider,
   useDashboardNotifications,
 } from '@/lib/dashboard-notifications';
+import { pickImageFile } from '@/lib/pick-image-file';
 
 type ExpoDashboardPlatformProviderProps = {
   children: ReactNode;
@@ -35,6 +36,8 @@ function ExpoDashboardPlatformBridge({ children }: { children: ReactNode }) {
   const userName = session.data?.user.name ?? '';
   const userEmail = session.data?.user.email ?? '';
   const userImage = session.data?.user.image ?? null;
+  const currentUsername = session.data?.user.username ?? null;
+  const refetchSession = session.refetch;
   const currentUser = useMemo(
     () =>
       currentUserId
@@ -54,6 +57,7 @@ function ExpoDashboardPlatformBridge({ children }: { children: ReactNode }) {
       authentication: authClient,
       currentUserId,
       currentUser,
+      currentUsername,
       sessionError: Boolean(session.error),
       sessionPending: session.isPending,
       copyText: async (text: string) => {
@@ -75,9 +79,15 @@ function ExpoDashboardPlatformBridge({ children }: { children: ReactNode }) {
         }),
       notifyError,
       notifySuccess,
+      pickImageFile,
+      refreshSession: async () => {
+        await refetchSession();
+      },
     }),
     [
       currentUserId,
+      currentUsername,
+      refetchSession,
       notifyError,
       notifySuccess,
       session.isPending,

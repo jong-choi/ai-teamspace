@@ -87,6 +87,7 @@ import {
   TicketLabel,
   TicketLabelList,
   TicketList,
+  UserAvatar,
   WikiCollaborationSession,
   WikiDocument,
   WikiDocumentHistory,
@@ -10998,3 +10999,232 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getAgentMcpConnectionsControllerUpdateToolPolicyMutationOptions(options), queryClient);
     }
+
+export const getUserProfileControllerReplaceAvatarUrl = () => {
+
+
+
+
+  return `/users/me/avatar`
+}
+
+export const userProfileControllerReplaceAvatar = async (userProfileControllerReplaceAvatarBody: Blob, options?: Parameters<typeof workOsFetcher>[1]): Promise<UserAvatar> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return workOsFetcher<UserAvatar>(getUserProfileControllerReplaceAvatarUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/octet-stream', ...getHeaders(options?.headers) },
+    body: userProfileControllerReplaceAvatarBody,
+    schema: UserAvatar
+  }
+);}
+
+
+
+
+
+export const getUserProfileControllerReplaceAvatarMutationKey = () => ['userProfileControllerReplaceAvatar'] as const;
+
+export const getUserProfileControllerReplaceAvatarMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof userProfileControllerReplaceAvatar>>, TError,UserProfileControllerReplaceAvatarMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof userProfileControllerReplaceAvatar>>, TError,UserProfileControllerReplaceAvatarMutationVariables, TContext> => {
+
+const mutationKey = getUserProfileControllerReplaceAvatarMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof userProfileControllerReplaceAvatar>>, UserProfileControllerReplaceAvatarMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  userProfileControllerReplaceAvatar(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UserProfileControllerReplaceAvatarMutationResult = NonNullable<Awaited<ReturnType<typeof userProfileControllerReplaceAvatar>>>
+    export type UserProfileControllerReplaceAvatarMutationBody = Blob
+    export type UserProfileControllerReplaceAvatarMutationError = ErrorType<ProblemDetails>
+    export type UserProfileControllerReplaceAvatarMutationVariables = {data: Blob}
+
+    export const useUserProfileControllerReplaceAvatar = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof userProfileControllerReplaceAvatar>>, TError,UserProfileControllerReplaceAvatarMutationVariables, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof userProfileControllerReplaceAvatar>>,
+        TError,
+        UserProfileControllerReplaceAvatarMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUserProfileControllerReplaceAvatarMutationOptions(options), queryClient);
+    }
+
+export const getUserProfileControllerRemoveAvatarUrl = () => {
+
+
+
+
+  return `/users/me/avatar`
+}
+
+export const userProfileControllerRemoveAvatar = async ( options?: Parameters<typeof workOsFetcher>[1]): Promise<UserAvatar> => {
+
+  return workOsFetcher<UserAvatar>(getUserProfileControllerRemoveAvatarUrl(),
+  {
+    ...options,
+    method: 'DELETE'
+
+    ,
+    schema: UserAvatar
+  }
+);}
+
+
+
+
+
+export const getUserProfileControllerRemoveAvatarMutationKey = () => ['userProfileControllerRemoveAvatar'] as const;
+
+export const getUserProfileControllerRemoveAvatarMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof userProfileControllerRemoveAvatar>>, TError,void, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+): UseMutationOptions<Awaited<ReturnType<typeof userProfileControllerRemoveAvatar>>, TError,void, TContext> => {
+
+const mutationKey = getUserProfileControllerRemoveAvatarMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof userProfileControllerRemoveAvatar>>, void> = () => {
+
+
+          return  userProfileControllerRemoveAvatar(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UserProfileControllerRemoveAvatarMutationResult = NonNullable<Awaited<ReturnType<typeof userProfileControllerRemoveAvatar>>>
+
+    export type UserProfileControllerRemoveAvatarMutationError = ErrorType<ProblemDetails>
+
+
+    export const useUserProfileControllerRemoveAvatar = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof userProfileControllerRemoveAvatar>>, TError,void, TContext>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof userProfileControllerRemoveAvatar>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getUserProfileControllerRemoveAvatarMutationOptions(options), queryClient);
+    }
+
+export const getUserProfileControllerReadAvatarUrl = (fileName: string,) => {
+
+
+
+
+  return `/users/avatars/${fileName}`
+}
+
+export const userProfileControllerReadAvatar = async (fileName: string, options?: Parameters<typeof workOsFetcher>[1]): Promise<Blob> => {
+
+  return workOsFetcher<Blob>(getUserProfileControllerReadAvatarUrl(fileName),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getUserProfileControllerReadAvatarQueryKey = (fileName: string,) => {
+    return [
+    `/users/avatars/${fileName}`
+    ] as const;
+    }
+
+
+export const getUserProfileControllerReadAvatarSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof userProfileControllerReadAvatar>>, TError = ErrorType<ProblemDetails>>(fileName: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof userProfileControllerReadAvatar>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getUserProfileControllerReadAvatarQueryKey(fileName);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof userProfileControllerReadAvatar>>> = ({ signal }) => userProfileControllerReadAvatar(fileName, { signal, ...requestOptions });
+
+
+
+
+
+   return  queryOptionsBuilder({ queryKey, ...queryOptions, queryFn: queryOptions?.queryFn ?? queryFn}) as UseSuspenseQueryOptions<Awaited<ReturnType<typeof userProfileControllerReadAvatar>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> } & { throwOnError?: ((this: never, error: TError) => boolean) & { readonly __inferenceOnly: never } }
+}
+
+export type UserProfileControllerReadAvatarSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof userProfileControllerReadAvatar>>>
+export type UserProfileControllerReadAvatarSuspenseQueryError = ErrorType<ProblemDetails>
+
+
+export function useUserProfileControllerReadAvatarSuspense<TData = Awaited<ReturnType<typeof userProfileControllerReadAvatar>>, TError = ErrorType<ProblemDetails>>(
+ fileName: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof userProfileControllerReadAvatar>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useUserProfileControllerReadAvatarSuspense<TData = Awaited<ReturnType<typeof userProfileControllerReadAvatar>>, TError = ErrorType<ProblemDetails>>(
+ fileName: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof userProfileControllerReadAvatar>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useUserProfileControllerReadAvatarSuspense<TData = Awaited<ReturnType<typeof userProfileControllerReadAvatar>>, TError = ErrorType<ProblemDetails>>(
+ fileName: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof userProfileControllerReadAvatar>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useUserProfileControllerReadAvatarSuspense<TData = Awaited<ReturnType<typeof userProfileControllerReadAvatar>>, TError = ErrorType<ProblemDetails>>(
+ fileName: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof userProfileControllerReadAvatar>>, TError, TData>>, request?: SecondParameter<typeof workOsFetcher>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getUserProfileControllerReadAvatarSuspenseQueryOptions(fileName,options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}

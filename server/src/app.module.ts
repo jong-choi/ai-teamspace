@@ -13,7 +13,9 @@ import credentialCryptoConfig from '@/credential-crypto/config/credential-crypto
 import databaseConfig from '@/database/config/database.config';
 import mcpConfig from '@/mcp/config/mcp.config';
 import { McpAccessModule } from '@/mcp-access/mcp-access.module';
+import objectStorageConfig from '@/object-storage/config/object-storage.config';
 import queueConfig from '@/queue/config/queue.config';
+import { UserProfileModule } from '@/user-profile/user-profile.module';
 import collaborationConfig from '@/wiki/infrastructure/collaboration/config/collaboration.config';
 
 @Module({
@@ -30,6 +32,7 @@ import collaborationConfig from '@/wiki/infrastructure/collaboration/config/coll
         credentialCryptoConfig,
         databaseConfig,
         mcpConfig,
+        objectStorageConfig,
         queueConfig,
       ],
       envFilePath: ['.env'],
@@ -38,6 +41,7 @@ import collaborationConfig from '@/wiki/infrastructure/collaboration/config/coll
     AgentMcpConnectionsModule,
     AppCoreModule,
     McpAccessModule,
+    UserProfileModule,
   ],
 })
 export class AppModule {}

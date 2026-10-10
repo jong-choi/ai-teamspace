@@ -101,7 +101,7 @@ export function DashboardNavigationContent({
                     ? '/wiki'
                     : item.id === 'knowledge-graph'
                       ? '/knowledge-graph'
-                      : '/settings/mcp';
+                      : '/settings/account';
             return (
               <NavigationItem
                 key={item.id}

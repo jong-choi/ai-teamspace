@@ -179,6 +179,7 @@ export * from './updateTicketChecklistItem.zod';
 export * from './updateTicketComment.zod';
 export * from './updateTicketLabel.zod';
 export * from './updateWikiDocument.zod';
+export * from './userAvatar.zod';
 export * from './wikiCollaborationSession.zod';
 export * from './wikiControllerSearchParams.zod';
 export * from './wikiDocument.zod';

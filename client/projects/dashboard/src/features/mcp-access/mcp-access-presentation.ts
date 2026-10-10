@@ -2,45 +2,24 @@ import type { McpAccessComposite } from '@repo/client/api-client/schemas';
 
 export type McpAccessScope = McpAccessComposite['effectiveScopes'][number];
 
-export const MCP_SCOPE_PRESENTATION = {
-  'organizations:read': {
-    label: '조직 조회',
-    description: '조직과 멤버 정보를 읽습니다.',
-  },
-  'organizations:write': {
-    label: '조직 변경',
-    description: '허용된 조직 관리 작업을 수행합니다.',
-  },
-  'chat:read': {
-    label: '채팅 조회',
-    description: '대화와 메시지를 읽습니다.',
-  },
-  'chat:write': {
-    label: '채팅 변경',
-    description: '메시지 전송 등 채팅 변경 작업을 수행합니다.',
-  },
-  'wiki:read': {
-    label: '위키 조회',
-    description: '위키 문서를 검색하고 읽습니다.',
-  },
-  'wiki:write': {
-    label: '위키 변경',
-    description: '위키 문서를 만들거나 수정합니다.',
-  },
-  'projects:read': {
-    label: '프로젝트 조회',
-    description: '프로젝트와 업무를 읽습니다.',
-  },
-  'projects:write': {
-    label: '프로젝트 변경',
-    description: '프로젝트와 업무를 변경합니다.',
-  },
-  'calendar:read': {
-    label: '일정 조회',
-    description: '회의와 회의실 일정을 읽습니다.',
-  },
-  'calendar:write': {
-    label: '일정 변경',
-    description: '회의와 회의실 일정을 변경합니다.',
-  },
-} satisfies Record<McpAccessScope, { label: string; description: string }>;
+type McpAccessDomain = McpAccessScope extends `${infer Domain}:${string}`
+  ? Domain
+  : never;
+
+// 권한 표의 행 순서와 한 줄 설명이다. 영역마다 조회·변경 두 칸을 가진다.
+export const MCP_DOMAIN_ROWS = [
+  { domain: 'organizations', label: '조직', description: '조직과 멤버 정보' },
+  { domain: 'chat', label: '채팅', description: '대화와 메시지' },
+  { domain: 'wiki', label: '위키', description: '위키 문서' },
+  { domain: 'projects', label: '프로젝트', description: '프로젝트와 업무' },
+  { domain: 'calendar', label: '일정', description: '회의와 회의실 일정' },
+] as const satisfies readonly {
+  domain: McpAccessDomain;
+  label: string;
+  description: string;
+}[];
+
+export const MCP_ACTION_COLUMNS = [
+  { action: 'read', label: '조회' },
+  { action: 'write', label: '변경' },
+] as const;

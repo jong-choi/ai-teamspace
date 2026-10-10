@@ -5,6 +5,7 @@ import * as SecureStore from 'expo-secure-store';
 import { configureApiRuntime } from '@repo/client/api-client/runtime';
 
 import { expoClient } from '@better-auth/expo/client';
+import { usernameClient } from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
 
 const native = Platform.OS !== 'web';
@@ -26,6 +27,7 @@ export const authClient = createAuthClient({
       storagePrefix: 'monorepoerp',
       storage: SecureStore,
     }),
+    usernameClient(),
   ],
 });
 

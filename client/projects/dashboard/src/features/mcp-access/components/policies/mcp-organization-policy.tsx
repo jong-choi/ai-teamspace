@@ -1,11 +1,24 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { View } from 'react-native';
 
 import type { McpAccessComposite } from '@repo/client/api-client/schemas';
 import { Button } from '@repo/client/rnr/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@repo/client/rnr/components/ui/dialog';
 import { Text } from '@repo/client/rnr/components/ui/text';
-import { McpPermissionList } from '@core/features/mcp-access/components/policies/mcp-permission-list';
+import { DIALOG_WIDTH } from '@core/app/ui/dialog-width';
+import { McpPermissionTable } from '@core/features/mcp-access/components/policies/mcp-permission-table';
+import {
+  countChangedScopes,
+  McpPolicySaveBar,
+} from '@core/features/mcp-access/components/policies/mcp-policy-save-bar';
 import { useMcpAccessMutations } from '@core/features/mcp-access/mcp-access-mutations';
 import type { McpAccessScope } from '@core/features/mcp-access/mcp-access-presentation';
 
@@ -28,20 +41,17 @@ export function McpOrganizationPolicy({
   });
   const [confirmShrink, setConfirmShrink] = useState(false);
   const selectedScopes = form.watch('allowedScopes');
-  const removedScopes = useMemo(
-    () =>
-      access.organizationPolicy.allowedScopes.filter(
-        (scope) => !selectedScopes.includes(scope),
-      ),
-    [access.organizationPolicy.allowedScopes, selectedScopes],
-  );
+  const savedScopes = access.organizationPolicy.allowedScopes;
+  const removedCount = savedScopes.filter(
+    (scope) => !selectedScopes.includes(scope),
+  ).length;
+  const canManage = access.canManageOrganizationPolicy;
 
   useEffect(() => {
     if (!form.formState.isDirty) {
       form.reset({
         allowedScopes: access.organizationPolicy.allowedScopes,
       });
-      setConfirmShrink(false);
     }
   }, [
     access.organizationPolicy.allowedScopes,
@@ -50,19 +60,7 @@ export function McpOrganizationPolicy({
     form.formState.isDirty,
   ]);
 
-  if (!access.canManageOrganizationPolicy) {
-    return (
-      <View className="gap-2 rounded-xl border border-border bg-card p-4 shadow-sm">
-        <Text className="text-base font-semibold">조직 MCP 정책</Text>
-        <Text className="text-xs text-muted-foreground">
-          조직 관리자만 조직 전체의 MCP 허용 범위를 변경할 수 있습니다.
-        </Text>
-      </View>
-    );
-  }
-
   const toggleScope = (scope: McpAccessScope) => {
-    setConfirmShrink(false);
     const current = form.getValues('allowedScopes');
     const next = current.includes(scope)
       ? current.filter((candidate) => candidate !== scope)
@@ -74,7 +72,7 @@ export function McpOrganizationPolicy({
     });
   };
 
-  const save = async (values: OrganizationPolicyForm) => {
+  const save = form.handleSubmit(async (values) => {
     try {
       const result = await updateOrganizationPolicy.mutateAsync({
         organizationId: access.organizationId,
@@ -86,87 +84,79 @@ export function McpOrganizationPolicy({
       form.reset({
         allowedScopes: result.organizationPolicy.allowedScopes,
       });
-      setConfirmShrink(false);
     } catch (error) {
       await handleError(
         error,
         '최신 조직 정책과 관리자 권한을 확인한 뒤 다시 시도해 주세요.',
       );
+    } finally {
+      setConfirmShrink(false);
     }
-  };
-
-  const submit = form.handleSubmit(async (values) => {
-    if (removedScopes.length > 0 && !confirmShrink) {
-      setConfirmShrink(true);
-      return;
-    }
-    await save(values);
   });
 
   return (
-    <View className="gap-4 rounded-xl border border-border bg-card p-4 shadow-sm">
-      <View>
-        <Text className="text-base font-semibold">조직 MCP 정책</Text>
-        <Text className="mt-1 text-xs text-muted-foreground">
-          조직 전체에서 허용 가능한 최대 범위입니다. 사용자는 이 범위를 넘어
-          권한을 요청할 수 없습니다.
-        </Text>
-      </View>
-
-      <McpPermissionList
+    <View className="gap-3">
+      <McpPermissionTable
         capabilities={access.capabilities}
-        disabled={updateOrganizationPolicy.isPending}
+        disabled={!canManage || updateOrganizationPolicy.isPending}
         mode="organization"
         onToggle={toggleScope}
         selectedScopes={selectedScopes}
       />
-
-      {confirmShrink && removedScopes.length > 0 ? (
-        <View className="gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">
-          <Text className="text-sm font-semibold">조직 권한 축소 확인</Text>
-          <Text className="text-xs text-muted-foreground">
-            {removedScopes.length}개 capability를 제거합니다. 모든 사용자의 요청
-            범위에서도 즉시 제거되며 기존 credential도 이 범위를 사용할 수
-            없습니다. 나중에 조직 권한을 다시 켜도 사용자 요청 권한은 자동으로
-            복원되지 않습니다.
-          </Text>
-          <View className="flex-row justify-end gap-2">
-            <Button
-              onPress={() => setConfirmShrink(false)}
-              size="sm"
-              variant="outline"
-            >
-              <Text>취소</Text>
-            </Button>
-            <Button
-              disabled={updateOrganizationPolicy.isPending}
-              onPress={() => void save(form.getValues())}
-              size="sm"
-            >
-              <Text className="text-primary-foreground">
-                {updateOrganizationPolicy.isPending
-                  ? '저장 중...'
-                  : '축소 적용'}
-              </Text>
-            </Button>
-          </View>
-        </View>
-      ) : null}
-
-      <View className="flex-row items-center justify-between gap-3">
-        <Text className="text-[11px] text-muted-foreground">
-          revision {access.organizationPolicy.revision}
-        </Text>
-        <Button
-          disabled={
-            !form.formState.isDirty || updateOrganizationPolicy.isPending
+      {canManage ? (
+        <McpPolicySaveBar
+          changedCount={countChangedScopes(savedScopes, selectedScopes)}
+          // 권한을 줄이는 저장은 되돌릴 수 없는 영향이 있어 한 번 더 확인한다.
+          onSave={() =>
+            removedCount > 0 ? setConfirmShrink(true) : void save()
           }
-          onPress={() => void submit()}
-          size="sm"
+          pending={updateOrganizationPolicy.isPending}
+        />
+      ) : (
+        <Text className="text-[11px] text-muted-foreground">
+          조직 관리자만 변경할 수 있습니다.
+        </Text>
+      )}
+
+      {confirmShrink ? (
+        <Dialog
+          onOpenChange={(open) => {
+            if (!open && !updateOrganizationPolicy.isPending)
+              setConfirmShrink(false);
+          }}
+          open
         >
-          <Text className="text-primary-foreground">조직 정책 저장</Text>
-        </Button>
-      </View>
+          <DialogContent className={DIALOG_WIDTH.md}>
+            <DialogHeader>
+              <DialogTitle>
+                권한 {removedCount}개를 조직에서 막을까요?
+              </DialogTitle>
+              <DialogDescription>
+                모든 멤버의 권한에서 즉시 빠집니다. 나중에 다시 허용해도 멤버가
+                골라 둔 권한은 자동으로 돌아오지 않습니다.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                disabled={updateOrganizationPolicy.isPending}
+                onPress={() => setConfirmShrink(false)}
+                variant="outline"
+              >
+                <Text>취소</Text>
+              </Button>
+              <Button
+                disabled={updateOrganizationPolicy.isPending}
+                onPress={() => void save()}
+                variant="destructive"
+              >
+                <Text>
+                  {updateOrganizationPolicy.isPending ? '저장 중...' : '막기'}
+                </Text>
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      ) : null}
     </View>
   );
 }

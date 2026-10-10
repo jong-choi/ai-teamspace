@@ -151,7 +151,7 @@ test.describe('Agent 채팅 패널 (데스크톱)', () => {
     await openPanel(page, page.getByRole('button', { name: '에이전트 열기' }));
 
     await panel(page).getByLabel('추론 수준 선택').click();
-    await page.getByRole('option', { name: '추론 낮음' }).click();
+    await page.getByRole('option', { name: '낮음', exact: true }).click();
 
     const input = panel(page).getByLabel('Agent에게 보낼 메시지');
     await input.fill('도구를 쓰지 말고 한 문장으로 인사만 해 줘.');
@@ -174,7 +174,7 @@ test.describe('Agent 채팅 패널 (데스크톱)', () => {
 
     await openPanel(page, page.getByRole('button', { name: '에이전트 열기' }));
     await panel(page).getByLabel('추론 수준 선택').click();
-    await page.getByRole('option', { name: '추론 낮음' }).click();
+    await page.getByRole('option', { name: '낮음', exact: true }).click();
     const input = panel(page).getByLabel('Agent에게 보낼 메시지');
     await input.fill(
       `프로젝트 ID ${workspace.projectId}에 제목이 "에이전트가 만든 티켓"인 티켓을 하나 만들어 줘. 다른 작업은 하지 마.`,

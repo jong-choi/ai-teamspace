@@ -49,6 +49,19 @@ export function createTestWorkOsAgentGraphFactory(input: {
     input.modelProvider,
     sessions,
     new DeepAgentBuilder(),
+    {
+      requireAccess: (_context, organizationId) =>
+        Promise.resolve({
+          organization: {
+            id: organizationId,
+            name: 'Agent Test Organization',
+            slug: 'agent-test-organization',
+            logo: null,
+            createdAt: '2026-01-01T00:00:00.000Z',
+          },
+          role: 'member',
+        }),
+    },
   );
   return new WorkOsAgentFactory(graphs).createGraphFactory();
 }

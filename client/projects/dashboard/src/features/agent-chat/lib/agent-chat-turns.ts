@@ -1,3 +1,4 @@
+import { stripAgentSystemContext } from '@core/features/agent-chat/lib/agent-client-context';
 import { AGENT_HITL_REJECT_PREFIX } from '@core/features/agent-chat/lib/agent-hitl';
 import {
   type AgentToolDisplayField,
@@ -62,7 +63,8 @@ export function groupAgentChatTurns(input: {
   input.messages.forEach((message, index) => {
     if (message.type === 'human') {
       current = null;
-      const text = extractMessageText(message.content);
+      // 서버가 붙인 맥락 블록은 모델만 읽는다.
+      const text = stripAgentSystemContext(extractMessageText(message.content));
       if (text) {
         turns.push({ kind: 'user', key: message.id ?? `user-${index}`, text });
       }

@@ -5,9 +5,14 @@ import { DeepAgentBuilder } from '@/agent/infrastructure/deep-agent/deep-agent.b
 import { DeepAgentWorkOsGraphAdapter } from '@/agent/infrastructure/deep-agent/deep-agent-workos-graph.adapter';
 import { ConfiguredAgentModelModule } from '@/agent/infrastructure/model/configured/configured-agent-model.module';
 import { CombinedMcpToolSessionModule } from '@/agent-mcp-connections/infrastructure/mcp/combined-mcp-tool-session.module';
+import { OrganizationsModule } from '@/organizations/organizations.module';
 
 @Module({
-  imports: [ConfiguredAgentModelModule, CombinedMcpToolSessionModule],
+  imports: [
+    ConfiguredAgentModelModule,
+    CombinedMcpToolSessionModule,
+    OrganizationsModule,
+  ],
   providers: [
     DeepAgentBuilder,
     {

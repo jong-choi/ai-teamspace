@@ -34,6 +34,8 @@ export class DeepAgentProtocolAdapter implements AgentGraph {
   constructor(
     private readonly agent: WorkOsDeepAgent,
     private readonly lifecycle: DeepAgentLifecycle,
+    /** run input을 agent에 넘기기 직전에 한 번 가공한다. */
+    private readonly prepareInput: <T>(input: T) => T = (input) => input,
   ) {}
 
   get builder(): object {
@@ -41,7 +43,7 @@ export class DeepAgentProtocolAdapter implements AgentGraph {
   }
 
   stream(input: unknown, config?: unknown): AsyncIterable<unknown> {
-    const agentInput = toDeepAgentInput(input);
+    const agentInput = this.prepareInput(toDeepAgentInput(input));
     const agentConfig = toStreamConfig(config);
     return this.lifecycle.iterable(async () => {
       await assertHitlResumeIntegrity(this.agent, agentInput, agentConfig);
@@ -85,7 +87,7 @@ export class DeepAgentProtocolAdapter implements AgentGraph {
   }
 
   invoke(input: unknown, config?: unknown): Promise<unknown> {
-    const agentInput = toDeepAgentInput(input);
+    const agentInput = this.prepareInput(toDeepAgentInput(input));
     const agentConfig = toInvokeConfig(config);
     return this.lifecycle.value(async () => {
       await assertHitlResumeIntegrity(this.agent, agentInput, agentConfig);
@@ -94,7 +96,7 @@ export class DeepAgentProtocolAdapter implements AgentGraph {
   }
 
   streamEvents(input: unknown, config?: unknown): AsyncIterable<unknown> {
-    const agentInput = toDeepAgentInput(input);
+    const agentInput = this.prepareInput(toDeepAgentInput(input));
     const agentConfig = toEventConfig(config);
     return this.lifecycle.iterable(async () => {
       await assertHitlResumeIntegrity(this.agent, agentInput, agentConfig);

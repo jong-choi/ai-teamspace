@@ -17,6 +17,7 @@ import {
   AgentHitlUnsupported,
 } from '@core/features/agent-chat/components/agent-hitl-card';
 import { mapAgentChatError } from '@core/features/agent-chat/lib/agent-chat-errors';
+import { AGENT_CLIENT_CONTEXT_CONFIGURABLE_KEY } from '@core/features/agent-chat/lib/agent-client-context';
 import {
   getAgentDraftKey,
   resolveAgentReasoningEffort,
@@ -32,6 +33,7 @@ import {
 } from '@core/features/agent-chat/lib/agent-protocol-client';
 import { useStream } from '@core/features/agent-chat/lib/langgraph-sdk-runtime';
 import { useAgentMutationEffects } from '@core/features/agent-chat/mutation-effects/use-agent-mutation-effects';
+import { useAgentClientContext } from '@core/features/agent-chat/use-agent-client-context';
 
 import type {
   DeepAgentTypeConfigLike,
@@ -112,14 +114,20 @@ export function AgentThreadSession({
   const [resumePending, setResumePending] = useState(false);
   const [stopPending, setStopPending] = useState(false);
   const reasoningEffort = resolveAgentReasoningEffort(selectedEffort, model);
+  const clientContext = useAgentClientContext();
   const submitOptions = useMemo(
     () => ({
-      config: { configurable: { reasoning_effort: reasoningEffort } },
+      config: {
+        configurable: {
+          reasoning_effort: reasoningEffort,
+          [AGENT_CLIENT_CONTEXT_CONFIGURABLE_KEY]: clientContext,
+        },
+      },
       multitaskStrategy: 'reject' as const,
       streamResumable: true,
       streamSubgraphs: true,
     }),
-    [reasoningEffort],
+    [clientContext, reasoningEffort],
   );
 
   const hydrated = !stream.isThreadLoading;

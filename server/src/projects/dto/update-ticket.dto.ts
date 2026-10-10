@@ -11,7 +11,7 @@ export const UpdateTicketSchema = ticketUpdateSchema
     assigneeUserId: true,
   })
   .extend({
-    dueAt: z.string().datetime().nullable().optional(),
+    dueAt: z.string().datetime({ offset: true }).nullable().optional(),
     archived: z.boolean().optional(),
   })
   .refine(

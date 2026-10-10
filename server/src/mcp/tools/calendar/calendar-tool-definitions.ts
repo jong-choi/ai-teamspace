@@ -39,8 +39,16 @@ export const calendarMeetingsListTool = defineMcpTool({
   name: 'calendar_meetings_list',
   title: '캘린더 회의 목록 조회',
   description:
-    '명시한 조직과 시간 범위의 회의를 조회합니다. calendar:read scope와 현재 조직 멤버십을 모두 검증하며 기존 시간 범위 및 검색 필터 규칙을 사용합니다.',
-  inputSchema: QueryCalendarMeetingsSchema.safeExtend(organizationIdField),
+    'from~to 사이에 시작하는 조직 회의를 조회합니다. 필터 인자를 생략하면 그 기간의 모든 회의입니다.',
+  inputSchema: QueryCalendarMeetingsSchema.safeExtend({
+    ...organizationIdField,
+    attendeeUserId: QueryCalendarMeetingsSchema.shape.attendeeUserId.describe(
+      '이 사용자가 참석자로 초대된 회의만 조회합니다. 주최만 한 회의는 빠집니다.',
+    ),
+    search: QueryCalendarMeetingsSchema.shape.search.describe(
+      '제목·장소·회의실 이름에 들어 있는 글자.',
+    ),
+  }),
   outputSchema: MeetingListSchema,
   requiredScope: 'calendar:read',
   classification: 'read',
@@ -50,8 +58,7 @@ export const calendarMeetingsListTool = defineMcpTool({
 export const calendarMeetingGetTool = defineMcpTool({
   name: 'calendar_meeting_get',
   title: '캘린더 회의 조회',
-  description:
-    '명시한 조직의 회의 상세를 조회합니다. meetingId만으로 tenant를 추측하지 않으며 organizationId와 현재 조직 접근을 함께 검증합니다.',
+  description: '회의 하나의 상세를 조회합니다.',
   inputSchema: z.object(meetingIdentityFields),
   outputSchema: MeetingDetailSchema,
   requiredScope: 'calendar:read',
@@ -62,8 +69,7 @@ export const calendarMeetingGetTool = defineMcpTool({
 export const calendarAvailabilityCheckTool = defineMcpTool({
   name: 'calendar_availability_check',
   title: '캘린더 가용성 확인',
-  description:
-    '명시한 시간대의 참석자 및 회의실 충돌을 미리 확인합니다. 현재 actor와 지정 참석자의 조직 멤버십, 회의실 유효성, 시간 범위를 기존 Calendar policy로 검증합니다.',
+  description: '해당 시간에 참석자와 회의실의 일정이 겹치는지 확인합니다.',
   inputSchema:
     CalendarAvailabilityRequestSchema.safeExtend(organizationIdField),
   outputSchema: CalendarAvailabilityResponseSchema,
@@ -76,8 +82,26 @@ export const calendarMeetingCreateTool = defineMcpTool({
   name: 'calendar_meeting_create',
   title: '캘린더 회의 생성',
   description:
-    '명시한 조직에 회의를 생성합니다. 참석자/회의실/project reference/recurrence/conflict 검증과 reminder 동기화를 기존 scheduling service에서 수행하며 다른 사용자에게 영향을 줄 수 있습니다.',
-  inputSchema: CreateMeetingSchema.safeExtend(organizationIdField),
+    '회의를 만듭니다. 사용자가 주최자가 되고 참석자에게 알림이 갑니다.',
+  inputSchema: CreateMeetingSchema.safeExtend({
+    ...organizationIdField,
+    timeZone: CreateMeetingSchema.shape.timeZone.describe(
+      'IANA 시간대(예: Asia/Seoul).',
+    ),
+    locationType: CreateMeetingSchema.shape.locationType.describe(
+      'meeting_room이면 meetingRoomId가, other면 locationText가 필요합니다.',
+    ),
+    meetingRoomId: CreateMeetingSchema.shape.meetingRoomId.describe(
+      '회의실 ID. 그 회의실을 쓰는 회의의 meetingRoomId에서 얻습니다.',
+    ),
+    attendeeUserIds: CreateMeetingSchema.shape.attendeeUserIds.describe(
+      '주최자를 뺀 참석자 userId 목록.',
+    ),
+    recurrence:
+      CreateMeetingSchema.shape.recurrence.describe(
+        '반복 회의일 때만 넣습니다.',
+      ),
+  }),
   outputSchema: mutationToolOutputSchema(
     MeetingDetailSchema,
     CalendarMeetingMutationReceiptSchema,
@@ -91,8 +115,13 @@ export const calendarMeetingRescheduleTool = defineMcpTool({
   name: 'calendar_meeting_reschedule',
   title: '캘린더 회의 일정 변경',
   description:
-    '기존 회의 또는 recurrence 범위의 일정을 변경합니다. 현재 수정 권한, 시간/장소 규칙, 충돌 검증을 적용하고 참석자 일정에 영향을 줄 수 있습니다.',
-  inputSchema: RescheduleMeetingSchema.safeExtend(meetingIdentityFields),
+    '회의의 시간과 장소를 바꿉니다. 장소를 그대로 두려면 calendar_meeting_get 결과의 locationType, meetingRoomId, locationText를 그대로 넣습니다.',
+  inputSchema: RescheduleMeetingSchema.safeExtend({
+    ...meetingIdentityFields,
+    scope: RescheduleMeetingSchema.shape.scope.describe(
+      '반복 회의에서 바꿀 범위. single은 이 회차만, future는 이 회차부터, series는 전체.',
+    ),
+  }),
   outputSchema: mutationToolOutputSchema(
     MeetingDetailSchema,
     CalendarMeetingMutationReceiptSchema,
@@ -105,9 +134,13 @@ export const calendarMeetingRescheduleTool = defineMcpTool({
 export const calendarMeetingCancelTool = defineMcpTool({
   name: 'calendar_meeting_cancel',
   title: '캘린더 회의 취소',
-  description:
-    '기존 회의 또는 recurrence 범위를 취소합니다. 현재 수정 권한을 검증하고 reminder를 정리하며 취소는 destructive/consequential 작업으로 취급합니다.',
-  inputSchema: CancelMeetingSchema.extend(meetingIdentityFields),
+  description: '회의를 취소합니다. 참석자에게 알림이 갑니다.',
+  inputSchema: CancelMeetingSchema.extend({
+    ...meetingIdentityFields,
+    scope: CancelMeetingSchema.shape.scope.describe(
+      '반복 회의에서 취소할 범위. single은 이 회차만, future는 이 회차부터, series는 전체.',
+    ),
+  }),
   outputSchema: mutationToolOutputSchema(
     MeetingDetailSchema,
     CalendarMeetingMutationReceiptSchema,
@@ -120,8 +153,7 @@ export const calendarMeetingCancelTool = defineMcpTool({
 export const calendarMeetingRsvpTool = defineMcpTool({
   name: 'calendar_meeting_rsvp',
   title: '캘린더 회의 RSVP 변경',
-  description:
-    '현재 인증된 사용자의 회의 참석 상태를 변경합니다. 다른 userId를 input으로 받을 수 없으며 현재 조직 접근과 attendee 여부를 호출 시점에 검증합니다.',
+  description: '사용자 본인의 회의 참석 여부를 응답합니다.',
   inputSchema: RsvpMeetingSchema.extend(meetingIdentityFields),
   outputSchema: mutationToolOutputSchema(
     MeetingDetailSchema,

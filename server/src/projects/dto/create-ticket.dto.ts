@@ -13,7 +13,7 @@ export const CreateTicketSchema = ticketInsertSchema
   })
   .partial({ assigneeUserId: true })
   .extend({
-    dueAt: z.string().datetime().nullable().optional(),
+    dueAt: z.string().datetime({ offset: true }).nullable().optional(),
   })
   .meta({ id: 'CreateTicket' });
 

@@ -30,7 +30,7 @@ export const wikiSearchTool = defineMcpTool({
   name: 'wiki_search',
   title: '위키 검색',
   description:
-    '명시한 조직의 위키 문서 제목과 본문에서 검색어와 글자가 일치하는 문서를 찾습니다. 의미로 찾거나 문서에서 추출한 관계까지 보려면 knowledge_search를 씁니다. wiki:read scope와 호출 시점의 조직 멤버십을 모두 검증합니다.',
+    '위키 문서 제목과 본문에서 검색어와 글자가 일치하는 문서를 찾습니다. 의미로 찾거나 문서에서 추출한 관계까지 보려면 knowledge_search를 씁니다.',
   inputSchema: QueryWikiSearchSchema.extend(organizationIdField),
   outputSchema: WikiSearchResultSchema,
   requiredScope: 'wiki:read',
@@ -41,8 +41,7 @@ export const wikiSearchTool = defineMcpTool({
 export const wikiDocumentGetTool = defineMcpTool({
   name: 'wiki_document_get',
   title: '위키 문서 조회',
-  description:
-    '명시한 조직의 위키 문서 하나를 조회합니다. 다른 조직의 documentId는 현재 actor의 조직 접근 검증을 우회할 수 없습니다.',
+  description: '위키 문서 하나의 제목과 본문을 조회합니다.',
   inputSchema: z.object(documentIdentityFields),
   outputSchema: WikiDocumentSchema,
   requiredScope: 'wiki:read',
@@ -53,9 +52,16 @@ export const wikiDocumentGetTool = defineMcpTool({
 export const wikiDocumentCreateTool = defineMcpTool({
   name: 'wiki_document_create',
   title: '위키 문서 생성',
-  description:
-    '명시한 조직에 위키 문서를 생성합니다. 기존 Wiki application service의 hierarchy/content validation과 현재 조직 접근 검증을 그대로 적용합니다.',
-  inputSchema: CreateWikiDocumentSchema.extend(organizationIdField),
+  description: '위키 문서를 만듭니다.',
+  inputSchema: CreateWikiDocumentSchema.extend({
+    ...organizationIdField,
+    parentDocumentId: CreateWikiDocumentSchema.shape.parentDocumentId.describe(
+      '상위 문서 ID. 생략하면 최상위 문서입니다.',
+    ),
+    position: CreateWikiDocumentSchema.shape.position.describe(
+      '같은 상위 문서 아래에서의 순서(0부터).',
+    ),
+  }),
   outputSchema: mutationToolOutputSchema(
     WikiDocumentSchema,
     WikiDocumentMutationReceiptSchema,
@@ -69,7 +75,7 @@ export const wikiDocumentUpdateTool = defineMcpTool({
   name: 'wiki_document_update',
   title: '위키 문서 수정',
   description:
-    '명시한 조직의 위키 문서 metadata를 수정합니다. 기존 revision/concurrency 및 hierarchy 규칙을 우회하지 않으며 현재 조직 접근 권한이 필요합니다.',
+    '위키 문서의 제목이나 위치를 바꿉니다. 본문은 수정할 수 없습니다. 바꿀 인자만 넣습니다.',
   inputSchema: UpdateWikiDocumentSchema.safeExtend(documentIdentityFields),
   outputSchema: mutationToolOutputSchema(
     WikiDocumentSchema,

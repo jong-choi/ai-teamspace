@@ -8,6 +8,7 @@ import {
   WORKOS_RESEARCHER_PROMPT,
   WORKOS_ROOT_PROMPT,
 } from '@/agent/application/workos-agent.definition';
+import { toolInputFeedbackMiddleware } from '@/agent/infrastructure/deep-agent/tool-input-feedback.middleware';
 import type { WorkOsToolSession } from '@/agent/infrastructure/mcp/workos-tool-session.provider';
 import type { AgentModels } from '@/agent/infrastructure/model/agent-model.provider';
 
@@ -28,6 +29,7 @@ function createWorkOsDeepAgent(input: WorkOsDeepAgentInput) {
     tools: input.tools,
     interruptOn: input.interruptOn,
     systemPrompt: WORKOS_ROOT_PROMPT,
+    middleware: [toolInputFeedbackMiddleware],
     subagents: [
       {
         name: 'researcher',
@@ -37,6 +39,7 @@ function createWorkOsDeepAgent(input: WorkOsDeepAgentInput) {
         model: input.models.researcher,
         tools: input.readOnlyTools,
         systemPrompt: WORKOS_RESEARCHER_PROMPT,
+        middleware: [toolInputFeedbackMiddleware],
       },
       {
         name: 'operator',
@@ -46,6 +49,7 @@ function createWorkOsDeepAgent(input: WorkOsDeepAgentInput) {
         tools: input.tools,
         interruptOn: input.interruptOn,
         systemPrompt: WORKOS_OPERATOR_PROMPT,
+        middleware: [toolInputFeedbackMiddleware],
       },
     ],
   });

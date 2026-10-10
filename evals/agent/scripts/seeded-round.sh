@@ -16,10 +16,13 @@ set -a
 set +a
 
 POSTGRES_CONTAINER="${EVAL_POSTGRES_CONTAINER:-workos-agent-eval-postgres-1}"
+REDIS_QUEUE_CONTAINER="${EVAL_REDIS_QUEUE_CONTAINER:-workos-agent-eval-redis-queue-1}"
 SNAPSHOT_DB="${POSTGRES_DB}_seed_snapshot"
 STATE_DIR="$REPO_ROOT/.temp/agent-eval"
 SERVER_URL="${EVAL_SERVER_URL:-http://localhost:3200}"
 DATASET="${EVAL_DATASET_PATH:-datasets/tool-calling/tool-calling.json}"
+# 평가 서버가 server/.env의 키 대신 쓸 Ollama 키다. 비어 있으면 server/.env를 따른다.
+SERVER_OLLAMA_API_KEY="$(sed -n 's/^EVAL_SERVER_OLLAMA_API_KEY=//p' .env 2>/dev/null | tail -1)"
 mkdir -p "$STATE_DIR"
 
 psql_admin() {
@@ -44,10 +47,15 @@ stop_server() {
 start_server() {
   (
     cd "$REPO_ROOT/server"
+    if [[ -n "$SERVER_OLLAMA_API_KEY" ]]; then
+      export OLLAMA_API_KEY="$SERVER_OLLAMA_API_KEY"
+    fi
     LANGFUSE_ENABLED=true \
       LANGFUSE_CAPTURE_LEVEL=sanitized-content \
       LANGFUSE_TRACING_ENVIRONMENT=tool-tuning \
       LANGFUSE_RELEASE="$1" \
+      AGENT_REPLAY_STREAM_TTL_SECONDS=600 \
+      AGENT_REPLAY_CLOSED_TTL_SECONDS=600 \
       nohup node dist/main.js >"$STATE_DIR/server.log" 2>&1 &
     echo $! >"$STATE_DIR/server.pid"
   )
@@ -79,6 +87,8 @@ PASSES="${2:-3}"
 for pass in $(seq 1 "$PASSES"); do
   stop_server
   copy_database "$SNAPSHOT_DB" "$POSTGRES_DB"
+  # run replay stream이 쌓이면 queue Redis가 maxmemory에 닿아 run 생성이 실패한다.
+  docker exec "$REDIS_QUEUE_CONTAINER" redis-cli FLUSHALL >/dev/null
   start_server "$LABEL"
   echo "== $LABEL pass $pass"
   EVAL_RUN_NAMESPACE="$LABEL-pass-$pass" \

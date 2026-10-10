@@ -106,16 +106,13 @@ async function openPanel(page: Page, toggle: Locator) {
 test.describe('Agent 채팅 패널 (데스크톱)', () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
-  test('nav 토글로 열고 닫고, 확대·축소와 페이지 이동 후에도 draft를 유지한다', async ({
+  test('상단 바 진입점으로 열고 닫고, 확대·축소와 페이지 이동 후에도 draft를 유지한다', async ({
     page,
   }) => {
     await createE2EWorkspace(page);
     await page.goto('/projects');
 
-    await openPanel(
-      page,
-      page.getByRole('button', { name: 'AI', exact: true }),
-    );
+    await openPanel(page, page.getByRole('button', { name: '에이전트 열기' }));
     const input = panel(page).getByLabel('Agent에게 보낼 메시지');
     await expect(input).toBeVisible();
     await input.fill('나중에 보낼 초안');
@@ -140,10 +137,7 @@ test.describe('Agent 채팅 패널 (데스크톱)', () => {
 
     await page.getByRole('link', { name: '회의일정' }).click();
     await expect(page).toHaveURL(/\/calendar/);
-    await openPanel(
-      page,
-      page.getByRole('button', { name: 'AI', exact: true }),
-    );
+    await openPanel(page, page.getByRole('button', { name: '에이전트 열기' }));
     await expect(panel(page).getByLabel('Agent에게 보낼 메시지')).toHaveValue(
       '나중에 보낼 초안',
     );
@@ -154,10 +148,7 @@ test.describe('Agent 채팅 패널 (데스크톱)', () => {
   }) => {
     await createE2EWorkspace(page);
     await page.goto('/projects');
-    await openPanel(
-      page,
-      page.getByRole('button', { name: 'AI', exact: true }),
-    );
+    await openPanel(page, page.getByRole('button', { name: '에이전트 열기' }));
 
     await panel(page).getByLabel('추론 수준 선택').click();
     await page.getByRole('option', { name: '추론 낮음' }).click();
@@ -181,10 +172,7 @@ test.describe('Agent 채팅 패널 (데스크톱)', () => {
     await page.goto(`/projects/${workspace.projectId}`);
     await expect(page.getByText('Agent E2E 프로젝트').first()).toBeVisible();
 
-    await openPanel(
-      page,
-      page.getByRole('button', { name: 'AI', exact: true }),
-    );
+    await openPanel(page, page.getByRole('button', { name: '에이전트 열기' }));
     await panel(page).getByLabel('추론 수준 선택').click();
     await page.getByRole('option', { name: '추론 낮음' }).click();
     const input = panel(page).getByLabel('Agent에게 보낼 메시지');

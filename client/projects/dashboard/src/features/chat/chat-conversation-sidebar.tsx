@@ -64,7 +64,7 @@ export function ChatConversationSidebar({
             className="absolute left-2.5 top-2.5 z-10 size-3.5 text-muted-foreground"
           />
           <Input
-            className="h-8 pl-8 text-xs"
+            className="h-8 pl-8 text-xs md:text-xs"
             onChangeText={setSearch}
             placeholder="채널 또는 동료 검색..."
             value={search}

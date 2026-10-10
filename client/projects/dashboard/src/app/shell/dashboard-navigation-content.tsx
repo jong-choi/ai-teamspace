@@ -30,7 +30,6 @@ import {
   Plus,
   Search,
   Settings,
-  Sparkles,
   UserRound,
   Users,
 } from 'lucide-react-native';
@@ -48,7 +47,6 @@ const NAVIGATION_ITEMS = [
   { id: 'wiki', label: '위키', icon: FileText },
   { id: 'knowledge-graph', label: '지식 그래프', icon: Network },
   CHAT_NAVIGATION_ITEM,
-  { id: 'ai', label: 'AI', icon: Sparkles, badge: 'AGENT' },
   { id: 'settings', label: '설정', icon: Settings },
 ] as const;
 
@@ -56,20 +54,14 @@ export type DashboardNavigationItemId = (typeof NAVIGATION_ITEMS)[number]['id'];
 
 type DashboardNavigationContentProps = {
   activeItem?: DashboardNavigationItemId;
-  agentChatOpen?: boolean;
-  agentChatPendingApproval?: boolean;
   organizationName?: string;
   onNavigate?: () => void;
-  onToggleAgentChat?: () => void;
 };
 
 export function DashboardNavigationContent({
   activeItem = 'projects',
-  agentChatOpen = false,
-  agentChatPendingApproval = false,
   organizationName,
   onNavigate,
-  onToggleAgentChat,
 }: DashboardNavigationContentProps) {
   return (
     <View className="min-h-0 flex-1">
@@ -105,16 +97,6 @@ export function DashboardNavigationContent({
                   onNavigate={onNavigate}
                 />
               );
-            if (item.id === 'ai')
-              return (
-                <AgentChatNavigationItem
-                  key={item.id}
-                  item={item}
-                  open={agentChatOpen}
-                  pendingApproval={agentChatPendingApproval}
-                  onToggle={onToggleAgentChat}
-                />
-              );
             const route =
               item.id === 'projects'
                 ? '/projects'
@@ -139,14 +121,12 @@ export function DashboardNavigationContent({
       </ScrollView>
 
       <View className="shrink-0 gap-2 border-t border-border pt-3">
-        <View className="rounded-lg border border-border bg-card p-1">
-          <NavigationItem
-            item={CHAT_NAVIGATION_ITEM}
-            active={activeItem === 'chat'}
-            route="/chat"
-            onNavigate={onNavigate}
-          />
-        </View>
+        <NavigationItem
+          item={CHAT_NAVIGATION_ITEM}
+          active={activeItem === 'chat'}
+          route="/chat"
+          onNavigate={onNavigate}
+        />
         <AccountFooter />
       </View>
     </View>
@@ -334,7 +314,6 @@ function NavigationItem({
   onNavigate?: () => void;
 }) {
   const router = useRouter();
-  const aiItem = item.id === 'ai';
   return (
     <Pressable
       accessibilityRole={route ? 'link' : undefined}
@@ -357,10 +336,7 @@ function NavigationItem({
         <Icon
           as={item.icon}
           className={cn(
-            'size-4 shrink-0',
-            aiItem
-              ? 'text-violet-500 dark:text-violet-400'
-              : 'text-muted-foreground',
+            'size-4 shrink-0 text-muted-foreground',
             active && 'text-accent-foreground',
           )}
         />
@@ -374,72 +350,6 @@ function NavigationItem({
         >
           {item.label}
         </Text>
-      </View>
-
-      {'badge' in item ? (
-        <View className="rounded border border-violet-500/20 bg-violet-500/10 px-1.5 py-0.5">
-          <Text className="text-[10px] font-semibold text-violet-600 dark:text-violet-400">
-            {item.badge}
-          </Text>
-        </View>
-      ) : null}
-    </Pressable>
-  );
-}
-// AI는 페이지 이동이 아니라 우측(모바일은 전체) 채팅 패널을 여닫는 토글이다.
-function AgentChatNavigationItem({
-  item,
-  open,
-  pendingApproval,
-  onToggle,
-}: {
-  item: (typeof NAVIGATION_ITEMS)[number];
-  open: boolean;
-  pendingApproval: boolean;
-  onToggle?: () => void;
-}) {
-  return (
-    <Pressable
-      accessibilityLabel={pendingApproval ? 'AI, 승인 대기 중' : 'AI'}
-      accessibilityRole="button"
-      accessibilityState={{ expanded: open }}
-      disabled={!onToggle}
-      onPress={onToggle}
-      className={cn(
-        'flex-row items-center justify-between rounded-md px-3 py-2 lg:px-2.5 lg:py-1.5',
-        open ? 'bg-accent' : 'web:hover:bg-accent/60',
-      )}
-    >
-      <View className="flex-row items-center gap-2.5">
-        <Icon
-          as={item.icon}
-          className={cn(
-            'size-4 shrink-0 text-violet-500 dark:text-violet-400',
-            open && 'text-accent-foreground',
-          )}
-        />
-        <Text
-          className={cn(
-            'text-xs',
-            open
-              ? 'font-medium text-accent-foreground'
-              : 'text-muted-foreground',
-          )}
-        >
-          {item.label}
-        </Text>
-      </View>
-      <View className="flex-row items-center gap-1.5">
-        {pendingApproval ? (
-          <View className="size-2 rounded-full bg-amber-500" />
-        ) : null}
-        {'badge' in item ? (
-          <View className="rounded border border-violet-500/20 bg-violet-500/10 px-1.5 py-0.5">
-            <Text className="text-[10px] font-semibold text-violet-600 dark:text-violet-400">
-              {item.badge}
-            </Text>
-          </View>
-        ) : null}
       </View>
     </Pressable>
   );

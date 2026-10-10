@@ -154,13 +154,7 @@ export function DashboardShell({
 
           <DashboardNavigationContent
             activeItem={currentItem}
-            agentChatOpen={agentChatOpen}
-            agentChatPendingApproval={agentChatPendingApproval}
             onNavigate={() => setDrawerOpen(false)}
-            onToggleAgentChat={() => {
-              setDrawerOpen(false);
-              toggleAgentChat();
-            }}
             organizationName={organizationName}
           />
         </View>

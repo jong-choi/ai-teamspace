@@ -1,6 +1,7 @@
 import { useWindowDimensions, View } from 'react-native';
 
 import { Button } from '@repo/client/rnr/components/ui/button';
+import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { DashboardQueryBoundary } from '@core/app/state/dashboard-query-state';
 import { GraphCanvas } from '@core/features/knowledge-graph/components/canvas/graph-canvas';
@@ -22,6 +23,8 @@ import type {
   GraphExploreParams,
 } from '@core/features/knowledge-graph/lib/graph-route-params';
 import { useGraphStudioStore } from '@core/features/knowledge-graph/state/graph-studio-provider';
+
+import { ArrowRight } from 'lucide-react-native';
 
 // dashboard sidebar(lg)와 320px inspector를 함께 둘 수 있는 폭이다.
 const WIDE_LAYOUT_MIN_WIDTH = 1024;
@@ -115,23 +118,19 @@ export function GraphStudio({
   );
 }
 
+// 그래프는 검색어나 시작 노드가 있어야 그려진다. 둘 다 없을 때는 창 없이 그 조건만 안내한다.
 function GraphCanvasStart({ onOpenData }: { onOpenData: () => void }) {
   const palette = useGraphThemePalette();
   return (
-    <View className="relative min-h-0 flex-1 items-center justify-center bg-muted/30 px-6">
+    <View className="relative min-h-0 flex-1 items-center justify-center gap-3 bg-muted/30 px-6">
       <GraphCanvasGrid color={palette.grid} />
-      <View className="max-w-sm items-center gap-3 rounded-xl border border-border bg-background/90 p-4 shadow-sm">
-        <Text className="text-center text-sm font-semibold">
-          탐색할 노드를 선택해 주세요
-        </Text>
-        <Text className="text-center text-xs leading-5 text-muted-foreground">
-          데이터 센터에서 노드를 열거나 Wiki의 그래프 보기로 들어오면 해당
-          노드의 1단계 관계를 표시합니다.
-        </Text>
-        <Button onPress={onOpenData} size="sm" variant="outline">
-          <Text className="text-xs">데이터 센터 열기</Text>
-        </Button>
-      </View>
+      <Text className="text-center text-xs leading-5 text-muted-foreground">
+        노드를 검색하거나 데이터 테이블에서 노드를 열면 그래프가 그려집니다.
+      </Text>
+      <Button onPress={onOpenData} size="sm" variant="outline">
+        <Text className="text-xs">데이터 테이블로 보기</Text>
+        <Icon as={ArrowRight} className="size-3.5" />
+      </Button>
     </View>
   );
 }

@@ -176,11 +176,6 @@ function EmptyConversationState({
       <Text className="text-base font-semibold">
         {hasConversations ? '대화를 선택하세요' : '첫 대화를 만들어 보세요'}
       </Text>
-      <Text className="mt-1 max-w-md text-center text-xs leading-5 text-muted-foreground">
-        {hasConversations
-          ? '채널 목록에서 대화를 선택하면 메시지 기록과 실시간 업데이트가 표시됩니다.'
-          : '새 채널을 만들거나 정확한 username으로 다이렉트 메시지를 시작할 수 있습니다.'}
-      </Text>
       <View className="mt-4 flex-row gap-2">
         {hasConversations ? (
           <Button

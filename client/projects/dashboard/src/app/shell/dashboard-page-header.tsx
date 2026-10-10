@@ -3,8 +3,9 @@ import { View } from 'react-native';
 
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
+import { AgentChatOpenButton } from '@core/features/agent-chat/components/agent-chat-open-button';
 
-// 업무 route 공통 상단 바다. 왼쪽은 breadcrumb, 오른쪽은 보기 전환과 주요 액션을 둔다.
+// 업무 route 공통 상단 바다. 왼쪽은 breadcrumb, 오른쪽은 보기 전환·주요 액션과 Agent 채팅 진입점을 둔다.
 // 모든 화면에서 한 줄 높이가 같고, 폭이 부족할 때만 액션이 다음 줄로 내려간다.
 export function DashboardPageHeader({
   actions,
@@ -28,9 +29,10 @@ export function DashboardPageHeader({
         {leading}
         {children}
       </View>
-      {actions ? (
-        <View className="flex-row flex-wrap items-center gap-2">{actions}</View>
-      ) : null}
+      <View className="flex-row flex-wrap items-center gap-2">
+        {actions}
+        <AgentChatOpenButton />
+      </View>
     </View>
   );
 }

@@ -9,8 +9,8 @@ import {
 } from '@/mcp/infrastructure/auth/better-auth/better-auth-mcp-auth.mapper';
 import {
   extractMcpCredential,
-  withoutMcpUrlCredential,
   McpCredentialExtractionError,
+  withoutMcpUrlCredential,
 } from '@/mcp/infrastructure/auth/mcp-credential.extractor';
 import { McpHttpSecurityGuard } from '@/mcp/infrastructure/transport/model-context-protocol/mcp-http-security.guard';
 import { rejectOversizedToolInput } from '@/mcp/infrastructure/transport/model-context-protocol/mcp-tool-input-bound';

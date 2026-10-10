@@ -31,7 +31,7 @@ import type { SendChatMessageInput } from '@/chat/dto/send-chat-message.dto';
 import type { UpdateChatMessageInput } from '@/chat/dto/update-chat-message.dto';
 import { ChatRepository } from '@/chat/infrastructure/persistence/chat.repository';
 import { ChatRealtimeProvider } from '@/chat/infrastructure/realtime/chat-realtime.provider';
-import { OrganizationProvider } from '@/organizations/infrastructure/organization/organization.provider';
+import { MembershipProjectionQueryService } from '@/organizations/membership-projection-query.service';
 
 export type DeliverOrganizationInvitationInput = {
   recipientUserId: string;
@@ -47,7 +47,10 @@ type ChatUserDirectory = Pick<
   AuthUserDirectoryService,
   'resolveExactUsername' | 'findByIds'
 >;
-type ChatOrganizationMembership = Pick<OrganizationProvider, 'hasMemberUser'>;
+type ChatOrganizationMembership = Pick<
+  MembershipProjectionQueryService,
+  'hasMember'
+>;
 
 @Injectable()
 export class ChatService {
@@ -58,7 +61,7 @@ export class ChatService {
     @Inject(AuthUserDirectoryService)
     private readonly userDirectory: ChatUserDirectory,
     private readonly realtime: ChatRealtimeProvider,
-    @Inject(OrganizationProvider)
+    @Inject(MembershipProjectionQueryService)
     private readonly organizations: ChatOrganizationMembership,
   ) {}
 
@@ -264,7 +267,7 @@ export class ChatService {
     if (!activeOrganizationId) return false;
     const memberships = await Promise.all(
       [userId, ...memberUserIds].map((memberUserId) =>
-        this.organizations.hasMemberUser(activeOrganizationId, memberUserId),
+        this.organizations.hasMember(activeOrganizationId, memberUserId),
       ),
     );
     return memberships.every(Boolean);

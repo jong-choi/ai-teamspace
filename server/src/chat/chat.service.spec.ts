@@ -12,7 +12,7 @@ import type { ChatMessage } from '@/chat/domain/chat-message';
 import { decodeChatMessageCursor } from '@/chat/domain/chat-message-cursor';
 import { ChatRepository } from '@/chat/infrastructure/persistence/chat.repository';
 import { ChatRealtimeProvider } from '@/chat/infrastructure/realtime/chat-realtime.provider';
-import type { OrganizationProvider } from '@/organizations/infrastructure/organization/organization.provider';
+import type { MembershipProjectionQueryService } from '@/organizations/membership-projection-query.service';
 
 import { jest } from '@jest/globals';
 import { EMPTY } from 'rxjs';
@@ -41,7 +41,7 @@ class FakeAuthUserDirectory {
 }
 
 class FakeOrganizationMembership {
-  hasMemberUser = jest.fn<OrganizationProvider['hasMemberUser']>();
+  hasMember = jest.fn<MembershipProjectionQueryService['hasMember']>();
 }
 
 class FakeChatRealtimeProvider extends ChatRealtimeProvider {
@@ -358,7 +358,7 @@ describe('채팅 서비스', () => {
   });
 
   it('활성 조직의 멤버는 user ID로 일대일 대화를 열 수 있다', async () => {
-    organizations.hasMemberUser.mockResolvedValue(true);
+    organizations.hasMember.mockResolvedValue(true);
     repository.findDirectByKey.mockResolvedValue(conversation());
     repository.findConversationState.mockResolvedValue(state());
     directory.findByIds.mockResolvedValue(directoryUsers());
@@ -370,7 +370,7 @@ describe('채팅 서비스', () => {
     );
 
     expect(result.id).toBe(conversationId);
-    expect(organizations.hasMemberUser).toHaveBeenCalledWith(
+    expect(organizations.hasMember).toHaveBeenCalledWith(
       'organization-a',
       recipientUserId,
     );
@@ -378,7 +378,7 @@ describe('채팅 서비스', () => {
   });
 
   it('같은 활성 조직 멤버가 아닌 user ID로는 일대일 대화를 열 수 없다', async () => {
-    organizations.hasMemberUser.mockImplementation((_organizationId, userId) =>
+    organizations.hasMember.mockImplementation((_organizationId, userId) =>
       Promise.resolve(userId === actorUserId),
     );
 
@@ -392,7 +392,7 @@ describe('채팅 서비스', () => {
   });
 
   it('채널 참여자 user ID는 활성 조직 멤버일 때만 추가한다', async () => {
-    organizations.hasMemberUser.mockResolvedValue(true);
+    organizations.hasMember.mockResolvedValue(true);
     repository.createChannelConversation.mockResolvedValue(
       conversation({ kind: 'channel', name: 'general', directKey: null }),
     );
@@ -410,7 +410,7 @@ describe('채팅 서비스', () => {
       [actorUserId, recipientUserId],
     );
 
-    organizations.hasMemberUser.mockResolvedValue(false);
+    organizations.hasMember.mockResolvedValue(false);
     await expect(
       service.createChannel(
         actorUserId,

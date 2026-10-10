@@ -15,6 +15,10 @@ export class MembershipProjectionQueryService {
     return this.organizations.listProjectionOrganizationIds(afterId, limit);
   }
 
+  hasMember(organizationId: string, userId: string) {
+    return this.organizations.hasMemberUser(organizationId, userId);
+  }
+
   current(organizationId: string, userId: string) {
     return this.organizations.getMembershipProjection(organizationId, userId);
   }

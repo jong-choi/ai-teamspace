@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 
-import { AuthModule } from '@/auth/auth.module';
 import { TrustedOriginGuard } from '@/common/http/trusted-origin.guard';
-import { S3ObjectStorageModule } from '@/object-storage/infrastructure/s3/s3-object-storage.module';
+import { ObjectStorageModule } from '@/object-storage/object-storage.module';
+import { BetterAuthUserAccountModule } from '@/user-profile/infrastructure/account/better-auth/better-auth-user-account.module';
 import { UserProfileController } from '@/user-profile/user-profile.controller';
 import { UserProfileService } from '@/user-profile/user-profile.service';
 
 @Module({
-  imports: [AuthModule, S3ObjectStorageModule],
+  imports: [BetterAuthUserAccountModule, ObjectStorageModule],
   controllers: [UserProfileController],
   providers: [UserProfileService, TrustedOriginGuard],
 })

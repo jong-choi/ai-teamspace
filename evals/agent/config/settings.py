@@ -138,6 +138,15 @@ class EvalSettings(BaseSettings):
         alias="EVAL_JUDGE_API_KEY",
     )
 
+    seeded_email: str | None = Field(default=None, alias="EVAL_SEEDED_EMAIL")
+    seeded_password: SecretStr | None = Field(
+        default=None,
+        alias="EVAL_SEEDED_PASSWORD",
+    )
+    seeded_organization_slug: str | None = Field(
+        default=None,
+        alias="EVAL_SEEDED_ORGANIZATION_SLUG",
+    )
     langfuse_enabled: bool = Field(default=False, alias="EVAL_LANGFUSE_ENABLED")
     langfuse_base_url: str | None = Field(
         default=None,
@@ -172,6 +181,9 @@ class EvalSettings(BaseSettings):
         "judge_provider",
         "judge_model",
         "judge_api_key",
+        "seeded_email",
+        "seeded_password",
+        "seeded_organization_slug",
         "langfuse_base_url",
         "langfuse_public_key",
         "langfuse_secret_key",
@@ -292,6 +304,31 @@ class EvalSettings(BaseSettings):
             deepeval_async_mode=self.deepeval_async_mode,
             trials=self.trials,
             random_seed=self.random_seed,
+        )
+
+    def seeded_workspace(self) -> tuple[str, str, str] | None:
+        """Email, password and organization slug of the seeded account, if configured."""
+
+        values = (
+            self.seeded_email,
+            self.seeded_password,
+            self.seeded_organization_slug,
+        )
+        if all(value is None for value in values):
+            return None
+        if (
+            self.seeded_email is None
+            or self.seeded_password is None
+            or self.seeded_organization_slug is None
+        ):
+            raise ValueError(
+                "seeded workspace requires EVAL_SEEDED_EMAIL, EVAL_SEEDED_PASSWORD "
+                "and EVAL_SEEDED_ORGANIZATION_SLUG together"
+            )
+        return (
+            self.seeded_email,
+            self.seeded_password.get_secret_value(),
+            self.seeded_organization_slug,
         )
 
     def judge(self) -> JudgeSettings | None:

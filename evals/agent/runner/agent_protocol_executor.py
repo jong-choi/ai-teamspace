@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator, Callable, Mapping
 from dataclasses import dataclass
+from pathlib import Path
 from time import perf_counter
 from typing import Any, Protocol, cast
 
@@ -9,7 +10,8 @@ from langgraph_sdk.schema import StreamMode
 
 from clients.agent_protocol import AgentProtocolClient
 from datasets.schema import EvalCase, InterruptExpectation
-from fixtures.lifecycle import FixtureLease
+from fixtures.lifecycle import FixtureLease, resolve_fixture_reference
+from runner.raw_trace import RAW_TEXT_LIMIT, write_raw_trace
 from runner.trajectory import (
     ObservedToolCall,
     ObservedTrajectory,
@@ -19,6 +21,8 @@ from runner.trajectory import (
 )
 
 _STREAM_MODES: list[StreamMode] = ["events", "values"]
+# 실패한 쓰기 호출을 고쳐 다시 제안하면 같은 승인을 몇 번까지 되풀이해 회복 과정을 관측한다.
+_MAX_RETRY_APPROVAL_ROUNDS = 2
 _TERMINAL_STATUSES = frozenset(
     {"success", "error", "timeout", "interrupted", "cancelled"}
 )
@@ -40,6 +44,7 @@ class AgentExecutionClient(Protocol):
         command: Mapping[str, Any] | None = None,
         stream_mode: StreamMode | list[StreamMode] = "values",
         stream_subgraphs: bool = False,
+        config: Mapping[str, Any] | None = None,
     ) -> Mapping[str, Any]: ...
 
     def resume_stream(
@@ -93,6 +98,8 @@ class _Collector:
         self.completed_tools: list[ObservedToolCall] = []
         self.pending_tools: dict[str, _PendingTool] = {}
         self.subagents = 0
+        self.tool_outputs: dict[int, str] = {}
+        self.model_calls: list[dict[str, Any]] = []
         self.final_response: str | None = None
         self.last_values: Mapping[str, Any] | None = None
 
@@ -189,29 +196,41 @@ class _Collector:
                 )
                 return
 
+            # MCP tool은 실패를 예외가 아니라 status=error인 tool message로 돌려준다.
+            failed = kind == "on_tool_error" or _tool_reported_error(
+                event_data.get("output")
+            )
+            output_text = _tool_output_text(
+                event_data.get("error")
+                if kind == "on_tool_error"
+                else event_data.get("output")
+            )
+
             if pending is None:
                 sequence = self.add_event(
                     TrajectoryEventKind.TOOL_ERROR
-                    if kind == "on_tool_error"
+                    if failed
                     else TrajectoryEventKind.TOOL_RESULT,
                     name=tool_name,
                 )
+                if output_text:
+                    self.tool_outputs[sequence] = output_text
                 self.completed_tools.append(
                     ObservedToolCall(
                         sequence=sequence,
                         name=tool_name,
                         source=self._source_for(tool_name),
                         arguments={},
-                        is_error=kind == "on_tool_error",
-                        result_category="error"
-                        if kind == "on_tool_error"
-                        else "success",
+                        is_error=failed,
+                        result_category="error" if failed else "success",
                     )
                 )
                 return
 
-            pending.is_error = kind == "on_tool_error"
+            pending.is_error = failed
             pending.result_category = "error" if pending.is_error else "success"
+            if output_text:
+                self.tool_outputs[pending.sequence] = output_text
             self.add_event(
                 TrajectoryEventKind.TOOL_ERROR
                 if pending.is_error
@@ -236,6 +255,7 @@ class _Collector:
             if message is None:
                 return
 
+            self.model_calls.append(_model_call_record(self.sequence, message))
             for proposal_name in _tool_call_names(message):
                 self.add_event(
                     TrajectoryEventKind.TOOL_PROPOSAL,
@@ -278,10 +298,12 @@ class AgentProtocolExecutor:
         *,
         assistant_id: str = "workos",
         work_os_tool_names: frozenset[str] | None = None,
+        raw_dir: Path | None = None,
     ) -> None:
         self._client_factory = client_factory
         self._assistant_id = assistant_id
         self._work_os_tool_names = work_os_tool_names or frozenset()
+        self._raw_dir = raw_dir
 
     @classmethod
     def for_http(
@@ -291,6 +313,7 @@ class AgentProtocolExecutor:
         headers_for_lease: Callable[[FixtureLease], Mapping[str, str]],
         assistant_id: str = "workos",
         work_os_tool_names: frozenset[str] | None = None,
+        raw_dir: Path | None = None,
     ) -> AgentProtocolExecutor:
         return cls(
             lambda lease: AgentProtocolClient(
@@ -299,6 +322,7 @@ class AgentProtocolExecutor:
             ),
             assistant_id=assistant_id,
             work_os_tool_names=work_os_tool_names,
+            raw_dir=raw_dir,
         )
 
     async def execute(
@@ -318,7 +342,14 @@ class AgentProtocolExecutor:
         run_statuses: list[str] = []
         turns = 0
         interrupt_cursor = 0
+        retry_approval_rounds = 0
         stop = False
+        client_context = _client_context(case, lease)
+        run_config: dict[str, Any] = (
+            {"config": {"configurable": {"client_context": client_context}}}
+            if client_context
+            else {}
+        )
 
         for user_input in case.input:
             if stop:
@@ -338,6 +369,7 @@ class AgentProtocolExecutor:
                 },
                 stream_mode=_STREAM_MODES,
                 stream_subgraphs=True,
+                **run_config,
             )
 
             while True:
@@ -365,6 +397,15 @@ class AgentProtocolExecutor:
                 expectations = case.expected_interrupts[
                     interrupt_cursor : interrupt_cursor + len(actions)
                 ]
+                repeated = (
+                    _repeated_approvals(case, actions)
+                    if len(expectations) != len(actions)
+                    and retry_approval_rounds < _MAX_RETRY_APPROVAL_ROUNDS
+                    else None
+                )
+                if repeated is not None:
+                    retry_approval_rounds += 1
+                    expectations = repeated
                 if len(expectations) != len(actions):
                     for action in actions:
                         collector.add_event(
@@ -408,7 +449,8 @@ class AgentProtocolExecutor:
                     stop = True
                     break
 
-                interrupt_cursor += len(actions)
+                if repeated is None:
+                    interrupt_cursor += len(actions)
                 run = await client.create_run(
                     thread_id,
                     self._assistant_id,
@@ -430,7 +472,7 @@ class AgentProtocolExecutor:
             collector.add_event(TrajectoryEventKind.FINAL_RESPONSE)
 
         latency_ms = (perf_counter() - started) * 1000
-        return ObservedTrajectory(
+        trajectory = ObservedTrajectory(
             case_id=case.id,
             thread_id=thread_id,
             run_ids=run_ids,
@@ -445,6 +487,25 @@ class AgentProtocolExecutor:
             subagents=collector.subagents,
             latency_ms=latency_ms,
         )
+        if self._raw_dir is not None:
+            # 승인 대기로 끝난 run은 stream에 마지막 values가 없어 thread state에서 대화를 읽는다.
+            state = await client.get_state(thread_id, subgraphs=False)
+            state_values: object = state.get("values")
+            write_raw_trace(
+                self._raw_dir,
+                case,
+                lease,
+                trajectory,
+                client_context=client_context,
+                tool_outputs=collector.tool_outputs,
+                model_calls=collector.model_calls,
+                messages=_message_records(
+                    cast(Mapping[str, Any], state_values)
+                    if isinstance(state_values, Mapping)
+                    else collector.last_values
+                ),
+            )
+        return trajectory
 
 
 async def _consume_run(
@@ -469,6 +530,51 @@ async def _consume_run(
     if stream_error is not None and status not in _TERMINAL_STATUSES:
         raise stream_error
     return status
+
+
+def _repeated_approvals(
+    case: EvalCase,
+    actions: list[_InterruptAction],
+) -> list[InterruptExpectation] | None:
+    """Reuse an approve expectation when the agent proposes the same tool again."""
+
+    repeated: list[InterruptExpectation] = []
+    for action in actions:
+        match = next(
+            (
+                expectation
+                for expectation in case.expected_interrupts
+                if expectation.decision == "approve"
+                and expectation.before_tool == action.name
+            ),
+            None,
+        )
+        if match is None:
+            return None
+        repeated.append(match)
+    return repeated or None
+
+
+def _message_records(values: Mapping[str, Any] | None) -> list[dict[str, Any]]:
+    raw_messages: object = (values or {}).get("messages")
+    if not isinstance(raw_messages, list):
+        return []
+    records: list[dict[str, Any]] = []
+    for raw_message in cast(list[object], raw_messages):
+        message = _unwrapped_message(_message_mapping(raw_message))
+        if message is None:
+            continue
+        text = _message_text(message)
+        records.append(
+            {
+                "type": message.get("type") or message.get("role"),
+                "name": message.get("name"),
+                "status": message.get("status"),
+                "tool_calls": _model_call_record(0, message)["tool_calls"],
+                "text": text[:RAW_TEXT_LIMIT] if text else None,
+            }
+        )
+    return records
 
 
 def _decision_payload(
@@ -529,6 +635,81 @@ def _interrupt_actions(state: Mapping[str, Any]) -> list[_InterruptAction]:
                     )
                 )
     return actions
+
+
+def _client_context(case: EvalCase, lease: FixtureLease) -> dict[str, object] | None:
+    context = case.client_context
+    if context is None:
+        return None
+
+    params = {
+        key: str(resolve_fixture_reference(value, lease.public_ids))
+        for key, value in context.params.items()
+    }
+
+    payload: dict[str, object] = {}
+    if context.time_zone is not None:
+        payload["timeZone"] = context.time_zone
+    if context.route is not None:
+        payload["route"] = context.route
+    if params:
+        payload["params"] = params
+    return payload or None
+
+
+def _unwrapped_message(value: object) -> Mapping[str, Any] | None:
+    if not isinstance(value, Mapping):
+        return None
+    mapping = cast(Mapping[str, Any], value)
+    kwargs = mapping.get("kwargs")
+    if isinstance(kwargs, Mapping):
+        return cast(Mapping[str, Any], kwargs)
+    return mapping
+
+
+def _tool_reported_error(output: object) -> bool:
+    message = _unwrapped_message(output)
+    return message is not None and message.get("status") == "error"
+
+
+def _tool_output_text(output: object) -> str | None:
+    if output is None:
+        return None
+    if isinstance(output, str):
+        return output[:RAW_TEXT_LIMIT] or None
+    message = _unwrapped_message(output)
+    if message is None:
+        return str(output)[:RAW_TEXT_LIMIT]
+    text = _message_text(message)
+    if text:
+        return text[:RAW_TEXT_LIMIT]
+    return str(dict(message))[:RAW_TEXT_LIMIT]
+
+
+def _model_call_record(sequence: int, message: Mapping[str, Any]) -> dict[str, Any]:
+    source = _unwrapped_message(message) or message
+    usage: object = source.get("usage_metadata")
+    usage_mapping: Mapping[str, object] = (
+        cast(Mapping[str, object], usage)
+        if isinstance(usage, Mapping)
+        else cast(Mapping[str, object], {})
+    )
+    raw_calls: object = source.get("tool_calls")
+    tool_calls: list[dict[str, object]] = []
+    if isinstance(raw_calls, list):
+        for raw_call in cast(list[object], raw_calls):
+            if not isinstance(raw_call, Mapping):
+                continue
+            call = cast(Mapping[str, object], raw_call)
+            tool_calls.append({"name": call.get("name"), "args": call.get("args")})
+    text = _message_text(source)
+    return {
+        "sequence": sequence,
+        "input_tokens": usage_mapping.get("input_tokens"),
+        "output_tokens": usage_mapping.get("output_tokens"),
+        "tool_calls": tool_calls,
+        "text": text[:RAW_TEXT_LIMIT] if text else None,
+    }
 
 
 def _part_field(part: object, field: str) -> object:

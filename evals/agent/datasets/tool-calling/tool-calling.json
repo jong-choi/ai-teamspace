@@ -1,0 +1,1494 @@
+{
+  "id": "tool-calling",
+  "version": "1.0.0",
+  "cases": [
+    {
+      "id": "smalltalk-no-tool",
+      "version": "1.0.0",
+      "tags": ["tool-calling", "read"],
+      "input": ["안녕! 너는 어떤 일을 도와줄 수 있어?"],
+      "persona": "seeded-owner",
+      "organization_fixture": "org",
+      "client_context": {
+        "time_zone": "Asia/Seoul",
+        "route": "/"
+      },
+      "preconditions": [],
+      "forbidden_tools": [
+        "organization_invitation_create",
+        "chat_message_send",
+        "wiki_document_create",
+        "wiki_document_update",
+        "project_ticket_create",
+        "project_ticket_update",
+        "project_ticket_move",
+        "calendar_meeting_create",
+        "calendar_meeting_reschedule",
+        "calendar_meeting_cancel",
+        "calendar_meeting_rsvp"
+      ],
+      "argument_assertions": [],
+      "expected_interrupts": [],
+      "outcome_assertions": [],
+      "budget": {
+        "max_turns": 2,
+        "max_tool_calls": 0,
+        "max_subagents": 0,
+        "timeout_seconds": 300,
+        "max_cost": 1
+      }
+    },
+    {
+      "id": "projects-list",
+      "version": "1.0.0",
+      "tags": ["tool-calling", "read", "projects"],
+      "input": ["우리 조직에 어떤 프로젝트가 있는지 알려줘."],
+      "persona": "seeded-owner",
+      "organization_fixture": "org",
+      "client_context": {
+        "time_zone": "Asia/Seoul",
+        "route": "/"
+      },
+      "preconditions": [],
+      "expected_tools": {
+        "mode": "ordered",
+        "tools": ["projects_list"]
+      },
+      "forbidden_tools": [
+        "organization_invitation_create",
+        "chat_message_send",
+        "wiki_document_create",
+        "wiki_document_update",
+        "project_ticket_create",
+        "project_ticket_update",
+        "project_ticket_move",
+        "calendar_meeting_create",
+        "calendar_meeting_reschedule",
+        "calendar_meeting_cancel",
+        "calendar_meeting_rsvp"
+      ],
+      "argument_assertions": [
+        {
+          "tool": "projects_list",
+          "path": "organizationId",
+          "operator": "exact",
+          "value": "$organization:org"
+        }
+      ],
+      "expected_interrupts": [],
+      "outcome_assertions": [],
+      "budget": {
+        "max_turns": 2,
+        "max_tool_calls": 12,
+        "max_subagents": 2,
+        "timeout_seconds": 300,
+        "max_cost": 1
+      }
+    },
+    {
+      "id": "project-progress",
+      "version": "1.0.0",
+      "tags": ["tool-calling", "read", "projects"],
+      "input": [
+        "귤밭 앱 리뉴얼 프로젝트에 아직 끝나지 않은 티켓이 몇 개인지 알려줘."
+      ],
+      "persona": "seeded-owner",
+      "organization_fixture": "org",
+      "client_context": {
+        "time_zone": "Asia/Seoul",
+        "route": "/"
+      },
+      "preconditions": [],
+      "expected_tools": {
+        "mode": "ordered",
+        "tools": ["projects_list"]
+      },
+      "forbidden_tools": [
+        "organization_invitation_create",
+        "chat_message_send",
+        "wiki_document_create",
+        "wiki_document_update",
+        "project_ticket_create",
+        "project_ticket_update",
+        "project_ticket_move",
+        "calendar_meeting_create",
+        "calendar_meeting_reschedule",
+        "calendar_meeting_cancel",
+        "calendar_meeting_rsvp"
+      ],
+      "argument_assertions": [],
+      "expected_interrupts": [],
+      "outcome_assertions": [],
+      "budget": {
+        "max_turns": 2,
+        "max_tool_calls": 12,
+        "max_subagents": 2,
+        "timeout_seconds": 300,
+        "max_cost": 1
+      }
+    },
+    {
+      "id": "project-columns-from-screen",
+      "version": "1.0.0",
+      "tags": ["tool-calling", "read", "projects", "screen"],
+      "input": ["이 프로젝트 칸반 컬럼을 순서대로 알려줘."],
+      "persona": "seeded-owner",
+      "organization_fixture": "org",
+      "client_context": {
+        "time_zone": "Asia/Seoul",
+        "route": "/projects/[projectId]",
+        "params": {
+          "projectId": "$project:app"
+        }
+      },
+      "preconditions": [
+        {
+          "kind": "project",
+          "alias": "app",
+          "values": {
+            "name": "귤밭 앱 리뉴얼"
+          }
+        }
+      ],
+      "expected_tools": {
+        "mode": "ordered",
+        "tools": ["project_columns_list"]
+      },
+      "forbidden_tools": [
+        "organization_invitation_create",
+        "chat_message_send",
+        "wiki_document_create",
+        "wiki_document_update",
+        "project_ticket_create",
+        "project_ticket_update",
+        "project_ticket_move",
+        "calendar_meeting_create",
+        "calendar_meeting_reschedule",
+        "calendar_meeting_cancel",
+        "calendar_meeting_rsvp"
+      ],
+      "argument_assertions": [
+        {
+          "tool": "project_columns_list",
+          "path": "projectId",
+          "operator": "exact",
+          "value": "$project:app"
+        },
+        {
+          "tool": "project_columns_list",
+          "path": "organizationId",
+          "operator": "exact",
+          "value": "$organization:org"
+        }
+      ],
+      "expected_interrupts": [],
+      "outcome_assertions": [],
+      "budget": {
+        "max_turns": 2,
+        "max_tool_calls": 12,
+        "max_subagents": 2,
+        "timeout_seconds": 300,
+        "max_cost": 1
+      }
+    },
+    {
+      "id": "ticket-read-by-title",
+      "version": "1.0.0",
+      "tags": ["tool-calling", "read", "projects", "screen"],
+      "input": [
+        "'검색 결과 무한 스크롤 버벅임' 티켓의 담당자와 마감일을 알려줘."
+      ],
+      "persona": "seeded-owner",
+      "organization_fixture": "org",
+      "client_context": {
+        "time_zone": "Asia/Seoul",
+        "route": "/projects/[projectId]",
+        "params": {
+          "projectId": "$project:app"
+        }
+      },
+      "preconditions": [
+        {
+          "kind": "project",
+          "alias": "app",
+          "values": {
+            "name": "귤밭 앱 리뉴얼"
+          }
+        },
+        {
+          "kind": "ticket",
+          "alias": "scroll",
+          "values": {
+            "projectAlias": "app",
+            "title": "검색 결과 무한 스크롤 버벅임"
+          }
+        }
+      ],
+      "expected_tools": {
+        "mode": "ordered",
+        "tools": ["project_ticket_get"]
+      },
+      "forbidden_tools": [
+        "organization_invitation_create",
+        "chat_message_send",
+        "wiki_document_create",
+        "wiki_document_update",
+        "project_ticket_create",
+        "project_ticket_update",
+        "project_ticket_move",
+        "calendar_meeting_create",
+        "calendar_meeting_reschedule",
+        "calendar_meeting_cancel",
+        "calendar_meeting_rsvp"
+      ],
+      "argument_assertions": [
+        {
+          "tool": "project_ticket_get",
+          "path": "ticketId",
+          "operator": "exact",
+          "value": "$ticket:scroll"
+        },
+        {
+          "tool": "project_ticket_get",
+          "path": "projectId",
+          "operator": "exact",
+          "value": "$project:app"
+        }
+      ],
+      "expected_interrupts": [],
+      "outcome_assertions": [],
+      "budget": {
+        "max_turns": 2,
+        "max_tool_calls": 12,
+        "max_subagents": 2,
+        "timeout_seconds": 300,
+        "max_cost": 1
+      }
+    },
+    {
+      "id": "wiki-find-and-read",
+      "version": "1.0.0",
+      "tags": ["tool-calling", "read", "wiki"],
+      "input": [
+        "위키 '배포 절차' 문서에서 운영 배포를 할 수 있는 시간대를 알려줘."
+      ],
+      "persona": "seeded-owner",
+      "organization_fixture": "org",
+      "client_context": {
+        "time_zone": "Asia/Seoul",
+        "route": "/"
+      },
+      "preconditions": [
+        {
+          "kind": "wiki_document",
+          "alias": "release",
+          "values": {
+            "title": "배포 절차"
+          }
+        }
+      ],
+      "expected_tools": {
+        "mode": "ordered",
+        "tools": ["wiki_document_get"]
+      },
+      "forbidden_tools": [
+        "organization_invitation_create",
+        "chat_message_send",
+        "wiki_document_create",
+        "wiki_document_update",
+        "project_ticket_create",
+        "project_ticket_update",
+        "project_ticket_move",
+        "calendar_meeting_create",
+        "calendar_meeting_reschedule",
+        "calendar_meeting_cancel",
+        "calendar_meeting_rsvp"
+      ],
+      "argument_assertions": [
+        {
+          "tool": "wiki_document_get",
+          "path": "documentId",
+          "operator": "exact",
+          "value": "$wiki_document:release"
+        }
+      ],
+      "expected_interrupts": [],
+      "outcome_assertions": [],
+      "budget": {
+        "max_turns": 2,
+        "max_tool_calls": 12,
+        "max_subagents": 2,
+        "timeout_seconds": 300,
+        "max_cost": 1
+      }
+    },
+    {
+      "id": "wiki-read-from-screen",
+      "version": "1.0.0",
+      "tags": ["tool-calling", "read", "wiki", "screen"],
+      "input": ["이 문서를 세 줄로 요약해줘."],
+      "persona": "seeded-owner",
+      "organization_fixture": "org",
+      "client_context": {
+        "time_zone": "Asia/Seoul",
+        "route": "/wiki/[documentId]",
+        "params": {
+          "documentId": "$wiki_document:payment"
+        }
+      },
+      "preconditions": [
+        {
+          "kind": "wiki_document",
+          "alias": "payment",
+          "values": {
+            "title": "결제와 정산 구조"
+          }
+        }
+      ],
+      "expected_tools": {
+        "mode": "ordered",
+        "tools": ["wiki_document_get"]
+      },
+      "forbidden_tools": [
+        "organization_invitation_create",
+        "chat_message_send",
+        "wiki_document_create",
+        "wiki_document_update",
+        "project_ticket_create",
+        "project_ticket_update",
+        "project_ticket_move",
+        "calendar_meeting_create",
+        "calendar_meeting_reschedule",
+        "calendar_meeting_cancel",
+        "calendar_meeting_rsvp"
+      ],
+      "argument_assertions": [
+        {
+          "tool": "wiki_document_get",
+          "path": "documentId",
+          "operator": "exact",
+          "value": "$wiki_document:payment"
+        },
+        {
+          "tool": "wiki_document_get",
+          "path": "organizationId",
+          "operator": "exact",
+          "value": "$organization:org"
+        }
+      ],
+      "expected_interrupts": [],
+      "outcome_assertions": [],
+      "budget": {
+        "max_turns": 2,
+        "max_tool_calls": 12,
+        "max_subagents": 2,
+        "timeout_seconds": 300,
+        "max_cost": 1
+      }
+    },
+    {
+      "id": "meetings-list-week",
+      "version": "1.0.0",
+      "tags": ["tool-calling", "read", "calendar", "datetime"],
+      "input": ["10월 12일부터 16일까지 잡혀 있는 회의를 알려줘."],
+      "persona": "seeded-owner",
+      "organization_fixture": "org",
+      "client_context": {
+        "time_zone": "Asia/Seoul",
+        "route": "/"
+      },
+      "preconditions": [],
+      "expected_tools": {
+        "mode": "ordered",
+        "tools": ["calendar_meetings_list"]
+      },
+      "forbidden_tools": [
+        "organization_invitation_create",
+        "chat_message_send",
+        "wiki_document_create",
+        "wiki_document_update",
+        "project_ticket_create",
+        "project_ticket_update",
+        "project_ticket_move",
+        "calendar_meeting_create",
+        "calendar_meeting_reschedule",
+        "calendar_meeting_cancel",
+        "calendar_meeting_rsvp"
+      ],
+      "argument_assertions": [
+        {
+          "tool": "calendar_meetings_list",
+          "path": "from",
+          "operator": "present"
+        },
+        {
+          "tool": "calendar_meetings_list",
+          "path": "to",
+          "operator": "present"
+        },
+        {
+          "tool": "calendar_meetings_list",
+          "path": "organizationId",
+          "operator": "exact",
+          "value": "$organization:org"
+        }
+      ],
+      "expected_interrupts": [],
+      "outcome_assertions": [],
+      "budget": {
+        "max_turns": 2,
+        "max_tool_calls": 12,
+        "max_subagents": 2,
+        "timeout_seconds": 300,
+        "max_cost": 1
+      }
+    },
+    {
+      "id": "members-admins",
+      "version": "1.0.0",
+      "tags": ["tool-calling", "read", "organizations"],
+      "input": ["우리 조직 관리자가 누구인지 알려줘."],
+      "persona": "seeded-owner",
+      "organization_fixture": "org",
+      "client_context": {
+        "time_zone": "Asia/Seoul",
+        "route": "/"
+      },
+      "preconditions": [],
+      "expected_tools": {
+        "mode": "ordered",
+        "tools": ["organization_members_list"]
+      },
+      "forbidden_tools": [
+        "organization_invitation_create",
+        "chat_message_send",
+        "wiki_document_create",
+        "wiki_document_update",
+        "project_ticket_create",
+        "project_ticket_update",
+        "project_ticket_move",
+        "calendar_meeting_create",
+        "calendar_meeting_reschedule",
+        "calendar_meeting_cancel",
+        "calendar_meeting_rsvp"
+      ],
+      "argument_assertions": [
+        {
+          "tool": "organization_members_list",
+          "path": "organizationId",
+          "operator": "exact",
+          "value": "$organization:org"
+        }
+      ],
+      "expected_interrupts": [],
+      "outcome_assertions": [],
+      "budget": {
+        "max_turns": 2,
+        "max_tool_calls": 12,
+        "max_subagents": 2,
+        "timeout_seconds": 300,
+        "max_cost": 1
+      }
+    },
+    {
+      "id": "chat-conversations-list",
+      "version": "1.0.0",
+      "tags": ["tool-calling", "read", "chat"],
+      "input": ["내가 참여 중인 채팅방 목록을 보여줘."],
+      "persona": "seeded-owner",
+      "organization_fixture": "org",
+      "client_context": {
+        "time_zone": "Asia/Seoul",
+        "route": "/"
+      },
+      "preconditions": [],
+      "expected_tools": {
+        "mode": "ordered",
+        "tools": ["chat_conversations_list"]
+      },
+      "forbidden_tools": [
+        "organization_invitation_create",
+        "chat_message_send",
+        "wiki_document_create",
+        "wiki_document_update",
+        "project_ticket_create",
+        "project_ticket_update",
+        "project_ticket_move",
+        "calendar_meeting_create",
+        "calendar_meeting_reschedule",
+        "calendar_meeting_cancel",
+        "calendar_meeting_rsvp"
+      ],
+      "argument_assertions": [
+        {
+          "tool": "chat_conversations_list",
+          "path": "organizationId",
+          "operator": "exact",
+          "value": "$organization:org"
+        }
+      ],
+      "expected_interrupts": [],
+      "outcome_assertions": [],
+      "budget": {
+        "max_turns": 2,
+        "max_tool_calls": 12,
+        "max_subagents": 2,
+        "timeout_seconds": 300,
+        "max_cost": 1
+      }
+    },
+    {
+      "id": "chat-messages-read",
+      "version": "1.0.0",
+      "tags": ["tool-calling", "read", "chat"],
+      "input": ["'결제-정산' 채널에서 최근에 오간 이야기를 요약해줘."],
+      "persona": "seeded-owner",
+      "organization_fixture": "org",
+      "client_context": {
+        "time_zone": "Asia/Seoul",
+        "route": "/"
+      },
+      "preconditions": [],
+      "expected_tools": {
+        "mode": "ordered",
+        "tools": ["chat_conversations_list", "chat_messages_list"]
+      },
+      "forbidden_tools": [
+        "organization_invitation_create",
+        "chat_message_send",
+        "wiki_document_create",
+        "wiki_document_update",
+        "project_ticket_create",
+        "project_ticket_update",
+        "project_ticket_move",
+        "calendar_meeting_create",
+        "calendar_meeting_reschedule",
+        "calendar_meeting_cancel",
+        "calendar_meeting_rsvp"
+      ],
+      "argument_assertions": [],
+      "expected_interrupts": [],
+      "outcome_assertions": [],
+      "budget": {
+        "max_turns": 2,
+        "max_tool_calls": 12,
+        "max_subagents": 2,
+        "timeout_seconds": 300,
+        "max_cost": 1
+      }
+    },
+    {
+      "id": "knowledge-refund-settlement",
+      "version": "1.0.0",
+      "tags": ["tool-calling", "read", "knowledge"],
+      "input": [
+        "환불하면 정산이 어떻게 되는지 관련 문서와 연결된 개념까지 찾아서 설명해줘."
+      ],
+      "persona": "seeded-owner",
+      "organization_fixture": "org",
+      "client_context": {
+        "time_zone": "Asia/Seoul",
+        "route": "/"
+      },
+      "preconditions": [],
+      "expected_tools": {
+        "mode": "ordered",
+        "tools": ["knowledge_search"]
+      },
+      "forbidden_tools": [
+        "organization_invitation_create",
+        "chat_message_send",
+        "wiki_document_create",
+        "wiki_document_update",
+        "project_ticket_create",
+        "project_ticket_update",
+        "project_ticket_move",
+        "calendar_meeting_create",
+        "calendar_meeting_reschedule",
+        "calendar_meeting_cancel",
+        "calendar_meeting_rsvp"
+      ],
+      "argument_assertions": [
+        {
+          "tool": "knowledge_search",
+          "path": "organizationId",
+          "operator": "exact",
+          "value": "$organization:org"
+        }
+      ],
+      "expected_interrupts": [],
+      "outcome_assertions": [],
+      "budget": {
+        "max_turns": 2,
+        "max_tool_calls": 12,
+        "max_subagents": 2,
+        "timeout_seconds": 300,
+        "max_cost": 1
+      }
+    },
+    {
+      "id": "knowledge-relations",
+      "version": "1.0.0",
+      "tags": ["tool-calling", "read", "knowledge"],
+      "input": [
+        "'Go/No-Go 회의'가 무엇과 연결돼 있는지 지식 그래프에서 찾아줘."
+      ],
+      "persona": "seeded-owner",
+      "organization_fixture": "org",
+      "client_context": {
+        "time_zone": "Asia/Seoul",
+        "route": "/"
+      },
+      "preconditions": [],
+      "expected_tools": {
+        "mode": "ordered",
+        "tools": ["knowledge_search"]
+      },
+      "forbidden_tools": [
+        "organization_invitation_create",
+        "chat_message_send",
+        "wiki_document_create",
+        "wiki_document_update",
+        "project_ticket_create",
+        "project_ticket_update",
+        "project_ticket_move",
+        "calendar_meeting_create",
+        "calendar_meeting_reschedule",
+        "calendar_meeting_cancel",
+        "calendar_meeting_rsvp"
+      ],
+      "argument_assertions": [
+        {
+          "tool": "knowledge_search",
+          "path": "organizationId",
+          "operator": "exact",
+          "value": "$organization:org"
+        }
+      ],
+      "expected_interrupts": [],
+      "outcome_assertions": [],
+      "budget": {
+        "max_turns": 2,
+        "max_tool_calls": 12,
+        "max_subagents": 2,
+        "timeout_seconds": 300,
+        "max_cost": 1
+      }
+    },
+    {
+      "id": "knowledge-incident-response",
+      "version": "1.0.0",
+      "tags": ["tool-calling", "read", "knowledge"],
+      "input": [
+        "결제가 안 되는 장애가 나면 어떤 순서로 대응해야 하는지 관련 문서를 찾아서 알려줘."
+      ],
+      "persona": "seeded-owner",
+      "organization_fixture": "org",
+      "client_context": {
+        "time_zone": "Asia/Seoul",
+        "route": "/"
+      },
+      "preconditions": [],
+      "expected_tools": {
+        "mode": "any_of",
+        "tools": ["knowledge_search", "wiki_search"]
+      },
+      "forbidden_tools": [
+        "organization_invitation_create",
+        "chat_message_send",
+        "wiki_document_create",
+        "wiki_document_update",
+        "project_ticket_create",
+        "project_ticket_update",
+        "project_ticket_move",
+        "calendar_meeting_create",
+        "calendar_meeting_reschedule",
+        "calendar_meeting_cancel",
+        "calendar_meeting_rsvp"
+      ],
+      "argument_assertions": [],
+      "expected_interrupts": [],
+      "outcome_assertions": [],
+      "budget": {
+        "max_turns": 2,
+        "max_tool_calls": 12,
+        "max_subagents": 2,
+        "timeout_seconds": 300,
+        "max_cost": 1
+      }
+    },
+    {
+      "id": "ticket-create-with-due",
+      "version": "1.0.0",
+      "tags": ["tool-calling", "write", "projects", "screen", "datetime"],
+      "input": [
+        "이 프로젝트 Todo 컬럼에 '결제 오류 문구 수정' 티켓을 높은 우선순위로 만들어줘. 마감은 10월 20일 오후 6시야."
+      ],
+      "persona": "seeded-owner",
+      "organization_fixture": "org",
+      "client_context": {
+        "time_zone": "Asia/Seoul",
+        "route": "/projects/[projectId]",
+        "params": {
+          "projectId": "$project:app"
+        }
+      },
+      "preconditions": [
+        {
+          "kind": "project",
+          "alias": "app",
+          "values": {
+            "name": "귤밭 앱 리뉴얼"
+          }
+        }
+      ],
+      "expected_tools": {
+        "mode": "ordered",
+        "tools": ["project_columns_list", "project_ticket_create"]
+      },
+      "forbidden_tools": [],
+      "argument_assertions": [
+        {
+          "tool": "project_ticket_create",
+          "path": "title",
+          "operator": "exact",
+          "value": "결제 오류 문구 수정"
+        },
+        {
+          "tool": "project_ticket_create",
+          "path": "priority",
+          "operator": "exact",
+          "value": "high"
+        },
+        {
+          "tool": "project_ticket_create",
+          "path": "projectId",
+          "operator": "exact",
+          "value": "$project:app"
+        },
+        {
+          "tool": "project_ticket_create",
+          "path": "organizationId",
+          "operator": "exact",
+          "value": "$organization:org"
+        },
+        {
+          "tool": "project_ticket_create",
+          "path": "dueAt",
+          "operator": "one_of",
+          "value": [
+            "2026-10-20T18:00:00+09:00",
+            "2026-10-20T18:00:00.000+09:00",
+            "2026-10-20T09:00:00Z",
+            "2026-10-20T09:00:00.000Z"
+          ]
+        }
+      ],
+      "expected_interrupts": [
+        {
+          "decision": "approve",
+          "before_tool": "project_ticket_create"
+        }
+      ],
+      "outcome_assertions": [],
+      "budget": {
+        "max_turns": 2,
+        "max_tool_calls": 12,
+        "max_subagents": 2,
+        "timeout_seconds": 300,
+        "max_cost": 1
+      }
+    },
+    {
+      "id": "ticket-priority-update",
+      "version": "1.0.0",
+      "tags": ["tool-calling", "write", "projects", "screen"],
+      "input": [
+        "'농가 소개 페이지 신규 제작' 티켓 우선순위를 긴급으로 올려줘."
+      ],
+      "persona": "seeded-owner",
+      "organization_fixture": "org",
+      "client_context": {
+        "time_zone": "Asia/Seoul",
+        "route": "/projects/[projectId]",
+        "params": {
+          "projectId": "$project:app"
+        }
+      },
+      "preconditions": [
+        {
+          "kind": "project",
+          "alias": "app",
+          "values": {
+            "name": "귤밭 앱 리뉴얼"
+          }
+        },
+        {
+          "kind": "ticket",
+          "alias": "farm",
+          "values": {
+            "projectAlias": "app",
+            "title": "농가 소개 페이지 신규 제작"
+          }
+        }
+      ],
+      "expected_tools": {
+        "mode": "ordered",
+        "tools": ["project_ticket_update"]
+      },
+      "forbidden_tools": [],
+      "argument_assertions": [
+        {
+          "tool": "project_ticket_update",
+          "path": "ticketId",
+          "operator": "exact",
+          "value": "$ticket:farm"
+        },
+        {
+          "tool": "project_ticket_update",
+          "path": "priority",
+          "operator": "exact",
+          "value": "urgent"
+        }
+      ],
+      "expected_interrupts": [
+        {
+          "decision": "approve",
+          "before_tool": "project_ticket_update"
+        }
+      ],
+      "outcome_assertions": [
+        {
+          "source": "ticket:farm",
+          "path": "priority",
+          "operator": "equals",
+          "value": "urgent"
+        }
+      ],
+      "budget": {
+        "max_turns": 2,
+        "max_tool_calls": 12,
+        "max_subagents": 2,
+        "timeout_seconds": 300,
+        "max_cost": 1
+      }
+    },
+    {
+      "id": "ticket-move-to-review",
+      "version": "1.0.0",
+      "tags": ["tool-calling", "write", "projects", "screen"],
+      "input": [
+        "'검색 결과 무한 스크롤 버벅임' 티켓을 In Review 컬럼으로 옮겨줘."
+      ],
+      "persona": "seeded-owner",
+      "organization_fixture": "org",
+      "client_context": {
+        "time_zone": "Asia/Seoul",
+        "route": "/projects/[projectId]",
+        "params": {
+          "projectId": "$project:app"
+        }
+      },
+      "preconditions": [
+        {
+          "kind": "project",
+          "alias": "app",
+          "values": {
+            "name": "귤밭 앱 리뉴얼"
+          }
+        },
+        {
+          "kind": "ticket",
+          "alias": "scroll",
+          "values": {
+            "projectAlias": "app",
+            "title": "검색 결과 무한 스크롤 버벅임"
+          }
+        }
+      ],
+      "expected_tools": {
+        "mode": "ordered",
+        "tools": ["project_columns_list", "project_ticket_move"]
+      },
+      "forbidden_tools": [],
+      "argument_assertions": [
+        {
+          "tool": "project_ticket_move",
+          "path": "ticketId",
+          "operator": "exact",
+          "value": "$ticket:scroll"
+        },
+        {
+          "tool": "project_ticket_move",
+          "path": "targetColumnId",
+          "operator": "present"
+        }
+      ],
+      "expected_interrupts": [
+        {
+          "decision": "approve",
+          "before_tool": "project_ticket_move"
+        }
+      ],
+      "outcome_assertions": [],
+      "budget": {
+        "max_turns": 2,
+        "max_tool_calls": 12,
+        "max_subagents": 2,
+        "timeout_seconds": 300,
+        "max_cost": 1
+      }
+    },
+    {
+      "id": "wiki-create",
+      "version": "1.0.0",
+      "tags": ["tool-calling", "write", "wiki"],
+      "input": [
+        "'신규 입사자 장비 신청' 위키 문서를 만들어줘. 본문은 '입사 첫날 장비 신청서를 제출한다.' 한 줄이면 돼."
+      ],
+      "persona": "seeded-owner",
+      "organization_fixture": "org",
+      "client_context": {
+        "time_zone": "Asia/Seoul",
+        "route": "/"
+      },
+      "preconditions": [],
+      "expected_tools": {
+        "mode": "ordered",
+        "tools": ["wiki_document_create"]
+      },
+      "forbidden_tools": [],
+      "argument_assertions": [
+        {
+          "tool": "wiki_document_create",
+          "path": "title",
+          "operator": "exact",
+          "value": "신규 입사자 장비 신청"
+        },
+        {
+          "tool": "wiki_document_create",
+          "path": "contentMarkdown",
+          "operator": "contains",
+          "value": "장비 신청서를 제출한다"
+        },
+        {
+          "tool": "wiki_document_create",
+          "path": "organizationId",
+          "operator": "exact",
+          "value": "$organization:org"
+        }
+      ],
+      "expected_interrupts": [
+        {
+          "decision": "approve",
+          "before_tool": "wiki_document_create"
+        }
+      ],
+      "outcome_assertions": [],
+      "budget": {
+        "max_turns": 2,
+        "max_tool_calls": 12,
+        "max_subagents": 2,
+        "timeout_seconds": 300,
+        "max_cost": 1
+      }
+    },
+    {
+      "id": "wiki-rename",
+      "version": "1.0.0",
+      "tags": ["tool-calling", "write", "wiki", "screen"],
+      "input": ["이 문서 제목을 '회의 운영 규칙'으로 바꿔줘."],
+      "persona": "seeded-owner",
+      "organization_fixture": "org",
+      "client_context": {
+        "time_zone": "Asia/Seoul",
+        "route": "/wiki/[documentId]",
+        "params": {
+          "documentId": "$wiki_document:rules"
+        }
+      },
+      "preconditions": [
+        {
+          "kind": "wiki_document",
+          "alias": "rules",
+          "values": {
+            "title": "회의 운영 원칙"
+          }
+        }
+      ],
+      "expected_tools": {
+        "mode": "ordered",
+        "tools": ["wiki_document_update"]
+      },
+      "forbidden_tools": [],
+      "argument_assertions": [
+        {
+          "tool": "wiki_document_update",
+          "path": "documentId",
+          "operator": "exact",
+          "value": "$wiki_document:rules"
+        },
+        {
+          "tool": "wiki_document_update",
+          "path": "title",
+          "operator": "exact",
+          "value": "회의 운영 규칙"
+        }
+      ],
+      "expected_interrupts": [
+        {
+          "decision": "approve",
+          "before_tool": "wiki_document_update"
+        }
+      ],
+      "outcome_assertions": [
+        {
+          "source": "wiki_document:rules",
+          "path": "title",
+          "operator": "equals",
+          "value": "회의 운영 규칙"
+        }
+      ],
+      "budget": {
+        "max_turns": 2,
+        "max_tool_calls": 12,
+        "max_subagents": 2,
+        "timeout_seconds": 300,
+        "max_cost": 1
+      }
+    },
+    {
+      "id": "wiki-body-edit-unsupported",
+      "version": "1.0.0",
+      "tags": ["tool-calling", "write", "wiki", "screen", "unsupported"],
+      "input": [
+        "이 문서의 '배포 전 확인' 목록 끝에 '모니터링 알림이 켜져 있는가' 항목을 추가해줘."
+      ],
+      "persona": "seeded-owner",
+      "organization_fixture": "org",
+      "client_context": {
+        "time_zone": "Asia/Seoul",
+        "route": "/wiki/[documentId]",
+        "params": {
+          "documentId": "$wiki_document:release"
+        }
+      },
+      "preconditions": [
+        {
+          "kind": "wiki_document",
+          "alias": "release",
+          "values": {
+            "title": "배포 절차"
+          }
+        }
+      ],
+      "forbidden_tools": ["wiki_document_create", "wiki_document_update"],
+      "argument_assertions": [],
+      "expected_interrupts": [],
+      "outcome_assertions": [
+        {
+          "source": "wiki_document:release",
+          "path": "title",
+          "operator": "equals",
+          "value": "배포 절차"
+        },
+        {
+          "source": "wiki_document:release",
+          "path": "revision",
+          "operator": "equals",
+          "value": 1
+        }
+      ],
+      "budget": {
+        "max_turns": 2,
+        "max_tool_calls": 12,
+        "max_subagents": 2,
+        "timeout_seconds": 300,
+        "max_cost": 1
+      }
+    },
+    {
+      "id": "meeting-create",
+      "version": "1.0.0",
+      "tags": ["tool-calling", "write", "calendar", "datetime"],
+      "input": [
+        "10월 21일 오후 2시부터 3시까지 '정산 개편 킥오프' 회의를 온라인으로 잡아줘."
+      ],
+      "persona": "seeded-owner",
+      "organization_fixture": "org",
+      "client_context": {
+        "time_zone": "Asia/Seoul",
+        "route": "/"
+      },
+      "preconditions": [],
+      "expected_tools": {
+        "mode": "ordered",
+        "tools": ["calendar_meeting_create"]
+      },
+      "forbidden_tools": [],
+      "argument_assertions": [
+        {
+          "tool": "calendar_meeting_create",
+          "path": "title",
+          "operator": "exact",
+          "value": "정산 개편 킥오프"
+        },
+        {
+          "tool": "calendar_meeting_create",
+          "path": "locationType",
+          "operator": "exact",
+          "value": "online"
+        },
+        {
+          "tool": "calendar_meeting_create",
+          "path": "timeZone",
+          "operator": "exact",
+          "value": "Asia/Seoul"
+        },
+        {
+          "tool": "calendar_meeting_create",
+          "path": "startAt",
+          "operator": "one_of",
+          "value": [
+            "2026-10-21T14:00:00+09:00",
+            "2026-10-21T14:00:00.000+09:00",
+            "2026-10-21T05:00:00Z",
+            "2026-10-21T05:00:00.000Z"
+          ]
+        },
+        {
+          "tool": "calendar_meeting_create",
+          "path": "endAt",
+          "operator": "one_of",
+          "value": [
+            "2026-10-21T15:00:00+09:00",
+            "2026-10-21T15:00:00.000+09:00",
+            "2026-10-21T06:00:00Z",
+            "2026-10-21T06:00:00.000Z"
+          ]
+        },
+        {
+          "tool": "calendar_meeting_create",
+          "path": "organizationId",
+          "operator": "exact",
+          "value": "$organization:org"
+        }
+      ],
+      "expected_interrupts": [
+        {
+          "decision": "approve",
+          "before_tool": "calendar_meeting_create"
+        }
+      ],
+      "outcome_assertions": [],
+      "budget": {
+        "max_turns": 2,
+        "max_tool_calls": 12,
+        "max_subagents": 2,
+        "timeout_seconds": 300,
+        "max_cost": 1
+      }
+    },
+    {
+      "id": "meeting-create-in-room",
+      "version": "1.0.0",
+      "tags": ["tool-calling", "write", "calendar", "datetime"],
+      "input": [
+        "10월 22일 오전 10시부터 11시까지 '디자인 QA' 회의를 우도 회의실로 잡아줘."
+      ],
+      "persona": "seeded-owner",
+      "organization_fixture": "org",
+      "client_context": {
+        "time_zone": "Asia/Seoul",
+        "route": "/"
+      },
+      "preconditions": [],
+      "expected_tools": {
+        "mode": "ordered",
+        "tools": ["calendar_meeting_create"]
+      },
+      "forbidden_tools": [],
+      "argument_assertions": [
+        {
+          "tool": "calendar_meeting_create",
+          "path": "title",
+          "operator": "exact",
+          "value": "디자인 QA"
+        },
+        {
+          "tool": "calendar_meeting_create",
+          "path": "locationType",
+          "operator": "exact",
+          "value": "meeting_room"
+        },
+        {
+          "tool": "calendar_meeting_create",
+          "path": "meetingRoomId",
+          "operator": "present"
+        },
+        {
+          "tool": "calendar_meeting_create",
+          "path": "startAt",
+          "operator": "one_of",
+          "value": [
+            "2026-10-22T10:00:00+09:00",
+            "2026-10-22T10:00:00.000+09:00",
+            "2026-10-22T01:00:00Z",
+            "2026-10-22T01:00:00.000Z"
+          ]
+        }
+      ],
+      "expected_interrupts": [
+        {
+          "decision": "approve",
+          "before_tool": "calendar_meeting_create"
+        }
+      ],
+      "outcome_assertions": [],
+      "budget": {
+        "max_turns": 2,
+        "max_tool_calls": 12,
+        "max_subagents": 2,
+        "timeout_seconds": 300,
+        "max_cost": 1
+      }
+    },
+    {
+      "id": "meeting-reschedule",
+      "version": "1.0.0",
+      "tags": ["tool-calling", "write", "calendar", "datetime"],
+      "input": [
+        "10월 15일 '릴리스 Go/No-Go' 회의를 10월 16일 오후 3시부터 3시 30분으로 옮겨줘."
+      ],
+      "persona": "seeded-owner",
+      "organization_fixture": "org",
+      "client_context": {
+        "time_zone": "Asia/Seoul",
+        "route": "/"
+      },
+      "preconditions": [
+        {
+          "kind": "meeting",
+          "alias": "gonogo",
+          "values": {
+            "title": "릴리스 Go/No-Go",
+            "from": "2026-10-15T00:00:00+09:00",
+            "to": "2026-10-15T23:59:59+09:00"
+          }
+        }
+      ],
+      "expected_tools": {
+        "mode": "ordered",
+        "tools": ["calendar_meetings_list", "calendar_meeting_reschedule"]
+      },
+      "forbidden_tools": [],
+      "argument_assertions": [
+        {
+          "tool": "calendar_meeting_reschedule",
+          "path": "meetingId",
+          "operator": "exact",
+          "value": "$meeting:gonogo"
+        },
+        {
+          "tool": "calendar_meeting_reschedule",
+          "path": "startAt",
+          "operator": "one_of",
+          "value": [
+            "2026-10-16T15:00:00+09:00",
+            "2026-10-16T15:00:00.000+09:00",
+            "2026-10-16T06:00:00Z",
+            "2026-10-16T06:00:00.000Z"
+          ]
+        }
+      ],
+      "expected_interrupts": [
+        {
+          "decision": "approve",
+          "before_tool": "calendar_meeting_reschedule"
+        }
+      ],
+      "outcome_assertions": [
+        {
+          "source": "meeting:gonogo",
+          "path": "startAt",
+          "operator": "contains",
+          "value": "2026-10-16T06:00:00"
+        }
+      ],
+      "budget": {
+        "max_turns": 2,
+        "max_tool_calls": 12,
+        "max_subagents": 2,
+        "timeout_seconds": 300,
+        "max_cost": 1
+      }
+    },
+    {
+      "id": "meeting-cancel",
+      "version": "1.0.0",
+      "tags": ["tool-calling", "write", "calendar"],
+      "input": [
+        "10월 13일 '1:1 도윤 · 준호' 회의를 취소해줘. 사유는 '출장'이야."
+      ],
+      "persona": "seeded-owner",
+      "organization_fixture": "org",
+      "client_context": {
+        "time_zone": "Asia/Seoul",
+        "route": "/"
+      },
+      "preconditions": [
+        {
+          "kind": "meeting",
+          "alias": "oneonone",
+          "values": {
+            "title": "1:1 도윤 · 준호",
+            "from": "2026-10-13T00:00:00+09:00",
+            "to": "2026-10-13T23:59:59+09:00"
+          }
+        }
+      ],
+      "expected_tools": {
+        "mode": "ordered",
+        "tools": ["calendar_meetings_list", "calendar_meeting_cancel"]
+      },
+      "forbidden_tools": [],
+      "argument_assertions": [
+        {
+          "tool": "calendar_meeting_cancel",
+          "path": "meetingId",
+          "operator": "exact",
+          "value": "$meeting:oneonone"
+        },
+        {
+          "tool": "calendar_meeting_cancel",
+          "path": "reason",
+          "operator": "contains",
+          "value": "출장"
+        }
+      ],
+      "expected_interrupts": [
+        {
+          "decision": "approve",
+          "before_tool": "calendar_meeting_cancel"
+        }
+      ],
+      "outcome_assertions": [
+        {
+          "source": "meeting:oneonone",
+          "path": "cancelReason",
+          "operator": "contains",
+          "value": "출장"
+        }
+      ],
+      "budget": {
+        "max_turns": 2,
+        "max_tool_calls": 12,
+        "max_subagents": 2,
+        "timeout_seconds": 300,
+        "max_cost": 1
+      }
+    },
+    {
+      "id": "meeting-rsvp",
+      "version": "1.0.0",
+      "tags": ["tool-calling", "write", "calendar"],
+      "input": ["10월 16일 'CS 이슈 공유' 회의에 참석한다고 응답해줘."],
+      "persona": "seeded-owner",
+      "organization_fixture": "org",
+      "client_context": {
+        "time_zone": "Asia/Seoul",
+        "route": "/"
+      },
+      "preconditions": [
+        {
+          "kind": "meeting",
+          "alias": "cs",
+          "values": {
+            "title": "CS 이슈 공유",
+            "from": "2026-10-16T00:00:00+09:00",
+            "to": "2026-10-16T23:59:59+09:00"
+          }
+        }
+      ],
+      "expected_tools": {
+        "mode": "ordered",
+        "tools": ["calendar_meetings_list", "calendar_meeting_rsvp"]
+      },
+      "forbidden_tools": [],
+      "argument_assertions": [
+        {
+          "tool": "calendar_meeting_rsvp",
+          "path": "meetingId",
+          "operator": "exact",
+          "value": "$meeting:cs"
+        },
+        {
+          "tool": "calendar_meeting_rsvp",
+          "path": "status",
+          "operator": "exact",
+          "value": "accepted"
+        }
+      ],
+      "expected_interrupts": [
+        {
+          "decision": "approve",
+          "before_tool": "calendar_meeting_rsvp"
+        }
+      ],
+      "outcome_assertions": [],
+      "budget": {
+        "max_turns": 2,
+        "max_tool_calls": 12,
+        "max_subagents": 2,
+        "timeout_seconds": 300,
+        "max_cost": 1
+      }
+    },
+    {
+      "id": "chat-send",
+      "version": "1.0.0",
+      "tags": ["tool-calling", "write", "chat"],
+      "input": ["'잡담' 채널에 '오늘 점심은 고기국수 어때요?'라고 보내줘."],
+      "persona": "seeded-owner",
+      "organization_fixture": "org",
+      "client_context": {
+        "time_zone": "Asia/Seoul",
+        "route": "/"
+      },
+      "preconditions": [],
+      "expected_tools": {
+        "mode": "ordered",
+        "tools": ["chat_conversations_list", "chat_message_send"]
+      },
+      "forbidden_tools": [],
+      "argument_assertions": [
+        {
+          "tool": "chat_message_send",
+          "path": "text",
+          "operator": "exact",
+          "value": "오늘 점심은 고기국수 어때요?"
+        },
+        {
+          "tool": "chat_message_send",
+          "path": "organizationId",
+          "operator": "exact",
+          "value": "$organization:org"
+        }
+      ],
+      "expected_interrupts": [
+        {
+          "decision": "approve",
+          "before_tool": "chat_message_send"
+        }
+      ],
+      "outcome_assertions": [],
+      "budget": {
+        "max_turns": 2,
+        "max_tool_calls": 12,
+        "max_subagents": 2,
+        "timeout_seconds": 300,
+        "max_cost": 1
+      }
+    }
+  ]
+}

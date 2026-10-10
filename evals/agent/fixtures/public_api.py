@@ -12,8 +12,6 @@ from fixtures.lifecycle import FixtureLease
 from personas.registry import ALL_SCOPES, PersonaRecipe, persona_recipe
 from runner.trajectory import ObservedOutcome
 
-# Agent delegation 완료 뒤 server가 돌려보낼 제품 화면 경로다.
-AGENT_DELEGATION_RETURN_TO = "/ai"
 _SUPPORTED_KINDS = frozenset(
     {"organization", "project", "wiki_document", "ticket", "meeting"}
 )
@@ -89,12 +87,6 @@ class ProductFixtureSession(Protocol):
     ) -> dict[str, Any]: ...
 
     async def revoke_mcp_access_key(self, key_id: str) -> None: ...
-
-    async def delegate_agent(self, *, return_to: str) -> None: ...
-
-    async def get_agent_delegation(self) -> dict[str, Any]: ...
-
-    async def revoke_agent_delegation(self) -> None: ...
 
     async def create_project(
         self,
@@ -276,7 +268,6 @@ class BetterAuthPublicFixtureProvider:
         self._sessions: dict[str, _CaseSessions] = {}
         self._resources: dict[str, dict[str, _ResourceRef]] = {}
         self._mcp_credentials: dict[str, _McpCredential] = {}
-        self._delegated_owners: set[str] = set()
 
     @classmethod
     def for_http(
@@ -366,7 +357,6 @@ class BetterAuthPublicFixtureProvider:
                 owner=owner,
                 organization_id=actor_organization_id,
             )
-            await self._delegate_agent(sessions, owner=owner)
 
             public_ids = {
                 "user:" + case.persona: actor_user_id,
@@ -562,15 +552,6 @@ class BetterAuthPublicFixtureProvider:
             secret=secret,
             revoked=revoked,
         )
-
-    async def _delegate_agent(self, sessions: _CaseSessions, *, owner: str) -> None:
-        if sessions.recipe.agent_delegation == "none":
-            return
-        await sessions.actor.delegate_agent(return_to=AGENT_DELEGATION_RETURN_TO)
-        delegation = await sessions.actor.get_agent_delegation()
-        if delegation.get("status") != "active":
-            raise ValueError("Agent delegation did not become active")
-        self._delegated_owners.add(owner)
 
     async def _create_declaration(
         self,
@@ -807,15 +788,11 @@ class BetterAuthPublicFixtureProvider:
         self._resources.pop(lease.owner, None)
         sessions = self._sessions.pop(lease.owner, None)
         credential = self._mcp_credentials.pop(lease.owner, None)
-        delegated = lease.owner in self._delegated_owners
-        self._delegated_owners.discard(lease.owner)
         if sessions is None:
             return
         try:
             if credential is not None and not credential.revoked:
                 await sessions.actor.revoke_mcp_access_key(credential.key_id)
-            if delegated:
-                await sessions.actor.revoke_agent_delegation()
         finally:
             await self._close_sessions(sessions)
 

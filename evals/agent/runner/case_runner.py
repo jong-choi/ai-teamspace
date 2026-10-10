@@ -8,7 +8,12 @@ from langgraph_sdk.errors import AuthenticationError, PermissionDeniedError
 
 from config.models import HarnessLimits
 from datasets.schema import EvalCase, ExecutionExpectation
-from fixtures.lifecycle import FixtureLease, FixtureProvider, fixture_owner
+from fixtures.lifecycle import (
+    FixtureLease,
+    FixtureProvider,
+    fixture_owner,
+    resolve_fixture_reference,
+)
 from reports.render import summarize_trajectory
 from reports.schema import MetricResult, TrialResult
 from runner.trajectory import ObservedTrajectory
@@ -24,6 +29,28 @@ class CaseExecutor(Protocol):
         case: EvalCase,
         lease: FixtureLease,
     ) -> ObservedTrajectory: ...
+
+
+def _with_fixture_ids(case: EvalCase, lease: FixtureLease) -> EvalCase:
+    """Resolve `$<kind>:<alias>` argument assertion values to this trial's ids."""
+
+    if not case.argument_assertions:
+        return case
+    return case.model_copy(
+        update={
+            "argument_assertions": [
+                assertion.model_copy(
+                    update={
+                        "value": resolve_fixture_reference(
+                            assertion.value,
+                            lease.public_ids,
+                        )
+                    }
+                )
+                for assertion in case.argument_assertions
+            ]
+        }
+    )
 
 
 def _empty_trajectory(case: EvalCase, owner: str) -> ObservedTrajectory:
@@ -155,7 +182,11 @@ async def run_trial(
                 )
 
         if not blocking_failure:
-            deterministic = score_deterministic(case, trajectory, limits)
+            deterministic = score_deterministic(
+                _with_fixture_ids(case, lease),
+                trajectory,
+                limits,
+            )
             assertions.extend(deterministic.assertions)
             failures.extend(
                 result.failure_type

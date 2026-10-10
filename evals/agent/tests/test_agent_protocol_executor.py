@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import json
 from collections.abc import AsyncIterator, Mapping
+from pathlib import Path
 from typing import Any
 
+import pytest
 from langgraph_sdk.schema import StreamMode
 
 from config.models import DeepEvalAsyncMode, HarnessLimits
@@ -67,6 +70,7 @@ class FakeAgentClient:
         command: Mapping[str, Any] | None = None,
         stream_mode: StreamMode | list[StreamMode] = "values",
         stream_subgraphs: bool = False,
+        config: Mapping[str, Any] | None = None,
     ) -> Mapping[str, Any]:
         self.created.append(
             {
@@ -76,6 +80,7 @@ class FakeAgentClient:
                 "command": command,
                 "stream_mode": stream_mode,
                 "stream_subgraphs": stream_subgraphs,
+                "config": config,
             }
         )
         if not self._runs_to_create:
@@ -432,3 +437,153 @@ async def test_terminal_product_error_is_returned_as_trajectory_not_infrastructu
     assert FailureType.TOOL_EXECUTION_FAILURE in [
         failure.failure_type for failure in failures
     ]
+
+
+def tool_case(**extra: object) -> EvalCase:
+    return EvalCase.model_validate(
+        {
+            "id": "tool-case",
+            "version": "1.0.0",
+            "input": ["rename the ticket"],
+            "persona": "operator",
+            **extra,
+        }
+    )
+
+
+async def test_executor_sends_client_context_with_fixture_ids_resolved() -> None:
+    client = FakeAgentClient(
+        runs=[{"run_id": "run-1"}],
+        streams={"run-1": [values(content="done")]},
+    )
+    case = tool_case(
+        client_context={
+            "time_zone": "Asia/Seoul",
+            "route": "/projects/[projectId]",
+            "params": {"projectId": "$organization:org", "tab": "board"},
+        }
+    )
+
+    await AgentProtocolExecutor(lambda _: client).execute(case, lease())
+
+    assert client.created[0]["config"] == {
+        "configurable": {
+            "client_context": {
+                "timeZone": "Asia/Seoul",
+                "route": "/projects/[projectId]",
+                "params": {"projectId": "org-1", "tab": "board"},
+            }
+        }
+    }
+
+
+async def test_executor_rejects_client_context_with_unknown_fixture() -> None:
+    client = FakeAgentClient(runs=[], streams={})
+    case = tool_case(client_context={"params": {"ticketId": "$ticket:missing"}})
+
+    with pytest.raises(ValueError, match="unknown fixture"):
+        await AgentProtocolExecutor(lambda _: client).execute(case, lease())
+
+
+async def test_executor_counts_tool_message_error_status_as_tool_error() -> None:
+    client = FakeAgentClient(
+        runs=[{"run_id": "run-1"}],
+        streams={
+            "run-1": [
+                event(
+                    "on_tool_start",
+                    name="get_ticket",
+                    run_id="tool-1",
+                    data={"input": {"ticketId": "not-a-uuid"}},
+                ),
+                event(
+                    "on_tool_end",
+                    name="get_ticket",
+                    run_id="tool-1",
+                    data={
+                        "output": {
+                            "type": "tool",
+                            "status": "error",
+                            "content": "Invalid uuid",
+                        }
+                    },
+                ),
+                values(content="failed"),
+            ]
+        },
+    )
+
+    trajectory = await AgentProtocolExecutor(lambda _: client).execute(
+        tool_case(), lease()
+    )
+
+    assert [call.is_error for call in trajectory.tools_called] == [True]
+    assert TrajectoryEventKind.TOOL_ERROR in [
+        item.kind for item in trajectory.events
+    ]
+
+
+async def test_executor_writes_local_raw_trace_with_arguments_and_outputs(
+    tmp_path: Path,
+) -> None:
+    client = FakeAgentClient(
+        runs=[{"run_id": "run-1"}],
+        streams={
+            "run-1": [
+                event(
+                    "on_chat_model_end",
+                    name="model",
+                    run_id="model-1",
+                    data={
+                        "output": {
+                            "type": "ai",
+                            "content": "",
+                            "tool_calls": [
+                                {"name": "get_ticket", "args": {"ticketId": "t-1"}}
+                            ],
+                            "usage_metadata": {
+                                "input_tokens": 1200,
+                                "output_tokens": 30,
+                            },
+                        }
+                    },
+                ),
+                event(
+                    "on_tool_start",
+                    name="get_ticket",
+                    run_id="tool-1",
+                    data={"input": {"ticketId": "t-1"}},
+                ),
+                event(
+                    "on_tool_end",
+                    name="get_ticket",
+                    run_id="tool-1",
+                    data={"output": {"type": "tool", "content": "ticket body"}},
+                ),
+                values(content="Ticket found."),
+            ]
+        },
+    )
+
+    trajectory = await AgentProtocolExecutor(
+        lambda _: client,
+        raw_dir=tmp_path,
+    ).execute(tool_case(), lease())
+
+    raw = json.loads((tmp_path / "tool-case.case-1.json").read_text(encoding="utf-8"))
+    assert raw["tool_calls"] == [
+        {
+            "sequence": trajectory.tools_called[0].sequence,
+            "name": "get_ticket",
+            "source": "unknown",
+            "arguments": {"ticketId": "t-1"},
+            "is_error": False,
+            "result_category": "success",
+            "output": "ticket body",
+        }
+    ]
+    assert raw["model_calls"][0]["input_tokens"] == 1200
+    assert raw["model_calls"][0]["tool_calls"] == [
+        {"name": "get_ticket", "args": {"ticketId": "t-1"}}
+    ]
+    assert raw["final_response"] == "Ticket found."

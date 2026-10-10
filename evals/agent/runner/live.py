@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 import shutil
 import subprocess
@@ -9,7 +10,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, Protocol, cast
 
 import httpx
 
@@ -20,7 +21,9 @@ from config.models import EvalTargetAdapter
 from config.settings import REPO_ROOT, EvalSettings
 from datasets.schema import EvalCase, EvalDataset
 from fixtures.deterministic import DeterministicFixtureProvider
+from fixtures.lifecycle import FixtureLease, FixtureProvider
 from fixtures.public_api import BetterAuthPublicFixtureProvider
+from fixtures.seeded import SeededWorkspaceFixtureProvider
 from personas.registry import canonical_persona_alias
 from reports.render import summarize_trials
 from reports.schema import EvalReport, RunManifest, TrialResult
@@ -61,6 +64,12 @@ _DETERMINISTIC_TOOL_NAMES = (
 )
 
 
+class LiveFixtureProvider(FixtureProvider, Protocol):
+    def agent_headers(self, lease: FixtureLease) -> dict[str, str]: ...
+
+    def mcp_bearer_token(self, lease: FixtureLease) -> str: ...
+
+
 @dataclass(frozen=True)
 class LiveDiscovery:
     server_runtime_version: str
@@ -69,6 +78,7 @@ class LiveDiscovery:
     mcp_resource_alias: str
     tool_manifest_hash: str
     work_os_tool_names: frozenset[str]
+    tools: tuple[dict[str, Any], ...] = ()
 
 
 def deterministic_discovery() -> LiveDiscovery:
@@ -191,7 +201,7 @@ async def _assert_mcp_access_key_rejected(
 
 async def capture_live_discovery(
     settings: EvalSettings,
-    fixtures: BetterAuthPublicFixtureProvider,
+    fixtures: LiveFixtureProvider,
 ) -> LiveDiscovery:
     info = await _server_info(settings)
     probe = EvalCase(
@@ -238,6 +248,7 @@ async def capture_live_discovery(
         mcp_resource_alias=WORK_OS_MCP_ALIAS,
         tool_manifest_hash=tool_manifest_hash(tools),
         work_os_tool_names=_tool_names(tools),
+        tools=tuple(tools),
     )
 
 
@@ -278,6 +289,16 @@ def build_run_manifest(
         timestamp=timestamp or datetime.now(UTC),
         langfuse_environment=None,
         langfuse_project_alias=settings.langfuse_project_alias,
+    )
+
+
+def _write_tool_manifest(output_dir: Path, discovery: LiveDiscovery) -> None:
+    """Keep the tool names, descriptions and input schemas the model was offered."""
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    (output_dir / "tool-manifest.json").write_text(
+        json.dumps(list(discovery.tools), indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
     )
 
 
@@ -324,17 +345,32 @@ async def run_live_dataset(
             "judge settings are configured but no reviewed judge adapter was supplied"
         )
 
-    fixtures = BetterAuthPublicFixtureProvider.for_http(
-        settings.server_url,
-        trusted_origin=settings.trusted_origin,
-        timeout_seconds=settings.case_timeout_seconds,
-    )
+    seeded = settings.seeded_workspace()
+    fixtures: LiveFixtureProvider
+    if seeded is None:
+        fixtures = BetterAuthPublicFixtureProvider.for_http(
+            settings.server_url,
+            trusted_origin=settings.trusted_origin,
+            timeout_seconds=settings.case_timeout_seconds,
+        )
+    else:
+        email, password, organization_slug = seeded
+        fixtures = SeededWorkspaceFixtureProvider.for_http(
+            settings.server_url,
+            trusted_origin=settings.trusted_origin,
+            email=email,
+            password=password,
+            organization_slug=organization_slug,
+            timeout_seconds=settings.case_timeout_seconds,
+        )
     discovery = await capture_live_discovery(settings, fixtures)
+    _write_tool_manifest(settings.output_dir, discovery)
     executor = AgentProtocolExecutor.for_http(
         settings.server_url,
         headers_for_lease=fixtures.agent_headers,
         assistant_id="workos",
         work_os_tool_names=discovery.work_os_tool_names,
+        raw_dir=settings.output_dir / "raw",
     )
     trials = await run_dataset_trials(
         dataset,

@@ -78,6 +78,7 @@ class AgentProtocolClient:
         command: Mapping[str, Any] | None = None,
         stream_mode: StreamMode | list[StreamMode] = "values",
         stream_subgraphs: bool = False,
+        config: Mapping[str, Any] | None = None,
     ) -> Mapping[str, Any]:
         kwargs: dict[str, Any] = {
             "input": input,
@@ -88,6 +89,8 @@ class AgentProtocolClient:
         }
         if command is not None:
             kwargs["command"] = command
+        if config is not None:
+            kwargs["config"] = dict(config)
         result = await self._client.runs.create(
             thread_id,
             assistant_id,

@@ -119,6 +119,19 @@ class FixtureDeclaration(BaseModel):
     )
 
 
+class ClientContext(BaseModel):
+    """Screen context a product client sends as `configurable.client_context`.
+
+    A param value written as `$<kind>:<alias>` is replaced with that fixture's public id.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    time_zone: str | None = Field(default=None, min_length=1, max_length=64)
+    route: str | None = Field(default=None, min_length=1, max_length=200)
+    params: dict[str, str] = Field(default_factory=dict[str, str], max_length=12)
+
+
 class CaseBudget(BaseModel):
     model_config = ConfigDict(frozen=True)
 
@@ -139,6 +152,7 @@ class EvalCase(BaseModel):
     persona: str = Field(min_length=1, max_length=120)
     expected_execution: ExecutionExpectation = ExecutionExpectation.SUCCESS
     organization_fixture: str | None = Field(default=None, max_length=120)
+    client_context: ClientContext | None = None
     preconditions: list[FixtureDeclaration] = Field(
         default_factory=list[FixtureDeclaration],
         max_length=32,

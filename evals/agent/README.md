@@ -48,6 +48,24 @@ The live CLI is deterministic-gate first. When `EVAL_JUDGE_PROVIDER=ollama-cloud
 
 Ollama Cloud does not enforce the `format` JSON schema the way a local Ollama server does, so judge output relies on DeepEval's prompt-level JSON instructions. `tests/test_ollama_cloud_judge_fixtures.py` checks that the configured judge passes a correct-argument fixture and fails a wrong-argument fixture. It calls Ollama Cloud and is excluded from the default `pytest` run; run it explicitly with `uv run pytest -m live_judge`.
 
+## Seeded workspace runs
+
+`datasets/tool-calling/tool-calling.json` measures tool selection, tool arguments and recovery from tool errors against an already seeded workspace such as the demo seed in [demo](../../demo). Set `EVAL_SEEDED_EMAIL`, `EVAL_SEEDED_PASSWORD` and `EVAL_SEEDED_ORGANIZATION_SLUG` together; cases then sign in as that account and their preconditions look up seeded projects, tickets, wiki documents and meetings by name instead of creating them. Use the `seeded-owner` persona.
+
+A case may carry `client_context` (time zone, route, route params), which is sent as `configurable.client_context` the way the product client does. In `client_context.params` and in argument assertion values, `$<kind>:<alias>` is replaced with that fixture's id for the trial.
+
+Write cases change the workspace, so run passes through the wrapper, which restores the database to the seeded state before every pass:
+
+```bash
+./scripts/seeded-round.sh snapshot          # once, right after seeding
+./scripts/seeded-round.sh <label> 3         # three passes into .temp/evals/agent/<label>/pass-<n>
+uv run python scripts/summarize_round.py ../../.temp/evals/agent/<label>
+```
+
+Each pass writes, next to the redacted report, `tool-manifest.json` (the tool names, descriptions and input schemas offered to the model) and `raw/<case>.trial-<n>.json` (tool arguments, tool replies, token usage and the conversation). The raw files are for local review only and stay under `.temp`.
+
+A tool reply with `status=error` counts as a tool error even though the run continues. When a write call fails and the agent proposes the same tool again, the harness repeats the approval up to two times so the recovery is observable; the trial still fails on the interrupt count.
+
 ## Security dataset
 
 `datasets/security/security.json` contains deterministic authorization cases for an expired/invalid Agent session, read-only write attempts, restricted MCP policy writes, and a user with no active organization. The `expected_execution=auth_denied` contract only accepts typed Agent Protocol 401/403 failures; expected denial still runs public outcome observation and forbidden-tool assertions, while an unexpected successful execution becomes a `security_failure`. Live preflight also proves that a mutated MCP access key and the same key after public revocation both return a 401 resource-server discovery challenge.

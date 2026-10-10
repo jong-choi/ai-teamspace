@@ -35,7 +35,7 @@ function AccountPage() {
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
-      <View className="w-full max-w-3xl gap-3 p-4 lg:p-6">
+      <View className="mx-auto w-full max-w-7xl gap-3 p-4 sm:p-6 lg:p-8">
         <AccountForm />
       </View>
     </ScrollView>

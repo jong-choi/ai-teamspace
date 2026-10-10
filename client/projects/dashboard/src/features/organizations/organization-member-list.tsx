@@ -53,8 +53,13 @@ export function OrganizationMemberList({
 
   return (
     <View>
-      <ScrollView horizontal showsHorizontalScrollIndicator>
-        <View className="min-w-[880px]">
+      {/* 표는 컨테이너 폭을 채우고, 폭이 최소 너비보다 좁을 때만 좌우로 스크롤된다. */}
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        horizontal
+        showsHorizontalScrollIndicator
+      >
+        <View className="min-w-[880px] flex-1">
           <OrganizationMemberListHeader />
           {canManageInvitations ? (
             <OrganizationInvitationManagementRows
@@ -181,7 +186,7 @@ function EmptyMemberRows() {
 function OrganizationMemberListHeader() {
   return (
     <View className="min-w-[880px] flex-row border-b border-border bg-muted/50 px-5 py-3">
-      <HeaderCell className="w-[280px] pr-4" label="멤버 정보" />
+      <HeaderCell className="min-w-[280px] flex-1 pr-4" label="멤버 정보" />
       <HeaderCell className="w-[150px] pr-4" label="역할 권한" />
       <HeaderCell className="w-[120px]" label="가입 상태" />
       <HeaderCell className="w-[120px]" label="소속 팀" />

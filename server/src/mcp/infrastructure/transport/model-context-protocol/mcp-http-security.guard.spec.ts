@@ -12,7 +12,6 @@ function createGuard() {
       allowedHosts: ['workos.example'],
       allowedOrigins: ['dashboard.example'],
       protocol: {
-        modernOnly: true,
         maxRequestBodyBytes: 104_857,
         maxToolInputElements: 1_000,
         requestTimeoutMs: 30_000,

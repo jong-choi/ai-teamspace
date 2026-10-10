@@ -27,6 +27,7 @@ const SETTINGS_TABS = [
     label: '조직 AI 정책',
     href: '/settings/mcp/organization',
   },
+  { id: 'connect', label: 'MCP 연결', href: '/settings/connect' },
 ] as const satisfies readonly { id: string; label: string; href: Href }[];
 
 export type SettingsTabId = (typeof SETTINGS_TABS)[number]['id'];

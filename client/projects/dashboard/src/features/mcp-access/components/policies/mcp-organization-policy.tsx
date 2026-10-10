@@ -97,9 +97,8 @@ export function McpOrganizationPolicy({
   return (
     <View className="gap-3">
       <McpPermissionTable
-        capabilities={access.capabilities}
+        availableScopes={access.capabilities.map(({ scope }) => scope)}
         disabled={!canManage || updateOrganizationPolicy.isPending}
-        mode="organization"
         onToggle={toggleScope}
         selectedScopes={selectedScopes}
       />

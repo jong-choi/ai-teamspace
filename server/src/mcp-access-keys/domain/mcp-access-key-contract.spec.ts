@@ -1,4 +1,7 @@
-import { extractMcpCredential } from '@/mcp/infrastructure/auth/mcp-credential.extractor';
+import {
+  extractMcpCredential,
+  withoutMcpUrlCredential,
+} from '@/mcp/infrastructure/auth/mcp-credential.extractor';
 import {
   grantToAllowedOrganizationIds,
   McpAccessKeyMetadataSchema,
@@ -90,6 +93,50 @@ describe('MCP credential extraction', () => {
 
     expect(() => extractMcpCredential(request)).toThrow(
       'Authorization과 X-API-Key를 동시에 사용할 수 없습니다.',
+    );
+  });
+
+  it('header가 없으면 주소의 wos_token을 API key로 받는다', () => {
+    const request = new Request(
+      'https://workos.example/mcp?wos_token=wos_mcp_secret',
+    );
+
+    expect(extractMcpCredential(request)).toEqual({
+      method: 'api-key',
+      secret: 'wos_mcp_secret',
+      source: 'url',
+    });
+  });
+
+  it('주소의 access key와 credential header 동시 사용을 거부한다', () => {
+    const request = new Request(
+      'https://workos.example/mcp?wos_token=wos_mcp_secret',
+      { headers: { authorization: 'Bearer oauth-token' } },
+    );
+
+    expect(() => extractMcpCredential(request)).toThrow(
+      '주소의 access key와 credential header를 동시에 사용할 수 없습니다.',
+    );
+  });
+
+  it('주소에 access key가 여러 번 실리면 거부한다', () => {
+    const request = new Request(
+      'https://workos.example/mcp?wos_token=wos_mcp_a&wos_token=wos_mcp_b',
+    );
+
+    expect(() => extractMcpCredential(request)).toThrow(
+      '주소의 access key 형식이 올바르지 않습니다.',
+    );
+  });
+
+  it('MCP SDK로 넘기는 요청에서는 주소의 access key를 지운다', () => {
+    const request = new Request(
+      'https://workos.example/mcp?wos_token=wos_mcp_secret&other=1',
+      { method: 'POST', body: '{}' },
+    );
+
+    expect(withoutMcpUrlCredential(request).url).toBe(
+      'https://workos.example/mcp?other=1',
     );
   });
 });

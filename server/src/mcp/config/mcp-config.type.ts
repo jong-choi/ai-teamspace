@@ -5,7 +5,6 @@ export type McpConfig = {
   allowedHosts: string[];
   allowedOrigins: string[];
   protocol: {
-    modernOnly: true;
     maxRequestBodyBytes: number;
     maxToolInputElements: number;
     requestTimeoutMs: number;

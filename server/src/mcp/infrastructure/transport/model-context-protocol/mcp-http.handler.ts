@@ -9,6 +9,7 @@ import {
 } from '@/mcp/infrastructure/auth/better-auth/better-auth-mcp-auth.mapper';
 import {
   extractMcpCredential,
+  withoutMcpUrlCredential,
   McpCredentialExtractionError,
 } from '@/mcp/infrastructure/auth/mcp-credential.extractor';
 import { McpHttpSecurityGuard } from '@/mcp/infrastructure/transport/model-context-protocol/mcp-http-security.guard';
@@ -50,7 +51,8 @@ export class McpHttpHandler {
         return serverFactory.create(authInfo);
       },
       {
-        legacy: 'reject',
+        // 2025 규격만 말하는 외부 MCP client도 붙을 수 있게 요청 단위 stateless로 받는다.
+        legacy: 'stateless',
         maxRequestBodySize: config.protocol.maxRequestBodyBytes,
       },
     );
@@ -105,7 +107,9 @@ export class McpHttpHandler {
             context,
             config.resourceUrl,
           );
-          return coreHandler.fetch(request, { authInfo });
+          return coreHandler.fetch(withoutMcpUrlCredential(request), {
+            authInfo,
+          });
         } catch (error) {
           if (error instanceof McpAccessKeyRateLimitedError) {
             return rateLimitedMcpResponse(error.retryAfterMs);

@@ -7,6 +7,8 @@ import {
 import { z } from 'zod';
 
 export const MCP_ACCESS_KEY_PREFIX = 'wos_mcp_';
+// header를 보낼 수 없는 MCP client가 주소만으로 인증할 때 access key를 싣는 query parameter다.
+export const MCP_ACCESS_KEY_URL_PARAMETER = 'wos_token';
 
 const selectedOrganizationGrantSchema = z.object({
   mode: z.literal('selected'),

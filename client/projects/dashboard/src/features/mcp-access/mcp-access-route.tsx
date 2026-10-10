@@ -57,7 +57,7 @@ function McpPolicyPage({
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
-      <View className="w-full max-w-3xl gap-6 p-4 lg:p-6">
+      <View className="mx-auto w-full max-w-7xl gap-6 p-4 sm:p-6 lg:p-8">
         <View className="gap-2">
           <Text className="text-xs font-semibold">Work OS 도구</Text>
           <DashboardQueryBoundary

@@ -14,7 +14,6 @@ const mcpConfig: McpConfig = {
   allowedHosts: ['workos.example'],
   allowedOrigins: ['workos.example'],
   protocol: {
-    modernOnly: true,
     maxRequestBodyBytes: 104_857,
     maxToolInputElements: 1_000,
     requestTimeoutMs: 30_000,

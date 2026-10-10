@@ -72,9 +72,11 @@ export function McpPersonalPermissions({
   return (
     <View className="gap-3">
       <McpPermissionTable
-        capabilities={access.capabilities}
+        availableScopes={access.capabilities.map(({ scope }) => scope)}
         disabled={updateMyPolicy.isPending}
-        mode="personal"
+        lockedScopes={access.capabilities
+          .filter((capability) => !capability.organizationAllowed)
+          .map(({ scope }) => scope)}
         onToggle={toggleScope}
         selectedScopes={selectedScopes}
       />

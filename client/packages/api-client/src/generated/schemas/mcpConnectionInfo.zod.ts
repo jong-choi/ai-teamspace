@@ -8,6 +8,7 @@ import * as zod from 'zod';
 
 
 
+
 export const mcpConnectionInfoAccessKeyMaxActiveKeysExclusiveMin = 0;
 export const mcpConnectionInfoAccessKeyMaxActiveKeysMax = 9007199254740991;
 
@@ -25,6 +26,7 @@ export const McpConnectionInfo = zod.object({
   "authMethods": zod.array(zod.enum(['oauth', 'personal-access-key'])).min(1),
   "accessKey": zod.object({
   "prefix": zod.string().min(1),
+  "urlParameter": zod.string().min(1),
   "maxActiveKeys": zod.int().gt(mcpConnectionInfoAccessKeyMaxActiveKeysExclusiveMin).max(mcpConnectionInfoAccessKeyMaxActiveKeysMax),
   "defaultExpiresInDays": zod.int().gt(mcpConnectionInfoAccessKeyDefaultExpiresInDaysExclusiveMin).max(mcpConnectionInfoAccessKeyDefaultExpiresInDaysMax),
   "maxExpiresInDays": zod.int().gt(mcpConnectionInfoAccessKeyMaxExpiresInDaysExclusiveMin).max(mcpConnectionInfoAccessKeyMaxExpiresInDaysMax)

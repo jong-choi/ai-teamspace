@@ -135,7 +135,6 @@ export function createMcpConfig(): McpConfig {
     allowedHosts: environment.MCP_ALLOWED_HOSTS,
     allowedOrigins: environment.MCP_ALLOWED_ORIGINS,
     protocol: {
-      modernOnly: true,
       maxRequestBodyBytes: environment.MCP_MAX_REQUEST_BODY_BYTES,
       maxToolInputElements: environment.MCP_MAX_TOOL_INPUT_ELEMENTS,
       requestTimeoutMs: environment.MCP_REQUEST_TIMEOUT_MS,

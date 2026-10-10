@@ -11,6 +11,8 @@ export const McpConnectionInfoSchema = z
     authMethods: z.array(z.enum(['oauth', 'personal-access-key'])).min(1),
     accessKey: z.object({
       prefix: z.string().min(1),
+      // 주소만으로 인증할 때 access key를 붙이는 query parameter 이름이다.
+      urlParameter: z.string().min(1),
       maxActiveKeys: z.number().int().positive(),
       defaultExpiresInDays: z.number().int().positive(),
       maxExpiresInDays: z.number().int().positive(),

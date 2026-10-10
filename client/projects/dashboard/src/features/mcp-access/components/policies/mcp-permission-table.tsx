@@ -1,6 +1,5 @@
 import { Pressable, View } from 'react-native';
 
-import type { McpAccessComposite } from '@repo/client/api-client/schemas';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
@@ -12,23 +11,21 @@ import {
 
 import { Check, LockKeyhole } from 'lucide-react-native';
 
-// 영역(행) × 조회·변경(열) 권한 표다. personal에서는 조직 정책이 막은 칸을 잠금으로 보여 준다.
+// 영역(행) × 조회·변경(열) 권한 표다. lockedScopes는 조직 정책이 막아 고를 수 없는 칸이다.
 export function McpPermissionTable({
-  capabilities,
+  availableScopes,
   disabled = false,
-  mode,
+  lockedScopes = [],
   onToggle,
   selectedScopes,
 }: {
-  capabilities: McpAccessComposite['capabilities'];
+  availableScopes: readonly McpAccessScope[];
   disabled?: boolean;
-  mode: 'organization' | 'personal';
+  lockedScopes?: readonly McpAccessScope[];
   onToggle: (scope: McpAccessScope) => void;
   selectedScopes: readonly McpAccessScope[];
 }) {
-  const hasLockedCell =
-    mode === 'personal' &&
-    capabilities.some((capability) => !capability.organizationAllowed);
+  const hasLockedCell = lockedScopes.length > 0;
 
   return (
     <View className="gap-2">
@@ -63,21 +60,18 @@ export function McpPermissionTable({
               {row.description}
             </Text>
             {MCP_ACTION_COLUMNS.map((column) => {
-              const capability = capabilities.find(
-                (candidate) =>
-                  candidate.scope === `${row.domain}:${column.action}`,
+              const scope = availableScopes.find(
+                (candidate) => candidate === `${row.domain}:${column.action}`,
               );
               return (
                 <View className="w-14 items-center" key={column.action}>
-                  {capability ? (
+                  {scope ? (
                     <PermissionCell
-                      checked={selectedScopes.includes(capability.scope)}
+                      checked={selectedScopes.includes(scope)}
                       disabled={disabled}
                       label={`${row.label} ${column.label}`}
-                      locked={
-                        mode === 'personal' && !capability.organizationAllowed
-                      }
-                      onPress={() => onToggle(capability.scope)}
+                      locked={lockedScopes.includes(scope)}
+                      onPress={() => onToggle(scope)}
                     />
                   ) : null}
                 </View>

@@ -4,7 +4,10 @@ import { ConfigService } from '@nestjs/config';
 import type { AllConfigType } from '@/config/config.type';
 import { WORK_OS_MCP_PROTOCOL_VERSION } from '@/mcp/contracts/mcp-protocol';
 import { MCP_SCOPES } from '@/mcp/contracts/mcp-scope';
-import { MCP_ACCESS_KEY_PREFIX } from '@/mcp-access-keys/domain/mcp-access-key-contract';
+import {
+  MCP_ACCESS_KEY_PREFIX,
+  MCP_ACCESS_KEY_URL_PARAMETER,
+} from '@/mcp-access-keys/domain/mcp-access-key-contract';
 import type { McpConnectionInfo } from '@/mcp-access-keys/dto/mcp-connection-info.dto';
 import { McpConnectionInfoSchema } from '@/mcp-access-keys/dto/mcp-connection-info.dto';
 
@@ -21,6 +24,7 @@ export class McpAccessKeysService {
       authMethods: ['oauth', 'personal-access-key'],
       accessKey: {
         prefix: MCP_ACCESS_KEY_PREFIX,
+        urlParameter: MCP_ACCESS_KEY_URL_PARAMETER,
         maxActiveKeys: config.accessKey.maxActivePerUser,
         defaultExpiresInDays: config.accessKey.defaultExpiresInDays,
         maxExpiresInDays: config.accessKey.maxExpiresInDays,

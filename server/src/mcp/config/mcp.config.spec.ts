@@ -36,7 +36,6 @@ describe('MCP 설정', () => {
       allowedHosts: ['localhost', '127.0.0.1'],
       allowedOrigins: ['localhost', '127.0.0.1'],
       protocol: {
-        modernOnly: true,
         maxRequestBodyBytes: 2048,
         maxToolInputElements: 128,
         requestTimeoutMs: 5000,

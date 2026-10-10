@@ -34,7 +34,7 @@ export function OrganizationInvitationRow({
 
   return (
     <View className="min-w-[880px] flex-row items-center border-b border-border/70 px-5 py-3.5 last:border-b-0 web:hover:bg-muted/40">
-      <View className="w-[280px] min-w-0 flex-row items-center gap-3 pr-4">
+      <View className="min-w-[280px] flex-1 flex-row items-center gap-3 pr-4">
         <Avatar alt={`${recipientLabel} 초대`} className="size-8">
           {invitation.recipient.image ? (
             <AvatarImage source={{ uri: invitation.recipient.image }} />

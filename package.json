@@ -3,6 +3,7 @@
   "private": true,
   "packageManager": "npm@11.19.0",
   "workspaces": [
+    "demo",
     "server",
     "packages/*",
     "client/packages/*",

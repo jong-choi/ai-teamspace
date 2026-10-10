@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "pipelineFingerprint": "ae25f8f26b7356b6bf3f5df559941cb6bea7a63552a7825422cf35f4f9b11601",
+  "extractorFingerprint": "1ce4b850bdfb21ad6157708879d68f1765afe77adac53ed4036b220e561d4132",
+  "embedding": {
+    "model": "gemini-embedding-2",
+    "dimensions": 768
+  },
+  "chunker": {
+    "splitter": "langchain-recursive-markdown",
+    "packageVersion": "1.0.2",
+    "chunkSize": 2000,
+    "chunkOverlap": 200,
+    "normalization": "nfc-lf-trim-v1"
+  }
+}

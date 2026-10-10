@@ -1,0 +1,1392 @@
+[
+  {
+    "organization": "hallabong-studio",
+    "document": "handbook",
+    "nodes": [
+      { "id": "한라봉 스튜디오", "type": "Team" },
+      { "id": "귤밭", "type": "Project" },
+      { "id": "농가", "type": "Concept" },
+      { "id": "소비자", "type": "Concept" },
+      { "id": "결정", "type": "Decision" },
+      { "id": "회의록", "type": "Concept" },
+      { "id": "티켓", "type": "Concept" }
+    ],
+    "relationships": [
+      {
+        "sourceNodeId": "한라봉 스튜디오",
+        "sourceNodeType": "Team",
+        "relationshipType": "RESPONSIBLE_FOR",
+        "targetNodeId": "귤밭",
+        "targetNodeType": "Project"
+      },
+      {
+        "sourceNodeId": "귤밭",
+        "sourceNodeType": "Project",
+        "relationshipType": "RELATED_TO",
+        "targetNodeId": "농가",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "귤밭",
+        "sourceNodeType": "Project",
+        "relationshipType": "RELATED_TO",
+        "targetNodeId": "소비자",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "결정",
+        "sourceNodeType": "Decision",
+        "relationshipType": "RELATED_TO",
+        "targetNodeId": "회의록",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "결정",
+        "sourceNodeType": "Decision",
+        "relationshipType": "RELATED_TO",
+        "targetNodeId": "티켓",
+        "targetNodeType": "Concept"
+      }
+    ]
+  },
+  {
+    "organization": "hallabong-studio",
+    "document": "onboarding",
+    "nodes": [
+      { "id": "온보딩", "type": "Concept" },
+      { "id": "귤밭", "type": "Project" },
+      { "id": "팀 핸드북", "type": "Concept" },
+      { "id": "디자인 시스템", "type": "Technology" },
+      { "id": "개발 환경 설정", "type": "Task" },
+      { "id": "고객 문의 응대", "type": "Task" },
+      { "id": "전체 회의", "type": "Event" },
+      { "id": "농가 한 곳 방문", "type": "Event" }
+    ],
+    "relationships": [
+      {
+        "sourceNodeId": "귤밭",
+        "sourceNodeType": "Project",
+        "relationshipType": "RELATED_TO",
+        "targetNodeId": "온보딩",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "팀 핸드북",
+        "sourceNodeType": "Concept",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "온보딩",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "디자인 시스템",
+        "sourceNodeType": "Technology",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "온보딩",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "개발 환경 설정",
+        "sourceNodeType": "Task",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "온보딩",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "고객 문의 응대",
+        "sourceNodeType": "Task",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "온보딩",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "전체 회의",
+        "sourceNodeType": "Event",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "온보딩",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "농가 한 곳 방문",
+        "sourceNodeType": "Event",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "온보딩",
+        "targetNodeType": "Concept"
+      }
+    ]
+  },
+  {
+    "organization": "hallabong-studio",
+    "document": "meeting-rules",
+    "nodes": [
+      { "id": "회의", "type": "Concept" },
+      { "id": "안건", "type": "Concept" },
+      { "id": "결정", "type": "Decision" },
+      { "id": "회의록", "type": "Concept" },
+      { "id": "티켓", "type": "Concept" },
+      { "id": "스프린트 플래닝", "type": "Event" },
+      { "id": "전체 회의", "type": "Event" },
+      { "id": "일대일 면담", "type": "Event" }
+    ],
+    "relationships": [
+      {
+        "sourceNodeId": "안건",
+        "sourceNodeType": "Concept",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "회의",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "결정",
+        "sourceNodeType": "Decision",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "회의",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "회의록",
+        "sourceNodeType": "Concept",
+        "relationshipType": "RELATED_TO",
+        "targetNodeId": "결정",
+        "targetNodeType": "Decision"
+      },
+      {
+        "sourceNodeId": "회의록",
+        "sourceNodeType": "Concept",
+        "relationshipType": "RELATED_TO",
+        "targetNodeId": "티켓",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "스프린트 플래닝",
+        "sourceNodeType": "Event",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "회의",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "전체 회의",
+        "sourceNodeType": "Event",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "회의",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "일대일 면담",
+        "sourceNodeType": "Event",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "회의",
+        "targetNodeType": "Concept"
+      }
+    ]
+  },
+  {
+    "organization": "hallabong-studio",
+    "document": "time-off",
+    "nodes": [
+      { "id": "휴가", "type": "Concept" },
+      { "id": "재택", "type": "Concept" },
+      { "id": "캘린더", "type": "Technology" },
+      { "id": "출시 주간", "type": "Event" },
+      { "id": "스프린트 플래닝", "type": "Event" },
+      { "id": "메신저", "type": "Technology" },
+      { "id": "진단서", "type": "Concept" }
+    ],
+    "relationships": [
+      {
+        "sourceNodeId": "휴가",
+        "sourceNodeType": "Concept",
+        "relationshipType": "USES",
+        "targetNodeId": "캘린더",
+        "targetNodeType": "Technology"
+      },
+      {
+        "sourceNodeId": "출시 주간",
+        "sourceNodeType": "Event",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "휴가",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "재택",
+        "sourceNodeType": "Concept",
+        "relationshipType": "RELATED_TO",
+        "targetNodeId": "스프린트 플래닝",
+        "targetNodeType": "Event"
+      },
+      {
+        "sourceNodeId": "재택",
+        "sourceNodeType": "Concept",
+        "relationshipType": "USES",
+        "targetNodeId": "메신저",
+        "targetNodeType": "Technology"
+      },
+      {
+        "sourceNodeId": "진단서",
+        "sourceNodeType": "Concept",
+        "relationshipType": "RELATED_TO",
+        "targetNodeId": "휴가",
+        "targetNodeType": "Concept"
+      }
+    ]
+  },
+  {
+    "organization": "hallabong-studio",
+    "document": "product",
+    "nodes": [
+      { "id": "귤밭", "type": "Project" },
+      { "id": "리뉴얼", "type": "Project" },
+      { "id": "디자인 시스템", "type": "Technology" },
+      { "id": "결제와 정산 구조", "type": "Concept" }
+    ],
+    "relationships": [
+      {
+        "sourceNodeId": "리뉴얼",
+        "sourceNodeType": "Project",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "귤밭",
+        "targetNodeType": "Project"
+      },
+      {
+        "sourceNodeId": "리뉴얼",
+        "sourceNodeType": "Project",
+        "relationshipType": "USES",
+        "targetNodeId": "디자인 시스템",
+        "targetNodeType": "Technology"
+      },
+      {
+        "sourceNodeId": "디자인 시스템",
+        "sourceNodeType": "Technology",
+        "relationshipType": "RELATED_TO",
+        "targetNodeId": "귤밭",
+        "targetNodeType": "Project"
+      },
+      {
+        "sourceNodeId": "결제와 정산 구조",
+        "sourceNodeType": "Concept",
+        "relationshipType": "RELATED_TO",
+        "targetNodeId": "귤밭",
+        "targetNodeType": "Project"
+      }
+    ]
+  },
+  {
+    "organization": "hallabong-studio",
+    "document": "app-renewal-spec",
+    "nodes": [
+      { "id": "귤밭", "type": "Project" },
+      { "id": "리뉴얼", "type": "Project" },
+      { "id": "디자인 시스템", "type": "Technology" },
+      { "id": "홈", "type": "Concept" },
+      { "id": "상품 상세", "type": "Concept" },
+      { "id": "주문 내역", "type": "Concept" },
+      { "id": "농가 소개", "type": "Concept" },
+      { "id": "최유진", "type": "Person" },
+      { "id": "강민재", "type": "Person" },
+      { "id": "오태양", "type": "Person" },
+      { "id": "결제·정산 개선 프로젝트", "type": "Project" },
+      { "id": "QA 시나리오", "type": "Task" }
+    ],
+    "relationships": [
+      {
+        "sourceNodeId": "리뉴얼",
+        "sourceNodeType": "Project",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "귤밭",
+        "targetNodeType": "Project"
+      },
+      {
+        "sourceNodeId": "리뉴얼",
+        "sourceNodeType": "Project",
+        "relationshipType": "USES",
+        "targetNodeId": "디자인 시스템",
+        "targetNodeType": "Technology"
+      },
+      {
+        "sourceNodeId": "홈",
+        "sourceNodeType": "Concept",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "리뉴얼",
+        "targetNodeType": "Project"
+      },
+      {
+        "sourceNodeId": "상품 상세",
+        "sourceNodeType": "Concept",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "리뉴얼",
+        "targetNodeType": "Project"
+      },
+      {
+        "sourceNodeId": "주문 내역",
+        "sourceNodeType": "Concept",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "리뉴얼",
+        "targetNodeType": "Project"
+      },
+      {
+        "sourceNodeId": "농가 소개",
+        "sourceNodeType": "Concept",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "리뉴얼",
+        "targetNodeType": "Project"
+      },
+      {
+        "sourceNodeId": "최유진",
+        "sourceNodeType": "Person",
+        "relationshipType": "RESPONSIBLE_FOR",
+        "targetNodeId": "홈",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "최유진",
+        "sourceNodeType": "Person",
+        "relationshipType": "RESPONSIBLE_FOR",
+        "targetNodeId": "농가 소개",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "강민재",
+        "sourceNodeType": "Person",
+        "relationshipType": "RESPONSIBLE_FOR",
+        "targetNodeId": "상품 상세",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "오태양",
+        "sourceNodeType": "Person",
+        "relationshipType": "RESPONSIBLE_FOR",
+        "targetNodeId": "주문 내역",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "결제·정산 개선 프로젝트",
+        "sourceNodeType": "Project",
+        "relationshipType": "RELATED_TO",
+        "targetNodeId": "귤밭",
+        "targetNodeType": "Project"
+      },
+      {
+        "sourceNodeId": "QA 시나리오",
+        "sourceNodeType": "Task",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "리뉴얼",
+        "targetNodeType": "Project"
+      }
+    ]
+  },
+  {
+    "organization": "hallabong-studio",
+    "document": "design-system",
+    "nodes": [
+      { "id": "디자인 시스템", "type": "Technology" },
+      { "id": "primary", "type": "Concept" },
+      { "id": "surface", "type": "Concept" },
+      { "id": "muted", "type": "Concept" },
+      { "id": "danger", "type": "Concept" },
+      { "id": "body", "type": "Concept" },
+      { "id": "caption", "type": "Concept" },
+      { "id": "컴포넌트", "type": "Technology" },
+      { "id": "디자인 채널", "type": "Technology" },
+      { "id": "접근성", "type": "Concept" }
+    ],
+    "relationships": [
+      {
+        "sourceNodeId": "primary",
+        "sourceNodeType": "Concept",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "디자인 시스템",
+        "targetNodeType": "Technology"
+      },
+      {
+        "sourceNodeId": "surface",
+        "sourceNodeType": "Concept",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "디자인 시스템",
+        "targetNodeType": "Technology"
+      },
+      {
+        "sourceNodeId": "muted",
+        "sourceNodeType": "Concept",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "디자인 시스템",
+        "targetNodeType": "Technology"
+      },
+      {
+        "sourceNodeId": "danger",
+        "sourceNodeType": "Concept",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "디자인 시스템",
+        "targetNodeType": "Technology"
+      },
+      {
+        "sourceNodeId": "body",
+        "sourceNodeType": "Concept",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "디자인 시스템",
+        "targetNodeType": "Technology"
+      },
+      {
+        "sourceNodeId": "caption",
+        "sourceNodeType": "Concept",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "디자인 시스템",
+        "targetNodeType": "Technology"
+      },
+      {
+        "sourceNodeId": "컴포넌트",
+        "sourceNodeType": "Technology",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "디자인 시스템",
+        "targetNodeType": "Technology"
+      },
+      {
+        "sourceNodeId": "컴포넌트",
+        "sourceNodeType": "Technology",
+        "relationshipType": "RELATED_TO",
+        "targetNodeId": "디자인 채널",
+        "targetNodeType": "Technology"
+      },
+      {
+        "sourceNodeId": "디자인 시스템",
+        "sourceNodeType": "Technology",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "접근성",
+        "targetNodeType": "Concept"
+      }
+    ]
+  },
+  {
+    "organization": "hallabong-studio",
+    "document": "payment-architecture",
+    "nodes": [
+      { "id": "주문", "type": "Concept" },
+      { "id": "결제", "type": "Concept" },
+      { "id": "결제 대행사(PG)", "type": "Technology" },
+      { "id": "결제 완료", "type": "Concept" },
+      { "id": "배송 중", "type": "Concept" },
+      { "id": "구매 확정", "type": "Concept" },
+      { "id": "정산", "type": "Concept" },
+      { "id": "주 단위", "type": "Concept" },
+      { "id": "일 단위", "type": "Concept" },
+      { "id": "환불", "type": "Concept" },
+      { "id": "정산서", "type": "Concept" }
+    ],
+    "relationships": [
+      {
+        "sourceNodeId": "주문",
+        "sourceNodeType": "Concept",
+        "relationshipType": "DEPENDS_ON",
+        "targetNodeId": "결제",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "결제",
+        "sourceNodeType": "Concept",
+        "relationshipType": "USES",
+        "targetNodeId": "결제 대행사(PG)",
+        "targetNodeType": "Technology"
+      },
+      {
+        "sourceNodeId": "결제 완료",
+        "sourceNodeType": "Concept",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "주문",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "배송 중",
+        "sourceNodeType": "Concept",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "주문",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "구매 확정",
+        "sourceNodeType": "Concept",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "정산",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "정산",
+        "sourceNodeType": "Concept",
+        "relationshipType": "RELATED_TO",
+        "targetNodeId": "주 단위",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "일 단위",
+        "sourceNodeType": "Concept",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "정산",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "환불",
+        "sourceNodeType": "Concept",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "정산",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "환불",
+        "sourceNodeType": "Concept",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "정산서",
+        "targetNodeType": "Concept"
+      }
+    ]
+  },
+  {
+    "organization": "hallabong-studio",
+    "document": "engineering",
+    "nodes": [
+      { "id": "개발팀", "type": "Team" },
+      { "id": "배포 절차", "type": "Concept" },
+      { "id": "장애 대응 런북", "type": "Concept" },
+      { "id": "코드 리뷰 규칙", "type": "Concept" }
+    ],
+    "relationships": [
+      {
+        "sourceNodeId": "개발팀",
+        "sourceNodeType": "Team",
+        "relationshipType": "RESPONSIBLE_FOR",
+        "targetNodeId": "배포 절차",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "개발팀",
+        "sourceNodeType": "Team",
+        "relationshipType": "RESPONSIBLE_FOR",
+        "targetNodeId": "장애 대응 런북",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "개발팀",
+        "sourceNodeType": "Team",
+        "relationshipType": "RESPONSIBLE_FOR",
+        "targetNodeId": "코드 리뷰 규칙",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "코드 리뷰 규칙",
+        "sourceNodeType": "Concept",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "배포 절차",
+        "targetNodeType": "Concept"
+      }
+    ]
+  },
+  {
+    "organization": "hallabong-studio",
+    "document": "release-process",
+    "nodes": [
+      { "id": "배포 절차", "type": "Concept" },
+      { "id": "서버", "type": "Technology" },
+      { "id": "기본 브랜치", "type": "Technology" },
+      { "id": "자동 검사", "type": "Task" },
+      { "id": "검증 환경", "type": "Technology" },
+      { "id": "QA", "type": "Team" },
+      { "id": "운영 배포", "type": "Event" },
+      { "id": "앱", "type": "Technology" },
+      { "id": "Go/No-Go 회의", "type": "Event" },
+      { "id": "출시 여부", "type": "Decision" },
+      { "id": "DB", "type": "Technology" },
+      { "id": "고객 응대팀", "type": "Team" }
+    ],
+    "relationships": [
+      {
+        "sourceNodeId": "서버",
+        "sourceNodeType": "Technology",
+        "relationshipType": "RELATED_TO",
+        "targetNodeId": "배포 절차",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "앱",
+        "sourceNodeType": "Technology",
+        "relationshipType": "RELATED_TO",
+        "targetNodeId": "배포 절차",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "자동 검사",
+        "sourceNodeType": "Task",
+        "relationshipType": "DEPENDS_ON",
+        "targetNodeId": "기본 브랜치",
+        "targetNodeType": "Technology"
+      },
+      {
+        "sourceNodeId": "검증 환경",
+        "sourceNodeType": "Technology",
+        "relationshipType": "DEPENDS_ON",
+        "targetNodeId": "자동 검사",
+        "targetNodeType": "Task"
+      },
+      {
+        "sourceNodeId": "QA",
+        "sourceNodeType": "Team",
+        "relationshipType": "RESPONSIBLE_FOR",
+        "targetNodeId": "검증 환경",
+        "targetNodeType": "Technology"
+      },
+      {
+        "sourceNodeId": "운영 배포",
+        "sourceNodeType": "Event",
+        "relationshipType": "DEPENDS_ON",
+        "targetNodeId": "검증 환경",
+        "targetNodeType": "Technology"
+      },
+      {
+        "sourceNodeId": "출시 여부",
+        "sourceNodeType": "Decision",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "Go/No-Go 회의",
+        "targetNodeType": "Event"
+      },
+      {
+        "sourceNodeId": "Go/No-Go 회의",
+        "sourceNodeType": "Event",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "앱",
+        "targetNodeType": "Technology"
+      },
+      {
+        "sourceNodeId": "DB",
+        "sourceNodeType": "Technology",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "운영 배포",
+        "targetNodeType": "Event"
+      },
+      {
+        "sourceNodeId": "운영 배포",
+        "sourceNodeType": "Event",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "고객 응대팀",
+        "targetNodeType": "Team"
+      }
+    ]
+  },
+  {
+    "organization": "hallabong-studio",
+    "document": "incident-runbook",
+    "nodes": [
+      { "id": "장애", "type": "Concept" },
+      { "id": "주문", "type": "Concept" },
+      { "id": "결제", "type": "Concept" },
+      { "id": "앱", "type": "Technology" },
+      { "id": "장애 채널", "type": "Technology" },
+      { "id": "최근 배포", "type": "Event" },
+      { "id": "복구", "type": "Task" },
+      { "id": "회고", "type": "Event" },
+      { "id": "티켓", "type": "Concept" },
+      { "id": "고객 응대팀", "type": "Team" },
+      { "id": "농가", "type": "Concept" }
+    ],
+    "relationships": [
+      {
+        "sourceNodeId": "장애",
+        "sourceNodeType": "Concept",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "주문",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "장애",
+        "sourceNodeType": "Concept",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "결제",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "장애",
+        "sourceNodeType": "Concept",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "앱",
+        "targetNodeType": "Technology"
+      },
+      {
+        "sourceNodeId": "장애",
+        "sourceNodeType": "Concept",
+        "relationshipType": "USES",
+        "targetNodeId": "장애 채널",
+        "targetNodeType": "Technology"
+      },
+      {
+        "sourceNodeId": "최근 배포",
+        "sourceNodeType": "Event",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "장애",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "복구",
+        "sourceNodeType": "Task",
+        "relationshipType": "RELATED_TO",
+        "targetNodeId": "장애",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "회고",
+        "sourceNodeType": "Event",
+        "relationshipType": "DEPENDS_ON",
+        "targetNodeId": "복구",
+        "targetNodeType": "Task"
+      },
+      {
+        "sourceNodeId": "회고",
+        "sourceNodeType": "Event",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "티켓",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "장애",
+        "sourceNodeType": "Concept",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "고객 응대팀",
+        "targetNodeType": "Team"
+      },
+      {
+        "sourceNodeId": "장애",
+        "sourceNodeType": "Concept",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "농가",
+        "targetNodeType": "Concept"
+      }
+    ]
+  },
+  {
+    "organization": "hallabong-studio",
+    "document": "campaign-brief",
+    "nodes": [
+      { "id": "가을 수확 캠페인", "type": "Project" },
+      { "id": "귤밭", "type": "Project" },
+      { "id": "사전 예약", "type": "Concept" },
+      { "id": "노지 감귤", "type": "Concept" },
+      { "id": "사전 예약 랜딩", "type": "Task" },
+      { "id": "농가 인터뷰 영상", "type": "Task" },
+      { "id": "첫 구매 쿠폰", "type": "Task" },
+      { "id": "검색 광고", "type": "Task" },
+      { "id": "윤지아", "type": "Person" },
+      { "id": "정하은", "type": "Person" },
+      { "id": "신예린", "type": "Person" },
+      { "id": "농가", "type": "Concept" }
+    ],
+    "relationships": [
+      {
+        "sourceNodeId": "가을 수확 캠페인",
+        "sourceNodeType": "Project",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "귤밭",
+        "targetNodeType": "Project"
+      },
+      {
+        "sourceNodeId": "가을 수확 캠페인",
+        "sourceNodeType": "Project",
+        "relationshipType": "RELATED_TO",
+        "targetNodeId": "사전 예약",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "가을 수확 캠페인",
+        "sourceNodeType": "Project",
+        "relationshipType": "RELATED_TO",
+        "targetNodeId": "노지 감귤",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "사전 예약 랜딩",
+        "sourceNodeType": "Task",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "가을 수확 캠페인",
+        "targetNodeType": "Project"
+      },
+      {
+        "sourceNodeId": "농가 인터뷰 영상",
+        "sourceNodeType": "Task",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "가을 수확 캠페인",
+        "targetNodeType": "Project"
+      },
+      {
+        "sourceNodeId": "첫 구매 쿠폰",
+        "sourceNodeType": "Task",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "가을 수확 캠페인",
+        "targetNodeType": "Project"
+      },
+      {
+        "sourceNodeId": "검색 광고",
+        "sourceNodeType": "Task",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "가을 수확 캠페인",
+        "targetNodeType": "Project"
+      },
+      {
+        "sourceNodeId": "윤지아",
+        "sourceNodeType": "Person",
+        "relationshipType": "RESPONSIBLE_FOR",
+        "targetNodeId": "사전 예약 랜딩",
+        "targetNodeType": "Task"
+      },
+      {
+        "sourceNodeId": "정하은",
+        "sourceNodeType": "Person",
+        "relationshipType": "RESPONSIBLE_FOR",
+        "targetNodeId": "농가 인터뷰 영상",
+        "targetNodeType": "Task"
+      },
+      {
+        "sourceNodeId": "정하은",
+        "sourceNodeType": "Person",
+        "relationshipType": "RESPONSIBLE_FOR",
+        "targetNodeId": "검색 광고",
+        "targetNodeType": "Task"
+      },
+      {
+        "sourceNodeId": "신예린",
+        "sourceNodeType": "Person",
+        "relationshipType": "RESPONSIBLE_FOR",
+        "targetNodeId": "첫 구매 쿠폰",
+        "targetNodeType": "Task"
+      },
+      {
+        "sourceNodeId": "농가 인터뷰 영상",
+        "sourceNodeType": "Task",
+        "relationshipType": "RELATED_TO",
+        "targetNodeId": "농가",
+        "targetNodeType": "Concept"
+      }
+    ]
+  },
+  {
+    "organization": "gamgyul-labs",
+    "document": "lab-guide",
+    "nodes": [
+      { "id": "감귤랩스", "type": "Team" },
+      { "id": "귤밭", "type": "Project" },
+      { "id": "추천", "type": "Team" },
+      { "id": "데이터", "type": "Team" },
+      { "id": "분석", "type": "Team" },
+      { "id": "추천과 데이터 기술", "type": "Technology" },
+      { "id": "가설", "type": "Concept" },
+      { "id": "중단 기준", "type": "Concept" },
+      { "id": "연구 세미나", "type": "Event" },
+      { "id": "고객 데이터", "type": "Concept" },
+      { "id": "파트너 서비스", "type": "Concept" },
+      { "id": "릴리스 일정", "type": "Concept" }
+    ],
+    "relationships": [
+      {
+        "sourceNodeId": "감귤랩스",
+        "sourceNodeType": "Team",
+        "relationshipType": "RESPONSIBLE_FOR",
+        "targetNodeId": "추천과 데이터 기술",
+        "targetNodeType": "Technology"
+      },
+      {
+        "sourceNodeId": "감귤랩스",
+        "sourceNodeType": "Team",
+        "relationshipType": "RELATED_TO",
+        "targetNodeId": "귤밭",
+        "targetNodeType": "Project"
+      },
+      {
+        "sourceNodeId": "추천",
+        "sourceNodeType": "Team",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "감귤랩스",
+        "targetNodeType": "Team"
+      },
+      {
+        "sourceNodeId": "데이터",
+        "sourceNodeType": "Team",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "감귤랩스",
+        "targetNodeType": "Team"
+      },
+      {
+        "sourceNodeId": "분석",
+        "sourceNodeType": "Team",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "감귤랩스",
+        "targetNodeType": "Team"
+      },
+      {
+        "sourceNodeId": "가설",
+        "sourceNodeType": "Concept",
+        "relationshipType": "RELATED_TO",
+        "targetNodeId": "중단 기준",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "감귤랩스",
+        "sourceNodeType": "Team",
+        "relationshipType": "PARTICIPATES_IN",
+        "targetNodeId": "연구 세미나",
+        "targetNodeType": "Event"
+      },
+      {
+        "sourceNodeId": "고객 데이터",
+        "sourceNodeType": "Concept",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "파트너 서비스",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "파트너 서비스",
+        "sourceNodeType": "Concept",
+        "relationshipType": "DEPENDS_ON",
+        "targetNodeId": "릴리스 일정",
+        "targetNodeType": "Concept"
+      }
+    ]
+  },
+  {
+    "organization": "gamgyul-labs",
+    "document": "research",
+    "nodes": [
+      { "id": "연구 노트", "type": "Concept" },
+      { "id": "추천 모델 2.0", "type": "Technology" },
+      { "id": "후보 생성", "type": "Concept" },
+      { "id": "순위 매기기", "type": "Concept" },
+      { "id": "오프라인 평가", "type": "Concept" }
+    ],
+    "relationships": [
+      {
+        "sourceNodeId": "추천 모델 2.0",
+        "sourceNodeType": "Technology",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "연구 노트",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "추천 모델 2.0",
+        "sourceNodeType": "Technology",
+        "relationshipType": "USES",
+        "targetNodeId": "후보 생성",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "추천 모델 2.0",
+        "sourceNodeType": "Technology",
+        "relationshipType": "USES",
+        "targetNodeId": "순위 매기기",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "오프라인 평가",
+        "sourceNodeType": "Concept",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "추천 모델 2.0",
+        "targetNodeType": "Technology"
+      }
+    ]
+  },
+  {
+    "organization": "gamgyul-labs",
+    "document": "rec-design",
+    "nodes": [
+      { "id": "추천 모델 2.0", "type": "Technology" },
+      { "id": "재구매", "type": "Concept" },
+      { "id": "처음 사는 상품", "type": "Concept" },
+      { "id": "후보 생성", "type": "Concept" },
+      { "id": "순위 매기기", "type": "Concept" },
+      { "id": "고객 벡터", "type": "Technology" },
+      { "id": "상품 설명", "type": "Concept" },
+      { "id": "제철", "type": "Concept" },
+      { "id": "지역", "type": "Concept" },
+      { "id": "취향", "type": "Concept" },
+      { "id": "새로움", "type": "Concept" },
+      { "id": "A/B 테스트", "type": "Event" }
+    ],
+    "relationships": [
+      {
+        "sourceNodeId": "추천 모델 2.0",
+        "sourceNodeType": "Technology",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "재구매",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "추천 모델 2.0",
+        "sourceNodeType": "Technology",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "처음 사는 상품",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "추천 모델 2.0",
+        "sourceNodeType": "Technology",
+        "relationshipType": "USES",
+        "targetNodeId": "후보 생성",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "추천 모델 2.0",
+        "sourceNodeType": "Technology",
+        "relationshipType": "USES",
+        "targetNodeId": "순위 매기기",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "후보 생성",
+        "sourceNodeType": "Concept",
+        "relationshipType": "USES",
+        "targetNodeId": "고객 벡터",
+        "targetNodeType": "Technology"
+      },
+      {
+        "sourceNodeId": "후보 생성",
+        "sourceNodeType": "Concept",
+        "relationshipType": "USES",
+        "targetNodeId": "상품 설명",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "순위 매기기",
+        "sourceNodeType": "Concept",
+        "relationshipType": "USES",
+        "targetNodeId": "제철",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "순위 매기기",
+        "sourceNodeType": "Concept",
+        "relationshipType": "USES",
+        "targetNodeId": "지역",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "순위 매기기",
+        "sourceNodeType": "Concept",
+        "relationshipType": "USES",
+        "targetNodeId": "취향",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "순위 매기기",
+        "sourceNodeType": "Concept",
+        "relationshipType": "USES",
+        "targetNodeId": "새로움",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "A/B 테스트",
+        "sourceNodeType": "Event",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "추천 모델 2.0",
+        "targetNodeType": "Technology"
+      }
+    ]
+  },
+  {
+    "organization": "gamgyul-labs",
+    "document": "offline-eval",
+    "nodes": [
+      { "id": "오프라인 평가", "type": "Concept" },
+      { "id": "주문 기록", "type": "Concept" },
+      { "id": "미래 정보", "type": "Concept" },
+      { "id": "상위 10개 적중률", "type": "Concept" },
+      { "id": "신규 상품 적중률", "type": "Concept" },
+      { "id": "농가 다양성", "type": "Concept" },
+      { "id": "새 모델", "type": "Technology" },
+      { "id": "지금 서비스 중인 모델", "type": "Technology" },
+      { "id": "기준선", "type": "Concept" },
+      { "id": "A/B 테스트", "type": "Event" }
+    ],
+    "relationships": [
+      {
+        "sourceNodeId": "오프라인 평가",
+        "sourceNodeType": "Concept",
+        "relationshipType": "USES",
+        "targetNodeId": "주문 기록",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "미래 정보",
+        "sourceNodeType": "Concept",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "오프라인 평가",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "상위 10개 적중률",
+        "sourceNodeType": "Concept",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "오프라인 평가",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "신규 상품 적중률",
+        "sourceNodeType": "Concept",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "오프라인 평가",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "농가 다양성",
+        "sourceNodeType": "Concept",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "오프라인 평가",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "새 모델",
+        "sourceNodeType": "Technology",
+        "relationshipType": "RELATED_TO",
+        "targetNodeId": "지금 서비스 중인 모델",
+        "targetNodeType": "Technology"
+      },
+      {
+        "sourceNodeId": "기준선",
+        "sourceNodeType": "Concept",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "오프라인 평가",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "A/B 테스트",
+        "sourceNodeType": "Event",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "새 모델",
+        "targetNodeType": "Technology"
+      }
+    ]
+  },
+  {
+    "organization": "gamgyul-labs",
+    "document": "data",
+    "nodes": [
+      { "id": "파이프라인 구조", "type": "Concept" },
+      { "id": "원천", "type": "Concept" },
+      { "id": "분석용 테이블", "type": "Technology" },
+      { "id": "데이터 품질 기준", "type": "Concept" },
+      { "id": "테이블", "type": "Technology" }
+    ],
+    "relationships": [
+      {
+        "sourceNodeId": "파이프라인 구조",
+        "sourceNodeType": "Concept",
+        "relationshipType": "RELATED_TO",
+        "targetNodeId": "원천",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "파이프라인 구조",
+        "sourceNodeType": "Concept",
+        "relationshipType": "RELATED_TO",
+        "targetNodeId": "분석용 테이블",
+        "targetNodeType": "Technology"
+      },
+      {
+        "sourceNodeId": "데이터 품질 기준",
+        "sourceNodeType": "Concept",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "테이블",
+        "targetNodeType": "Technology"
+      },
+      {
+        "sourceNodeId": "분석용 테이블",
+        "sourceNodeType": "Technology",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "테이블",
+        "targetNodeType": "Technology"
+      }
+    ]
+  },
+  {
+    "organization": "gamgyul-labs",
+    "document": "pipeline-architecture",
+    "nodes": [
+      { "id": "파이프라인 구조", "type": "Concept" },
+      { "id": "서비스 DB", "type": "Technology" },
+      { "id": "앱 이벤트", "type": "Concept" },
+      { "id": "수집", "type": "Task" },
+      { "id": "원본 보관", "type": "Task" },
+      { "id": "정제", "type": "Task" },
+      { "id": "분석용 테이블", "type": "Technology" },
+      { "id": "주문 수집", "type": "Task" },
+      { "id": "주문 정제", "type": "Task" },
+      { "id": "상품 수집", "type": "Task" },
+      { "id": "상품 정제", "type": "Task" },
+      { "id": "추천 학습 데이터", "type": "Technology" }
+    ],
+    "relationships": [
+      {
+        "sourceNodeId": "수집",
+        "sourceNodeType": "Task",
+        "relationshipType": "PART_OF",
+        "targetNodeId": "파이프라인 구조",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "수집",
+        "sourceNodeType": "Task",
+        "relationshipType": "USES",
+        "targetNodeId": "서비스 DB",
+        "targetNodeType": "Technology"
+      },
+      {
+        "sourceNodeId": "수집",
+        "sourceNodeType": "Task",
+        "relationshipType": "RELATED_TO",
+        "targetNodeId": "앱 이벤트",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "원본 보관",
+        "sourceNodeType": "Task",
+        "relationshipType": "DEPENDS_ON",
+        "targetNodeId": "수집",
+        "targetNodeType": "Task"
+      },
+      {
+        "sourceNodeId": "정제",
+        "sourceNodeType": "Task",
+        "relationshipType": "DEPENDS_ON",
+        "targetNodeId": "원본 보관",
+        "targetNodeType": "Task"
+      },
+      {
+        "sourceNodeId": "분석용 테이블",
+        "sourceNodeType": "Technology",
+        "relationshipType": "DEPENDS_ON",
+        "targetNodeId": "정제",
+        "targetNodeType": "Task"
+      },
+      {
+        "sourceNodeId": "주문 정제",
+        "sourceNodeType": "Task",
+        "relationshipType": "DEPENDS_ON",
+        "targetNodeId": "주문 수집",
+        "targetNodeType": "Task"
+      },
+      {
+        "sourceNodeId": "상품 정제",
+        "sourceNodeType": "Task",
+        "relationshipType": "DEPENDS_ON",
+        "targetNodeId": "상품 수집",
+        "targetNodeType": "Task"
+      },
+      {
+        "sourceNodeId": "분석용 테이블",
+        "sourceNodeType": "Technology",
+        "relationshipType": "DEPENDS_ON",
+        "targetNodeId": "주문 정제",
+        "targetNodeType": "Task"
+      },
+      {
+        "sourceNodeId": "분석용 테이블",
+        "sourceNodeType": "Technology",
+        "relationshipType": "DEPENDS_ON",
+        "targetNodeId": "상품 정제",
+        "targetNodeType": "Task"
+      },
+      {
+        "sourceNodeId": "추천 학습 데이터",
+        "sourceNodeType": "Technology",
+        "relationshipType": "DEPENDS_ON",
+        "targetNodeId": "분석용 테이블",
+        "targetNodeType": "Technology"
+      }
+    ]
+  },
+  {
+    "organization": "gamgyul-labs",
+    "document": "data-quality",
+    "nodes": [
+      { "id": "데이터 품질 기준", "type": "Concept" },
+      { "id": "테이블", "type": "Technology" },
+      { "id": "적재", "type": "Task" },
+      { "id": "주문", "type": "Concept" },
+      { "id": "상품", "type": "Concept" },
+      { "id": "농가", "type": "Concept" },
+      { "id": "배송", "type": "Concept" },
+      { "id": "주문 번호", "type": "Concept" },
+      { "id": "결제 금액", "type": "Concept" },
+      { "id": "취소 시각", "type": "Concept" },
+      { "id": "재고", "type": "Concept" },
+      { "id": "수확 예정일", "type": "Concept" }
+    ],
+    "relationships": [
+      {
+        "sourceNodeId": "데이터 품질 기준",
+        "sourceNodeType": "Concept",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "테이블",
+        "targetNodeType": "Technology"
+      },
+      {
+        "sourceNodeId": "데이터 품질 기준",
+        "sourceNodeType": "Concept",
+        "relationshipType": "DEPENDS_ON",
+        "targetNodeId": "적재",
+        "targetNodeType": "Task"
+      },
+      {
+        "sourceNodeId": "주문",
+        "sourceNodeType": "Concept",
+        "relationshipType": "DEPENDS_ON",
+        "targetNodeId": "주문 번호",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "주문",
+        "sourceNodeType": "Concept",
+        "relationshipType": "DEPENDS_ON",
+        "targetNodeId": "결제 금액",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "주문",
+        "sourceNodeType": "Concept",
+        "relationshipType": "DEPENDS_ON",
+        "targetNodeId": "취소 시각",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "상품",
+        "sourceNodeType": "Concept",
+        "relationshipType": "DEPENDS_ON",
+        "targetNodeId": "농가",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "상품",
+        "sourceNodeType": "Concept",
+        "relationshipType": "DEPENDS_ON",
+        "targetNodeId": "재고",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "상품",
+        "sourceNodeType": "Concept",
+        "relationshipType": "DEPENDS_ON",
+        "targetNodeId": "수확 예정일",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "데이터 품질 기준",
+        "sourceNodeType": "Concept",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "주문",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "데이터 품질 기준",
+        "sourceNodeType": "Concept",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "상품",
+        "targetNodeType": "Concept"
+      },
+      {
+        "sourceNodeId": "데이터 품질 기준",
+        "sourceNodeType": "Concept",
+        "relationshipType": "AFFECTS",
+        "targetNodeId": "배송",
+        "targetNodeType": "Concept"
+      }
+    ]
+  }
+]

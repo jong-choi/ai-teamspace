@@ -6,7 +6,7 @@ export async function seedWiki(
   context: SeedContext,
   organizationId: string,
   workspace: Workspace,
-): Promise<void> {
+): Promise<ReadonlyMap<string, string>> {
   const documentIds = new Map<string, string>();
   const positions = new Map<string, number>();
 
@@ -42,4 +42,5 @@ export async function seedWiki(
     });
   }
   console.log(`위키 문서 ${workspace.wiki.documents.length}개를 넣었습니다.`);
+  return documentIds;
 }

@@ -132,6 +132,71 @@ const wikiFile = z.strictObject({
   ),
 });
 
+const semanticNodeType = z.enum([
+  'Person',
+  'Team',
+  'Project',
+  'Technology',
+  'Concept',
+  'Decision',
+  'Task',
+  'Event',
+]);
+const semanticRelationshipType = z.enum([
+  'RELATED_TO',
+  'PART_OF',
+  'USES',
+  'DEPENDS_ON',
+  'RESPONSIBLE_FOR',
+  'PARTICIPATES_IN',
+  'DECIDES',
+  'AFFECTS',
+]);
+const semanticNode = z.strictObject({
+  id: z.string().trim().min(1).max(200),
+  type: semanticNodeType,
+});
+const semanticRelationship = z.strictObject({
+  sourceNodeId: z.string().trim().min(1).max(200),
+  sourceNodeType: semanticNodeType,
+  relationshipType: semanticRelationshipType,
+  targetNodeId: z.string().trim().min(1).max(200),
+  targetNodeType: semanticNodeType,
+});
+const knowledgeGraphExtractionsFile = z.array(
+  z.strictObject({
+    organization: z.string().min(1),
+    document: z.string().min(1),
+    nodes: z.array(semanticNode),
+    relationships: z.array(semanticRelationship),
+  }),
+);
+const knowledgeGraphEmbeddingsFile = z.array(
+  z.strictObject({
+    organization: z.string().min(1),
+    document: z.string().min(1),
+    chunkIndex: z.number().int().nonnegative(),
+    text: z.string().min(1),
+    vector: z.array(z.number()).length(768),
+  }),
+);
+const knowledgeGraphManifestFile = z.strictObject({
+  version: z.literal(1),
+  pipelineFingerprint: z.string().regex(/^[0-9a-f]{64}$/),
+  extractorFingerprint: z.string().regex(/^[0-9a-f]{64}$/),
+  embedding: z.strictObject({
+    model: z.literal('gemini-embedding-2'),
+    dimensions: z.literal(768),
+  }),
+  chunker: z.strictObject({
+    splitter: z.literal('langchain-recursive-markdown'),
+    packageVersion: z.literal('1.0.2'),
+    chunkSize: z.literal(2000),
+    chunkOverlap: z.literal(200),
+    normalization: z.literal('nfc-lf-trim-v1'),
+  }),
+});
+
 const chatMessage = z.strictObject({
   from: username,
   text: z.string(),
@@ -169,6 +234,11 @@ export type CalendarFile = z.infer<typeof calendarFile>;
 export type WikiFile = z.infer<typeof wikiFile>;
 export type ChatFile = z.infer<typeof chatFile>;
 export type ChatMessage = z.infer<typeof chatMessage>;
+export type KnowledgeGraphSeed = {
+  embeddings: z.infer<typeof knowledgeGraphEmbeddingsFile>;
+  extractions: z.infer<typeof knowledgeGraphExtractionsFile>;
+  manifest: z.infer<typeof knowledgeGraphManifestFile>;
+};
 
 export type Workspace = {
   calendar: CalendarFile;
@@ -197,6 +267,15 @@ export function readUsers(): Promise<UsersFile> {
 
 export function readAvatar(fileName: string): Promise<Blob> {
   return openAsBlob(new URL(`avatars/${fileName}`, dataDirectory));
+}
+
+export async function readKnowledgeGraphSeed(): Promise<KnowledgeGraphSeed> {
+  const [embeddings, extractions, manifest] = await Promise.all([
+    readJson('knowledge-graph/embeddings.json', knowledgeGraphEmbeddingsFile),
+    readJson('knowledge-graph/extractions.json', knowledgeGraphExtractionsFile),
+    readJson('knowledge-graph/manifest.json', knowledgeGraphManifestFile),
+  ]);
+  return { embeddings, extractions, manifest };
 }
 
 export async function readWorkspace(slug: string): Promise<Workspace> {

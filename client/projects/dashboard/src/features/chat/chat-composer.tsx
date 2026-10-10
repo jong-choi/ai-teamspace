@@ -4,10 +4,10 @@ import { ActivityIndicator, View } from 'react-native';
 import { useChatControllerSendMessage } from '@repo/client/api-client';
 import { Button } from '@repo/client/rnr/components/ui/button';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
-import { Input } from '@repo/client/rnr/components/ui/input';
 import { Separator } from '@repo/client/rnr/components/ui/separator';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { useMutationErrorNotification } from '@core/app/error/use-mutation-error-notification';
+import { DashboardInput } from '@core/app/ui/dashboard-input';
 import { mergeCreatedMessage } from '@core/features/chat/chat-cache';
 
 import { useQueryClient } from '@tanstack/react-query';
@@ -52,8 +52,8 @@ export const ChatComposer = memo(function ChatComposer({
   return (
     <View className="shrink-0 border-t border-border bg-background/95 p-3 sm:p-4">
       <View className="rounded-xl border border-border bg-muted/40 shadow-sm">
-        <Input
-          className="min-h-14 border-0 bg-transparent px-3.5 py-2.5 text-xs shadow-none web:focus-visible:ring-0"
+        <DashboardInput
+          className="min-h-14 border-0 bg-transparent px-3.5 py-2.5 shadow-none web:focus-visible:ring-0"
           editable={!sendMessage.isPending}
           multiline
           onChangeText={setText}

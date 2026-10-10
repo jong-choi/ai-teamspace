@@ -2,13 +2,12 @@ import type {
   OrganizationAccess,
   OrganizationMember,
 } from '@repo/client/api-client/schemas';
+import { Select, SelectContent } from '@repo/client/rnr/components/ui/select';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@repo/client/rnr/components/ui/select';
+  DashboardSelectItem,
+  DashboardSelectTrigger,
+  DashboardSelectValue,
+} from '@core/app/ui/dashboard-select';
 import {
   getOrganizationMemberRoleLabel,
   type OrganizationMemberRole,
@@ -43,23 +42,23 @@ export function OrganizationMemberRoleSelect({
       }}
       value={value}
     >
-      <SelectTrigger
+      <DashboardSelectTrigger
         accessibilityLabel={`${member.user.name} 역할 변경`}
         className="min-w-28"
         disabled={disabled}
         size="sm"
       >
-        <SelectValue placeholder="역할" />
-      </SelectTrigger>
+        <DashboardSelectValue placeholder="역할" />
+      </DashboardSelectTrigger>
       <SelectContent align="start" side="bottom">
         {roleOptions.map((role) => (
-          <SelectItem
+          <DashboardSelectItem
             key={role}
             label={getOrganizationMemberRoleLabel(role)}
             value={role}
           >
             {getOrganizationMemberRoleLabel(role)}
-          </SelectItem>
+          </DashboardSelectItem>
         ))}
       </SelectContent>
     </Select>

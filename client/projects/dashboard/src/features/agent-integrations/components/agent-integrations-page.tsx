@@ -16,7 +16,6 @@ import {
   DialogTitle,
 } from '@repo/client/rnr/components/ui/dialog';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
-import { Input } from '@repo/client/rnr/components/ui/input';
 import { Label } from '@repo/client/rnr/components/ui/label';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
@@ -25,6 +24,7 @@ import {
   DashboardLoading,
   DashboardQueryBoundary,
 } from '@core/app/state/dashboard-query-state';
+import { DashboardInput } from '@core/app/ui/dashboard-input';
 import { DIALOG_WIDTH } from '@core/app/ui/dialog-width';
 import {
   agentIntegrationErrorMessage,
@@ -427,9 +427,8 @@ function ConnectionEditDialog({
         <View className="gap-3">
           <View className="gap-1.5">
             <Label nativeID="mcp-edit-name">이름</Label>
-            <Input
+            <DashboardInput
               accessibilityLabel="MCP 이름"
-              className="h-9 text-xs md:text-xs"
               editable={!actions.busy}
               maxLength={100}
               onChangeText={setDisplayName}
@@ -438,10 +437,9 @@ function ConnectionEditDialog({
           </View>
           <View className="gap-1.5">
             <Label nativeID="mcp-edit-endpoint">MCP 주소</Label>
-            <Input
+            <DashboardInput
               accessibilityLabel="MCP 주소"
               autoCapitalize="none"
-              className="h-9 text-xs md:text-xs"
               editable={!actions.busy}
               keyboardType="url"
               onChangeText={setEndpoint}

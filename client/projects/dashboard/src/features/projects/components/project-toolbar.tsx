@@ -6,14 +6,13 @@ import type {
   ProjectsControllerListTicketsParams,
   ProjectSummary,
 } from '@repo/client/api-client/schemas';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@repo/client/rnr/components/ui/select';
+import { Select, SelectContent } from '@repo/client/rnr/components/ui/select';
 import { DashboardSearchInput } from '@core/app/ui/dashboard-search-input';
+import {
+  DashboardSelectItem,
+  DashboardSelectTrigger,
+  DashboardSelectValue,
+} from '@core/app/ui/dashboard-select';
 import { getProjectColumnPresentation } from '@core/features/projects/lib/project-column-presentation';
 import { TICKET_PRIORITY_OPTIONS } from '@core/features/projects/lib/ticket-priority-presentation';
 
@@ -168,22 +167,22 @@ function CompactSelect({
       onValueChange={(option) => option?.value && onValueChange(option.value)}
       value={value}
     >
-      <SelectTrigger
+      <DashboardSelectTrigger
         accessibilityLabel={accessibilityLabel}
-        className="h-8 min-w-32 max-w-52"
+        className="min-w-32 max-w-52"
         size="sm"
       >
-        <SelectValue placeholder={placeholder} />
-      </SelectTrigger>
+        <DashboardSelectValue placeholder={placeholder} />
+      </DashboardSelectTrigger>
       <SelectContent align="start" side="bottom">
         {options.map((option) => (
-          <SelectItem
+          <DashboardSelectItem
             key={option.value}
             label={option.label}
             value={option.value}
           >
             {option.label}
-          </SelectItem>
+          </DashboardSelectItem>
         ))}
       </SelectContent>
     </Select>

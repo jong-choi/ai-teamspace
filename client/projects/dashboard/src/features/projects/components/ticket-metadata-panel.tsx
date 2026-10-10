@@ -9,16 +9,15 @@ import type {
   TicketLabel,
   UpdateTicket,
 } from '@repo/client/api-client/schemas';
-import { Input } from '@repo/client/rnr/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@repo/client/rnr/components/ui/select';
+import { Select, SelectContent } from '@repo/client/rnr/components/ui/select';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
+import { DashboardInput } from '@core/app/ui/dashboard-input';
+import {
+  DashboardSelectItem,
+  DashboardSelectTrigger,
+  DashboardSelectValue,
+} from '@core/app/ui/dashboard-select';
 import { getProjectColumnPresentation } from '@core/features/projects/lib/project-column-presentation';
 import {
   parseTicketDueDateInput,
@@ -97,20 +96,20 @@ export function TicketMetadataPanel({
               : undefined
           }
         >
-          <SelectTrigger accessibilityLabel="상태 변경" className="h-8">
-            <SelectValue placeholder="상태" />
-          </SelectTrigger>
+          <DashboardSelectTrigger accessibilityLabel="상태 변경">
+            <DashboardSelectValue placeholder="상태" />
+          </DashboardSelectTrigger>
           <SelectContent align="start" side="bottom">
             {columns.map((column) => {
               const presentation = getProjectColumnPresentation(column.name);
               return (
-                <SelectItem
+                <DashboardSelectItem
                   key={column.id}
                   label={presentation.label}
                   value={column.id}
                 >
                   {presentation.label}
-                </SelectItem>
+                </DashboardSelectItem>
               );
             })}
           </SelectContent>
@@ -130,18 +129,18 @@ export function TicketMetadataPanel({
           }}
           value={priority}
         >
-          <SelectTrigger accessibilityLabel="우선순위 변경" className="h-8">
-            <SelectValue placeholder="우선순위" />
-          </SelectTrigger>
+          <DashboardSelectTrigger accessibilityLabel="우선순위 변경">
+            <DashboardSelectValue placeholder="우선순위" />
+          </DashboardSelectTrigger>
           <SelectContent align="start" side="bottom">
             {TICKET_PRIORITY_OPTIONS.map((item) => (
-              <SelectItem
+              <DashboardSelectItem
                 key={item.value}
                 label={item.label}
                 value={item.value}
               >
                 {item.label}
-              </SelectItem>
+              </DashboardSelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -162,21 +161,21 @@ export function TicketMetadataPanel({
             }}
             value={assigneeValue}
           >
-            <SelectTrigger accessibilityLabel="담당자 변경" className="h-8">
-              <SelectValue placeholder="담당자" />
-            </SelectTrigger>
+            <DashboardSelectTrigger accessibilityLabel="담당자 변경">
+              <DashboardSelectValue placeholder="담당자" />
+            </DashboardSelectTrigger>
             <SelectContent align="start" side="bottom">
-              <SelectItem label="미지정" value={NO_ASSIGNEE}>
+              <DashboardSelectItem label="미지정" value={NO_ASSIGNEE}>
                 미지정
-              </SelectItem>
+              </DashboardSelectItem>
               {members.map((member) => (
-                <SelectItem
+                <DashboardSelectItem
                   key={member.userId}
-                  label={`${member.user.name} · ${member.user.email}`}
+                  label={member.user.name}
                   value={member.userId}
                 >
                   {member.user.name}
-                </SelectItem>
+                </DashboardSelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -190,9 +189,9 @@ export function TicketMetadataPanel({
         </MetadataField>
 
         <MetadataField label="마감일">
-          <Input
+          <DashboardInput
             accessibilityLabel="마감일 변경"
-            className="h-8 font-mono text-xs"
+            className="font-mono"
             editable={!fieldDisabled}
             onBlur={() => {
               const nextDueAt = parseTicketDueDateInput(dueDateDraft);

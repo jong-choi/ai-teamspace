@@ -6,15 +6,14 @@ import {
   UpdateMeeting as UpdateMeetingSchema,
 } from '@repo/client/api-client/schemas';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@repo/client/rnr/components/ui/select';
+import { Select, SelectContent } from '@repo/client/rnr/components/ui/select';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
+import {
+  DashboardSelectItem,
+  DashboardSelectTrigger,
+  DashboardSelectValue,
+} from '@core/app/ui/dashboard-select';
 import {
   useCalendarAgendaMutation,
   useCalendarMetadataMutation,
@@ -208,18 +207,18 @@ export function CalendarMeetingReminder({
                 }
           }
         >
-          <SelectTrigger className="w-full" size="sm">
-            <SelectValue placeholder="알림" />
-          </SelectTrigger>
+          <DashboardSelectTrigger className="w-full" size="sm">
+            <DashboardSelectValue placeholder="알림" />
+          </DashboardSelectTrigger>
           <SelectContent side="bottom">
             {reminderOptions.map((option) => (
-              <SelectItem
+              <DashboardSelectItem
                 key={option.value}
                 label={option.label}
                 value={option.value}
               >
                 {option.label}
-              </SelectItem>
+              </DashboardSelectItem>
             ))}
           </SelectContent>
         </Select>

@@ -9,16 +9,15 @@ import {
 } from '@repo/client/api-client/schemas';
 import { Button } from '@repo/client/rnr/components/ui/button';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
-import { Input } from '@repo/client/rnr/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@repo/client/rnr/components/ui/select';
+import { Select, SelectContent } from '@repo/client/rnr/components/ui/select';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
+import { DashboardInput } from '@core/app/ui/dashboard-input';
+import {
+  DashboardSelectItem,
+  DashboardSelectTrigger,
+  DashboardSelectValue,
+} from '@core/app/ui/dashboard-select';
 import { useCalendarIcsExport } from '@core/features/calendar/calendar-ics';
 import { useCancelCalendarMeeting } from '@core/features/calendar/calendar-scheduling-mutations';
 
@@ -145,8 +144,7 @@ export function CalendarMeetingActions({
               <Icon as={X} className="size-3.5 text-muted-foreground" />
             </Pressable>
           </View>
-          <Input
-            className="h-8 text-xs"
+          <DashboardInput
             maxLength={1000}
             onChangeText={setCancelReason}
             placeholder="취소 사유 (선택)"
@@ -163,18 +161,18 @@ export function CalendarMeetingActions({
                 value: cancelScope,
               }}
             >
-              <SelectTrigger className="w-full" size="sm">
-                <SelectValue placeholder="취소 범위" />
-              </SelectTrigger>
+              <DashboardSelectTrigger className="w-full" size="sm">
+                <DashboardSelectValue placeholder="취소 범위" />
+              </DashboardSelectTrigger>
               <SelectContent side="bottom">
                 {cancelScopes.map((scope) => (
-                  <SelectItem
+                  <DashboardSelectItem
                     key={scope}
                     label={cancelScopeLabel(scope)}
                     value={scope}
                   >
                     {cancelScopeLabel(scope)}
-                  </SelectItem>
+                  </DashboardSelectItem>
                 ))}
               </SelectContent>
             </Select>

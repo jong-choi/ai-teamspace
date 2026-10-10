@@ -11,10 +11,10 @@ import {
   AvatarImage,
 } from '@repo/client/rnr/components/ui/avatar';
 import { Button } from '@repo/client/rnr/components/ui/button';
-import { Input } from '@repo/client/rnr/components/ui/input';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { useMutationErrorNotification } from '@core/app/error/use-mutation-error-notification';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
+import { DashboardInput } from '@core/app/ui/dashboard-input';
 import { SettingsRouteFrame } from '@core/features/settings/settings-route-frame';
 
 const USERNAME_PATTERN = /^[A-Za-z0-9_.]{3,30}$/;
@@ -190,9 +190,9 @@ function AccountForm() {
           ) : null}
         </AccountRow>
         <AccountRow label="이름">
-          <Input
+          <DashboardInput
             accessibilityLabel="이름"
-            className="h-8 max-w-xs flex-1 text-xs md:text-xs"
+            className="max-w-xs flex-1"
             editable={!pending}
             maxLength={100}
             onChangeText={(value) =>
@@ -202,12 +202,12 @@ function AccountForm() {
           />
         </AccountRow>
         <AccountRow label="사용자명">
-          <Input
+          <DashboardInput
             accessibilityLabel="사용자명"
             aria-invalid={!usernameValid}
             autoCapitalize="none"
             autoCorrect={false}
-            className="h-8 max-w-xs flex-1 text-xs md:text-xs"
+            className="max-w-xs flex-1"
             editable={!pending}
             maxLength={30}
             onChangeText={(value) =>

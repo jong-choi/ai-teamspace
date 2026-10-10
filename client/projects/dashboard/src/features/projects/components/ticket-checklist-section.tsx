@@ -10,9 +10,9 @@ import type {
   UpdateTicketChecklistItem,
 } from '@repo/client/api-client/schemas';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
-import { Input } from '@repo/client/rnr/components/ui/input';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
+import { DashboardInput } from '@core/app/ui/dashboard-input';
 
 import {
   Check,
@@ -99,9 +99,9 @@ export function TicketChecklistSection({
       )}
 
       <View className="flex-row items-center gap-2 pt-1">
-        <Input
+        <DashboardInput
           accessibilityLabel="체크리스트 추가"
-          className="h-8 flex-1 text-xs"
+          className="flex-1"
           editable={!disabled}
           onChangeText={setNewChecklistTitle}
           onSubmitEditing={() => {
@@ -188,9 +188,9 @@ function ChecklistBlock({
   return (
     <View className="gap-2 rounded-lg border border-border/70 p-2.5">
       <View className="flex-row items-center gap-2">
-        <Input
+        <DashboardInput
           accessibilityLabel="체크리스트 이름"
-          className="h-8 min-w-0 flex-1 border-0 bg-transparent px-1 text-xs font-semibold"
+          className="min-w-0 flex-1 border-0 bg-transparent px-1 font-semibold"
           editable={!disabled}
           onBlur={() => {
             const next = title.trim();
@@ -246,9 +246,9 @@ function ChecklistBlock({
       </View>
 
       <View className="flex-row items-center gap-2 pt-1">
-        <Input
+        <DashboardInput
           accessibilityLabel="하위 작업 추가"
-          className="h-8 flex-1 text-xs"
+          className="flex-1"
           editable={!disabled}
           onChangeText={setNewItemTitle}
           onSubmitEditing={addItem}
@@ -323,7 +323,7 @@ function ChecklistItemRow({
         ) : null}
       </Pressable>
 
-      <Input
+      <DashboardInput
         accessibilityLabel="하위 작업 이름"
         className={cn(
           'h-8 min-w-0 flex-1 border-0 bg-transparent px-1 text-xs',

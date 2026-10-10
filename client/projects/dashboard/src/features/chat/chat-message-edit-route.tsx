@@ -5,11 +5,11 @@ import { useRouter } from 'expo-router';
 import { useChatControllerUpdateMessage } from '@repo/client/api-client';
 import { Button } from '@repo/client/rnr/components/ui/button';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
-import { Input } from '@repo/client/rnr/components/ui/input';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { useMutationErrorNotification } from '@core/app/error/use-mutation-error-notification';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 import { DashboardShell } from '@core/app/shell/dashboard-shell';
+import { DashboardInput } from '@core/app/ui/dashboard-input';
 import { AuthenticationRequiredState } from '@core/features/auth/authentication-required-state';
 import { mergeUpdatedMessage } from '@core/features/chat/chat-cache';
 import { ChatMessageRouteHeader } from '@core/features/chat/chat-message-route-header';
@@ -143,7 +143,7 @@ function MessageEditor({
   return (
     <View className="flex-1 items-center justify-center px-4 py-8 sm:px-8">
       <View className="w-full max-w-2xl gap-3">
-        <Input
+        <DashboardInput
           className="min-h-32 items-start py-3"
           editable={!updateMessage.isPending}
           multiline

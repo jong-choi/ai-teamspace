@@ -12,16 +12,15 @@ import {
   DialogTitle,
 } from '@repo/client/rnr/components/ui/dialog';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
-import { Input } from '@repo/client/rnr/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@repo/client/rnr/components/ui/select';
+import { Select, SelectContent } from '@repo/client/rnr/components/ui/select';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
+import { DashboardInput } from '@core/app/ui/dashboard-input';
+import {
+  DashboardSelectItem,
+  DashboardSelectTrigger,
+  DashboardSelectValue,
+} from '@core/app/ui/dashboard-select';
 import { DIALOG_WIDTH } from '@core/app/ui/dialog-width';
 import {
   normalizeOrganizationInvitationUsername,
@@ -100,11 +99,10 @@ export function InviteOrganizationMemberDialog({
         <View className="gap-4 px-6 py-5">
           <View className="gap-1.5">
             <Text className="text-xs font-medium">사용자명</Text>
-            <Input
+            <DashboardInput
               accessibilityLabel="초대할 사용자명"
               autoCapitalize="none"
               autoCorrect={false}
-              className="h-9 text-xs"
               editable={!mutations.creating}
               maxLength={255}
               onChangeText={setRecipientUsername}
@@ -127,21 +125,18 @@ export function InviteOrganizationMemberDialog({
               }}
               value={selectedRole}
             >
-              <SelectTrigger
-                accessibilityLabel="초대 역할 선택"
-                className="h-9"
-              >
-                <SelectValue placeholder="역할 선택" />
-              </SelectTrigger>
+              <DashboardSelectTrigger accessibilityLabel="초대 역할 선택">
+                <DashboardSelectValue placeholder="역할 선택" />
+              </DashboardSelectTrigger>
               <SelectContent align="start" side="bottom">
                 {ROLE_OPTIONS.map((option) => (
-                  <SelectItem
+                  <DashboardSelectItem
                     key={option.value}
                     label={option.label}
                     value={option.value}
                   >
                     {option.label}
-                  </SelectItem>
+                  </DashboardSelectItem>
                 ))}
               </SelectContent>
             </Select>

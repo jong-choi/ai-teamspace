@@ -21,17 +21,16 @@ import { SemanticRelationship } from '@repo/client/api-client/generated/schemas/
 import { Badge } from '@repo/client/rnr/components/ui/badge';
 import { Button } from '@repo/client/rnr/components/ui/button';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
-import { Input } from '@repo/client/rnr/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@repo/client/rnr/components/ui/select';
+import { Select, SelectContent } from '@repo/client/rnr/components/ui/select';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 import { DashboardQueryBoundary } from '@core/app/state/dashboard-query-state';
+import { DashboardInput } from '@core/app/ui/dashboard-input';
+import {
+  DashboardSelectItem,
+  DashboardSelectTrigger,
+  DashboardSelectValue,
+} from '@core/app/ui/dashboard-select';
 import {
   GraphDialogFooter,
   GraphDialogFrame,
@@ -250,10 +249,9 @@ function CorrectionForm({
       <View className="gap-4">
         <GraphFormField error={error} label="정정 값">
           {target.kind === 'node' ? (
-            <Input
+            <DashboardInput
               accessibilityLabel="정정할 노드 라벨"
               autoFocus
-              className="h-9 text-xs md:text-xs"
               editable={!busy}
               maxLength={200}
               onChangeText={setValue}
@@ -271,24 +269,24 @@ function CorrectionForm({
               }}
               value={{ value, label: formatPredicate(value) }}
             >
-              <SelectTrigger
+              <DashboardSelectTrigger
                 accessibilityLabel="정정할 관계 종류"
-                className="h-9 w-full"
+                className="w-full"
               >
-                <SelectValue
-                  className="font-mono text-xs"
+                <DashboardSelectValue
+                  className="font-mono"
                   placeholder="관계 종류 선택"
                 />
-              </SelectTrigger>
+              </DashboardSelectTrigger>
               <SelectContent align="start" side="bottom">
                 {SemanticRelationship.options.map((predicate) => (
-                  <SelectItem
+                  <DashboardSelectItem
                     key={predicate}
                     label={formatPredicate(predicate)}
                     value={predicate}
                   >
                     {formatPredicate(predicate)}
-                  </SelectItem>
+                  </DashboardSelectItem>
                 ))}
               </SelectContent>
             </Select>

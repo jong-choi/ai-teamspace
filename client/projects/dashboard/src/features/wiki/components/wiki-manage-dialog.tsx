@@ -10,15 +10,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@repo/client/rnr/components/ui/dialog';
-import { Input } from '@repo/client/rnr/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@repo/client/rnr/components/ui/select';
+import { Select, SelectContent } from '@repo/client/rnr/components/ui/select';
 import { Text } from '@repo/client/rnr/components/ui/text';
+import { DashboardInput } from '@core/app/ui/dashboard-input';
+import {
+  DashboardSelectItem,
+  DashboardSelectTrigger,
+  DashboardSelectValue,
+} from '@core/app/ui/dashboard-select';
 import { DIALOG_WIDTH } from '@core/app/ui/dialog-width';
 import type { WikiTreeTarget } from '@core/features/wiki/components/wiki-tree';
 import { useWikiMutations } from '@core/features/wiki/use-wiki-mutations';
@@ -90,7 +89,7 @@ export function WikiManageDialog({
         <View className="gap-4">
           <View className="gap-1.5">
             <Text className="text-xs font-medium">문서 이름</Text>
-            <Input
+            <DashboardInput
               editable={!mutations.pending}
               onChangeText={setTitle}
               value={title}
@@ -113,21 +112,27 @@ export function WikiManageDialog({
                 value: selectedParent?.id ?? rootDocumentValue,
               }}
             >
-              <SelectTrigger className="w-full" disabled={mutations.pending}>
-                <SelectValue placeholder="위치 선택" />
-              </SelectTrigger>
+              <DashboardSelectTrigger
+                className="w-full"
+                disabled={mutations.pending}
+              >
+                <DashboardSelectValue placeholder="위치 선택" />
+              </DashboardSelectTrigger>
               <SelectContent className="max-h-64" side="bottom">
-                <SelectItem label="위키 루트" value={rootDocumentValue}>
+                <DashboardSelectItem
+                  label="위키 루트"
+                  value={rootDocumentValue}
+                >
                   위키 루트
-                </SelectItem>
+                </DashboardSelectItem>
                 {parentOptions.map((document) => (
-                  <SelectItem
+                  <DashboardSelectItem
                     key={document.id}
                     label={getWikiDocumentPathLabel(tree, document.id)}
                     value={document.id}
                   >
                     {getWikiDocumentPathLabel(tree, document.id)}
-                  </SelectItem>
+                  </DashboardSelectItem>
                 ))}
               </SelectContent>
             </Select>

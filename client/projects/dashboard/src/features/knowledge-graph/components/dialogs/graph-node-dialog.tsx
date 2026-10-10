@@ -17,16 +17,15 @@ import {
 } from '@repo/client/api-client/generated/schemas/createCuratedNodeCommand.zod';
 import { CreateSemanticCorrectionCommand } from '@repo/client/api-client/generated/schemas/createSemanticCorrectionCommand.zod';
 import type { GraphNode } from '@repo/client/api-client/generated/schemas/graphNode.zod';
-import { Input } from '@repo/client/rnr/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@repo/client/rnr/components/ui/select';
+import { Select, SelectContent } from '@repo/client/rnr/components/ui/select';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 import { DashboardQueryBoundary } from '@core/app/state/dashboard-query-state';
+import { DashboardInput } from '@core/app/ui/dashboard-input';
+import {
+  DashboardSelectItem,
+  DashboardSelectTrigger,
+  DashboardSelectValue,
+} from '@core/app/ui/dashboard-select';
 import {
   GraphDialogFooter,
   GraphDialogFrame,
@@ -238,9 +237,9 @@ function GraphNodeForm({
     <>
       <View className="gap-4">
         <GraphFormField label="노드 고유 ID">
-          <Input
+          <DashboardInput
             accessibilityLabel="노드 고유 ID"
-            className="h-9 font-mono text-xs md:text-xs"
+            className="font-mono"
             editable={false}
             placeholder="저장하면 자동으로 만들어집니다"
             value={node?.id ?? ''}
@@ -248,10 +247,9 @@ function GraphNodeForm({
         </GraphFormField>
 
         <GraphFormField error={titleError} label="표시 라벨 (Name/Title)">
-          <Input
+          <DashboardInput
             accessibilityLabel="표시 라벨"
             autoFocus
-            className="h-9 text-xs md:text-xs"
             editable={!busy}
             maxLength={TITLE_MAX_LENGTH}
             onChangeText={setTitleValue}
@@ -273,21 +271,21 @@ function GraphNodeForm({
               }}
               value={{ value: kind, label: kindLabel(kind) }}
             >
-              <SelectTrigger
+              <DashboardSelectTrigger
                 accessibilityLabel="엔티티 유형 선택"
-                className="h-9 w-full"
+                className="w-full"
               >
-                <SelectValue className="text-xs" placeholder="유형 선택" />
-              </SelectTrigger>
+                <DashboardSelectValue placeholder="유형 선택" />
+              </DashboardSelectTrigger>
               <SelectContent align="start" side="bottom">
                 {CURATED_NODE_KINDS.map((candidate) => (
-                  <SelectItem
+                  <DashboardSelectItem
                     key={candidate}
                     label={kindLabel(candidate)}
                     value={candidate}
                   >
                     {kindLabel(candidate)}
-                  </SelectItem>
+                  </DashboardSelectItem>
                 ))}
               </SelectContent>
             </Select>

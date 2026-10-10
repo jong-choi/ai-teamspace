@@ -16,12 +16,12 @@ import {
   DialogTitle,
 } from '@repo/client/rnr/components/ui/dialog';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
-import { Input } from '@repo/client/rnr/components/ui/input';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
 import { useMutationErrorNotification } from '@core/app/error/use-mutation-error-notification';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 import { DashboardQueryBoundary } from '@core/app/state/dashboard-query-state';
+import { DashboardInput } from '@core/app/ui/dashboard-input';
 import { DIALOG_WIDTH } from '@core/app/ui/dialog-width';
 import {
   OrganizationMemberAvatar,
@@ -183,7 +183,7 @@ export function ChatCreateConversationDialog({
           <View className="z-10 gap-3">
             <View className="gap-1.5">
               <Text className="text-xs font-medium">채널 이름</Text>
-              <Input
+              <DashboardInput
                 editable={!pending}
                 onChangeText={setName}
                 placeholder="예: frontend-release"
@@ -192,7 +192,7 @@ export function ChatCreateConversationDialog({
             </View>
             <View className="gap-1.5">
               <Text className="text-xs font-medium">채널 설명</Text>
-              <Input
+              <DashboardInput
                 editable={!pending}
                 onChangeText={setTopic}
                 placeholder="채널의 목적과 논의 주제"
@@ -346,10 +346,9 @@ function UsernameOnlyInput({
 }: ParticipantSearchProps) {
   const [username, setUsername] = useState('');
   return (
-    <Input
+    <DashboardInput
       accessibilityLabel={accessibilityLabel}
       autoCapitalize="none"
-      className="h-8 text-xs md:text-xs"
       editable={!disabled}
       onChangeText={setUsername}
       onSubmitEditing={() => {

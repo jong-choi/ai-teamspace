@@ -6,9 +6,9 @@ import type { AgentMcpConnection } from '@repo/client/api-client/schemas';
 import { CreateAgentMcpConnection } from '@repo/client/api-client/schemas';
 import { Button } from '@repo/client/rnr/components/ui/button';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
-import { Input } from '@repo/client/rnr/components/ui/input';
 import { Label } from '@repo/client/rnr/components/ui/label';
 import { Text } from '@repo/client/rnr/components/ui/text';
+import { DashboardInput } from '@core/app/ui/dashboard-input';
 import {
   agentIntegrationErrorMessage,
   useAgentIntegrationMutations,
@@ -144,9 +144,8 @@ export function CreateAgentIntegrationForm({
             >
               이름
             </Label>
-            <Input
+            <DashboardInput
               accessibilityLabel="MCP 이름"
-              className="h-9 text-xs md:text-xs"
               aria-invalid={fieldState.invalid}
               editable={!pending}
               maxLength={100}
@@ -169,9 +168,8 @@ export function CreateAgentIntegrationForm({
             <Label className="text-xs" nativeID="agent-integration-endpoint">
               MCP 주소
             </Label>
-            <Input
+            <DashboardInput
               accessibilityLabel="MCP 주소"
-              className="h-9 text-xs md:text-xs"
               aria-invalid={fieldState.invalid}
               autoCapitalize="none"
               autoComplete="off"
@@ -223,12 +221,12 @@ export function CreateAgentIntegrationForm({
                 Bearer token
               </Label>
               <View className="relative">
-                <Input
+                <DashboardInput
                   accessibilityLabel="MCP Bearer token"
                   aria-invalid={fieldState.invalid}
                   autoCapitalize="none"
                   autoComplete="off"
-                  className="h-9 pr-11 text-xs md:text-xs"
+                  className="pr-11"
                   editable={!pending}
                   maxLength={16_384}
                   onBlur={field.onBlur}

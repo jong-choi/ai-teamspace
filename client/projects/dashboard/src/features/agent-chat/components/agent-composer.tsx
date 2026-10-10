@@ -3,16 +3,15 @@ import { ActivityIndicator, View } from 'react-native';
 
 import { Button } from '@repo/client/rnr/components/ui/button';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@repo/client/rnr/components/ui/select';
+import { Select, SelectContent } from '@repo/client/rnr/components/ui/select';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { Textarea } from '@repo/client/rnr/components/ui/textarea';
 import { cn } from '@repo/client/rnr/lib/utils';
+import {
+  DashboardSelectItem,
+  DashboardSelectTrigger,
+  DashboardSelectValue,
+} from '@core/app/ui/dashboard-select';
 import { agentComposerSubmitsOnEnter } from '@core/features/agent-chat/components/agent-composer-key-handler';
 import {
   AGENT_CHAT_QUEUE_LIMIT,
@@ -204,7 +203,7 @@ export function AgentComposer({
               value: reasoning.value,
             }}
           >
-            <SelectTrigger
+            <DashboardSelectTrigger
               accessibilityLabel="추론 수준 선택"
               className="h-7 gap-1 border-transparent bg-transparent px-2 shadow-none dark:bg-transparent"
               size="sm"
@@ -215,22 +214,22 @@ export function AgentComposer({
                   as={Brain}
                   className="size-3.5 text-muted-foreground"
                 />
-                <SelectValue
-                  className="text-xs text-muted-foreground"
+                <DashboardSelectValue
+                  className="text-muted-foreground"
                   placeholder="추론 수준"
                 />
               </View>
-            </SelectTrigger>
+            </DashboardSelectTrigger>
             <SelectContent align="start">
               {reasoning.options.map((value) => (
-                <SelectItem
+                <DashboardSelectItem
                   key={value}
                   label={reasoningLabels[value]}
                   textClassName="text-xs text-muted-foreground"
                   value={value}
                 >
                   {reasoningLabels[value]}
-                </SelectItem>
+                </DashboardSelectItem>
               ))}
             </SelectContent>
           </Select>

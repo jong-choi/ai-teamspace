@@ -7,9 +7,9 @@ import {
   useOrganizationsControllerCreate,
 } from '@repo/client/api-client';
 import { OrganizationsControllerCreateBody } from '@repo/client/api-client/schemas';
-import { Input } from '@repo/client/rnr/components/ui/input';
 import { Label } from '@repo/client/rnr/components/ui/label';
 import { Text } from '@repo/client/rnr/components/ui/text';
+import { DashboardInput } from '@core/app/ui/dashboard-input';
 
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -82,7 +82,7 @@ export function OrganizationCreateFields({
         render={({ field, fieldState }) => (
           <View className="gap-1.5">
             <Label nativeID="organization-create-name">조직 이름</Label>
-            <Input
+            <DashboardInput
               accessibilityLabel="조직 이름"
               aria-invalid={fieldState.invalid}
               autoFocus={autoFocus}
@@ -116,7 +116,7 @@ export function OrganizationCreateFields({
         render={({ field, fieldState }) => (
           <View className="gap-1.5">
             <Label nativeID="organization-create-slug">조직 주소</Label>
-            <Input
+            <DashboardInput
               accessibilityLabel="조직 주소"
               aria-invalid={fieldState.invalid}
               autoCapitalize="none"

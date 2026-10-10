@@ -14,16 +14,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@repo/client/rnr/components/ui/dialog';
-import { Input } from '@repo/client/rnr/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@repo/client/rnr/components/ui/select';
+import { Select, SelectContent } from '@repo/client/rnr/components/ui/select';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
+import { DashboardInput } from '@core/app/ui/dashboard-input';
+import {
+  DashboardSelectItem,
+  DashboardSelectTrigger,
+  DashboardSelectValue,
+} from '@core/app/ui/dashboard-select';
 import { DIALOG_WIDTH } from '@core/app/ui/dialog-width';
 import { TicketDescriptionInput } from '@core/features/projects/components/ticket-description-input';
 import { getProjectColumnPresentation } from '@core/features/projects/lib/project-column-presentation';
@@ -121,9 +120,8 @@ export function CreateTicketDialog({
         <View className="gap-4 px-6 py-5">
           <View className="gap-1.5">
             <Text className="text-xs font-medium">제목</Text>
-            <Input
+            <DashboardInput
               accessibilityLabel="이슈 제목"
-              className="h-9 text-xs"
               editable={!mutation.isPending}
               onChangeText={setTitle}
               placeholder="구체적인 작업 제목"
@@ -157,25 +155,22 @@ export function CreateTicketDialog({
                     : undefined
                 }
               >
-                <SelectTrigger
-                  accessibilityLabel="이슈 상태 선택"
-                  className="h-9"
-                >
-                  <SelectValue placeholder="상태 선택" />
-                </SelectTrigger>
+                <DashboardSelectTrigger accessibilityLabel="이슈 상태 선택">
+                  <DashboardSelectValue placeholder="상태 선택" />
+                </DashboardSelectTrigger>
                 <SelectContent align="start" side="bottom">
                   {columns.map((column) => {
                     const presentation = getProjectColumnPresentation(
                       column.name,
                     );
                     return (
-                      <SelectItem
+                      <DashboardSelectItem
                         key={column.id}
                         label={presentation.label}
                         value={column.id}
                       >
                         {presentation.label}
-                      </SelectItem>
+                      </DashboardSelectItem>
                     );
                   })}
                 </SelectContent>
@@ -194,21 +189,18 @@ export function CreateTicketDialog({
                 }}
                 value={selectedPriority}
               >
-                <SelectTrigger
-                  accessibilityLabel="이슈 우선순위 선택"
-                  className="h-9"
-                >
-                  <SelectValue placeholder="우선순위" />
-                </SelectTrigger>
+                <DashboardSelectTrigger accessibilityLabel="이슈 우선순위 선택">
+                  <DashboardSelectValue placeholder="우선순위" />
+                </DashboardSelectTrigger>
                 <SelectContent align="start" side="bottom">
                   {TICKET_PRIORITY_OPTIONS.map((item) => (
-                    <SelectItem
+                    <DashboardSelectItem
                       key={item.value}
                       label={item.label}
                       value={item.value}
                     >
                       {item.label}
-                    </SelectItem>
+                    </DashboardSelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -232,24 +224,21 @@ export function CreateTicketDialog({
                   : { label: '담당자 미지정', value: NO_ASSIGNEE }
               }
             >
-              <SelectTrigger
-                accessibilityLabel="이슈 담당자 선택"
-                className="h-9"
-              >
-                <SelectValue placeholder="담당자 선택" />
-              </SelectTrigger>
+              <DashboardSelectTrigger accessibilityLabel="이슈 담당자 선택">
+                <DashboardSelectValue placeholder="담당자 선택" />
+              </DashboardSelectTrigger>
               <SelectContent align="start" side="bottom">
-                <SelectItem label="담당자 미지정" value={NO_ASSIGNEE}>
+                <DashboardSelectItem label="담당자 미지정" value={NO_ASSIGNEE}>
                   담당자 미지정
-                </SelectItem>
+                </DashboardSelectItem>
                 {members.map((member) => (
-                  <SelectItem
+                  <DashboardSelectItem
                     key={member.userId}
                     label={member.user.name}
                     value={member.userId}
                   >
                     {member.user.name}
-                  </SelectItem>
+                  </DashboardSelectItem>
                 ))}
               </SelectContent>
             </Select>

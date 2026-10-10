@@ -21,10 +21,10 @@ import {
   DialogTitle,
 } from '@repo/client/rnr/components/ui/dialog';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
-import { Input } from '@repo/client/rnr/components/ui/input';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 import { DashboardQueryBoundary } from '@core/app/state/dashboard-query-state';
+import { DashboardInput } from '@core/app/ui/dashboard-input';
 import { TicketChecklistSection } from '@core/features/projects/components/ticket-checklist-section';
 import { TicketCommentsSection } from '@core/features/projects/components/ticket-comments-section';
 import { TicketMarkdownEditor } from '@core/features/projects/components/ticket-markdown-editor';
@@ -185,7 +185,7 @@ function TicketDetailContent({
         >
           <View className="gap-6 md:flex-row md:items-start">
             <View className="min-w-0 flex-1 gap-5">
-              <Input
+              <DashboardInput
                 accessibilityLabel="이슈 제목"
                 className="h-10 rounded-none border-0 border-b border-transparent bg-transparent px-0 py-1 text-base font-bold shadow-none web:hover:border-border web:focus-visible:border-muted-foreground web:focus-visible:ring-0"
                 editable={!ticketDisabled}

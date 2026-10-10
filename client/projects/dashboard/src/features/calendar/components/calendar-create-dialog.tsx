@@ -20,17 +20,16 @@ import {
   DialogTitle,
 } from '@repo/client/rnr/components/ui/dialog';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
-import { Input } from '@repo/client/rnr/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@repo/client/rnr/components/ui/select';
+import { Select, SelectContent } from '@repo/client/rnr/components/ui/select';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
+import { DashboardInput } from '@core/app/ui/dashboard-input';
+import {
+  DashboardSelectItem,
+  DashboardSelectTrigger,
+  DashboardSelectValue,
+} from '@core/app/ui/dashboard-select';
 import { DIALOG_WIDTH } from '@core/app/ui/dialog-width';
 import { useCalendarAvailabilityPreview } from '@core/features/calendar/calendar-availability-mutations';
 import { useCreateCalendarMeeting } from '@core/features/calendar/calendar-scheduling-mutations';
@@ -285,8 +284,7 @@ export function CalendarCreateDialog({
         >
           <View className="gap-4 pr-1">
             <Field label="회의 제목 *">
-              <Input
-                className="h-9 text-xs"
+              <DashboardInput
                 onChangeText={setTitle}
                 placeholder="예: 제품 주간 싱크"
                 value={title}
@@ -307,18 +305,18 @@ export function CalendarCreateDialog({
                       value: category,
                     }}
                   >
-                    <SelectTrigger className="w-full" size="sm">
-                      <SelectValue placeholder="카테고리" />
-                    </SelectTrigger>
+                    <DashboardSelectTrigger className="w-full" size="sm">
+                      <DashboardSelectValue placeholder="카테고리" />
+                    </DashboardSelectTrigger>
                     <SelectContent side="bottom">
                       {CALENDAR_CATEGORIES.map((item) => (
-                        <SelectItem
+                        <DashboardSelectItem
                           key={item}
                           label={CALENDAR_CATEGORY_META[item].label}
                           value={item}
                         >
                           {CALENDAR_CATEGORY_META[item].label}
-                        </SelectItem>
+                        </DashboardSelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -326,8 +324,7 @@ export function CalendarCreateDialog({
               </View>
               <View className="flex-1">
                 <Field label="연계 프로젝트">
-                  <Input
-                    className="h-9 text-xs"
+                  <DashboardInput
                     editable={false}
                     placeholder="프로젝트 연결 사용 불가"
                   />
@@ -338,8 +335,8 @@ export function CalendarCreateDialog({
             <View className="gap-3 sm:flex-row">
               <View className="flex-1">
                 <Field label="날짜 *">
-                  <Input
-                    className="h-9 font-mono text-xs"
+                  <DashboardInput
+                    className="font-mono"
                     onChangeText={setDateKey}
                     value={dateKey}
                   />
@@ -347,8 +344,8 @@ export function CalendarCreateDialog({
               </View>
               <View className="flex-1">
                 <Field label="시작 시간">
-                  <Input
-                    className="h-9 font-mono text-xs"
+                  <DashboardInput
+                    className="font-mono"
                     onChangeText={setStartTime}
                     value={startTime}
                   />
@@ -356,8 +353,8 @@ export function CalendarCreateDialog({
               </View>
               <View className="flex-1">
                 <Field label="종료 시간">
-                  <Input
-                    className="h-9 font-mono text-xs"
+                  <DashboardInput
+                    className="font-mono"
                     onChangeText={setEndTime}
                     value={endTime}
                   />
@@ -366,8 +363,8 @@ export function CalendarCreateDialog({
             </View>
 
             <Field label="Timezone">
-              <Input
-                className="h-9 font-mono text-xs"
+              <DashboardInput
+                className="font-mono"
                 onChangeText={setMeetingTimeZone}
                 value={meetingTimeZone}
               />
@@ -391,18 +388,18 @@ export function CalendarCreateDialog({
                       value: locationType,
                     }}
                   >
-                    <SelectTrigger className="w-full" size="sm">
-                      <SelectValue placeholder="장소 유형" />
-                    </SelectTrigger>
+                    <DashboardSelectTrigger className="w-full" size="sm">
+                      <DashboardSelectValue placeholder="장소 유형" />
+                    </DashboardSelectTrigger>
                     <SelectContent side="bottom">
                       {locationOptions.map((item) => (
-                        <SelectItem
+                        <DashboardSelectItem
                           key={item.value}
                           label={item.label}
                           value={item.value}
                         >
                           {item.label}
-                        </SelectItem>
+                        </DashboardSelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -427,18 +424,18 @@ export function CalendarCreateDialog({
                           : undefined
                       }
                     >
-                      <SelectTrigger className="w-full" size="sm">
-                        <SelectValue placeholder="회의실 선택" />
-                      </SelectTrigger>
+                      <DashboardSelectTrigger className="w-full" size="sm">
+                        <DashboardSelectValue placeholder="회의실 선택" />
+                      </DashboardSelectTrigger>
                       <SelectContent side="bottom">
                         {activeRooms.map((room) => (
-                          <SelectItem
+                          <DashboardSelectItem
                             key={room.id}
                             label={room.name}
                             value={room.id}
                           >
                             {room.name} · {room.capacity}인
-                          </SelectItem>
+                          </DashboardSelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -447,8 +444,7 @@ export function CalendarCreateDialog({
               ) : locationType === 'other' ? (
                 <View className="flex-1">
                   <Field label="장소">
-                    <Input
-                      className="h-9 text-xs"
+                    <DashboardInput
                       onChangeText={setLocationText}
                       placeholder="장소 또는 주소"
                       value={locationText}
@@ -516,18 +512,18 @@ export function CalendarCreateDialog({
                         }
                   }
                 >
-                  <SelectTrigger className="w-full" size="sm">
-                    <SelectValue placeholder="알림" />
-                  </SelectTrigger>
+                  <DashboardSelectTrigger className="w-full" size="sm">
+                    <DashboardSelectValue placeholder="알림" />
+                  </DashboardSelectTrigger>
                   <SelectContent side="bottom">
                     {reminderOptions.map((option) => (
-                      <SelectItem
+                      <DashboardSelectItem
                         key={option.value}
                         label={option.label}
                         value={option.value}
                       >
                         {option.label}
-                      </SelectItem>
+                      </DashboardSelectItem>
                     ))}
                   </SelectContent>
                 </Select>

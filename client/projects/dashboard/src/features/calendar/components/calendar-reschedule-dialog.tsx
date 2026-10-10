@@ -19,17 +19,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@repo/client/rnr/components/ui/dialog';
-import { Input } from '@repo/client/rnr/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@repo/client/rnr/components/ui/select';
+import { Select, SelectContent } from '@repo/client/rnr/components/ui/select';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
+import { DashboardInput } from '@core/app/ui/dashboard-input';
+import {
+  DashboardSelectItem,
+  DashboardSelectTrigger,
+  DashboardSelectValue,
+} from '@core/app/ui/dashboard-select';
 import { DIALOG_WIDTH } from '@core/app/ui/dialog-width';
 import { useCalendarRescheduleAvailabilityPreview } from '@core/features/calendar/calendar-availability-mutations';
 import { useRescheduleCalendarMeeting } from '@core/features/calendar/calendar-scheduling-mutations';
@@ -220,22 +219,22 @@ export function CalendarRescheduleDialog({
           <View className="gap-4 pr-1">
             <View className="gap-3 sm:flex-row">
               <Field label="날짜">
-                <Input
-                  className="h-9 font-mono text-xs"
+                <DashboardInput
+                  className="font-mono"
                   onChangeText={setDateKey}
                   value={dateKey}
                 />
               </Field>
               <Field label="시작">
-                <Input
-                  className="h-9 font-mono text-xs"
+                <DashboardInput
+                  className="font-mono"
                   onChangeText={setStartTime}
                   value={startTime}
                 />
               </Field>
               <Field label="종료">
-                <Input
-                  className="h-9 font-mono text-xs"
+                <DashboardInput
+                  className="font-mono"
                   onChangeText={setEndTime}
                   value={endTime}
                 />
@@ -243,8 +242,8 @@ export function CalendarRescheduleDialog({
             </View>
 
             <Field label="Timezone">
-              <Input
-                className="h-9 font-mono text-xs"
+              <DashboardInput
+                className="font-mono"
                 onChangeText={setTimeZone}
                 value={timeZone}
               />
@@ -268,18 +267,18 @@ export function CalendarRescheduleDialog({
                       value: locationType,
                     }}
                   >
-                    <SelectTrigger className="w-full" size="sm">
-                      <SelectValue placeholder="장소 유형" />
-                    </SelectTrigger>
+                    <DashboardSelectTrigger className="w-full" size="sm">
+                      <DashboardSelectValue placeholder="장소 유형" />
+                    </DashboardSelectTrigger>
                     <SelectContent side="bottom">
                       {locationOptions.map((item) => (
-                        <SelectItem
+                        <DashboardSelectItem
                           key={item.value}
                           label={item.label}
                           value={item.value}
                         >
                           {item.label}
-                        </SelectItem>
+                        </DashboardSelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -306,18 +305,18 @@ export function CalendarRescheduleDialog({
                           : undefined
                       }
                     >
-                      <SelectTrigger className="w-full" size="sm">
-                        <SelectValue placeholder="회의실 선택" />
-                      </SelectTrigger>
+                      <DashboardSelectTrigger className="w-full" size="sm">
+                        <DashboardSelectValue placeholder="회의실 선택" />
+                      </DashboardSelectTrigger>
                       <SelectContent side="bottom">
                         {activeRooms.map((room) => (
-                          <SelectItem
+                          <DashboardSelectItem
                             key={room.id}
                             label={room.name}
                             value={room.id}
                           >
                             {room.name} · {room.capacity}인
-                          </SelectItem>
+                          </DashboardSelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -326,8 +325,7 @@ export function CalendarRescheduleDialog({
               ) : locationType === 'other' ? (
                 <View className="flex-1">
                   <Field label="장소">
-                    <Input
-                      className="h-9 text-xs"
+                    <DashboardInput
                       onChangeText={setLocationText}
                       placeholder="장소 또는 주소"
                       value={locationText}
@@ -353,18 +351,18 @@ export function CalendarRescheduleDialog({
                   }}
                   value={{ label: rescheduleScopeLabel(scope), value: scope }}
                 >
-                  <SelectTrigger className="w-full" size="sm">
-                    <SelectValue placeholder="변경 범위" />
-                  </SelectTrigger>
+                  <DashboardSelectTrigger className="w-full" size="sm">
+                    <DashboardSelectValue placeholder="변경 범위" />
+                  </DashboardSelectTrigger>
                   <SelectContent side="bottom">
                     {rescheduleScopes.map((item) => (
-                      <SelectItem
+                      <DashboardSelectItem
                         key={item}
                         label={rescheduleScopeLabel(item)}
                         value={item}
                       >
                         {rescheduleScopeLabel(item)}
-                      </SelectItem>
+                      </DashboardSelectItem>
                     ))}
                   </SelectContent>
                 </Select>

@@ -1,15 +1,14 @@
 import { useRef, useState } from 'react';
 import { View } from 'react-native';
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@repo/client/rnr/components/ui/select';
+import { Select, SelectContent } from '@repo/client/rnr/components/ui/select';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { DashboardSearchInput } from '@core/app/ui/dashboard-search-input';
+import {
+  DashboardSelectItem,
+  DashboardSelectTrigger,
+  DashboardSelectValue,
+} from '@core/app/ui/dashboard-select';
 import { GRAPH_NODE_KIND_META } from '@core/features/knowledge-graph/lib/graph-presentation';
 import {
   GRAPH_EDGE_RELATIONS,
@@ -75,25 +74,24 @@ export function GraphDataFilterBar({
                   : kindOptionLabel(params.kind),
             }}
           >
-            <SelectTrigger
+            <DashboardSelectTrigger
               accessibilityLabel="카테고리 필터"
-              className="sm:h-8"
               size="sm"
             >
-              <SelectValue className="text-xs" placeholder="전체 카테고리" />
-            </SelectTrigger>
+              <DashboardSelectValue placeholder="전체 카테고리" />
+            </DashboardSelectTrigger>
             <SelectContent align="start" side="bottom">
-              <SelectItem label="전체 카테고리" value={ALL}>
+              <DashboardSelectItem label="전체 카테고리" value={ALL}>
                 전체 카테고리
-              </SelectItem>
+              </DashboardSelectItem>
               {GRAPH_NODE_KINDS.map((kind) => (
-                <SelectItem
+                <DashboardSelectItem
                   key={kind}
                   label={kindOptionLabel(kind)}
                   value={kind}
                 >
                   {kindOptionLabel(kind)}
-                </SelectItem>
+                </DashboardSelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -112,21 +110,24 @@ export function GraphDataFilterBar({
               label: params.relation === ALL ? '전체 관계' : params.relation,
             }}
           >
-            <SelectTrigger
+            <DashboardSelectTrigger
               accessibilityLabel="관계 종류 필터"
-              className="sm:h-8"
               size="sm"
             >
-              <SelectValue className="text-xs" placeholder="전체 관계" />
-            </SelectTrigger>
+              <DashboardSelectValue placeholder="전체 관계" />
+            </DashboardSelectTrigger>
             <SelectContent align="start" side="bottom">
-              <SelectItem label="전체 관계" value={ALL}>
+              <DashboardSelectItem label="전체 관계" value={ALL}>
                 전체 관계
-              </SelectItem>
+              </DashboardSelectItem>
               {GRAPH_EDGE_RELATIONS.map((relation) => (
-                <SelectItem key={relation} label={relation} value={relation}>
+                <DashboardSelectItem
+                  key={relation}
+                  label={relation}
+                  value={relation}
+                >
                   {relation}
-                </SelectItem>
+                </DashboardSelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -146,18 +147,21 @@ export function GraphDataFilterBar({
             label: `${params.pageSize}개`,
           }}
         >
-          <SelectTrigger
+          <DashboardSelectTrigger
             accessibilityLabel="페이지당 항목 수"
-            className="sm:h-8"
             size="sm"
           >
-            <SelectValue className="text-xs" placeholder="10개" />
-          </SelectTrigger>
+            <DashboardSelectValue placeholder="10개" />
+          </DashboardSelectTrigger>
           <SelectContent align="end" side="bottom">
             {GRAPH_PAGE_SIZES.map((size) => (
-              <SelectItem key={size} label={`${size}개`} value={String(size)}>
+              <DashboardSelectItem
+                key={size}
+                label={`${size}개`}
+                value={String(size)}
+              >
                 {`${size}개`}
-              </SelectItem>
+              </DashboardSelectItem>
             ))}
           </SelectContent>
         </Select>

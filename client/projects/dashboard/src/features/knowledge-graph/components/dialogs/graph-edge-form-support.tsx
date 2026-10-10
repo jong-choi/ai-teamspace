@@ -2,13 +2,12 @@ import { CreateCuratedEdgeCommand } from '@repo/client/api-client/generated/sche
 import type { CuratedEndpointOptions } from '@repo/client/api-client/generated/schemas/curatedEndpointOptions.zod';
 import type { GraphEdge } from '@repo/client/api-client/generated/schemas/graphEdge.zod';
 import type { GraphNode } from '@repo/client/api-client/generated/schemas/graphNode.zod';
+import { Select, SelectContent } from '@repo/client/rnr/components/ui/select';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@repo/client/rnr/components/ui/select';
+  DashboardSelectItem,
+  DashboardSelectTrigger,
+  DashboardSelectValue,
+} from '@core/app/ui/dashboard-select';
 import { GraphFormField } from '@core/features/knowledge-graph/components/dialogs/graph-dialog-frame';
 import {
   formatPredicate,
@@ -48,21 +47,21 @@ export function GraphNodeSelectField({
             : undefined
         }
       >
-        <SelectTrigger
+        <DashboardSelectTrigger
           accessibilityLabel={`${label} 선택`}
-          className="h-9 w-full"
+          className="w-full"
         >
-          <SelectValue className="text-xs" placeholder="노드 선택" />
-        </SelectTrigger>
+          <DashboardSelectValue placeholder="노드 선택" />
+        </DashboardSelectTrigger>
         <SelectContent align="start" className="max-h-72" side="bottom">
           {options.map((option) => (
-            <SelectItem
+            <DashboardSelectItem
               key={`${option.kind}:${option.nodeId}`}
               label={nodeOptionLabel(option)}
               value={option.nodeId}
             >
               {nodeOptionLabel(option)}
-            </SelectItem>
+            </DashboardSelectItem>
           ))}
         </SelectContent>
       </Select>

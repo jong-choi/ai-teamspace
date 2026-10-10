@@ -19,15 +19,14 @@ import {
   type CreateCuratedEdgeCommand as CreateCuratedEdgeCommandValue,
 } from '@repo/client/api-client/generated/schemas/createCuratedEdgeCommand.zod';
 import type { GraphEdge } from '@repo/client/api-client/generated/schemas/graphEdge.zod';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@repo/client/rnr/components/ui/select';
+import { Select, SelectContent } from '@repo/client/rnr/components/ui/select';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 import { DashboardQueryBoundary } from '@core/app/state/dashboard-query-state';
+import {
+  DashboardSelectItem,
+  DashboardSelectTrigger,
+  DashboardSelectValue,
+} from '@core/app/ui/dashboard-select';
 import {
   GraphDialogFooter,
   GraphDialogFrame,
@@ -298,24 +297,24 @@ function GraphEdgeForm({
             }}
             value={{ value: predicate, label: predicateLabel(predicate) }}
           >
-            <SelectTrigger
+            <DashboardSelectTrigger
               accessibilityLabel="관계 서술어 선택"
-              className="h-9 w-full"
+              className="w-full"
             >
-              <SelectValue
-                className="font-mono text-xs"
+              <DashboardSelectValue
+                className="font-mono"
                 placeholder="서술어 선택"
               />
-            </SelectTrigger>
+            </DashboardSelectTrigger>
             <SelectContent align="start" side="bottom">
               {allowedPredicates.map((item) => (
-                <SelectItem
+                <DashboardSelectItem
                   key={item}
                   label={predicateLabel(item)}
                   value={item}
                 >
                   {predicateLabel(item)}
-                </SelectItem>
+                </DashboardSelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -347,22 +346,25 @@ function GraphEdgeForm({
                 : { value: UNDIRECTED, label: '방향 없음 (Source ↔ Target)' }
             }
           >
-            <SelectTrigger
+            <DashboardSelectTrigger
               accessibilityLabel="관계 방향 선택"
-              className="h-9 w-full"
+              className="w-full"
             >
-              <SelectValue className="text-xs" placeholder="방향 선택" />
-            </SelectTrigger>
+              <DashboardSelectValue placeholder="방향 선택" />
+            </DashboardSelectTrigger>
             <SelectContent align="start" side="bottom">
-              <SelectItem label="방향 있음 (Source → Target)" value={DIRECTED}>
+              <DashboardSelectItem
+                label="방향 있음 (Source → Target)"
+                value={DIRECTED}
+              >
                 방향 있음 (Source → Target)
-              </SelectItem>
-              <SelectItem
+              </DashboardSelectItem>
+              <DashboardSelectItem
                 label="방향 없음 (Source ↔ Target)"
                 value={UNDIRECTED}
               >
                 방향 없음 (Source ↔ Target)
-              </SelectItem>
+              </DashboardSelectItem>
             </SelectContent>
           </Select>
         </GraphFormField>

@@ -1,15 +1,14 @@
 import { Pressable, View } from 'react-native';
 
-import { Input } from '@repo/client/rnr/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@repo/client/rnr/components/ui/select';
+import { Select, SelectContent } from '@repo/client/rnr/components/ui/select';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
+import { DashboardInput } from '@core/app/ui/dashboard-input';
+import {
+  DashboardSelectItem,
+  DashboardSelectTrigger,
+  DashboardSelectValue,
+} from '@core/app/ui/dashboard-select';
 import {
   CALENDAR_RECURRENCE_FREQUENCIES,
   CALENDAR_RECURRENCE_WEEKDAYS,
@@ -73,26 +72,26 @@ export function CalendarRecurrenceFields({
                   value: value.frequency,
                 }}
               >
-                <SelectTrigger className="w-full" size="sm">
-                  <SelectValue placeholder="반복 주기" />
-                </SelectTrigger>
+                <DashboardSelectTrigger className="w-full" size="sm">
+                  <DashboardSelectValue placeholder="반복 주기" />
+                </DashboardSelectTrigger>
                 <SelectContent side="bottom">
                   {CALENDAR_RECURRENCE_FREQUENCIES.map((frequency) => (
-                    <SelectItem
+                    <DashboardSelectItem
                       key={frequency}
                       label={calendarRecurrenceFrequencyLabel(frequency)}
                       value={frequency}
                     >
                       {calendarRecurrenceFrequencyLabel(frequency)}
-                    </SelectItem>
+                    </DashboardSelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </View>
             <View className="w-full gap-1 sm:w-24">
               <Text className="text-2xs text-muted-foreground">간격</Text>
-              <Input
-                className="h-8 font-mono text-xs"
+              <DashboardInput
+                className="font-mono"
                 keyboardType="number-pad"
                 onChangeText={(interval) => onChange({ ...value, interval })}
                 value={value.interval}
@@ -152,16 +151,16 @@ export function CalendarRecurrenceFields({
                   value: value.endMode,
                 }}
               >
-                <SelectTrigger className="w-full" size="sm">
-                  <SelectValue placeholder="종료 방식" />
-                </SelectTrigger>
+                <DashboardSelectTrigger className="w-full" size="sm">
+                  <DashboardSelectValue placeholder="종료 방식" />
+                </DashboardSelectTrigger>
                 <SelectContent side="bottom">
-                  <SelectItem label="횟수" value="count">
+                  <DashboardSelectItem label="횟수" value="count">
                     횟수
-                  </SelectItem>
-                  <SelectItem label="날짜" value="until">
+                  </DashboardSelectItem>
+                  <DashboardSelectItem label="날짜" value="until">
                     날짜
-                  </SelectItem>
+                  </DashboardSelectItem>
                 </SelectContent>
               </Select>
             </View>
@@ -169,8 +168,8 @@ export function CalendarRecurrenceFields({
               <Text className="text-2xs text-muted-foreground">
                 {value.endMode === 'count' ? '전체 횟수' : '종료 날짜'}
               </Text>
-              <Input
-                className="h-8 font-mono text-xs"
+              <DashboardInput
+                className="font-mono"
                 keyboardType={
                   value.endMode === 'count' ? 'number-pad' : 'default'
                 }

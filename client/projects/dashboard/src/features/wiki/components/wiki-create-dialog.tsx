@@ -9,8 +9,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@repo/client/rnr/components/ui/dialog';
-import { Input } from '@repo/client/rnr/components/ui/input';
 import { Text } from '@repo/client/rnr/components/ui/text';
+import { DashboardInput } from '@core/app/ui/dashboard-input';
 import { DIALOG_WIDTH } from '@core/app/ui/dialog-width';
 import { useWikiMutations } from '@core/features/wiki/use-wiki-mutations';
 
@@ -63,7 +63,7 @@ export function WikiCreateDialog({
         </DialogHeader>
         <View className="gap-1.5">
           <Text className="text-xs font-medium">문서 이름</Text>
-          <Input
+          <DashboardInput
             autoFocus
             editable={!mutations.pending}
             onChangeText={setTitle}

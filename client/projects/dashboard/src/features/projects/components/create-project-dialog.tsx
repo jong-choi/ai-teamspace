@@ -11,16 +11,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@repo/client/rnr/components/ui/dialog';
-import { Input } from '@repo/client/rnr/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@repo/client/rnr/components/ui/select';
+import { Select, SelectContent } from '@repo/client/rnr/components/ui/select';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
+import { DashboardInput } from '@core/app/ui/dashboard-input';
+import {
+  DashboardSelectItem,
+  DashboardSelectTrigger,
+  DashboardSelectValue,
+} from '@core/app/ui/dashboard-select';
 import { DIALOG_WIDTH } from '@core/app/ui/dialog-width';
 import { useCreateProjectMutation } from '@core/features/projects/projects-mutations';
 
@@ -102,10 +101,10 @@ export function CreateProjectDialog({
           <View className="flex-row gap-3">
             <View className="w-28 gap-1.5">
               <Text className="text-xs font-medium">프로젝트 키</Text>
-              <Input
+              <DashboardInput
                 accessibilityLabel="프로젝트 키"
                 autoCapitalize="characters"
-                className="h-9 font-mono text-xs"
+                className="font-mono"
                 editable={!mutation.isPending}
                 maxLength={12}
                 onChangeText={(value) =>
@@ -117,9 +116,8 @@ export function CreateProjectDialog({
             </View>
             <View className="min-w-0 flex-1 gap-1.5">
               <Text className="text-xs font-medium">이름</Text>
-              <Input
+              <DashboardInput
                 accessibilityLabel="프로젝트 이름"
-                className="h-9 text-xs"
                 editable={!mutation.isPending}
                 onChangeText={setName}
                 placeholder="운영 시스템"
@@ -130,9 +128,9 @@ export function CreateProjectDialog({
 
           <View className="gap-1.5">
             <Text className="text-xs font-medium">설명</Text>
-            <Input
+            <DashboardInput
               accessibilityLabel="프로젝트 설명"
-              className="min-h-20 py-2 text-xs"
+              className="min-h-20 py-2"
               editable={!mutation.isPending}
               multiline
               onChangeText={setDescription}
@@ -155,24 +153,21 @@ export function CreateProjectDialog({
               }
               value={leadValue}
             >
-              <SelectTrigger
-                accessibilityLabel="프로젝트 리드 선택"
-                className="h-9"
-              >
-                <SelectValue placeholder="리드 선택" />
-              </SelectTrigger>
+              <DashboardSelectTrigger accessibilityLabel="프로젝트 리드 선택">
+                <DashboardSelectValue placeholder="리드 선택" />
+              </DashboardSelectTrigger>
               <SelectContent align="start" side="bottom">
-                <SelectItem label="리드 미지정" value={NO_LEAD}>
+                <DashboardSelectItem label="리드 미지정" value={NO_LEAD}>
                   리드 미지정
-                </SelectItem>
+                </DashboardSelectItem>
                 {members.map((member) => (
-                  <SelectItem
+                  <DashboardSelectItem
                     key={member.userId}
                     label={member.user.name}
                     value={member.userId}
                   >
                     {member.user.name}
-                  </SelectItem>
+                  </DashboardSelectItem>
                 ))}
               </SelectContent>
             </Select>

@@ -5,13 +5,13 @@ import { Link, Redirect, useRouter } from 'expo-router';
 
 import { Button } from '@repo/client/rnr/components/ui/button';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
-import { Input } from '@repo/client/rnr/components/ui/input';
 import { Label } from '@repo/client/rnr/components/ui/label';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import {
   type DashboardPlatformValue,
   useDashboardPlatform,
 } from '@core/app/platform/dashboard-platform';
+import { DashboardInput } from '@core/app/ui/dashboard-input';
 
 import { Eye, EyeOff } from 'lucide-react-native';
 
@@ -68,7 +68,7 @@ export function LoginRoute() {
           render={({ field, fieldState }) => (
             <View className="gap-1.5">
               <Label nativeID="login-email">이메일</Label>
-              <Input
+              <DashboardInput
                 accessibilityLabel="이메일"
                 aria-invalid={fieldState.invalid}
                 autoCapitalize="none"
@@ -93,7 +93,7 @@ export function LoginRoute() {
             <View className="gap-1.5">
               <Label nativeID="login-password">비밀번호</Label>
               <View className="relative">
-                <Input
+                <DashboardInput
                   accessibilityLabel="비밀번호"
                   aria-invalid={fieldState.invalid}
                   autoComplete="current-password"
@@ -194,7 +194,7 @@ export function SignupRoute() {
           render={({ field, fieldState }) => (
             <View className="gap-1.5">
               <Label nativeID="signup-name">이름</Label>
-              <Input
+              <DashboardInput
                 accessibilityLabel="이름"
                 aria-invalid={fieldState.invalid}
                 autoComplete="name"
@@ -222,7 +222,7 @@ export function SignupRoute() {
           render={({ field, fieldState }) => (
             <View className="gap-1.5">
               <Label nativeID="signup-username">사용자명</Label>
-              <Input
+              <DashboardInput
                 accessibilityLabel="사용자명"
                 aria-invalid={fieldState.invalid}
                 autoCapitalize="none"
@@ -252,7 +252,7 @@ export function SignupRoute() {
           render={({ field, fieldState }) => (
             <View className="gap-1.5">
               <Label nativeID="signup-email">이메일</Label>
-              <Input
+              <DashboardInput
                 accessibilityLabel="이메일"
                 aria-invalid={fieldState.invalid}
                 autoCapitalize="none"
@@ -287,7 +287,7 @@ export function SignupRoute() {
             <View className="gap-1.5">
               <Label nativeID="signup-password">비밀번호</Label>
               <View className="relative">
-                <Input
+                <DashboardInput
                   accessibilityLabel="비밀번호"
                   aria-invalid={fieldState.invalid}
                   autoComplete="new-password"
@@ -328,7 +328,7 @@ export function SignupRoute() {
             <View className="gap-1.5">
               <Label nativeID="signup-confirm-password">비밀번호 확인</Label>
               <View className="relative">
-                <Input
+                <DashboardInput
                   accessibilityLabel="비밀번호 확인"
                   aria-invalid={fieldState.invalid}
                   autoComplete="new-password"

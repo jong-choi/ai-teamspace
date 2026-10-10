@@ -152,13 +152,13 @@ function FilterChip({
     >
       <View
         className={cn(
-          'size-1.5 rounded-full bg-zinc-400',
+          'size-1.5 rounded-full bg-muted-foreground/50',
           category && CALENDAR_CATEGORY_META[category].dotClassName,
         )}
       />
       <Text
         className={cn(
-          'text-[10px] font-medium text-muted-foreground',
+          'text-2xs font-medium text-muted-foreground',
           active && 'text-background',
         )}
       >

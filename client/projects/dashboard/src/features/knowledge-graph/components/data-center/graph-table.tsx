@@ -34,7 +34,7 @@ export function GraphTable({
               <View className={cn('p-3.5', column.className)} key={column.key}>
                 <Text
                   className={cn(
-                    'font-mono text-[11px] font-medium text-muted-foreground',
+                    'font-mono text-xs font-medium text-muted-foreground',
                     column.align === 'right' && 'text-right',
                   )}
                 >
@@ -92,7 +92,7 @@ export function GraphTableTitleButton({
       <Text
         className={cn(
           'text-xs web:hover:underline',
-          mono ? 'font-mono text-[11px]' : 'font-semibold',
+          mono ? 'font-mono text-xs' : 'font-semibold',
         )}
         numberOfLines={1}
       >

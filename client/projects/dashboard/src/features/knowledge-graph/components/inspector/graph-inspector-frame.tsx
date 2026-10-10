@@ -33,7 +33,7 @@ export function GraphInspectorFrame({
             headerClassName,
           )}
         >
-          <Text className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+          <Text className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
             엔티티 인스펙터
           </Text>
           <GraphMetaBadge label={badge} />
@@ -105,7 +105,7 @@ export function GraphInspectorTitle({
   return (
     <View className="gap-1">
       <Text
-        className="font-mono text-[10px] uppercase text-muted-foreground"
+        className="font-mono text-2xs uppercase text-muted-foreground"
         selectable
       >
         ID: {id}
@@ -133,12 +133,10 @@ export function GraphInspectorField({
 }) {
   return (
     <View className="flex-row items-center justify-between gap-3">
-      <Text className="font-mono text-[11px] text-muted-foreground">
-        {label}
-      </Text>
+      <Text className="font-mono text-xs text-muted-foreground">{label}</Text>
       <View className="min-w-0 shrink flex-row flex-wrap items-center justify-end gap-1">
         {typeof children === 'string' || typeof children === 'number' ? (
-          <Text className="text-right font-mono text-[11px]" numberOfLines={2}>
+          <Text className="text-right font-mono text-xs" numberOfLines={2}>
             {children}
           </Text>
         ) : (

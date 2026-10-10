@@ -184,7 +184,7 @@ export function TicketMetadataPanel({
 
         <MetadataField label="보고자">
           <Text className="text-xs font-medium">{detail.reporter.name}</Text>
-          <Text className="text-[10px] text-muted-foreground" numberOfLines={1}>
+          <Text className="text-2xs text-muted-foreground" numberOfLines={1}>
             {detail.reporter.email}
           </Text>
         </MetadataField>
@@ -192,7 +192,7 @@ export function TicketMetadataPanel({
         <MetadataField label="마감일">
           <Input
             accessibilityLabel="마감일 변경"
-            className="h-8 font-mono text-[11px]"
+            className="h-8 font-mono text-xs"
             editable={!fieldDisabled}
             onBlur={() => {
               const nextDueAt = parseTicketDueDateInput(dueDateDraft);
@@ -222,7 +222,7 @@ export function TicketMetadataPanel({
             value={dueDateDraft}
           />
           {dueDateError ? (
-            <Text className="text-[10px] leading-4 text-destructive">
+            <Text className="text-2xs leading-4 text-destructive">
               {dueDateError}
             </Text>
           ) : null}
@@ -230,11 +230,9 @@ export function TicketMetadataPanel({
       </View>
 
       <View className="gap-2 border-t border-border/80 pt-3">
-        <Text className="text-[11px] font-medium text-muted-foreground">
-          라벨
-        </Text>
+        <Text className="text-xs font-medium text-muted-foreground">라벨</Text>
         {allLabels.length === 0 ? (
-          <Text className="text-[10px] leading-4 text-muted-foreground">
+          <Text className="text-2xs leading-4 text-muted-foreground">
             이 Project에 등록된 라벨이 없습니다.
           </Text>
         ) : (
@@ -260,10 +258,7 @@ export function TicketMetadataPanel({
                   }
                 >
                   <Text
-                    className={cn(
-                      'text-[10px] font-medium',
-                      classes.foreground,
-                    )}
+                    className={cn('text-2xs font-medium', classes.foreground)}
                   >
                     {label.name}
                   </Text>
@@ -286,9 +281,7 @@ function MetadataField({
 }) {
   return (
     <View className="gap-1.5">
-      <Text className="text-[11px] font-medium text-muted-foreground">
-        {label}
-      </Text>
+      <Text className="text-xs font-medium text-muted-foreground">{label}</Text>
       {children}
     </View>
   );

@@ -134,7 +134,7 @@ function TreeSurface({
   return (
     <View className="min-h-0 flex-1">
       <View className="h-11 shrink-0 flex-row items-center justify-between border-b border-border px-3">
-        <Text className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <Text className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           위키 탐색기
         </Text>
         <View className="flex-row items-center gap-0.5">

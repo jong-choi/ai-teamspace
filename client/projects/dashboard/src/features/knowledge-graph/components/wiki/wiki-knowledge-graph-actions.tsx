@@ -51,7 +51,7 @@ export function WikiKnowledgeGraphActions({
               variant="ghost"
             >
               <Icon as={RefreshCw} className="size-4 text-destructive" />
-              <Text className="hidden text-[11px] text-destructive sm:flex">
+              <Text className="hidden text-xs text-destructive sm:flex">
                 상태 확인 실패
               </Text>
             </Button>
@@ -208,7 +208,7 @@ function WikiKnowledgeGraphRefreshButton({
       {label ? (
         <Text
           className={cn(
-            'hidden text-[11px] sm:flex',
+            'hidden text-xs sm:flex',
             tone === 'error' ? 'text-destructive' : 'text-muted-foreground',
           )}
         >

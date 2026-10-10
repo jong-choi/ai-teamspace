@@ -176,7 +176,7 @@ function EmptyMemberRows() {
   return (
     <View className="min-h-40 items-center justify-center px-6 py-10">
       <Text className="text-xs font-medium">표시할 멤버가 없습니다</Text>
-      <Text className="mt-1 text-[11px] text-muted-foreground">
+      <Text className="mt-1 text-xs text-muted-foreground">
         등록 멤버 검색이나 역할 필터를 변경해 보세요.
       </Text>
     </View>
@@ -205,7 +205,7 @@ function HeaderCell({
 }) {
   return (
     <View className={className}>
-      <Text className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+      <Text className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         {label}
       </Text>
     </View>

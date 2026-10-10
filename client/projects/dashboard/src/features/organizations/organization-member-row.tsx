@@ -53,7 +53,7 @@ export function OrganizationMemberRow({
             <AvatarImage source={{ uri: member.user.image }} />
           ) : null}
           <AvatarFallback>
-            <Text className="text-[11px] font-semibold text-muted-foreground">
+            <Text className="text-xs font-semibold text-muted-foreground">
               {getInitials(member.user.name)}
             </Text>
           </AvatarFallback>
@@ -62,10 +62,10 @@ export function OrganizationMemberRow({
           <Text className="truncate text-xs font-semibold">
             {member.user.name}
           </Text>
-          <Text className="truncate text-[11px] text-muted-foreground">
+          <Text className="truncate text-xs text-muted-foreground">
             {member.user.email}
           </Text>
-          <Text className="mt-0.5 text-[10px] text-muted-foreground/80">
+          <Text className="mt-0.5 text-2xs text-muted-foreground/80">
             가입 {formatJoinedAt(member.createdAt)}
           </Text>
         </View>
@@ -81,7 +81,7 @@ export function OrganizationMemberRow({
           />
         ) : (
           <View className="self-start rounded-md border border-border bg-muted/70 px-2 py-1">
-            <Text className="text-[11px] font-medium">
+            <Text className="text-xs font-medium">
               {getOrganizationMemberRoleLabel(member.role)}
             </Text>
           </View>

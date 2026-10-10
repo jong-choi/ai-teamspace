@@ -80,7 +80,7 @@ export function CalendarMeetingAgenda({
               as={editing ? Save : Pencil}
               className="size-3 text-emerald-500"
             />
-            <Text className="text-[10px] font-medium text-emerald-500">
+            <Text className="text-2xs font-medium text-emerald-500">
               {editing ? '저장하기' : '수정'}
             </Text>
           </Pressable>
@@ -139,7 +139,7 @@ export function CalendarMeetingNotes({
             onPress={() => void save()}
           >
             <Icon as={Save} className="size-3 text-emerald-500" />
-            <Text className="text-[10px] font-medium text-emerald-500">
+            <Text className="text-2xs font-medium text-emerald-500">
               저장하기
             </Text>
           </Pressable>
@@ -185,7 +185,7 @@ export function CalendarMeetingReminder({
     <View className="flex-row items-center justify-between gap-3 rounded-lg border border-border px-3 py-2.5">
       <View className="min-w-0 flex-1">
         <Text className="text-xs font-semibold">회의 알림</Text>
-        <Text className="text-[10px] text-muted-foreground">
+        <Text className="text-2xs text-muted-foreground">
           설정 저장 상태이며 실제 알림 전송 완료를 의미하지 않습니다.
         </Text>
       </View>

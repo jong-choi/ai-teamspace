@@ -339,10 +339,10 @@ export function CalendarRescheduleDialog({
 
             {meeting.recurrence ? (
               <View className="gap-2 rounded-lg border border-border bg-muted/20 p-3">
-                <Text className="text-[11px] font-semibold">
+                <Text className="text-xs font-semibold">
                   반복 일정 적용 범위
                 </Text>
-                <Text className="text-[10px] text-muted-foreground">
+                <Text className="text-2xs text-muted-foreground">
                   반복 규칙 자체는 유지하고 선택한 일정의 변경 범위만
                   지정합니다.
                 </Text>
@@ -421,7 +421,7 @@ function Field({
 }) {
   return (
     <View className="min-w-0 flex-1 gap-1">
-      <Text className="text-[11px] font-semibold text-muted-foreground">
+      <Text className="text-xs font-semibold text-muted-foreground">
         {label}
       </Text>
       {children}

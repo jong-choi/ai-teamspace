@@ -64,7 +64,7 @@ export function GraphCanvasToolbar({
         <View className="mx-1 h-4 w-px bg-border" />
         <Text
           accessibilityLabel={`현재 배율 ${zoomPercent}%`}
-          className="min-w-9 px-1 text-center font-mono text-[11px] font-medium text-muted-foreground"
+          className="min-w-9 px-1 text-center font-mono text-xs font-medium text-muted-foreground"
         >
           {zoomPercent}%
         </Text>
@@ -86,12 +86,12 @@ export function GraphCanvasToolbar({
         <View className="flex-row gap-1 self-start rounded-xl border border-border bg-background/90 p-1.5 shadow-sm">
           {canExpand ? (
             <Button onPress={onExpand} size="sm" variant="ghost">
-              <Text className="text-[11px]">2단계 관계 추가</Text>
+              <Text className="text-xs">2단계 관계 추가</Text>
             </Button>
           ) : null}
           {canLoadMore ? (
             <Button onPress={onLoadMore} size="sm" variant="ghost">
-              <Text className="text-[11px]">다음 결과 더 보기</Text>
+              <Text className="text-xs">다음 결과 더 보기</Text>
             </Button>
           ) : null}
         </View>

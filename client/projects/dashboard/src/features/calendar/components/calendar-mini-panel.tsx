@@ -80,7 +80,7 @@ export function CalendarMiniPanel({
       />
 
       <View className="gap-1.5">
-        <Text className="px-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <Text className="px-1 text-2xs font-semibold uppercase tracking-wider text-muted-foreground">
           다가오는 일정
         </Text>
         {loading ? (
@@ -99,14 +99,14 @@ export function CalendarMiniPanel({
                 />
                 <Text
                   className={cn(
-                    'text-[10px] font-semibold',
+                    'text-2xs font-semibold',
                     upcomingMeta.badgeTextClassName,
                   )}
                 >
                   다음 회의
                 </Text>
               </View>
-              <Text className="font-mono text-[10px] text-muted-foreground">
+              <Text className="font-mono text-2xs text-muted-foreground">
                 {getMeetingTimeLabel(upcoming, timeZone)}
               </Text>
             </View>
@@ -119,7 +119,7 @@ export function CalendarMiniPanel({
                 className="size-3 text-muted-foreground"
               />
               <Text
-                className="min-w-0 flex-1 text-[10px] text-muted-foreground"
+                className="min-w-0 flex-1 text-2xs text-muted-foreground"
                 numberOfLines={1}
               >
                 {getMeetingLocationLabel(upcoming)}
@@ -128,12 +128,12 @@ export function CalendarMiniPanel({
             <View className="mt-2 flex-row items-center justify-between border-t border-border/60 pt-2">
               <View className="flex-row items-center gap-1">
                 <Icon as={Users} className="size-3 text-muted-foreground" />
-                <Text className="text-[10px] text-muted-foreground">
+                <Text className="text-2xs text-muted-foreground">
                   {getMeetingAttendeeCount(upcoming)}명
                 </Text>
               </View>
               <View className="flex-row items-center gap-0.5">
-                <Text className="text-[10px] font-medium text-muted-foreground">
+                <Text className="text-2xs font-medium text-muted-foreground">
                   상세 보기
                 </Text>
                 <Icon
@@ -194,14 +194,14 @@ function CalendarMiniRoomsView({
   return (
     <View className="gap-2">
       <View className="flex-row items-center justify-between px-1">
-        <Text className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <Text className="text-2xs font-semibold uppercase tracking-wider text-muted-foreground">
           회의실 현황
         </Text>
         <Pressable
           className="flex-row items-center gap-0.5"
           onPress={onOpenRooms}
         >
-          <Text className="text-[10px] text-muted-foreground">전체 보기</Text>
+          <Text className="text-2xs text-muted-foreground">전체 보기</Text>
           <Icon as={ChevronRight} className="size-3 text-muted-foreground" />
         </Pressable>
       </View>
@@ -218,16 +218,16 @@ function CalendarMiniRoomsView({
               </Text>
               <View className="mt-0.5 flex-row items-center gap-1.5">
                 <Icon as={Users} className="size-3 text-muted-foreground" />
-                <Text className="text-[10px] text-muted-foreground">
+                <Text className="text-2xs text-muted-foreground">
                   {room.capacity}인{room.floor ? ` · ${room.floor}` : ''}
                 </Text>
               </View>
             </View>
             <View className="flex-row items-center gap-1">
               <View
-                className={`size-1.5 rounded-full ${room.active ? 'bg-emerald-500' : 'bg-zinc-400'}`}
+                className={`size-1.5 rounded-full ${room.active ? 'bg-emerald-500' : 'bg-muted-foreground/50'}`}
               />
-              <Text className="text-[9px] text-muted-foreground">
+              <Text className="text-3xs text-muted-foreground">
                 {room.active ? '활성' : '비활성'}
               </Text>
             </View>

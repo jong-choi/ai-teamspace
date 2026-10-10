@@ -32,8 +32,8 @@ export function CalendarRecurrenceFields({
     <View className="gap-2 rounded-lg border border-border bg-muted/20 p-3">
       <View className="flex-row items-center justify-between gap-3">
         <View>
-          <Text className="text-[11px] font-semibold">반복 일정</Text>
-          <Text className="text-[10px] text-muted-foreground">
+          <Text className="text-xs font-semibold">반복 일정</Text>
+          <Text className="text-2xs text-muted-foreground">
             서버가 지원하는 반복 규칙만 설정합니다.
           </Text>
         </View>
@@ -60,7 +60,7 @@ export function CalendarRecurrenceFields({
         <View className="gap-2.5">
           <View className="gap-2 sm:flex-row">
             <View className="flex-1 gap-1">
-              <Text className="text-[10px] text-muted-foreground">주기</Text>
+              <Text className="text-2xs text-muted-foreground">주기</Text>
               <Select
                 onValueChange={(option) => {
                   const frequency = option?.value;
@@ -90,7 +90,7 @@ export function CalendarRecurrenceFields({
               </Select>
             </View>
             <View className="w-full gap-1 sm:w-24">
-              <Text className="text-[10px] text-muted-foreground">간격</Text>
+              <Text className="text-2xs text-muted-foreground">간격</Text>
               <Input
                 className="h-8 font-mono text-xs"
                 keyboardType="number-pad"
@@ -102,9 +102,7 @@ export function CalendarRecurrenceFields({
 
           {value.frequency === 'weekly' ? (
             <View className="gap-1">
-              <Text className="text-[10px] text-muted-foreground">
-                반복 요일
-              </Text>
+              <Text className="text-2xs text-muted-foreground">반복 요일</Text>
               <View className="flex-row flex-wrap gap-1">
                 {CALENDAR_RECURRENCE_WEEKDAYS.map((weekday) => {
                   const selected = value.byWeekday.includes(weekday);
@@ -127,7 +125,7 @@ export function CalendarRecurrenceFields({
                     >
                       <Text
                         className={cn(
-                          'text-[10px] font-semibold text-muted-foreground',
+                          'text-2xs font-semibold text-muted-foreground',
                           selected && 'text-emerald-600 dark:text-emerald-400',
                         )}
                       >
@@ -142,9 +140,7 @@ export function CalendarRecurrenceFields({
 
           <View className="gap-2 sm:flex-row">
             <View className="flex-1 gap-1">
-              <Text className="text-[10px] text-muted-foreground">
-                종료 방식
-              </Text>
+              <Text className="text-2xs text-muted-foreground">종료 방식</Text>
               <Select
                 onValueChange={(option) => {
                   if (option?.value === 'count' || option?.value === 'until') {
@@ -170,7 +166,7 @@ export function CalendarRecurrenceFields({
               </Select>
             </View>
             <View className="flex-1 gap-1">
-              <Text className="text-[10px] text-muted-foreground">
+              <Text className="text-2xs text-muted-foreground">
                 {value.endMode === 'count' ? '전체 횟수' : '종료 날짜'}
               </Text>
               <Input

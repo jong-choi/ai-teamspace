@@ -12,4 +12,5 @@ export const appearanceStorage: AppearanceStorage = {
 };
 
 // native는 문서 최상위가 없다. provider가 감싸는 View의 class와 변수만으로 적용된다.
-export const syncAppearanceRoot: AppearanceRootSync = () => undefined;
+// 계산된 CSS 값을 읽을 수 없으므로 token은 null이고, 쓰는 쪽은 라이트·다크 기본 색을 쓴다.
+export const syncAppearanceRoot: AppearanceRootSync = () => null;

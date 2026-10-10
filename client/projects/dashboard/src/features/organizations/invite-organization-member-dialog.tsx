@@ -112,7 +112,7 @@ export function InviteOrganizationMemberDialog({
               placeholder="사용자명"
               value={recipientUsername}
             />
-            <Text className="text-[11px] leading-4 text-muted-foreground">
+            <Text className="text-xs leading-4 text-muted-foreground">
               사용자 검색이나 자동완성 없이 정확한 사용자명을 입력합니다.
             </Text>
           </View>

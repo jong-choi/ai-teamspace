@@ -77,10 +77,10 @@ function SecretField({
           variant="outline"
         >
           <Icon as={Copy} className="size-3" />
-          <Text className="text-[11px]">복사</Text>
+          <Text className="text-xs">복사</Text>
         </Button>
       </View>
-      <Text className="text-[11px] leading-4 text-muted-foreground">
+      <Text className="text-xs leading-4 text-muted-foreground">
         {description}
       </Text>
     </View>

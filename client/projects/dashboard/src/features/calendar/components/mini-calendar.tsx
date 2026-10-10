@@ -6,6 +6,7 @@ import { cn } from '@repo/client/rnr/lib/utils';
 import {
   addCalendarMonths,
   CALENDAR_WEEKDAYS_KO,
+  calendarWeekdayTextClass,
   dayOfMonth,
   getMiniCalendarDateKeys,
   isDateKeyInSameMonth,
@@ -62,9 +63,8 @@ export function MiniCalendar({
           <View className="flex-1 items-center" key={weekday}>
             <Text
               className={cn(
-                'text-[9px] font-medium text-muted-foreground',
-                index === 0 && 'text-rose-500',
-                index === 6 && 'text-blue-500',
+                'text-3xs font-medium text-muted-foreground',
+                calendarWeekdayTextClass(index),
               )}
             >
               {weekday}
@@ -101,7 +101,7 @@ export function MiniCalendar({
                 >
                   <Text
                     className={cn(
-                      'text-[11px] font-medium',
+                      'text-xs font-medium',
                       selected && 'text-background',
                       today && !selected && 'font-semibold text-emerald-500',
                     )}

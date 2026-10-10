@@ -40,7 +40,7 @@ export function OrganizationInvitationRow({
             <AvatarImage source={{ uri: invitation.recipient.image }} />
           ) : null}
           <AvatarFallback>
-            <Text className="text-[11px] font-semibold text-muted-foreground">
+            <Text className="text-xs font-semibold text-muted-foreground">
               {getInitials(recipientLabel)}
             </Text>
           </AvatarFallback>
@@ -49,11 +49,11 @@ export function OrganizationInvitationRow({
           <Text className="truncate text-xs font-semibold">
             {recipientLabel}
           </Text>
-          <Text className="truncate text-[11px] text-muted-foreground">
+          <Text className="truncate text-xs text-muted-foreground">
             {invitation.recipient.email}
           </Text>
           {invitation.recipient.username ? (
-            <Text className="mt-0.5 text-[10px] text-muted-foreground/80">
+            <Text className="mt-0.5 text-2xs text-muted-foreground/80">
               @{invitation.recipient.username}
             </Text>
           ) : null}
@@ -62,7 +62,7 @@ export function OrganizationInvitationRow({
 
       <View className="w-[150px] pr-4">
         <View className="self-start rounded-md border border-border bg-muted/70 px-2 py-1">
-          <Text className="text-[11px] font-medium">
+          <Text className="text-xs font-medium">
             {getOrganizationMemberRoleLabel(invitation.role)}
           </Text>
         </View>
@@ -70,7 +70,7 @@ export function OrganizationInvitationRow({
 
       <View className="w-[120px]">
         <View className="self-start rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-1">
-          <Text className="text-[10px] font-semibold text-amber-700 dark:text-amber-300">
+          <Text className="text-2xs font-semibold text-amber-700 dark:text-amber-300">
             초대 대기중
           </Text>
         </View>
@@ -79,10 +79,10 @@ export function OrganizationInvitationRow({
       <NeutralCell className="w-[120px]" />
 
       <View className="w-[120px] pr-2">
-        <Text className="text-[10px] text-muted-foreground">
+        <Text className="text-2xs text-muted-foreground">
           초대 {formatDate(invitation.createdAt)}
         </Text>
-        <Text className="mt-0.5 text-[10px] text-muted-foreground/80">
+        <Text className="mt-0.5 text-2xs text-muted-foreground/80">
           만료 {formatDate(invitation.expiresAt)}
         </Text>
       </View>

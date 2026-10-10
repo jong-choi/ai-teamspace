@@ -60,7 +60,7 @@ export function TicketDetailDrawer({
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent
         className="h-full max-h-full w-full max-w-none gap-0 rounded-none border-0 p-0 sm:ml-auto sm:mr-0 sm:max-w-2xl sm:border-l"
-        overlayClassName="bg-zinc-950/60 p-0 web:backdrop-blur-sm"
+        overlayClassName="bg-black/50 p-0 web:backdrop-blur-sm"
         showCloseButton={false}
       >
         {ticketId ? (
@@ -222,7 +222,7 @@ function TicketDetailContent({
                     size="sm"
                     variant="ghost"
                   >
-                    <Text className="text-[11px]">
+                    <Text className="text-xs">
                       {descriptionEditing ? '취소' : '편집'}
                     </Text>
                   </Button>

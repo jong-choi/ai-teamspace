@@ -64,7 +64,7 @@ export const ChatComposer = memo(function ChatComposer({
         />
         <Separator />
         <View className="flex-row items-center justify-between px-3 py-2">
-          <Text className="hidden text-[10px] text-muted-foreground sm:flex">
+          <Text className="hidden text-2xs text-muted-foreground sm:flex">
             Enter 전송 · Shift+Enter 줄바꿈
           </Text>
           <View className="ml-auto flex-row items-center gap-2">

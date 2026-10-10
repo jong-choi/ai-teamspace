@@ -28,7 +28,7 @@ export function ChatMessageRouteHeader({
       </Button>
       <View className="min-w-0 flex-1">
         <Text className="text-sm font-semibold">{title}</Text>
-        <Text className="truncate text-[11px] text-muted-foreground">
+        <Text className="truncate text-xs text-muted-foreground">
           {description}
         </Text>
       </View>

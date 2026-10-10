@@ -149,7 +149,7 @@ export function GraphNodeInspector({
               }
             >
               <Icon as={Plus} className="size-3 text-muted-foreground" />
-              <Text className="text-[11px] font-medium text-muted-foreground">
+              <Text className="text-xs font-medium text-muted-foreground">
                 관계 추가
               </Text>
             </Pressable>
@@ -174,7 +174,7 @@ export function GraphNodeInspector({
                 <View className="flex-row items-center justify-between gap-2">
                   <Text
                     className={cn(
-                      'font-mono text-[10px] font-semibold',
+                      'font-mono text-2xs font-semibold',
                       direction === 'outgoing'
                         ? 'text-foreground'
                         : 'text-muted-foreground',

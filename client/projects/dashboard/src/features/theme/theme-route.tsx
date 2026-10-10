@@ -131,7 +131,7 @@ function ThemePage() {
               <Text className="text-xs">랜덤 테마</Text>
             </Button>
             {applied.colorThemePreference === 'random' ? (
-              <Text className="text-[11px] text-muted-foreground">
+              <Text className="text-xs text-muted-foreground">
                 랜덤 색상 적용 중
               </Text>
             ) : null}

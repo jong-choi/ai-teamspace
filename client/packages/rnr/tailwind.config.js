@@ -52,6 +52,14 @@ module.exports = {
       },
       // 글자 크기 설정이 --font-size-* token을 바꾼다. token은 RNR appearance.css가 정의한다.
       fontSize: {
+        '3xs': [
+          'var(--font-size-3xs)',
+          { lineHeight: 'var(--line-height-3xs)' },
+        ],
+        '2xs': [
+          'var(--font-size-2xs)',
+          { lineHeight: 'var(--line-height-2xs)' },
+        ],
         xs: ['var(--font-size-xs)', { lineHeight: 'var(--line-height-xs)' }],
         sm: ['var(--font-size-sm)', { lineHeight: 'var(--line-height-sm)' }],
         base: [

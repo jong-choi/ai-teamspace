@@ -58,7 +58,7 @@ export function AgentAssistantTurn({
 
       {running ? null : (
         <View className="flex-row items-center justify-between px-1">
-          <Text className="text-[11px] text-muted-foreground">
+          <Text className="text-xs text-muted-foreground">
             {turn.createdAt ? formatTurnTime(turn.createdAt) : ''}
           </Text>
           {copyValue ? (

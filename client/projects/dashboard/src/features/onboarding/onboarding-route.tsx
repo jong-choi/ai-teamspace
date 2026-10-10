@@ -91,7 +91,12 @@ function OrganizationOnboardingForm() {
             disabled={pending}
             onPress={() => void submit()}
           >
-            {pending ? <ActivityIndicator color="white" size="small" /> : null}
+            {pending ? (
+              <ActivityIndicator
+                className="text-primary-foreground"
+                size="small"
+              />
+            ) : null}
             <Text>업무 공간 만들기</Text>
           </Button>
         </View>

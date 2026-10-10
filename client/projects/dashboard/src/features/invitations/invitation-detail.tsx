@@ -46,7 +46,7 @@ export function InvitationDetail({
             <Text className="text-base font-bold">조직 초대</Text>
           </View>
           <View className="rounded-full border border-border bg-muted px-2.5 py-1">
-            <Text className="text-[10px] font-semibold text-muted-foreground">
+            <Text className="text-2xs font-semibold text-muted-foreground">
               {expired ? '만료됨' : getInvitationStatusLabel(invitation.status)}
             </Text>
           </View>

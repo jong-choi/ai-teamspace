@@ -7,6 +7,7 @@ import { cn } from '@repo/client/rnr/lib/utils';
 import { MeetingEvent } from '@core/features/calendar/components/meeting-event';
 import {
   CALENDAR_WEEKDAYS_KO,
+  calendarWeekdayTextClass,
   dayOfMonth,
   getMonthGridDateKeys,
   isDateKeyInSameMonth,
@@ -55,8 +56,7 @@ export function CalendarMonthView({
               <Text
                 className={cn(
                   'text-xs font-semibold text-muted-foreground',
-                  index === 0 && 'text-rose-500',
-                  index === 6 && 'text-blue-500',
+                  calendarWeekdayTextClass(index),
                 )}
               >
                 {weekday}
@@ -130,7 +130,7 @@ export function CalendarMonthView({
                         className="rounded px-1 py-0.5 web:hover:bg-accent"
                         onPress={() => onSelectDay(dateKey)}
                       >
-                        <Text className="text-[10px] font-medium text-muted-foreground">
+                        <Text className="text-2xs font-medium text-muted-foreground">
                           +{dayMeetings.length - 3}개 더보기
                         </Text>
                       </Pressable>

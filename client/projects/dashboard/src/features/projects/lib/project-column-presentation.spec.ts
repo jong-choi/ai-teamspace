@@ -4,7 +4,7 @@ import { describe, expect, it } from '@jest/globals';
 
 describe('프로젝트 컬럼 표시 모델', () => {
   it.each([
-    ['Backlog', '백로그', 'bg-zinc-400'],
+    ['Backlog', '백로그', 'bg-muted-foreground/50'],
     ['Todo', '할 일', 'bg-blue-500'],
     ['In Progress', '진행 중', 'bg-amber-500'],
     ['In Review', '검토 중', 'bg-purple-500'],

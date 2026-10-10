@@ -75,7 +75,7 @@ export function CalendarRoomsDialog({
             </View>
             <View className="hidden flex-row items-center gap-1.5 rounded-md bg-muted px-2.5 py-1 sm:flex">
               <Icon as={CalendarDays} className="size-3.5 text-emerald-500" />
-              <Text className="text-[11px] font-medium">
+              <Text className="text-xs font-medium">
                 {formatDateKeyLabel(currentDateKey)}
               </Text>
             </View>
@@ -111,9 +111,9 @@ export function CalendarRoomsDialog({
                       </Text>
                       <View className="flex-row items-center gap-1 rounded-full border border-border px-2 py-0.5">
                         <View
-                          className={`size-1.5 rounded-full ${room.active ? 'bg-emerald-500' : 'bg-zinc-400'}`}
+                          className={`size-1.5 rounded-full ${room.active ? 'bg-emerald-500' : 'bg-muted-foreground/50'}`}
                         />
-                        <Text className="text-[9px] font-medium text-muted-foreground">
+                        <Text className="text-3xs font-medium text-muted-foreground">
                           {room.active
                             ? `예약 ${reservationCount}건`
                             : '비활성'}
@@ -126,14 +126,14 @@ export function CalendarRoomsDialog({
                           as={Users}
                           className="size-3 text-muted-foreground"
                         />
-                        <Text className="text-[11px] text-muted-foreground">
+                        <Text className="text-xs text-muted-foreground">
                           {room.capacity}인
                           {room.floor ? ` · ${room.floor}` : ''}
                         </Text>
                       </View>
                       {room.description ? (
                         <Text
-                          className="text-[10px] leading-4 text-muted-foreground"
+                          className="text-2xs leading-4 text-muted-foreground"
                           numberOfLines={2}
                         >
                           {room.description}
@@ -190,7 +190,7 @@ export function CalendarRoomsDialog({
                       {ROOM_TIMELINE_END_HOUR}:00)
                     </Text>
                   </View>
-                  <Text className="text-[10px] text-muted-foreground">
+                  <Text className="text-2xs text-muted-foreground">
                     빈 슬롯을 누르면 예약 창을 엽니다.
                   </Text>
                 </View>
@@ -208,7 +208,7 @@ export function CalendarRoomsDialog({
                         (_, index) => ROOM_TIMELINE_START_HOUR + index,
                       ).map((hour) => (
                         <Text
-                          className="font-mono text-[9px] text-muted-foreground"
+                          className="font-mono text-3xs text-muted-foreground"
                           key={hour}
                         >
                           {String(hour).padStart(2, '0')}:00
@@ -256,10 +256,10 @@ function RoomTimelineRow({
   return (
     <View className="flex-row items-stretch">
       <View className="w-32 justify-center border-r border-border pr-3">
-        <Text className="text-[10px] font-semibold" numberOfLines={1}>
+        <Text className="text-2xs font-semibold" numberOfLines={1}>
           {room.name}
         </Text>
-        <Text className="text-[9px] text-muted-foreground">
+        <Text className="text-3xs text-muted-foreground">
           {room.capacity}인{room.floor ? ` · ${room.floor}` : ''}
         </Text>
       </View>
@@ -298,7 +298,7 @@ function RoomTimelineRow({
               >
                 <Text
                   className={cn(
-                    'text-[8px] font-semibold',
+                    'text-3xs font-semibold',
                     meta.chipTextClassName,
                   )}
                   numberOfLines={2}

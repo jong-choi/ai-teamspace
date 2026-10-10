@@ -8,18 +8,15 @@ import {
 } from '@core/app/markdown/product-markdown-table';
 import {
   getProductInlineCodeStyle,
-  getProductMarkdownPalette,
+  type ProductMarkdownPalette,
+  scaleMarkdownFont,
+  useProductMarkdownPalette,
 } from '@core/app/markdown/product-markdown-theme';
-
-import { useColorScheme } from 'nativewind';
 
 // 좁은 채팅 패널에 맞춘 작은 글자 크기의 마크다운이다. 색은 위키와 같은 제품 palette를 쓴다.
 export function AgentMarkdown({ content }: { content: string }) {
-  const { colorScheme } = useColorScheme();
-  const styles = useMemo(
-    () => createAgentMarkdownStyles(colorScheme === 'dark'),
-    [colorScheme],
-  );
+  const palette = useProductMarkdownPalette();
+  const styles = useMemo(() => createAgentMarkdownStyles(palette), [palette]);
 
   return (
     <Markdown rules={productMarkdownTableRules} style={styles}>
@@ -28,29 +25,32 @@ export function AgentMarkdown({ content }: { content: string }) {
   );
 }
 
-function createAgentMarkdownStyles(dark: boolean) {
-  const palette = getProductMarkdownPalette(dark);
+function createAgentMarkdownStyles(palette: ProductMarkdownPalette) {
   const { border, foreground, link, muted, surface } = palette;
 
   return StyleSheet.create({
-    body: { color: foreground, fontSize: 13, lineHeight: 21 },
+    body: {
+      color: foreground,
+      fontSize: scaleMarkdownFont(palette, 13),
+      lineHeight: scaleMarkdownFont(palette, 21),
+    },
     heading1: {
       color: foreground,
-      fontSize: 17,
+      fontSize: scaleMarkdownFont(palette, 17),
       fontWeight: '700',
       marginBottom: 8,
       marginTop: 6,
     },
     heading2: {
       color: foreground,
-      fontSize: 15,
+      fontSize: scaleMarkdownFont(palette, 15),
       fontWeight: '700',
       marginBottom: 6,
       marginTop: 10,
     },
     heading3: {
       color: foreground,
-      fontSize: 14,
+      fontSize: scaleMarkdownFont(palette, 14),
       fontWeight: '600',
       marginBottom: 4,
       marginTop: 8,
@@ -78,7 +78,7 @@ function createAgentMarkdownStyles(dark: boolean) {
       borderWidth: StyleSheet.hairlineWidth,
       color: foreground,
       fontFamily: 'monospace',
-      fontSize: 12,
+      fontSize: scaleMarkdownFont(palette, 12),
       padding: 10,
     },
     fence: {
@@ -88,7 +88,7 @@ function createAgentMarkdownStyles(dark: boolean) {
       borderWidth: StyleSheet.hairlineWidth,
       color: foreground,
       fontFamily: 'monospace',
-      fontSize: 12,
+      fontSize: scaleMarkdownFont(palette, 12),
       padding: 10,
     },
     table: {

@@ -48,7 +48,7 @@ export function TicketCard({
       onPress={onPress}
     >
       <View className="mb-2 flex-row items-center gap-1.5">
-        <Text className="font-mono text-[11px] font-bold text-muted-foreground">
+        <Text className="font-mono text-xs font-bold text-muted-foreground">
           {ticket.key}
         </Text>
         <View
@@ -63,7 +63,7 @@ export function TicketCard({
           />
           <Text
             className={cn(
-              'text-[10px] font-semibold',
+              'text-2xs font-semibold',
               priority.badgeForegroundClass,
             )}
           >
@@ -81,7 +81,7 @@ export function TicketCard({
 
       <View className="mb-2.5 flex-row flex-wrap items-center gap-1">
         <View className="rounded bg-muted px-1.5 py-0.5">
-          <Text className="font-mono text-[10px] text-muted-foreground">
+          <Text className="font-mono text-2xs text-muted-foreground">
             {projectKey}
           </Text>
         </View>
@@ -92,9 +92,7 @@ export function TicketCard({
               className={cn('rounded px-1.5 py-0.5', classes.container)}
               key={label.id}
             >
-              <Text
-                className={cn('text-[10px] font-medium', classes.foreground)}
-              >
+              <Text className={cn('text-2xs font-medium', classes.foreground)}>
                 {label.name}
               </Text>
             </View>
@@ -106,7 +104,7 @@ export function TicketCard({
         <View className="mb-2.5 flex-row items-center justify-between">
           <View className="flex-row items-center gap-1">
             <Icon as={CheckSquare2} className="size-3 text-muted-foreground" />
-            <Text className="text-[10px] text-muted-foreground">
+            <Text className="text-2xs text-muted-foreground">
               {ticket.checklistItemCompleted}/{ticket.checklistItemTotal}
             </Text>
           </View>
@@ -122,7 +120,7 @@ export function TicketCard({
       <View className="mt-2 flex-row items-center justify-between border-t border-border/60 pt-2.5">
         <View className="flex-row items-center gap-1">
           <Icon as={Clock3} className="size-3 text-muted-foreground" />
-          <Text className="text-[10px] text-muted-foreground">
+          <Text className="text-2xs text-muted-foreground">
             {ticket.dueAt ? formatTicketDueAt(ticket.dueAt) : '마감일 없음'}
           </Text>
         </View>
@@ -133,7 +131,7 @@ export function TicketCard({
                 as={MessageSquare}
                 className="size-3 text-muted-foreground"
               />
-              <Text className="text-[10px] text-muted-foreground">
+              <Text className="text-2xs text-muted-foreground">
                 {ticket.commentCount}
               </Text>
             </View>
@@ -144,14 +142,14 @@ export function TicketCard({
                 <AvatarImage source={{ uri: ticket.assignee.image }} />
               ) : null}
               <AvatarFallback>
-                <Text className="text-[8px] font-bold">
+                <Text className="text-3xs font-bold">
                   {getInitials(ticket.assignee.name)}
                 </Text>
               </AvatarFallback>
             </Avatar>
           ) : (
             <View className="size-5 items-center justify-center rounded-full bg-muted">
-              <Text className="text-[8px] font-bold text-muted-foreground">
+              <Text className="text-3xs font-bold text-muted-foreground">
                 -
               </Text>
             </View>

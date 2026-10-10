@@ -75,7 +75,7 @@ export function DashboardNavigationContent({
         />
 
         <View className="hidden lg:flex">
-          <Text className="mb-1.5 px-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          <Text className="mb-1.5 px-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
             Workspace
           </Text>
         </View>
@@ -154,7 +154,7 @@ function OrganizationSwitcher({
                 <Text className="truncate text-xs font-semibold">
                   {organizationName ?? '조직 선택'}
                 </Text>
-                <Text className="text-[10px] text-muted-foreground">
+                <Text className="text-2xs text-muted-foreground">
                   {organizationName ? '현재 조직' : '활성 조직 없음'}
                 </Text>
               </View>
@@ -234,7 +234,7 @@ function AccountFooter() {
         </View>
         <View className="min-w-0 flex-1">
           <Text className="truncate text-xs font-semibold">{title}</Text>
-          <Text className="truncate text-[10px] text-muted-foreground">
+          <Text className="truncate text-2xs text-muted-foreground">
             {description}
           </Text>
         </View>

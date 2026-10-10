@@ -45,7 +45,7 @@ export function GraphInspectorActions({
 
   if (!primary && !removable) {
     return (
-      <Text className="text-center text-[11px] leading-4 text-muted-foreground">
+      <Text className="text-center text-xs leading-4 text-muted-foreground">
         {readOnlyMessage}
       </Text>
     );

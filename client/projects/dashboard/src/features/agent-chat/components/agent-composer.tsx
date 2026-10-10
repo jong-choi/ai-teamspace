@@ -98,10 +98,8 @@ export function AgentComposer({
       {queue.length > 0 ? (
         <View className="gap-1">
           <View className="flex-row items-center justify-between px-1">
-            <Text className="text-[11px] text-muted-foreground">
-              대기 메시지
-            </Text>
-            <Text className="text-[11px] text-muted-foreground">
+            <Text className="text-xs text-muted-foreground">대기 메시지</Text>
+            <Text className="text-xs text-muted-foreground">
               {queue.length}/{AGENT_CHAT_QUEUE_LIMIT}
             </Text>
           </View>
@@ -153,7 +151,7 @@ export function AgentComposer({
       ) : null}
 
       {blockedReason ? (
-        <Text className="px-1 text-[11px] text-amber-700 dark:text-amber-400">
+        <Text className="px-1 text-xs text-amber-700 dark:text-amber-400">
           {blockedReason}
         </Text>
       ) : null}
@@ -161,7 +159,7 @@ export function AgentComposer({
       <View className="rounded-xl border border-border/70 bg-muted/20">
         <Textarea
           accessibilityLabel="Agent에게 보낼 메시지"
-          className="border-0 bg-transparent px-3.5 pt-3 text-[13px] shadow-none web:focus-visible:ring-0 md:text-[13px] dark:bg-transparent"
+          className="border-0 bg-transparent px-3.5 pt-3 text-sm shadow-none web:focus-visible:ring-0 md:text-sm dark:bg-transparent"
           editable={!blocked}
           numberOfLines={1}
           onChangeText={onChangeDraft}
@@ -237,7 +235,7 @@ export function AgentComposer({
             </SelectContent>
           </Select>
           <Text
-            className="min-w-0 flex-1 text-[10px] text-muted-foreground"
+            className="min-w-0 flex-1 text-2xs text-muted-foreground"
             numberOfLines={1}
           >
             {reasoning.model}

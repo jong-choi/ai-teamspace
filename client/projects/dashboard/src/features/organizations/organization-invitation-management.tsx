@@ -118,7 +118,7 @@ function EmptyManagementRows() {
       <Text className="text-xs font-medium">
         표시할 멤버나 대기 중인 초대가 없습니다
       </Text>
-      <Text className="mt-1 text-[11px] text-muted-foreground">
+      <Text className="mt-1 text-xs text-muted-foreground">
         등록 멤버 검색이나 역할 필터를 변경해 보세요.
       </Text>
     </View>

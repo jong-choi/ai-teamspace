@@ -157,7 +157,7 @@ function GraphEdgeRow({
         />
       </GraphTableCell>
       <GraphTableCell className="min-w-[180px] flex-1">
-        <Text className="font-mono text-[11px]" numberOfLines={1}>
+        <Text className="font-mono text-xs" numberOfLines={1}>
           {targetNode.title}
         </Text>
       </GraphTableCell>

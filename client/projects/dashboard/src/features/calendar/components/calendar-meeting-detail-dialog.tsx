@@ -124,7 +124,7 @@ function MeetingDetailContent({
             <View className="rounded-full border border-border bg-background px-2 py-0.5">
               <Text
                 className={cn(
-                  'text-[11px] font-medium text-muted-foreground',
+                  'text-xs font-medium text-muted-foreground',
                   meeting.canceledAt && 'text-rose-500',
                 )}
               >
@@ -135,11 +135,11 @@ function MeetingDetailContent({
 
           {meeting.canceledAt ? (
             <View className="rounded-lg border border-rose-500/20 bg-rose-500/5 px-3 py-2">
-              <Text className="text-[11px] font-semibold text-rose-600 dark:text-rose-400">
+              <Text className="text-xs font-semibold text-rose-600 dark:text-rose-400">
                 이 회의는 취소되었습니다.
               </Text>
               {meeting.cancelReason ? (
-                <Text className="mt-1 text-[10px] text-rose-600/80 dark:text-rose-400/80">
+                <Text className="mt-1 text-2xs text-rose-600/80 dark:text-rose-400/80">
                   {meeting.cancelReason}
                 </Text>
               ) : null}
@@ -220,9 +220,7 @@ function DetailHeader({ meeting }: { meeting: MeetingDetail }) {
       <Text className="pr-8 text-base font-bold leading-6">
         {meeting.title}
       </Text>
-      <Text className="text-[10px] text-muted-foreground">
-        {meeting.timeZone}
-      </Text>
+      <Text className="text-2xs text-muted-foreground">{meeting.timeZone}</Text>
     </View>
   );
 }

@@ -152,7 +152,7 @@ function OrganizationMemberSearchResults({
             <Text className="truncate text-xs font-medium">
               {member.user.name}
             </Text>
-            <Text className="truncate text-[10px] text-muted-foreground">
+            <Text className="truncate text-2xs text-muted-foreground">
               {member.user.email}
             </Text>
           </View>
@@ -202,9 +202,7 @@ export function OrganizationMemberAvatar({
       {image ? <AvatarImage source={{ uri: image }} /> : null}
       <AvatarFallback>
         <Text
-          className={
-            compact ? 'text-[7px] font-bold' : 'text-[9px] font-semibold'
-          }
+          className={compact ? 'text-3xs font-bold' : 'text-3xs font-semibold'}
         >
           {initials || '?'}
         </Text>

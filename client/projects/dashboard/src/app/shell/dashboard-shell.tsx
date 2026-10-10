@@ -211,7 +211,7 @@ export function DashboardShell({
         <Pressable
           accessibilityLabel="메뉴 닫기"
           className={cn(
-            'absolute inset-0 z-40 bg-zinc-950/60 lg:hidden',
+            'absolute inset-0 z-40 bg-black/50 lg:hidden',
             drawerOpen ? 'flex' : 'hidden',
           )}
           onPress={() => setDrawerOpen(false)}
@@ -245,7 +245,10 @@ function AgentChatToggleButton({
       size="icon"
       variant="ghost"
     >
-      <Icon as={Sparkles} className="size-4 text-violet-500" />
+      <Icon
+        as={Sparkles}
+        className="size-4 text-violet-500 dark:text-violet-400"
+      />
       {pendingApproval ? (
         <View
           accessibilityLabel="승인 대기"

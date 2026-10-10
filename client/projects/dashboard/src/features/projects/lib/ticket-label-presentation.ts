@@ -5,8 +5,8 @@ const LABEL_CLASSES: Record<
   { container: string; foreground: string }
 > = {
   neutral: {
-    container: 'bg-zinc-500/10',
-    foreground: 'text-zinc-600 dark:text-zinc-300',
+    container: 'bg-muted',
+    foreground: 'text-muted-foreground',
   },
   red: {
     container: 'bg-red-500/10',

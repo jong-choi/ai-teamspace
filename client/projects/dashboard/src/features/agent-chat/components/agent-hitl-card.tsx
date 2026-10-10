@@ -91,7 +91,7 @@ export function AgentHitlCard({
               <View className="gap-0.5">
                 <Text className="text-xs font-semibold">{action.label}</Text>
                 {action.description ? (
-                  <Text className="text-[11px] leading-4 text-muted-foreground">
+                  <Text className="text-xs leading-4 text-muted-foreground">
                     {action.description}
                   </Text>
                 ) : null}
@@ -101,7 +101,7 @@ export function AgentHitlCard({
                 <View className="gap-0.5 rounded-md bg-muted/40 px-2.5 py-2">
                   {action.arguments.map((argument) => (
                     <Text
-                      className="text-[11px] leading-4 text-muted-foreground"
+                      className="text-xs leading-4 text-muted-foreground"
                       key={argument.key}
                     >
                       {argument.key}: {argument.value}
@@ -172,7 +172,7 @@ export function AgentHitlCard({
               ) : null}
 
               {error ? (
-                <Text className="text-[11px] text-destructive" role="alert">
+                <Text className="text-xs text-destructive" role="alert">
                   {error}
                 </Text>
               ) : null}

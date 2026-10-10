@@ -388,7 +388,7 @@ function SelectedParticipantChip({
           name={participant.member.name}
         />
       ) : null}
-      <Text className="text-[10px] font-medium">{label}</Text>
+      <Text className="text-2xs font-medium">{label}</Text>
       <Icon as={X} className="size-3 text-muted-foreground" />
     </Pressable>
   );

@@ -60,13 +60,13 @@ export function AgentThreadList({
               {title}
             </Text>
             <View className="mt-1 flex-row items-center justify-between gap-2">
-              <Text className="text-[10px] text-muted-foreground">
+              <Text className="text-2xs text-muted-foreground">
                 {formatUpdatedAt(thread.updated_at)}
               </Text>
               {thread.status === 'busy' || thread.status === 'interrupted' ? (
                 <Text
                   className={cn(
-                    'text-[10px] font-medium',
+                    'text-2xs font-medium',
                     thread.status === 'interrupted'
                       ? 'text-amber-600 dark:text-amber-400'
                       : 'text-muted-foreground',

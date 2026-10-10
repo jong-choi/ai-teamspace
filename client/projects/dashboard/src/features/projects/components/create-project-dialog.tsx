@@ -179,7 +179,7 @@ export function CreateProjectDialog({
           </View>
 
           {validationMessage ? (
-            <Text className="text-[11px] text-destructive">
+            <Text className="text-xs text-destructive">
               {validationMessage}
             </Text>
           ) : null}

@@ -490,7 +490,7 @@ export function CalendarCreateDialog({
               <Icon as={Bell} className="size-3.5 text-muted-foreground" />
               <View className="min-w-0 flex-1">
                 <Text className="text-xs font-medium">회의 알림</Text>
-                <Text className="text-[10px] text-muted-foreground">
+                <Text className="text-2xs text-muted-foreground">
                   알림 설정 저장과 실제 알림 전송은 별개입니다.
                 </Text>
               </View>
@@ -576,7 +576,7 @@ function Field({
 }) {
   return (
     <View className="gap-1">
-      <Text className="text-[11px] font-semibold text-muted-foreground">
+      <Text className="text-xs font-semibold text-muted-foreground">
         {label}
       </Text>
       {children}

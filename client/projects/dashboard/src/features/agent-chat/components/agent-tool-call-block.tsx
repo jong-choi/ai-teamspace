@@ -78,7 +78,7 @@ export function AgentToolCallBlock({ item }: { item: AgentToolCallItem }) {
           </Text>
           {external && item.source.kind === 'external' ? (
             <Badge className="px-1.5 py-0" variant="outline">
-              <Text className="text-[10px] font-normal text-muted-foreground">
+              <Text className="text-2xs font-normal text-muted-foreground">
                 {item.source.namespace}
               </Text>
             </Badge>
@@ -88,13 +88,13 @@ export function AgentToolCallBlock({ item }: { item: AgentToolCallItem }) {
         <CollapsibleContent>
           <View className="gap-2 border-t border-border/50 px-3 py-2">
             {item.state === 'denied' ? (
-              <Text className="text-[11px] leading-4 text-destructive">
+              <Text className="text-xs leading-4 text-destructive">
                 권한이 없어 실행되지 않았습니다. 조직 또는 개인 MCP 정책을
                 확인해 주세요.
               </Text>
             ) : null}
             {item.subagent ? (
-              <Text className="text-[11px] text-muted-foreground">
+              <Text className="text-xs text-muted-foreground">
                 하위 Agent {item.subagent.name} ·{' '}
                 {subagentStatusLabels[item.subagent.status]} · 내부 도구{' '}
                 {item.subagent.toolCount}개
@@ -102,12 +102,12 @@ export function AgentToolCallBlock({ item }: { item: AgentToolCallItem }) {
             ) : null}
             {item.fields.length > 0 ? (
               <View className="gap-0.5">
-                <Text className="text-[10px] font-medium text-muted-foreground">
+                <Text className="text-2xs font-medium text-muted-foreground">
                   입력
                 </Text>
                 {item.fields.map((field, index) => (
                   <Text
-                    className="text-[11px] leading-4 text-muted-foreground"
+                    className="text-xs leading-4 text-muted-foreground"
                     key={`${field.label}:${index}`}
                   >
                     {field.label}: {field.value}
@@ -117,10 +117,10 @@ export function AgentToolCallBlock({ item }: { item: AgentToolCallItem }) {
             ) : null}
             {item.resultSummary ? (
               <View className="gap-0.5">
-                <Text className="text-[10px] font-medium text-muted-foreground">
+                <Text className="text-2xs font-medium text-muted-foreground">
                   결과
                 </Text>
-                <Text className="text-[11px] leading-4 text-foreground">
+                <Text className="text-xs leading-4 text-foreground">
                   {item.resultSummary}
                 </Text>
               </View>
@@ -137,7 +137,7 @@ function AgentToolStateBadge({ state }: { state: AgentToolCallState }) {
     return (
       <View className="flex-row items-center gap-1">
         <ActivityIndicator size="small" />
-        <Text className="text-[10px] text-muted-foreground">
+        <Text className="text-2xs text-muted-foreground">
           {stateLabels[state]}
         </Text>
       </View>
@@ -155,7 +155,7 @@ function AgentToolStateBadge({ state }: { state: AgentToolCallState }) {
             : 'outline'
       }
     >
-      <Text className="text-[10px]">{stateLabels[state]}</Text>
+      <Text className="text-2xs">{stateLabels[state]}</Text>
     </Badge>
   );
 }

@@ -94,10 +94,8 @@ export function CalendarMeetingActions({
     <View className="gap-3 border-t border-border pt-3">
       <View className="flex-row items-center justify-between gap-3">
         <View className="min-w-0 flex-1">
-          <Text className="text-[10px] text-muted-foreground">
-            연계 프로젝트
-          </Text>
-          <Text className="text-[10px] font-medium">
+          <Text className="text-2xs text-muted-foreground">연계 프로젝트</Text>
+          <Text className="text-2xs font-medium">
             {meeting.project?.name ?? '연계 프로젝트 없음'}
           </Text>
         </View>
@@ -109,7 +107,7 @@ export function CalendarMeetingActions({
             onPress={() => void handleExport()}
           >
             <Icon as={Download} className="size-3.5 text-muted-foreground" />
-            <Text className="text-[10px] text-muted-foreground">
+            <Text className="text-2xs text-muted-foreground">
               {exporting ? '내보내는 중...' : '.ics 내보내기'}
             </Text>
           </Pressable>
@@ -121,7 +119,7 @@ export function CalendarMeetingActions({
                 onPress={onOpenReschedule}
               >
                 <Icon as={Pencil} className="size-3.5 text-muted-foreground" />
-                <Text className="text-[10px] text-muted-foreground">
+                <Text className="text-2xs text-muted-foreground">
                   일정 변경
                 </Text>
               </Pressable>
@@ -140,7 +138,7 @@ export function CalendarMeetingActions({
       {cancelConfirm && !meeting.canceledAt ? (
         <View className="gap-2 rounded-lg border border-rose-500/20 bg-rose-500/5 p-3">
           <View className="flex-row items-center justify-between">
-            <Text className="text-[11px] font-semibold text-rose-600 dark:text-rose-400">
+            <Text className="text-xs font-semibold text-rose-600 dark:text-rose-400">
               이 회의를 취소하시겠습니까?
             </Text>
             <Pressable onPress={() => setCancelConfirm(false)}>
@@ -204,7 +202,7 @@ export function CalendarMeetingActions({
       ) : null}
 
       <Pressable className="items-center py-1" onPress={onClose}>
-        <Text className="text-[10px] text-muted-foreground">닫기</Text>
+        <Text className="text-2xs text-muted-foreground">닫기</Text>
       </Pressable>
     </View>
   );

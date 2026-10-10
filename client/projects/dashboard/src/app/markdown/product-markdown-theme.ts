@@ -1,5 +1,32 @@
+import { useMemo } from 'react';
+
+import {
+  useAppearanceStore,
+  useAppearanceTokens,
+} from '@core/app/appearance/appearance-provider';
+import type { FontSizePreference } from '@core/app/appearance/appearance-schema';
+
+import { useColorScheme } from 'nativewind';
+
+// 마크다운 스타일의 글자 크기는 className을 쓸 수 없어 숫자다. 본문 text-sm의 단계별 크기(13·14·16px) 비율을 따른다.
+const MARKDOWN_FONT_SCALES: Record<FontSizePreference, number> = {
+  small: 1,
+  medium: 14 / 13,
+  large: 16 / 13,
+};
+
+// 글자 크기 설정을 반영한 마크다운 글자 크기·줄 높이다.
+export function scaleMarkdownFont(
+  palette: Pick<ProductMarkdownPalette, 'fontScale'>,
+  size: number,
+): number {
+  return Math.round(size * palette.fontScale);
+}
+
 export type ProductMarkdownPalette = {
   border: string;
+  // 글자 크기 설정에 따른 배율이다. 기본(작게)이 1이다.
+  fontScale: number;
   foreground: string;
   link: string;
   muted: string;
@@ -8,9 +35,38 @@ export type ProductMarkdownPalette = {
   surface: string;
 };
 
-export function getProductMarkdownPalette(
+// 마크다운 스타일은 className을 받지 못하므로 현재 테마에서 계산된 색 값을 쓴다.
+// platform이 값을 읽지 못하면 라이트·다크 기본 색을 쓴다.
+export function useProductMarkdownPalette(): ProductMarkdownPalette {
+  const { colorScheme } = useColorScheme();
+  const tokens = useAppearanceTokens();
+  const fontSizePreference = useAppearanceStore(
+    (state) => state.applied.fontSizePreference,
+  );
+  const dark = colorScheme === 'dark';
+  const fontScale = MARKDOWN_FONT_SCALES[fontSizePreference];
+
+  return useMemo(
+    () =>
+      tokens
+        ? {
+            border: tokens.border,
+            fontScale,
+            foreground: tokens.foreground,
+            link: tokens.primary,
+            muted: tokens.mutedForeground,
+            placeholder: tokens.mutedForeground,
+            strongBorder: tokens.input,
+            surface: tokens.muted,
+          }
+        : { ...getProductMarkdownPalette(dark), fontScale },
+    [dark, fontScale, tokens],
+  );
+}
+
+function getProductMarkdownPalette(
   dark: boolean,
-): ProductMarkdownPalette {
+): Omit<ProductMarkdownPalette, 'fontScale'> {
   return dark
     ? {
         border: '#27272a',
@@ -41,7 +97,7 @@ export function getProductInlineCodeStyle(palette: ProductMarkdownPalette) {
     borderWidth: 0,
     color: palette.foreground,
     fontFamily: 'monospace',
-    fontSize: 12,
+    fontSize: scaleMarkdownFont(palette, 12),
     padding: 0,
     paddingHorizontal: 4,
     paddingVertical: 1,

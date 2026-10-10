@@ -31,15 +31,15 @@ export function McpPermissionTable({
     <View className="gap-2">
       <View className="overflow-hidden rounded-lg border border-border">
         <View className="flex-row items-center border-b border-border bg-muted/40 px-3 py-2">
-          <Text className="w-20 text-[11px] font-semibold text-muted-foreground">
+          <Text className="w-20 text-xs font-semibold text-muted-foreground">
             영역
           </Text>
-          <Text className="min-w-0 flex-1 text-[11px] font-semibold text-muted-foreground">
+          <Text className="min-w-0 flex-1 text-xs font-semibold text-muted-foreground">
             범위
           </Text>
           {MCP_ACTION_COLUMNS.map((column) => (
             <Text
-              className="w-14 text-center text-[11px] font-semibold text-muted-foreground"
+              className="w-14 text-center text-xs font-semibold text-muted-foreground"
               key={column.action}
             >
               {column.label}
@@ -84,7 +84,7 @@ export function McpPermissionTable({
       {hasLockedCell ? (
         <View className="flex-row items-center gap-1.5">
           <Icon as={LockKeyhole} className="size-3 text-muted-foreground" />
-          <Text className="text-[11px] text-muted-foreground">
+          <Text className="text-xs text-muted-foreground">
             조직 정책에서 막은 권한
           </Text>
         </View>

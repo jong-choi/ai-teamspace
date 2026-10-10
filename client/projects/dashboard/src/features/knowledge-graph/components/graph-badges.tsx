@@ -23,7 +23,7 @@ export function GraphMetaBadge({
   return (
     <Badge className={cn('rounded-md bg-muted', className)} variant="outline">
       <Text
-        className={cn('text-[10px] font-semibold', mono && 'font-mono')}
+        className={cn('text-2xs font-semibold', mono && 'font-mono')}
         numberOfLines={1}
       >
         {label}
@@ -52,7 +52,7 @@ export function GraphFactClassBadge({
             'border-dotted border-muted-foreground',
         )}
       />
-      <Text className="text-[10px] font-medium">
+      <Text className="text-2xs font-medium">
         {GRAPH_FACT_CLASS_META[factClass].label}
       </Text>
     </Badge>
@@ -68,7 +68,7 @@ export function GraphProjectionBadge({
   return (
     <Badge className="rounded-md" variant="secondary">
       <View className="size-1.5 rounded-full bg-muted-foreground" />
-      <Text className="text-[10px] font-medium">
+      <Text className="text-2xs font-medium">
         {GRAPH_PROJECTION_META[projection.status].label}
       </Text>
     </Badge>

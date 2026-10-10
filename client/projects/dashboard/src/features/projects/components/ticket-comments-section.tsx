@@ -79,7 +79,7 @@ export function TicketCommentsSection({
                     <AvatarImage source={{ uri: comment.author.image }} />
                   ) : null}
                   <AvatarFallback>
-                    <Text className="text-[10px] font-bold">
+                    <Text className="text-2xs font-bold">
                       {comment.author.name.charAt(0).toUpperCase()}
                     </Text>
                   </AvatarFallback>
@@ -91,7 +91,7 @@ export function TicketCommentsSection({
                       <Text className="truncate text-xs font-semibold">
                         {comment.author.name}
                       </Text>
-                      <Text className="text-[10px] text-muted-foreground">
+                      <Text className="text-2xs text-muted-foreground">
                         {formatCommentTime(comment.createdAt)}
                       </Text>
                     </View>

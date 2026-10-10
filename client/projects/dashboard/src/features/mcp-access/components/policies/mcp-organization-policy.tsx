@@ -112,7 +112,7 @@ export function McpOrganizationPolicy({
           pending={updateOrganizationPolicy.isPending}
         />
       ) : (
-        <Text className="text-[11px] text-muted-foreground">
+        <Text className="text-xs text-muted-foreground">
           조직 관리자만 변경할 수 있습니다.
         </Text>
       )}

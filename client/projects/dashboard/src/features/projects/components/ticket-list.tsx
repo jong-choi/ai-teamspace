@@ -55,22 +55,22 @@ export function TicketList({
         <ScrollView horizontal nestedScrollEnabled>
           <View className="min-w-[900px] flex-1">
             <View className="flex-row items-center border-b border-border bg-muted/40 px-4 py-2.5">
-              <Text className="w-40 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <Text className="w-40 text-2xs font-semibold uppercase tracking-wider text-muted-foreground">
                 ID / 상태
               </Text>
-              <Text className="min-w-72 flex-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <Text className="min-w-72 flex-1 text-2xs font-semibold uppercase tracking-wider text-muted-foreground">
                 이슈 제목
               </Text>
-              <Text className="hidden w-44 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground md:flex">
+              <Text className="hidden w-44 text-2xs font-semibold uppercase tracking-wider text-muted-foreground md:flex">
                 프로젝트
               </Text>
-              <Text className="w-24 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <Text className="w-24 text-2xs font-semibold uppercase tracking-wider text-muted-foreground">
                 우선순위
               </Text>
-              <Text className="hidden w-36 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground lg:flex">
+              <Text className="hidden w-36 text-2xs font-semibold uppercase tracking-wider text-muted-foreground lg:flex">
                 담당자
               </Text>
-              <Text className="w-28 text-right text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <Text className="w-28 text-right text-2xs font-semibold uppercase tracking-wider text-muted-foreground">
                 마감일
               </Text>
             </View>
@@ -97,7 +97,7 @@ export function TicketList({
                     onPress={() => onOpenTicket(ticket.id)}
                   >
                     <View className="w-40 flex-row items-center gap-2 pr-3">
-                      <Text className="font-mono text-[11px] font-semibold text-muted-foreground">
+                      <Text className="font-mono text-xs font-semibold text-muted-foreground">
                         {ticket.key}
                       </Text>
                       <View className="flex-row items-center gap-1 rounded bg-muted px-2 py-0.5">
@@ -108,7 +108,7 @@ export function TicketList({
                               'bg-muted-foreground/60',
                           )}
                         />
-                        <Text className="max-w-24 truncate text-[10px] font-medium text-muted-foreground">
+                        <Text className="max-w-24 truncate text-2xs font-medium text-muted-foreground">
                           {columnPresentation?.label ?? '알 수 없음'}
                         </Text>
                       </View>
@@ -123,7 +123,7 @@ export function TicketList({
                           className="rounded bg-muted px-1.5 py-0.5"
                           key={label.id}
                         >
-                          <Text className="text-[9px] text-muted-foreground">
+                          <Text className="text-3xs text-muted-foreground">
                             {label.name}
                           </Text>
                         </View>
@@ -135,7 +135,7 @@ export function TicketList({
                         as={FolderKanban}
                         className="size-3.5 text-muted-foreground"
                       />
-                      <Text className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
+                      <Text className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
                         {projectName}
                       </Text>
                     </View>
@@ -145,7 +145,7 @@ export function TicketList({
                         as={priority.icon}
                         className={cn('size-3', priority.listForegroundClass)}
                       />
-                      <Text className="text-[11px] font-medium">
+                      <Text className="text-xs font-medium">
                         {priority.label}
                       </Text>
                     </View>
@@ -162,7 +162,7 @@ export function TicketList({
                             />
                           ) : null}
                           <AvatarFallback>
-                            <Text className="text-[8px] font-semibold">
+                            <Text className="text-3xs font-semibold">
                               {ticket.assignee.name.charAt(0)}
                             </Text>
                           </AvatarFallback>
@@ -170,7 +170,7 @@ export function TicketList({
                       ) : (
                         <View className="size-5 rounded-full bg-muted" />
                       )}
-                      <Text className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
+                      <Text className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
                         {ticket.assignee?.name ?? '미지정'}
                       </Text>
                     </View>
@@ -180,7 +180,7 @@ export function TicketList({
                         as={Clock3}
                         className="size-3 text-muted-foreground"
                       />
-                      <Text className="text-[10px] text-muted-foreground">
+                      <Text className="text-2xs text-muted-foreground">
                         {ticket.dueAt ? formatTicketDueAt(ticket.dueAt) : '-'}
                       </Text>
                     </View>

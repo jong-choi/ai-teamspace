@@ -95,7 +95,7 @@ export function GraphNodeTable({
               >
                 <GraphTableCell className="w-40">
                   <Text
-                    className="font-mono text-[11px] text-muted-foreground"
+                    className="font-mono text-xs text-muted-foreground"
                     numberOfLines={1}
                   >
                     {shortGraphId(node.id)}
@@ -130,7 +130,7 @@ export function GraphNodeTable({
                   <GraphProjectionBadge projection={node.projectionState} />
                 </GraphTableCell>
                 <GraphTableCell className="w-32">
-                  <Text className="font-mono text-[11px] text-muted-foreground">
+                  <Text className="font-mono text-xs text-muted-foreground">
                     {pinned ? `x:${pinned.x}, y:${pinned.y}` : '자동 배치'}
                   </Text>
                 </GraphTableCell>

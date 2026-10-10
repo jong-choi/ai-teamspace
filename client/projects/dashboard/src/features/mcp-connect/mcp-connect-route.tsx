@@ -88,7 +88,7 @@ function SectionHeader({
     <View className="flex-row items-end justify-between gap-3">
       <View className="min-w-0 flex-1 gap-0.5">
         <Text className="text-xs font-semibold">{title}</Text>
-        <Text className="text-[11px] leading-4 text-muted-foreground">
+        <Text className="text-xs leading-4 text-muted-foreground">
           {description}
         </Text>
       </View>
@@ -127,14 +127,14 @@ function ConnectionAddressSection({ info }: { info: McpConnectionInfo }) {
           variant="outline"
         >
           <Icon as={Copy} className="size-3" />
-          <Text className="text-[11px]">복사</Text>
+          <Text className="text-xs">복사</Text>
         </Button>
       </View>
     </View>
   );
 }
 
-const HEADER_CELL = 'text-[11px] font-semibold text-muted-foreground';
+const HEADER_CELL = 'text-xs font-semibold text-muted-foreground';
 
 function AccessKeySection({ info }: { info: McpConnectionInfo }) {
   const keys = useMcpAccessKeysControllerListSuspense({ limit: 100 }).data
@@ -226,7 +226,7 @@ function AccessKeyRow({
         <Text className="shrink truncate text-xs font-medium">
           {mcpKey.name}
         </Text>
-        <Text className="min-w-0 flex-1 truncate font-mono text-[11px] text-muted-foreground">
+        <Text className="min-w-0 flex-1 truncate font-mono text-xs text-muted-foreground">
           {mcpKey.start ?? mcpKey.prefix}…
         </Text>
       </View>

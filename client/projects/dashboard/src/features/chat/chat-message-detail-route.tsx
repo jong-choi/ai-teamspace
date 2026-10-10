@@ -88,12 +88,12 @@ function ChatMessageDetailContent({
                     : '알 수 없는 사용자')}
               </Text>
               {sender?.username ? (
-                <Text className="text-[10px] text-muted-foreground">
+                <Text className="text-2xs text-muted-foreground">
                   @{sender.username}
                 </Text>
               ) : null}
             </View>
-            <Text className="font-mono text-[10px] text-muted-foreground">
+            <Text className="font-mono text-2xs text-muted-foreground">
               {formatMessageDateTime(message.createdAt)}
               {message.editedAt ? ' · 수정됨' : ''}
             </Text>

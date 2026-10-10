@@ -55,7 +55,7 @@ export function GraphDialogFrame({
           <View className="min-w-0 flex-1 gap-0.5">
             <DialogTitle className="text-sm font-bold">{title}</DialogTitle>
             {description ? (
-              <DialogDescription className="text-[11px] leading-4">
+              <DialogDescription className="text-xs leading-4">
                 {description}
               </DialogDescription>
             ) : null}
@@ -123,9 +123,9 @@ export function GraphFormField({
       <Label className="text-xs">{label}</Label>
       {children}
       {error ? (
-        <Text className="text-[11px] text-destructive">{error}</Text>
+        <Text className="text-xs text-destructive">{error}</Text>
       ) : hint ? (
-        <Text className="text-[11px] text-muted-foreground">{hint}</Text>
+        <Text className="text-xs text-muted-foreground">{hint}</Text>
       ) : null}
     </View>
   );

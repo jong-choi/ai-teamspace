@@ -208,7 +208,7 @@ function ChecklistBlock({
           onChangeText={setTitle}
           value={title}
         />
-        <Text className="font-mono text-[10px] text-muted-foreground">
+        <Text className="font-mono text-2xs text-muted-foreground">
           {completed}/{sortedItems.length}
         </Text>
         <Pressable

@@ -57,12 +57,12 @@ export const ChatConversationHeader = memo(function ChatConversationHeader({
           <View className="flex-row items-center gap-2">
             <Text className="truncate text-sm font-bold">{display.title}</Text>
             <View className="rounded bg-muted px-1.5 py-0.5">
-              <Text className="text-[10px] font-medium text-muted-foreground">
+              <Text className="text-2xs font-medium text-muted-foreground">
                 {conversation.participants.length}명
               </Text>
             </View>
           </View>
-          <Text className="truncate text-[11px] text-muted-foreground">
+          <Text className="truncate text-xs text-muted-foreground">
             {display.subtitle || '대화를 시작해 보세요.'}
           </Text>
         </View>

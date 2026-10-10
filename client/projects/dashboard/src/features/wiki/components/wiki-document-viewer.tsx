@@ -8,10 +8,14 @@ import {
   PRODUCT_MARKDOWN_TABLE_CELL_MIN_WIDTH,
   productMarkdownTableRules,
 } from '@core/app/markdown/product-markdown-table';
-import { getProductInlineCodeStyle } from '@core/app/markdown/product-markdown-theme';
-import { getWikiMarkdownPalette } from '@core/features/wiki/wiki-markdown-theme';
-
-import { useColorScheme } from 'nativewind';
+import {
+  getProductInlineCodeStyle,
+  scaleMarkdownFont,
+} from '@core/app/markdown/product-markdown-theme';
+import {
+  useWikiMarkdownPalette,
+  type WikiMarkdownPalette,
+} from '@core/features/wiki/wiki-markdown-theme';
 
 export function WikiDocumentViewer({ document }: { document: WikiDocument }) {
   return <WikiMarkdownViewer contentMarkdown={document.contentMarkdown} />;
@@ -42,10 +46,10 @@ export function WikiMarkdownContent({
 }: {
   contentMarkdown: string;
 }) {
-  const { colorScheme } = useColorScheme();
+  const palette = useWikiMarkdownPalette();
   const markdownStyles = useMemo(
-    () => createMarkdownStyles(colorScheme === 'dark'),
-    [colorScheme],
+    () => createMarkdownStyles(palette),
+    [palette],
   );
 
   if (!contentMarkdown.trim()) {
@@ -65,37 +69,36 @@ export function WikiMarkdownContent({
   );
 }
 
-function createMarkdownStyles(dark: boolean) {
-  const palette = getWikiMarkdownPalette(dark);
+function createMarkdownStyles(palette: WikiMarkdownPalette) {
   const { border, foreground, link, muted, surface } = palette;
 
   return StyleSheet.create({
     body: {
       color: foreground,
-      fontSize: 13,
-      lineHeight: 22,
+      fontSize: scaleMarkdownFont(palette, 13),
+      lineHeight: scaleMarkdownFont(palette, 22),
     },
     heading1: {
       color: foreground,
-      fontSize: 24,
+      fontSize: scaleMarkdownFont(palette, 24),
       fontWeight: '700',
-      lineHeight: 32,
+      lineHeight: scaleMarkdownFont(palette, 32),
       marginBottom: 14,
       marginTop: 10,
     },
     heading2: {
       color: foreground,
-      fontSize: 19,
+      fontSize: scaleMarkdownFont(palette, 19),
       fontWeight: '700',
-      lineHeight: 28,
+      lineHeight: scaleMarkdownFont(palette, 28),
       marginBottom: 10,
       marginTop: 24,
     },
     heading3: {
       color: foreground,
-      fontSize: 16,
+      fontSize: scaleMarkdownFont(palette, 16),
       fontWeight: '600',
-      lineHeight: 24,
+      lineHeight: scaleMarkdownFont(palette, 24),
       marginBottom: 8,
       marginTop: 20,
     },
@@ -140,8 +143,8 @@ function createMarkdownStyles(dark: boolean) {
       borderWidth: StyleSheet.hairlineWidth,
       color: foreground,
       fontFamily: 'monospace',
-      fontSize: 12,
-      lineHeight: 19,
+      fontSize: scaleMarkdownFont(palette, 12),
+      lineHeight: scaleMarkdownFont(palette, 19),
       marginBottom: 16,
       padding: 14,
     },
@@ -152,8 +155,8 @@ function createMarkdownStyles(dark: boolean) {
       borderWidth: StyleSheet.hairlineWidth,
       color: foreground,
       fontFamily: 'monospace',
-      fontSize: 12,
-      lineHeight: 19,
+      fontSize: scaleMarkdownFont(palette, 12),
+      lineHeight: scaleMarkdownFont(palette, 19),
       marginBottom: 16,
       padding: 14,
     },

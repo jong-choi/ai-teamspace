@@ -105,10 +105,10 @@ function WikiHistoryContent({
               <Text className={cn('text-xs', active && 'font-semibold')}>
                 revision {revision.revision}
               </Text>
-              <Text className="mt-0.5 truncate text-[10px] text-muted-foreground">
+              <Text className="mt-0.5 truncate text-2xs text-muted-foreground">
                 {formatRevisionTime(revision.createdAt)}
               </Text>
-              <Text className="mt-0.5 truncate text-[10px] text-muted-foreground">
+              <Text className="mt-0.5 truncate text-2xs text-muted-foreground">
                 {formatRevisionCollaborators(
                   revision.collaboratorUserIds,
                   revision.editorUserId,
@@ -162,11 +162,11 @@ function WikiHistoryRevision({
           <Text className="text-xs font-semibold">
             revision {detail.revision}
           </Text>
-          <Text className="text-[10px] text-muted-foreground">
+          <Text className="text-2xs text-muted-foreground">
             {formatRevisionTime(detail.createdAt)}
           </Text>
         </View>
-        <Text className="mt-1 text-[10px] text-muted-foreground">
+        <Text className="mt-1 text-2xs text-muted-foreground">
           {formatRevisionCollaborators(
             detail.collaboratorUserIds,
             detail.editorUserId,

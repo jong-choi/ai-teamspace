@@ -214,7 +214,7 @@ function GraphDataSubTab({
 function GraphTabCount({ value }: { value: number | string }) {
   return (
     <Badge className="ml-1 bg-muted" variant="outline">
-      <Text className="font-mono text-[10px]">{value}</Text>
+      <Text className="font-mono text-2xs">{value}</Text>
     </Badge>
   );
 }

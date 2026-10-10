@@ -75,7 +75,7 @@ export function KanbanBoard({
                       {presentation.label}
                     </Text>
                     <View className="min-w-5 items-center rounded-full bg-muted px-1.5 py-0.5">
-                      <Text className="font-mono text-[10px] text-muted-foreground">
+                      <Text className="font-mono text-2xs text-muted-foreground">
                         {columnTickets.length}
                       </Text>
                     </View>
@@ -113,7 +113,7 @@ export function KanbanBoard({
                               active && 'border-foreground/40 bg-background',
                             )}
                           >
-                            <Text className="text-center text-[11px] text-muted-foreground">
+                            <Text className="text-center text-xs text-muted-foreground">
                               {active
                                 ? '여기에 놓아 이동'
                                 : '이 단계의 이슈가 없습니다'}
@@ -202,7 +202,7 @@ export function KanbanBoard({
                           >
                             <Text
                               className={cn(
-                                'text-[9px] text-transparent',
+                                'text-3xs text-transparent',
                                 active && 'text-muted-foreground',
                               )}
                             >

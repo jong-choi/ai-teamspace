@@ -24,7 +24,7 @@ export function ProjectOverviewCard({
   return (
     <View className="gap-4 rounded-xl border border-border bg-card p-5 shadow-sm web:hover:border-muted-foreground/40 web:hover:shadow-md">
       <View className="flex-row items-center justify-between">
-        <Text className="text-[10px] text-muted-foreground">
+        <Text className="text-2xs text-muted-foreground">
           {formatUpdatedAt(project.updatedAt)} 업데이트
         </Text>
         <View className="flex-row gap-1.5">
@@ -64,10 +64,10 @@ export function ProjectOverviewCard({
 
       <View className="gap-1.5 pt-1">
         <View className="flex-row items-center justify-between">
-          <Text className="text-[11px] text-muted-foreground">
+          <Text className="text-xs text-muted-foreground">
             이슈 {project.activeTicketCount}개 활성
           </Text>
-          <Text className="text-[11px] font-medium">{completion}%</Text>
+          <Text className="text-xs font-medium">{completion}%</Text>
         </View>
         <View className="h-2 overflow-hidden rounded-full bg-muted">
           <View
@@ -78,7 +78,7 @@ export function ProjectOverviewCard({
       </View>
 
       <View className="flex-row items-center justify-between border-t border-border/70 pt-2">
-        <Text className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
+        <Text className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
           리드: {project.lead?.name ?? '미지정'}
         </Text>
         <Pressable
@@ -86,7 +86,7 @@ export function ProjectOverviewCard({
           className="flex-row items-center gap-1 rounded px-1.5 py-1 web:hover:bg-muted"
           onPress={onOpenBoard}
         >
-          <Text className="text-[11px] font-medium">이슈 열기</Text>
+          <Text className="text-xs font-medium">이슈 열기</Text>
           <Icon as={ArrowRight} className="size-3 text-muted-foreground" />
         </Pressable>
       </View>

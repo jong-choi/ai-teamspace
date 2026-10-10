@@ -26,11 +26,11 @@ export function CalendarAttendeePicker({
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-1.5">
           <Icon as={Users} className="size-3.5 text-muted-foreground" />
-          <Text className="text-[11px] font-semibold text-muted-foreground">
+          <Text className="text-xs font-semibold text-muted-foreground">
             참여자 지정
           </Text>
         </View>
-        <Text className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+        <Text className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
           {selectedMembers.length}명 선택
         </Text>
       </View>
@@ -59,8 +59,8 @@ export function CalendarAttendeePicker({
                 image={member.image}
                 name={member.name}
               />
-              <Text className="text-[10px] font-medium">{member.name}</Text>
-              <Text className="text-[9px] text-muted-foreground">
+              <Text className="text-2xs font-medium">{member.name}</Text>
+              <Text className="text-3xs text-muted-foreground">
                 {member.id === currentUserId ? '(본인)' : ''}
               </Text>
               <Icon as={X} className="size-3 text-muted-foreground" />

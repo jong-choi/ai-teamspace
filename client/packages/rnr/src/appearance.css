@@ -281,26 +281,35 @@
     --chart-5: 17.61 57.23% 44.35%;
   }
 
+  /* class가 붙기 전에도 text-* utility가 동작하도록 기본값(작게)을 둔다. */
   :root {
-    --font-size-xs: 12px;
-    --line-height-xs: 16px;
-    --font-size-sm: 14px;
-    --line-height-sm: 20px;
-    --font-size-base: 16px;
-    --line-height-base: 24px;
-    --font-size-lg: 18px;
-    --line-height-lg: 28px;
-    --font-size-xl: 20px;
-    --line-height-xl: 28px;
-    --font-size-2xl: 24px;
-    --line-height-2xl: 32px;
-    --font-size-3xl: 30px;
-    --line-height-3xl: 36px;
-    --font-size-4xl: 36px;
-    --line-height-4xl: 40px;
+    --font-size-3xs: 9px;
+    --line-height-3xs: 12px;
+    --font-size-2xs: 10px;
+    --line-height-2xs: 14px;
+    --font-size-xs: 11px;
+    --line-height-xs: 15px;
+    --font-size-sm: 13px;
+    --line-height-sm: 18px;
+    --font-size-base: 15px;
+    --line-height-base: 22px;
+    --font-size-lg: 17px;
+    --line-height-lg: 25px;
+    --font-size-xl: 19px;
+    --line-height-xl: 27px;
+    --font-size-2xl: 22px;
+    --line-height-2xl: 29px;
+    --font-size-3xl: 27px;
+    --line-height-3xl: 33px;
+    --font-size-4xl: 32px;
+    --line-height-4xl: 37px;
   }
 
   .font-size-small {
+    --font-size-3xs: 9px;
+    --line-height-3xs: 12px;
+    --font-size-2xs: 10px;
+    --line-height-2xs: 14px;
     --font-size-xs: 11px;
     --line-height-xs: 15px;
     --font-size-sm: 13px;
@@ -320,6 +329,10 @@
   }
 
   .font-size-medium {
+    --font-size-3xs: 10px;
+    --line-height-3xs: 13px;
+    --font-size-2xs: 11px;
+    --line-height-2xs: 15px;
     --font-size-xs: 12px;
     --line-height-xs: 16px;
     --font-size-sm: 14px;
@@ -339,6 +352,10 @@
   }
 
   .font-size-large {
+    --font-size-3xs: 11px;
+    --line-height-3xs: 14px;
+    --font-size-2xs: 12px;
+    --line-height-2xs: 16px;
     --font-size-xs: 14px;
     --line-height-xs: 18px;
     --font-size-sm: 16px;

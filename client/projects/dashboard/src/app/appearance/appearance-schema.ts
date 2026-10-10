@@ -129,7 +129,7 @@ export const randomColorThemeSchema = z.object({
 // 브라우저 저장소에 보관하는 화면 설정이다. 저장된 값은 이 schema로 다시 검증한다.
 export const storedAppearanceSchema = z.object({
   colorThemePreference: colorThemePreferenceSchema.default('default'),
-  fontSizePreference: fontSizePreferenceSchema.default('medium'),
+  fontSizePreference: fontSizePreferenceSchema.default('small'),
   randomColorTheme: randomColorThemeSchema.default(DEFAULT_RANDOM_COLOR_THEME),
   radiusPreference: radiusPreferenceSchema.default('medium'),
   themePreference: themePreferenceSchema.default('system'),

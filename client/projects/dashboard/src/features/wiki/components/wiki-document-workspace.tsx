@@ -132,7 +132,7 @@ export function WikiDocumentWorkspace({
         <Pressable
           accessibilityLabel="위키 탐색기 닫기"
           className={cn(
-            'absolute inset-0 z-20 bg-zinc-950/50 md:hidden',
+            'absolute inset-0 z-20 bg-black/50 md:hidden',
             drawerOpen ? 'flex' : 'hidden',
           )}
           onPress={onCloseDrawer}

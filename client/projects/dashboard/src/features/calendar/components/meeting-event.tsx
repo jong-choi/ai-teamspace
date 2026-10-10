@@ -44,7 +44,7 @@ export function MeetingEvent({
       <View className="min-w-0 flex-row items-center gap-1">
         <Text
           className={cn(
-            'shrink-0 font-mono text-[10px] opacity-70',
+            'shrink-0 font-mono text-2xs opacity-70',
             meta.chipTextClassName,
           )}
         >
@@ -52,7 +52,7 @@ export function MeetingEvent({
         </Text>
         <Text
           className={cn(
-            'min-w-0 flex-1 truncate text-[11px] font-semibold',
+            'min-w-0 flex-1 truncate text-xs font-semibold',
             meta.chipTextClassName,
             canceled && 'line-through',
           )}
@@ -69,20 +69,20 @@ export function MeetingEvent({
               as={meeting.locationType === 'online' ? Monitor : MapPin}
               className="size-3 opacity-60"
             />
-            <Text className="min-w-0 flex-1 truncate text-[10px] opacity-70">
+            <Text className="min-w-0 flex-1 truncate text-2xs opacity-70">
               {getMeetingLocationLabel(meeting)}
             </Text>
           </View>
           <View className="flex-row items-center gap-2">
             <View className="flex-row items-center gap-1">
               <Icon as={Users} className="size-3 opacity-60" />
-              <Text className="text-[10px] opacity-70">
+              <Text className="text-2xs opacity-70">
                 {getMeetingAttendeeCount(meeting)}명
               </Text>
             </View>
             <View className="flex-row items-center gap-1">
               <Icon as={Clock} className="size-3 opacity-60" />
-              <Text className="text-[10px] opacity-70">{timeLabel}</Text>
+              <Text className="text-2xs opacity-70">{timeLabel}</Text>
             </View>
           </View>
         </View>

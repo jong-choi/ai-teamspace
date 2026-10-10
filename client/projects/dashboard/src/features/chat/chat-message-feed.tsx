@@ -144,7 +144,7 @@ export function ChatMessageFeed({
       {messagesQuery.isFetchingNextPage ? (
         <View className="absolute left-0 right-0 top-2 items-center">
           <View className="rounded-full border border-border bg-background px-3 py-1 shadow-sm">
-            <Text className="text-[10px] text-muted-foreground">
+            <Text className="text-2xs text-muted-foreground">
               이전 메시지 불러오는 중...
             </Text>
           </View>

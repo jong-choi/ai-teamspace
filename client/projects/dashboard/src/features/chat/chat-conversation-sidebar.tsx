@@ -95,7 +95,7 @@ export function ChatConversationSidebar({
           size="sm"
           variant="ghost"
         >
-          <Text className="text-[10px]">닫기</Text>
+          <Text className="text-2xs">닫기</Text>
         </Button>
       </View>
     </View>
@@ -144,7 +144,7 @@ const ConversationRow = memo(function ConversationRow({
               <AvatarImage source={{ uri: display.image }} />
             ) : null}
             <AvatarFallback>
-              <Text className="text-[10px] font-semibold">
+              <Text className="text-2xs font-semibold">
                 {display.title.slice(0, 1).toUpperCase()}
               </Text>
             </AvatarFallback>
@@ -162,7 +162,7 @@ const ConversationRow = memo(function ConversationRow({
             {display.title}
           </Text>
           {display.subtitle ? (
-            <Text className="truncate text-[10px] text-muted-foreground">
+            <Text className="truncate text-2xs text-muted-foreground">
               {display.subtitle}
             </Text>
           ) : null}
@@ -170,7 +170,7 @@ const ConversationRow = memo(function ConversationRow({
       </View>
       {conversation.unreadCount > 0 ? (
         <View className="ml-2 min-w-5 items-center rounded-full bg-primary px-1.5 py-0.5">
-          <Text className="text-[10px] font-bold text-primary-foreground">
+          <Text className="text-2xs font-bold text-primary-foreground">
             {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
           </Text>
         </View>
@@ -266,7 +266,7 @@ function ConversationSidebarList({
           recycleItems
           renderItem={({ item }) =>
             item.type === 'section' ? (
-              <Text className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <Text className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 {item.label}
               </Text>
             ) : (

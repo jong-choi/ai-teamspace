@@ -34,7 +34,7 @@ export function GraphSearchSummary({
         />
       </View>
       {result.degradedReasons.length > 0 ? (
-        <Text className="mb-2 text-[10px] text-muted-foreground">
+        <Text className="mb-2 text-2xs text-muted-foreground">
           {result.degradedReasons.map(degradedReasonLabel).join(' · ')}
         </Text>
       ) : null}
@@ -56,7 +56,7 @@ export function GraphSearchSummary({
                 {item.source.title}
               </Text>
               <Text
-                className="text-[10px] text-muted-foreground"
+                className="text-2xs text-muted-foreground"
                 numberOfLines={1}
               >
                 {item.matchedBy.join(' + ')} · #{item.fusedRank}

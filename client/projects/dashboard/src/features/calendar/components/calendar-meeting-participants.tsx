@@ -93,7 +93,7 @@ export function CalendarMeetingParticipants({
               >
                 <Text
                   className={cn(
-                    'text-[10px] font-semibold',
+                    'text-2xs font-semibold',
                     rsvpStatusText(status),
                   )}
                 >
@@ -170,7 +170,7 @@ export function CalendarMeetingParticipants({
         </View>
       ) : null}
       <View className="border-t border-border/60 pt-2">
-        <Text className="mb-1.5 text-[11px] text-muted-foreground">
+        <Text className="mb-1.5 text-xs text-muted-foreground">
           참석자 현황 · {meeting.attendees.length}명
         </Text>
         <PersonStatusRow
@@ -213,7 +213,7 @@ function AttendeeStatusRow({ attendee }: { attendee: MeetingAttendee }) {
       >
         <Text
           className={cn(
-            'text-[9px] font-medium',
+            'text-3xs font-medium',
             attendeeStatusText(attendee.status),
           )}
         >
@@ -238,9 +238,7 @@ function PersonStatusRow({
   return (
     <View className="flex-row items-center justify-between gap-3 py-1">
       <PersonRow email={email} image={image} name={name} />
-      <Text className="text-[9px] font-medium text-muted-foreground">
-        {role}
-      </Text>
+      <Text className="text-3xs font-medium text-muted-foreground">{role}</Text>
     </View>
   );
 }
@@ -265,7 +263,7 @@ function PersonRow({
       <Avatar alt={name} className="size-7">
         {image ? <AvatarImage source={{ uri: image }} /> : null}
         <AvatarFallback>
-          <Text className="text-[9px] font-semibold">{initials || '?'}</Text>
+          <Text className="text-3xs font-semibold">{initials || '?'}</Text>
         </AvatarFallback>
       </Avatar>
       <View className="min-w-0 flex-1">
@@ -273,7 +271,7 @@ function PersonRow({
           {name}
         </Text>
         <Text
-          className="truncate text-[10px] text-muted-foreground"
+          className="truncate text-2xs text-muted-foreground"
           numberOfLines={1}
         >
           {email}

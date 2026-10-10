@@ -65,16 +65,16 @@ export const ChatMessageRow = memo(function ChatMessageRow({
           <Text className="text-xs font-semibold">{senderName}</Text>
           {mine ? (
             <View className="rounded bg-muted px-1.5 py-0.5">
-              <Text className="text-[10px] font-semibold text-muted-foreground">
+              <Text className="text-2xs font-semibold text-muted-foreground">
                 내 메시지
               </Text>
             </View>
           ) : null}
-          <Text className="font-mono text-[10px] text-muted-foreground">
+          <Text className="font-mono text-2xs text-muted-foreground">
             {formatMessageTime(message.createdAt)}
           </Text>
           {message.editedAt ? (
-            <Text className="text-[10px] text-muted-foreground">수정됨</Text>
+            <Text className="text-2xs text-muted-foreground">수정됨</Text>
           ) : null}
         </View>
         {textContent ? (

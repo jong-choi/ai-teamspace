@@ -128,3 +128,10 @@ function toDateKeyFromUtcDate(date: Date): string {
 function daysInMonth(year: number, month: number): number {
   return new Date(Date.UTC(year, month, 0)).getUTCDate();
 }
+
+// 일요일·토요일 요일 이름에 쓰는 글자색이다. 평일은 class를 주지 않는다.
+export function calendarWeekdayTextClass(weekdayIndex: number): string {
+  if (weekdayIndex === 0) return 'text-rose-500 dark:text-rose-400';
+  if (weekdayIndex === 6) return 'text-blue-500 dark:text-blue-400';
+  return '';
+}

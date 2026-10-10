@@ -8,6 +8,7 @@ import { cn } from '@repo/client/rnr/lib/utils';
 import { CALENDAR_CATEGORY_META } from '@core/features/calendar/lib/calendar-category';
 import {
   CALENDAR_WEEKDAYS_KO,
+  calendarWeekdayTextClass,
   dayOfMonth,
   getWeekDateKeys,
   weekdayIndex,
@@ -81,7 +82,7 @@ function TimelineView({
         {week ? (
           <View className="flex-row border-b border-border bg-muted/40">
             <View className="w-20 items-center justify-center border-r border-border px-2 py-3">
-              <Text className="font-mono text-[10px] text-muted-foreground">
+              <Text className="font-mono text-2xs text-muted-foreground">
                 시간
               </Text>
             </View>
@@ -92,9 +93,8 @@ function TimelineView({
                 <View className="flex-1 items-center px-2 py-2" key={dateKey}>
                   <Text
                     className={cn(
-                      'text-[10px] text-muted-foreground',
-                      weekday === 0 && 'text-rose-500',
-                      weekday === 6 && 'text-blue-500',
+                      'text-2xs text-muted-foreground',
+                      calendarWeekdayTextClass(weekday),
                     )}
                   >
                     {CALENDAR_WEEKDAYS_KO[weekday]}
@@ -169,7 +169,7 @@ function TimelineView({
                 key={hour}
                 style={{ height: CALENDAR_TIMELINE_HOUR_HEIGHT }}
               >
-                <Text className="font-mono text-[10px] text-muted-foreground">
+                <Text className="font-mono text-2xs text-muted-foreground">
                   {String(hour).padStart(2, '0')}:00
                 </Text>
               </View>
@@ -277,15 +277,12 @@ function TimelineMeetingEvent({
             )}
           >
             <Text
-              className={cn(
-                'text-[9px] font-semibold',
-                meta.badgeTextClassName,
-              )}
+              className={cn('text-3xs font-semibold', meta.badgeTextClassName)}
             >
               {meta.label}
             </Text>
           </View>
-          <Text className="font-mono text-[9px] text-muted-foreground">
+          <Text className="font-mono text-3xs text-muted-foreground">
             {timeLabel}
           </Text>
         </View>
@@ -293,7 +290,7 @@ function TimelineMeetingEvent({
 
       <Text
         className={cn(
-          'truncate text-[11px] font-bold text-foreground',
+          'truncate text-xs font-bold text-foreground',
           canceled && 'line-through',
         )}
         numberOfLines={1}
@@ -302,7 +299,7 @@ function TimelineMeetingEvent({
       </Text>
 
       {week && showMetadata ? (
-        <Text className="mt-0.5 font-mono text-[9px] text-muted-foreground">
+        <Text className="mt-0.5 font-mono text-3xs text-muted-foreground">
           {timeLabel}
         </Text>
       ) : null}
@@ -314,7 +311,7 @@ function TimelineMeetingEvent({
             className="size-2.5 text-muted-foreground"
           />
           <Text
-            className="min-w-0 flex-1 truncate text-[9px] text-muted-foreground"
+            className="min-w-0 flex-1 truncate text-3xs text-muted-foreground"
             numberOfLines={1}
           >
             {getMeetingLocationLabel(meeting)}
@@ -326,7 +323,7 @@ function TimelineMeetingEvent({
         <View className="mt-0.5 flex-row items-center gap-2">
           {meeting.project ? (
             <Text
-              className="min-w-0 flex-1 truncate font-mono text-[9px] text-muted-foreground"
+              className="min-w-0 flex-1 truncate font-mono text-3xs text-muted-foreground"
               numberOfLines={1}
             >
               {meeting.project.name}
@@ -336,7 +333,7 @@ function TimelineMeetingEvent({
           )}
           <View className="flex-row items-center gap-1">
             <Icon as={Users} className="size-2.5 text-muted-foreground" />
-            <Text className="text-[9px] text-muted-foreground">
+            <Text className="text-3xs text-muted-foreground">
               {getMeetingAttendeeCount(meeting)}명
             </Text>
           </View>

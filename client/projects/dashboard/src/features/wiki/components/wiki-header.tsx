@@ -79,7 +79,7 @@ export function WikiHeader({
                 indicatorDotClass(saveIndicator.tone),
               )}
             />
-            <Text className="hidden text-[11px] text-muted-foreground sm:flex">
+            <Text className="hidden text-xs text-muted-foreground sm:flex">
               {saveIndicator.label}
             </Text>
           </View>
@@ -196,14 +196,14 @@ function WikiCollaboratorFacepile({
           key={collaborator.userId}
           style={{ backgroundColor: collaborator.color }}
         >
-          <Text className="text-[9px] font-semibold text-white">
+          <Text className="text-3xs font-semibold text-white">
             {collaborator.name.slice(0, 1).toUpperCase()}
           </Text>
         </View>
       ))}
       {remaining > 0 ? (
         <View className="-ml-1.5 size-6 items-center justify-center rounded-full border border-background bg-muted">
-          <Text className="text-[9px] font-semibold text-muted-foreground">
+          <Text className="text-3xs font-semibold text-muted-foreground">
             +{remaining}
           </Text>
         </View>

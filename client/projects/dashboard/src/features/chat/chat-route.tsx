@@ -90,7 +90,7 @@ function AuthenticatedChatRoute({
       <Pressable
         accessibilityLabel="채널 목록 닫기"
         className={cn(
-          'absolute inset-0 z-20 bg-zinc-950/50 md:hidden',
+          'absolute inset-0 z-20 bg-black/50 md:hidden',
           drawerOpen ? 'flex' : 'hidden',
         )}
         onPress={closeDrawer}

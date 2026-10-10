@@ -182,7 +182,7 @@ export function CreateAgentIntegrationForm({
               placeholder="https://mcp.example.com/mcp"
               value={field.value}
             />
-            <Text className="text-[11px] leading-4 text-muted-foreground">
+            <Text className="text-xs leading-4 text-muted-foreground">
               HTTPS 주소만 쓸 수 있습니다.
             </Text>
             <FieldError message={fieldState.error?.message} />
@@ -264,7 +264,9 @@ export function CreateAgentIntegrationForm({
       ) : null}
 
       <Button disabled={pending} onPress={() => void submit()}>
-        {pending ? <ActivityIndicator color="white" size="small" /> : null}
+        {pending ? (
+          <ActivityIndicator className="text-primary-foreground" size="small" />
+        ) : null}
         <Text className="text-primary-foreground">
           {authKind === 'oauth' ? 'OAuth 인증하고 추가' : '추가'}
         </Text>

@@ -29,7 +29,7 @@ export function AgentChatOpenButton() {
         className="size-4 text-violet-500 dark:text-violet-400"
       />
       <View className="rounded border border-violet-500/20 bg-violet-500/10 px-1.5 py-0.5">
-        <Text className="text-[10px] font-semibold text-violet-600 dark:text-violet-400">
+        <Text className="text-2xs font-semibold text-violet-600 dark:text-violet-400">
           에이전트
         </Text>
       </View>

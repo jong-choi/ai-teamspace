@@ -122,7 +122,10 @@ export function LoginRoute() {
           onPress={() => void submit()}
         >
           {form.formState.isSubmitting ? (
-            <ActivityIndicator color="white" size="small" />
+            <ActivityIndicator
+              className="text-primary-foreground"
+              size="small"
+            />
           ) : null}
           <Text>로그인</Text>
         </Button>
@@ -355,7 +358,10 @@ export function SignupRoute() {
           onPress={() => void submit()}
         >
           {form.formState.isSubmitting ? (
-            <ActivityIndicator color="white" size="small" />
+            <ActivityIndicator
+              className="text-primary-foreground"
+              size="small"
+            />
           ) : null}
           <Text>회원가입</Text>
         </Button>

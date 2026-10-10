@@ -18,7 +18,7 @@ describe('이슈 우선순위 표시 모델', () => {
   it('카드 badge와 목록 icon의 Gemini 색 계층을 각각 유지한다', () => {
     const urgent = getTicketPriorityPresentation('urgent');
     expect(urgent.badgeForegroundClass).toContain('text-red-600');
-    expect(urgent.listForegroundClass).toBe('text-red-500');
+    expect(urgent.listForegroundClass).toBe('text-red-500 dark:text-red-400');
 
     const low = getTicketPriorityPresentation('low');
     expect(low.badgeForegroundClass).toBe('text-muted-foreground');

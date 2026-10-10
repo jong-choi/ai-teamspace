@@ -7,11 +7,10 @@ import {
 } from '@core/app/markdown/live-markdown';
 import { parseProductMarkdown } from '@core/app/markdown/product-markdown-parser';
 import {
-  getProductMarkdownPalette,
   type ProductMarkdownPalette,
+  scaleMarkdownFont,
+  useProductMarkdownPalette,
 } from '@core/app/markdown/product-markdown-theme';
-
-import { useColorScheme } from 'nativewind';
 
 export function CalendarMarkdownEditor({
   accessibilityLabel = '회의 안건 Markdown 편집기',
@@ -26,11 +25,7 @@ export function CalendarMarkdownEditor({
   placeholder: string;
   value: string;
 }) {
-  const { colorScheme } = useColorScheme();
-  const palette = useMemo(
-    () => getProductMarkdownPalette(colorScheme === 'dark'),
-    [colorScheme],
-  );
+  const palette = useProductMarkdownPalette();
   const inputStyle = useMemo(() => createInputStyle(palette), [palette]);
   const markdownStyle = useMemo(() => createMarkdownStyle(palette), [palette]);
 
@@ -63,8 +58,8 @@ function createInputStyle(palette: ProductMarkdownPalette) {
       backgroundColor: 'transparent',
       color: palette.foreground,
       fontFamily: Platform.select({ ios: 'Courier', default: 'monospace' }),
-      fontSize: 12,
-      lineHeight: 18,
+      fontSize: scaleMarkdownFont(palette, 12),
+      lineHeight: scaleMarkdownFont(palette, 18),
     },
   }).input;
 }
@@ -73,7 +68,7 @@ function createMarkdownStyle(palette: ProductMarkdownPalette): MarkdownStyle {
   return {
     syntax: { color: palette.placeholder },
     link: { color: palette.link },
-    h1: { fontSize: 16 },
+    h1: { fontSize: scaleMarkdownFont(palette, 16) },
     blockquote: {
       borderColor: palette.strongBorder,
       borderWidth: 2,
@@ -89,7 +84,7 @@ function createMarkdownStyle(palette: ProductMarkdownPalette): MarkdownStyle {
       fontFamily:
         Platform.select({ ios: 'Courier', default: 'monospace' }) ??
         'monospace',
-      fontSize: 11,
+      fontSize: scaleMarkdownFont(palette, 11),
       paddingHorizontal: 3,
     },
     pre: {
@@ -101,7 +96,7 @@ function createMarkdownStyle(palette: ProductMarkdownPalette): MarkdownStyle {
       fontFamily:
         Platform.select({ ios: 'Courier', default: 'monospace' }) ??
         'monospace',
-      fontSize: 11,
+      fontSize: scaleMarkdownFont(palette, 11),
       padding: 10,
     },
   };

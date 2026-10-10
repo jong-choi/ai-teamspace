@@ -146,7 +146,7 @@ function GraphEdgeEndpoint({
       onPress={() => select({ kind: 'node', id: node.id })}
     >
       <View className="flex-row items-center justify-between gap-2">
-        <Text className="font-mono text-[10px] font-semibold text-muted-foreground">
+        <Text className="font-mono text-2xs font-semibold text-muted-foreground">
           {label}
         </Text>
         <GraphMetaBadge label={GRAPH_NODE_KIND_META[node.kind].code} />

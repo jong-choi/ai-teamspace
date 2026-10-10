@@ -7,11 +7,10 @@ import {
 } from '@core/app/markdown/product-live-markdown';
 import { parseProductMarkdown } from '@core/app/markdown/product-markdown-parser';
 import {
-  getProductMarkdownPalette,
   type ProductMarkdownPalette,
+  scaleMarkdownFont,
+  useProductMarkdownPalette,
 } from '@core/app/markdown/product-markdown-theme';
-
-import { useColorScheme } from 'nativewind';
 
 export function TicketMarkdownEditor({
   bare = false,
@@ -28,11 +27,7 @@ export function TicketMarkdownEditor({
   placeholder: string;
   value: string;
 }) {
-  const { colorScheme } = useColorScheme();
-  const palette = useMemo(
-    () => getProductMarkdownPalette(colorScheme === 'dark'),
-    [colorScheme],
-  );
+  const palette = useProductMarkdownPalette();
   const inputStyle = useMemo(
     () => createInputStyle(palette, compact, editable, bare),
     [bare, compact, editable, palette],
@@ -79,8 +74,8 @@ function createInputStyle(
           ? 'transparent'
           : palette.surface,
       color: palette.foreground,
-      fontSize: 12,
-      lineHeight: 20,
+      fontSize: scaleMarkdownFont(palette, 12),
+      lineHeight: scaleMarkdownFont(palette, 20),
     },
   }).input;
 }
@@ -89,7 +84,7 @@ function createMarkdownStyle(palette: ProductMarkdownPalette): MarkdownStyle {
   return {
     syntax: { color: palette.placeholder },
     link: { color: palette.link },
-    h1: { fontSize: 16 },
+    h1: { fontSize: scaleMarkdownFont(palette, 16) },
     blockquote: {
       borderColor: palette.strongBorder,
       borderWidth: 2,
@@ -105,7 +100,7 @@ function createMarkdownStyle(palette: ProductMarkdownPalette): MarkdownStyle {
       fontFamily:
         Platform.select({ ios: 'Courier', default: 'monospace' }) ??
         'monospace',
-      fontSize: 12,
+      fontSize: scaleMarkdownFont(palette, 12),
       paddingHorizontal: 3,
     },
     pre: {
@@ -117,7 +112,7 @@ function createMarkdownStyle(palette: ProductMarkdownPalette): MarkdownStyle {
       fontFamily:
         Platform.select({ ios: 'Courier', default: 'monospace' }) ??
         'monospace',
-      fontSize: 12,
+      fontSize: scaleMarkdownFont(palette, 12),
       padding: 10,
     },
   };

@@ -37,7 +37,10 @@ export function AgentChatHeader({
   return (
     <View className="h-12 shrink-0 flex-row items-center justify-between gap-2 border-b border-border/60 px-3">
       <View className="min-w-0 flex-1 flex-row items-center gap-2">
-        <Icon as={Sparkles} className="size-3.5 text-violet-500" />
+        <Icon
+          as={Sparkles}
+          className="size-3.5 text-violet-500 dark:text-violet-400"
+        />
         <Text className="min-w-0 flex-1 text-sm font-medium" numberOfLines={1}>
           {title}
         </Text>

@@ -56,7 +56,7 @@ export function CalendarListView({
             >
               <Text
                 className={cn(
-                  'text-[11px] font-semibold',
+                  'text-xs font-semibold',
                   dateKey === todayDateKey
                     ? 'text-white'
                     : 'text-secondary-foreground',
@@ -66,7 +66,7 @@ export function CalendarListView({
               </Text>
             </View>
             <View className="h-px flex-1 bg-border" />
-            <Text className="font-mono text-[10px] text-muted-foreground">
+            <Text className="font-mono text-2xs text-muted-foreground">
               {items.length}건
             </Text>
           </View>
@@ -89,7 +89,7 @@ export function CalendarListView({
                     <Text className="font-mono text-xs font-bold">
                       {timeLabel.split(' – ')[0]}
                     </Text>
-                    <Text className="font-mono text-[10px] text-muted-foreground">
+                    <Text className="font-mono text-2xs text-muted-foreground">
                       {timeLabel.split(' – ')[1]}
                     </Text>
                   </View>
@@ -103,7 +103,7 @@ export function CalendarListView({
                       >
                         <Text
                           className={cn(
-                            'text-[10px] font-semibold',
+                            'text-2xs font-semibold',
                             meta.badgeTextClassName,
                           )}
                         >
@@ -111,12 +111,12 @@ export function CalendarListView({
                         </Text>
                       </View>
                       {meeting.project ? (
-                        <Text className="truncate rounded bg-secondary px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+                        <Text className="truncate rounded bg-secondary px-1.5 py-0.5 font-mono text-2xs text-muted-foreground">
                           {meeting.project.name}
                         </Text>
                       ) : null}
                       {canceled ? (
-                        <Text className="rounded bg-rose-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-rose-500">
+                        <Text className="rounded bg-rose-500/10 px-1.5 py-0.5 text-2xs font-semibold text-rose-500">
                           취소됨
                         </Text>
                       ) : null}

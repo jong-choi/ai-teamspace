@@ -6,7 +6,7 @@ export type ProjectColumnPresentation = {
 const DEFAULT_COLUMN_PRESENTATION: Readonly<
   Record<string, ProjectColumnPresentation>
 > = {
-  Backlog: { label: '백로그', dotClassName: 'bg-zinc-400' },
+  Backlog: { label: '백로그', dotClassName: 'bg-muted-foreground/50' },
   Todo: { label: '할 일', dotClassName: 'bg-blue-500' },
   'In Progress': { label: '진행 중', dotClassName: 'bg-amber-500' },
   'In Review': { label: '검토 중', dotClassName: 'bg-purple-500' },

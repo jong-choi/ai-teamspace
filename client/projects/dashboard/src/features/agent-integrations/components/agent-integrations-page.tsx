@@ -151,7 +151,7 @@ function ConnectionTable({
   );
 }
 
-const HEADER_CELL = 'text-[11px] font-semibold text-muted-foreground';
+const HEADER_CELL = 'text-xs font-semibold text-muted-foreground';
 
 function useConnectionActions(
   connection: AgentMcpConnection,
@@ -293,7 +293,7 @@ function ConnectionRow({
         <Text className="shrink truncate text-xs font-medium">
           {safeExternalText(connection.displayName, 100)}
         </Text>
-        <Text className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
+        <Text className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
           {safeExternalText(connection.publicHost, 255)}
         </Text>
       </View>
@@ -313,7 +313,7 @@ function ConnectionRow({
             size="sm"
             variant="outline"
           >
-            <Text className="text-[11px]">인증</Text>
+            <Text className="text-xs">인증</Text>
           </Button>
         ) : (
           <Button
@@ -327,7 +327,7 @@ function ConnectionRow({
             size="sm"
             variant={connection.enabled ? 'secondary' : 'outline'}
           >
-            <Text className="text-[11px]">
+            <Text className="text-xs">
               {connection.enabled ? '사용 중' : '사용'}
             </Text>
           </Button>
@@ -449,11 +449,11 @@ function ConnectionEditDialog({
               value={endpoint}
             />
           </View>
-          <Text className="text-[11px] text-muted-foreground">
+          <Text className="text-xs text-muted-foreground">
             마지막 검사 {formatLastTested(connection.lastTestedAt)}
           </Text>
           {connection.lastErrorCategory ? (
-            <Text className="text-[11px] text-destructive">
+            <Text className="text-xs text-destructive">
               마지막 오류: {ERROR_CATEGORY_LABELS[connection.lastErrorCategory]}
             </Text>
           ) : null}
@@ -627,7 +627,7 @@ function ConnectionToolsPanel({
                   {safeExternalText(tool.title ?? tool.originalToolName, 256)}
                 </Text>
                 <Text
-                  className="min-w-0 flex-1 text-[11px] text-muted-foreground"
+                  className="min-w-0 flex-1 text-xs text-muted-foreground"
                   numberOfLines={1}
                 >
                   {tool.description
@@ -635,12 +635,12 @@ function ConnectionToolsPanel({
                     : ''}
                 </Text>
                 {tool.schemaChanged ? (
-                  <Text className="text-[11px] font-medium text-destructive">
+                  <Text className="text-xs font-medium text-destructive">
                     형식 변경됨
                   </Text>
                 ) : null}
                 {hints.length > 0 ? (
-                  <Text className="hidden text-[11px] text-muted-foreground lg:flex">
+                  <Text className="hidden text-xs text-muted-foreground lg:flex">
                     {hints.join(' · ')}
                   </Text>
                 ) : null}
@@ -657,7 +657,7 @@ function ConnectionToolsPanel({
       ) : null}
 
       <View className="flex-row items-center justify-between gap-3">
-        <Text className="text-[11px] text-muted-foreground">
+        <Text className="text-xs text-muted-foreground">
           {selectedToolNames.length}개 선택
         </Text>
         <Button

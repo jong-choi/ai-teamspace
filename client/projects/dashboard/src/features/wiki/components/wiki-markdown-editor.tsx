@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 
 import { Text } from '@repo/client/rnr/components/ui/text';
+import { scaleMarkdownFont } from '@core/app/markdown/product-markdown-theme';
 import type { WikiCollaborator } from '@core/features/wiki/collaboration/wiki-awareness';
 import {
   useWikiCollaborationPlatform,
@@ -20,11 +21,9 @@ import {
 } from '@core/features/wiki/wiki-live-markdown';
 import { parseWikiMarkdown } from '@core/features/wiki/wiki-markdown-parser';
 import {
-  getWikiMarkdownPalette,
+  useWikiMarkdownPalette,
   type WikiMarkdownPalette,
 } from '@core/features/wiki/wiki-markdown-theme';
-
-import { useColorScheme } from 'nativewind';
 
 type WikiMarkdownEditorProps = {
   collaborators?: readonly WikiCollaborator[];
@@ -60,9 +59,7 @@ export function WikiMarkdownEditor({
   const [remoteCursors, setRemoteCursors] = useState<
     WikiRemoteCursorGeometry[]
   >([]);
-  const { colorScheme } = useColorScheme();
-  const dark = colorScheme === 'dark';
-  const palette = useMemo(() => getWikiMarkdownPalette(dark), [dark]);
+  const palette = useWikiMarkdownPalette();
   const inputStyle = useMemo(() => createInputStyle(palette), [palette]);
   const markdownStyle = useMemo(() => createMarkdownStyle(palette), [palette]);
 
@@ -180,10 +177,7 @@ function WikiRemoteCursorOverlay({
               top: Math.max(0, geometry.caret.y - 18),
             }}
           >
-            <Text
-              className="text-[9px] font-medium text-white"
-              numberOfLines={1}
-            >
+            <Text className="text-3xs font-medium text-white" numberOfLines={1}>
               {collaborator.name}
             </Text>
           </View>
@@ -206,8 +200,8 @@ function createInputStyle(palette: WikiMarkdownPalette) {
       backgroundColor: 'transparent',
       color: palette.foreground,
       fontFamily: Platform.select({ ios: 'Courier', default: 'monospace' }),
-      fontSize: 12,
-      lineHeight: 20,
+      fontSize: scaleMarkdownFont(palette, 12),
+      lineHeight: scaleMarkdownFont(palette, 20),
     },
   }).input;
 }
@@ -216,7 +210,7 @@ function createMarkdownStyle(palette: WikiMarkdownPalette): MarkdownStyle {
   return {
     syntax: { color: palette.placeholder },
     link: { color: palette.link },
-    h1: { fontSize: 20 },
+    h1: { fontSize: scaleMarkdownFont(palette, 20) },
     blockquote: {
       borderColor: palette.strongBorder,
       borderWidth: 2,
@@ -232,7 +226,7 @@ function createMarkdownStyle(palette: WikiMarkdownPalette): MarkdownStyle {
       fontFamily:
         Platform.select({ ios: 'Courier', default: 'monospace' }) ??
         'monospace',
-      fontSize: 12,
+      fontSize: scaleMarkdownFont(palette, 12),
       paddingHorizontal: 3,
     },
     pre: {
@@ -244,7 +238,7 @@ function createMarkdownStyle(palette: WikiMarkdownPalette): MarkdownStyle {
       fontFamily:
         Platform.select({ ios: 'Courier', default: 'monospace' }) ??
         'monospace',
-      fontSize: 12,
+      fontSize: scaleMarkdownFont(palette, 12),
       padding: 12,
     },
   };

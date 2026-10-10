@@ -300,7 +300,7 @@ function CorrectionForm({
             활성 보정 · revision {corrections.editRevision}
           </Text>
           {corrections.items.length === 0 ? (
-            <Text className="text-[11px] text-muted-foreground">
+            <Text className="text-xs text-muted-foreground">
               이 원본에 활성 보정이 없습니다.
             </Text>
           ) : (
@@ -342,16 +342,16 @@ function CorrectionRow({
     <View className="flex-row items-center gap-2 rounded-lg border border-border bg-muted/30 p-2.5">
       <View className="min-w-0 flex-1 gap-1">
         <View className="flex-row flex-wrap items-center gap-1.5">
-          <Text className="font-mono text-[10px] font-semibold">
+          <Text className="font-mono text-2xs font-semibold">
             {item.action}
           </Text>
           <Badge variant={review ? 'destructive' : 'outline'}>
-            <Text className="text-[9px]">
+            <Text className="text-3xs">
               {review ? '검토 필요' : (item.lastMatchState ?? '매칭 대기')}
             </Text>
           </Badge>
         </View>
-        <Text className="text-[10px] text-muted-foreground">
+        <Text className="text-2xs text-muted-foreground">
           생성 revision {item.createdRevision}
           {item.linkedCorrectionId ? ' · 짝 보정 포함' : ''}
         </Text>

@@ -14,6 +14,7 @@ import {
   DashboardLoading,
   DashboardQueryBoundary,
 } from '@core/app/state/dashboard-query-state';
+import { ChoiceChip } from '@core/app/ui/choice-chip';
 import { McpPermissionTable } from '@core/features/mcp-access/components/policies/mcp-permission-table';
 import type { McpAccessScope } from '@core/features/mcp-access/mcp-access-presentation';
 
@@ -179,34 +180,6 @@ function OrganizationChecklist({
         );
       })}
     </View>
-  );
-}
-
-export function ChoiceChip({
-  disabled,
-  label,
-  onPress,
-  selected,
-}: {
-  disabled: boolean;
-  label: string;
-  onPress: () => void;
-  selected: boolean;
-}) {
-  return (
-    <Pressable
-      accessibilityRole="radio"
-      accessibilityState={{ checked: selected, disabled }}
-      className={cn(
-        'h-8 items-center justify-center rounded-md border px-2.5',
-        selected ? 'border-primary bg-primary/5' : 'border-border',
-        disabled && 'opacity-50',
-      )}
-      disabled={disabled}
-      onPress={onPress}
-    >
-      <Text className={cn('text-xs', selected && 'font-medium')}>{label}</Text>
-    </Pressable>
   );
 }
 

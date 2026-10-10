@@ -18,9 +18,9 @@ import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
 import { useMutationErrorNotification } from '@core/app/error/use-mutation-error-notification';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
+import { ChoiceChip } from '@core/app/ui/choice-chip';
 import { DIALOG_WIDTH } from '@core/app/ui/dialog-width';
 import {
-  ChoiceChip,
   type McpAccessKeyDraft,
   McpAccessKeyFields,
   validateMcpAccessKeyDraft,

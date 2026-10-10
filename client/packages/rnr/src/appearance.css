@@ -1,0 +1,375 @@
+/*
+ * 사용자가 설정에서 고르는 색상 테마·글자 크기·모서리 둥글기 token이다.
+ * 색상 token은 BankkRoll/tweakcn-theme-picker (MIT)에서 가져왔다.
+ */
+
+@import './appearance-tweakcn-themes.css';
+
+@layer base {
+  .theme-modern-minimal {
+    --background: 300 50% 100%;
+    --foreground: 0 0% 19.89%;
+    --card: 300 50% 100%;
+    --card-foreground: 0 0% 19.89%;
+    --popover: 300 50% 100%;
+    --popover-foreground: 0 0% 19.89%;
+    --primary: 217.19 91.36% 59.41%;
+    --primary-foreground: 300 50% 100%;
+    --secondary: 300 0% 96.06%;
+    --secondary-foreground: 214.99 15.5% 34.68%;
+    --muted: 300 0% 97.37%;
+    --muted-foreground: 219.97 7.71% 45.75%;
+    --accent: 203.98 99.97% 93.54%;
+    --accent-foreground: 224.53 64.95% 33.15%;
+    --destructive: 359.91 86.11% 60.55%;
+    --destructive-foreground: 300 50% 100%;
+    --border: 220.01 24.1% 91.61%;
+    --input: 220.01 24.1% 91.61%;
+    --ring: 217.19 91.36% 59.41%;
+    --chart-1: 217.19 91.36% 59.41%;
+    --chart-2: 221.24 86.4% 53.91%;
+    --chart-3: 224.36 76.88% 48.37%;
+    --chart-4: 225.99 71.15% 39.65%;
+    --chart-5: 224.53 64.95% 33.15%;
+  }
+
+  .dark.theme-modern-minimal,
+  .dark .theme-modern-minimal {
+    --background: 0 0% 8.61%;
+    --foreground: 0 0% 89.56%;
+    --card: 300 0% 15.03%;
+    --card-foreground: 0 0% 89.56%;
+    --popover: 300 0% 15.03%;
+    --popover-foreground: 0 0% 89.56%;
+    --primary: 217.19 91.36% 59.41%;
+    --primary-foreground: 300 50% 100%;
+    --secondary: 300 0% 15.03%;
+    --secondary-foreground: 0 0% 89.56%;
+    --muted: 300 0% 15.03%;
+    --muted-foreground: 300 0% 64.47%;
+    --accent: 224.53 64.95% 33.15%;
+    --accent-foreground: 213.33 99.96% 87.05%;
+    --destructive: 359.91 86.11% 60.55%;
+    --destructive-foreground: 300 50% 100%;
+    --border: 0 0% 24.94%;
+    --input: 0 0% 24.94%;
+    --ring: 217.19 91.36% 59.41%;
+    --chart-1: 213.14 90.06% 67.35%;
+    --chart-2: 217.19 91.36% 59.41%;
+    --chart-3: 221.24 86.4% 53.91%;
+    --chart-4: 224.36 76.88% 48.37%;
+    --chart-5: 225.99 71.15% 39.65%;
+  }
+
+  .theme-ocean-breeze {
+    --background: 208.02 98.16% 97.63%;
+    --foreground: 216.92 18.93% 26.34%;
+    --card: 300 50% 100%;
+    --card-foreground: 216.92 18.93% 26.34%;
+    --popover: 300 50% 100%;
+    --popover-foreground: 216.92 18.93% 26.34%;
+    --primary: 141.69 68.59% 45.55%;
+    --primary-foreground: 300 50% 100%;
+    --secondary: 203.98 99.97% 93.54%;
+    --secondary-foreground: 214.99 15.5% 34.68%;
+    --muted: 300 0% 96.06%;
+    --muted-foreground: 219.97 7.71% 45.75%;
+    --accent: 149.24 79.16% 90%;
+    --accent-foreground: 216.92 18.93% 26.34%;
+    --destructive: 359.91 86.11% 60.55%;
+    --destructive-foreground: 300 50% 100%;
+    --border: 220.01 24.1% 91.61%;
+    --input: 220.01 24.1% 91.61%;
+    --ring: 141.69 68.59% 45.55%;
+    --chart-1: 141.69 68.59% 45.55%;
+    --chart-2: 160.14 84.19% 39.7%;
+    --chart-3: 161.9 99.92% 29.73%;
+    --chart-4: 160.82 70.07% 27.62%;
+    --chart-5: 163.88 99.86% 18.59%;
+  }
+
+  .dark.theme-ocean-breeze,
+  .dark .theme-ocean-breeze {
+    --background: 222.2 46.79% 11.4%;
+    --foreground: 216 12.91% 83.75%;
+    --card: 217.27 35.09% 17.61%;
+    --card-foreground: 216 12.91% 83.75%;
+    --popover: 217.27 35.09% 17.61%;
+    --popover-foreground: 216 12.91% 83.75%;
+    --primary: 157.62 62.51% 52.34%;
+    --primary-foreground: 222.2 46.79% 11.4%;
+    --secondary: 217.75 20.69% 23.31%;
+    --secondary-foreground: 239.91 3.83% 64.36%;
+    --muted: 217.27 35.09% 17.61%;
+    --muted-foreground: 219.97 7.71% 45.75%;
+    --accent: 216.92 18.93% 26.34%;
+    --accent-foreground: 239.91 3.83% 64.36%;
+    --destructive: 359.91 86.11% 60.55%;
+    --destructive-foreground: 222.2 46.79% 11.4%;
+    --border: 214.99 15.5% 34.68%;
+    --input: 214.99 15.5% 34.68%;
+    --ring: 157.62 62.51% 52.34%;
+    --chart-1: 157.62 62.51% 52.34%;
+    --chart-2: 172.29 64.08% 50.92%;
+    --chart-3: 141.69 68.59% 45.55%;
+    --chart-4: 160.14 84.19% 39.7%;
+    --chart-5: 161.9 99.92% 29.73%;
+  }
+
+  .theme-nature {
+    --background: 37.5 45.85% 95.36%;
+    --foreground: 8.77 30.8% 19.09%;
+    --card: 37.5 45.85% 95.36%;
+    --card-foreground: 8.77 30.8% 19.09%;
+    --popover: 37.5 45.85% 95.36%;
+    --popover-foreground: 8.77 30.8% 19.09%;
+    --primary: 122.69 43.81% 33.65%;
+    --primary-foreground: 300 50% 100%;
+    --secondary: 124.6 40.11% 93.94%;
+    --secondary-foreground: 124.98 58.54% 23.69%;
+    --muted: 33.73 26.25% 91.6%;
+    --muted-foreground: 15 25.98% 34.17%;
+    --accent: 121.99 38.82% 84.94%;
+    --accent-foreground: 124.98 58.54% 23.69%;
+    --destructive: 0.49 64.58% 46.96%;
+    --destructive-foreground: 300 50% 100%;
+    --border: 33.91 26% 83.31%;
+    --input: 33.91 26% 83.31%;
+    --ring: 122.69 43.81% 33.65%;
+    --chart-1: 122.32 38.76% 49.09%;
+    --chart-2: 122.33 40.32% 39.94%;
+    --chart-3: 122.69 43.81% 33.65%;
+    --chart-4: 124.98 58.54% 23.69%;
+    --chart-5: 126.44 57.72% 8.08%;
+  }
+
+  .dark.theme-nature,
+  .dark .theme-nature {
+    --background: 133.11 21.59% 13.77%;
+    --foreground: 32.73 26.64% 91.65%;
+    --card: 124.86 14.32% 19.8%;
+    --card-foreground: 32.73 26.64% 91.65%;
+    --popover: 124.86 14.32% 19.8%;
+    --popover-foreground: 32.73 26.64% 91.65%;
+    --primary: 122.32 38.76% 49.09%;
+    --primary-foreground: 126.44 57.72% 8.08%;
+    --secondary: 115.49 11.12% 25.89%;
+    --secondary-foreground: 114.03 17.06% 86.11%;
+    --muted: 124.86 14.32% 19.8%;
+    --muted-foreground: 34.75 22.17% 80.7%;
+    --accent: 122.33 40.32% 39.94%;
+    --accent-foreground: 32.73 26.64% 91.65%;
+    --destructive: 0.49 64.58% 46.96%;
+    --destructive-foreground: 32.73 26.64% 91.65%;
+    --border: 115.49 11.12% 25.89%;
+    --input: 115.49 11.12% 25.89%;
+    --ring: 122.32 38.76% 49.09%;
+    --chart-1: 122.64 39.63% 64.66%;
+    --chart-2: 122.73 38.21% 57%;
+    --chart-3: 122.32 38.76% 49.09%;
+    --chart-4: 122.26 38.89% 45.1%;
+    --chart-5: 122.33 40.32% 39.94%;
+  }
+
+  .theme-catppuccin {
+    --background: 220.01 45.46% 95.52%;
+    --foreground: 233.63 14.88% 35.73%;
+    --card: 300 50% 100%;
+    --card-foreground: 233.63 14.88% 35.73%;
+    --popover: 222.83 10.99% 82.7%;
+    --popover-foreground: 233.63 14.88% 35.73%;
+    --primary: 266.18 83.62% 57.35%;
+    --primary-foreground: 300 50% 100%;
+    --secondary: 222.83 10.99% 82.7%;
+    --secondary-foreground: 233.63 14.88% 35.73%;
+    --muted: 220 18.32% 89.02%;
+    --muted-foreground: 232.64 9.12% 47.2%;
+    --accent: 198.41 80.25% 49.14%;
+    --accent-foreground: 300 50% 100%;
+    --destructive: 344.77 97.82% 41.92%;
+    --destructive-foreground: 300 50% 100%;
+    --border: 225.03 15.88% 77.3%;
+    --input: 222.83 10.99% 82.7%;
+    --ring: 266.18 83.62% 57.35%;
+    --chart-1: 266.18 83.62% 57.35%;
+    --chart-2: 198.41 80.25% 49.14%;
+    --chart-3: 109.12 58.68% 40.01%;
+    --chart-4: 20.98 97.16% 53.3%;
+    --chart-5: 10.84 55.33% 66.1%;
+  }
+
+  .dark.theme-catppuccin,
+  .dark .theme-catppuccin {
+    --background: 240.53 23.84% 12.7%;
+    --foreground: 226.12 59.94% 87.99%;
+    --card: 240 21.17% 14.6%;
+    --card-foreground: 226.12 59.94% 87.99%;
+    --popover: 234.2 12.62% 30.62%;
+    --popover-foreground: 226.12 59.94% 87.99%;
+    --primary: 267.43 86.56% 81.43%;
+    --primary-foreground: 240 21.17% 14.6%;
+    --secondary: 232.33 10.64% 39.26%;
+    --secondary-foreground: 226.12 59.94% 87.99%;
+    --muted: 230.54 18.95% 20.11%;
+    --muted-foreground: 227.65 23.79% 71.68%;
+    --accent: 189.22 69.9% 73.79%;
+    --accent-foreground: 240 21.17% 14.6%;
+    --destructive: 343.28 83.47% 75.48%;
+    --destructive-foreground: 240 21.17% 14.6%;
+    --border: 236.73 15.65% 22.38%;
+    --input: 236.73 15.65% 22.38%;
+    --ring: 267.43 86.56% 81.43%;
+    --chart-1: 267.43 86.56% 81.43%;
+    --chart-2: 189.22 69.9% 73.79%;
+    --chart-3: 115.47 55.09% 76.32%;
+    --chart-4: 22.94 89.06% 75.08%;
+    --chart-5: 9.61 44.09% 90.65%;
+  }
+
+  .theme-terracotta {
+    --background: 47.95 50.03% 96.36%;
+    --foreground: 47.97 22.73% 19.33%;
+    --card: 47.95 50.03% 96.36%;
+    --card-foreground: 330 0% 7.73%;
+    --popover: 300 50% 100%;
+    --popover-foreground: 50.77 19.5% 13.37%;
+    --primary: 15.13 56.98% 52.62%;
+    --primary-foreground: 300 50% 100%;
+    --secondary: 46.18 16.2% 88.6%;
+    --secondary-foreground: 50.71 9.79% 29.43%;
+    --muted: 43.98 35.12% 89.03%;
+    --muted-foreground: 49.95 3.17% 50.43%;
+    --accent: 46.18 16.2% 88.6%;
+    --accent-foreground: 50.77 19.5% 13.37%;
+    --destructive: 330 0% 7.73%;
+    --destructive-foreground: 300 50% 100%;
+    --border: 49.95 10.33% 83.39%;
+    --input: 50.7 10.06% 67.33%;
+    --ring: 209.63 78.55% 48.81%;
+    --chart-1: 18.36 58.35% 43.96%;
+    --chart-2: 251.53 86.2% 74.67%;
+    --chart-3: 46.14 29.97% 81.52%;
+    --chart-4: 256.55 47.43% 88.12%;
+    --chart-5: 17.61 57.23% 44.35%;
+  }
+
+  .dark.theme-terracotta,
+  .dark .theme-terracotta {
+    --background: 300 0% 15.03%;
+    --foreground: 46.19 7.06% 74.64%;
+    --card: 300 0% 15.03%;
+    --card-foreground: 47.95 50.03% 96.36%;
+    --popover: 320 0% 18.9%;
+    --popover-foreground: 0 0% 89.56%;
+    --primary: 14.77 62.2% 59.32%;
+    --primary-foreground: 300 50% 100%;
+    --secondary: 47.95 50.03% 96.36%;
+    --secondary-foreground: 320 0% 18.9%;
+    --muted: 300 0% 10.4%;
+    --muted-foreground: 51.38 10.36% 68.53%;
+    --accent: 47.92 14.37% 8.78%;
+    --accent-foreground: 51.4 34.17% 94.98%;
+    --destructive: 359.91 86.11% 60.55%;
+    --destructive-foreground: 300 50% 100%;
+    --border: 60 5.08% 22.96%;
+    --input: 52.54 4.55% 30.33%;
+    --ring: 209.63 78.55% 48.81%;
+    --chart-1: 18.36 58.35% 43.96%;
+    --chart-2: 251.53 86.2% 74.67%;
+    --chart-3: 47.92 14.37% 8.78%;
+    --chart-4: 248.09 24.31% 22.71%;
+    --chart-5: 17.61 57.23% 44.35%;
+  }
+
+  :root {
+    --font-size-xs: 12px;
+    --line-height-xs: 16px;
+    --font-size-sm: 14px;
+    --line-height-sm: 20px;
+    --font-size-base: 16px;
+    --line-height-base: 24px;
+    --font-size-lg: 18px;
+    --line-height-lg: 28px;
+    --font-size-xl: 20px;
+    --line-height-xl: 28px;
+    --font-size-2xl: 24px;
+    --line-height-2xl: 32px;
+    --font-size-3xl: 30px;
+    --line-height-3xl: 36px;
+    --font-size-4xl: 36px;
+    --line-height-4xl: 40px;
+  }
+
+  .font-size-small {
+    --font-size-xs: 11px;
+    --line-height-xs: 15px;
+    --font-size-sm: 13px;
+    --line-height-sm: 18px;
+    --font-size-base: 15px;
+    --line-height-base: 22px;
+    --font-size-lg: 17px;
+    --line-height-lg: 25px;
+    --font-size-xl: 19px;
+    --line-height-xl: 27px;
+    --font-size-2xl: 22px;
+    --line-height-2xl: 29px;
+    --font-size-3xl: 27px;
+    --line-height-3xl: 33px;
+    --font-size-4xl: 32px;
+    --line-height-4xl: 37px;
+  }
+
+  .font-size-medium {
+    --font-size-xs: 12px;
+    --line-height-xs: 16px;
+    --font-size-sm: 14px;
+    --line-height-sm: 20px;
+    --font-size-base: 16px;
+    --line-height-base: 24px;
+    --font-size-lg: 18px;
+    --line-height-lg: 28px;
+    --font-size-xl: 20px;
+    --line-height-xl: 28px;
+    --font-size-2xl: 24px;
+    --line-height-2xl: 32px;
+    --font-size-3xl: 30px;
+    --line-height-3xl: 36px;
+    --font-size-4xl: 36px;
+    --line-height-4xl: 40px;
+  }
+
+  .font-size-large {
+    --font-size-xs: 14px;
+    --line-height-xs: 18px;
+    --font-size-sm: 16px;
+    --line-height-sm: 23px;
+    --font-size-base: 18px;
+    --line-height-base: 27px;
+    --font-size-lg: 20px;
+    --line-height-lg: 31px;
+    --font-size-xl: 23px;
+    --line-height-xl: 34px;
+    --font-size-2xl: 27px;
+    --line-height-2xl: 38px;
+    --font-size-3xl: 34px;
+    --line-height-3xl: 42px;
+    --font-size-4xl: 41px;
+    --line-height-4xl: 46px;
+  }
+
+  .radius-minimal {
+    --radius: 0.25rem;
+  }
+
+  .radius-small {
+    --radius: 0.375rem;
+  }
+
+  .radius-medium {
+    --radius: 0.625rem;
+  }
+
+  .radius-large {
+    --radius: 1rem;
+  }
+}

@@ -46,6 +46,32 @@ module.exports = {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
+        xl: 'calc(var(--radius) + 2px)',
+        '2xl': 'calc(var(--radius) + 6px)',
+        '3xl': 'calc(var(--radius) + 14px)',
+      },
+      // 글자 크기 설정이 --font-size-* token을 바꾼다. token은 RNR appearance.css가 정의한다.
+      fontSize: {
+        xs: ['var(--font-size-xs)', { lineHeight: 'var(--line-height-xs)' }],
+        sm: ['var(--font-size-sm)', { lineHeight: 'var(--line-height-sm)' }],
+        base: [
+          'var(--font-size-base)',
+          { lineHeight: 'var(--line-height-base)' },
+        ],
+        lg: ['var(--font-size-lg)', { lineHeight: 'var(--line-height-lg)' }],
+        xl: ['var(--font-size-xl)', { lineHeight: 'var(--line-height-xl)' }],
+        '2xl': [
+          'var(--font-size-2xl)',
+          { lineHeight: 'var(--line-height-2xl)' },
+        ],
+        '3xl': [
+          'var(--font-size-3xl)',
+          { lineHeight: 'var(--line-height-3xl)' },
+        ],
+        '4xl': [
+          'var(--font-size-4xl)',
+          { lineHeight: 'var(--line-height-4xl)' },
+        ],
       },
       borderWidth: {
         hairline: hairlineWidth(),

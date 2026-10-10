@@ -5,10 +5,15 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
 
+import { AppearanceProvider } from '@core/app/appearance/appearance-provider';
 import { DashboardErrorBoundary } from '@core/app/error/dashboard-error-boundary';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 import { ChatRealtimeBoundary } from '@core/features/chat/chat-realtime-boundary';
 import { ExpoAgentChatPlatformProvider } from '@/lib/agent-chat-platform-provider';
+import {
+  appearanceStorage,
+  syncAppearanceRoot,
+} from '@/lib/appearance-platform';
 import { ExpoDashboardPlatformProvider } from '@/lib/dashboard-platform';
 import { ExpoWikiCollaborationPlatformProvider } from '@/lib/wiki-collaboration-platform';
 
@@ -19,18 +24,23 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <ExpoDashboardPlatformProvider>
-          <ExpoWikiCollaborationPlatformProvider>
-            <SessionQueryClientProvider>
-              <DashboardErrorBoundary title="앱을 불러오지 못했습니다">
-                <ChatRealtimeBoundary>
-                  <Stack screenOptions={{ headerShown: false }} />
-                  <PortalHost />
-                </ChatRealtimeBoundary>
-              </DashboardErrorBoundary>
-            </SessionQueryClientProvider>
-          </ExpoWikiCollaborationPlatformProvider>
-        </ExpoDashboardPlatformProvider>
+        <AppearanceProvider
+          storage={appearanceStorage}
+          syncRoot={syncAppearanceRoot}
+        >
+          <ExpoDashboardPlatformProvider>
+            <ExpoWikiCollaborationPlatformProvider>
+              <SessionQueryClientProvider>
+                <DashboardErrorBoundary title="앱을 불러오지 못했습니다">
+                  <ChatRealtimeBoundary>
+                    <Stack screenOptions={{ headerShown: false }} />
+                    <PortalHost />
+                  </ChatRealtimeBoundary>
+                </DashboardErrorBoundary>
+              </SessionQueryClientProvider>
+            </ExpoWikiCollaborationPlatformProvider>
+          </ExpoDashboardPlatformProvider>
+        </AppearanceProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

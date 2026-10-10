@@ -21,6 +21,7 @@ import { AuthenticationRequiredState } from '@core/features/auth/authentication-
 
 const SETTINGS_TABS = [
   { id: 'account', label: '내 계정', href: '/settings/account' },
+  { id: 'theme', label: '테마', href: '/settings/theme' },
   { id: 'personal', label: 'AI 권한', href: '/settings/mcp' },
   {
     id: 'organization',

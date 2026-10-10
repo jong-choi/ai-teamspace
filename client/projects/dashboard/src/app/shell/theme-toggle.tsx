@@ -2,6 +2,7 @@ import { Button } from '@repo/client/rnr/components/ui/button';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
+import { useAppearanceStore } from '@core/app/appearance/appearance-provider';
 
 import { Moon, Sun } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
@@ -11,7 +12,8 @@ type ThemeToggleProps = {
 };
 
 export function ThemeToggle({ expanded = false }: ThemeToggleProps) {
-  const { colorScheme, toggleColorScheme } = useColorScheme();
+  const { colorScheme } = useColorScheme();
+  const setThemeMode = useAppearanceStore((state) => state.setThemeMode);
   const dark = colorScheme === 'dark';
 
   return (
@@ -20,7 +22,7 @@ export function ThemeToggle({ expanded = false }: ThemeToggleProps) {
       className={cn(
         expanded ? 'h-auto w-full justify-start px-3 py-2' : 'h-8 w-8',
       )}
-      onPress={toggleColorScheme}
+      onPress={() => setThemeMode(dark ? 'light' : 'dark')}
       size={expanded ? 'sm' : 'icon'}
       variant="ghost"
     >

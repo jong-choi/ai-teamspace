@@ -1,4 +1,6 @@
 @import '@repo/rnr';
+/* 색상 테마·글자 크기·둥글기 token은 기본 token 뒤에 와야 같은 우선순위에서 이긴다. */
+@import '@repo/rnr/src/appearance.css';
 
 @layer base {
   :root {
@@ -9,5 +11,13 @@
   .dark:root {
     --sidebar: 0 0% 14.9%;
     --sidebar-foreground: 0 0% 98%;
+  }
+}
+
+/* 색상 테마에는 sidebar token이 없으므로 기본 테마가 아닐 때는 테마의 muted 계열을 따른다. */
+@layer base {
+  [class*='theme-']:not(.theme-default) {
+    --sidebar: var(--muted);
+    --sidebar-foreground: var(--foreground);
   }
 }

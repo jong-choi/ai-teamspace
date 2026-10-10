@@ -1,6 +1,6 @@
 import type { SemanticSourceCurrent } from '@/outbox/domain/semantic-source';
 
-export const SEMANTIC_QUIET_MS = 300_000;
+export const SEMANTIC_QUIET_MS = 30_000;
 
 export function semanticEligibleAt(
   current: SemanticSourceCurrent,

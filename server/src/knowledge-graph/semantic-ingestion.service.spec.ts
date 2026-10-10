@@ -110,7 +110,7 @@ describe('의미 worker의 quiet·force·snapshot·fence 수락', () => {
     expect(await service.run(scope, false, new AbortController().signal)).toBe(
       'done',
     );
-    expect(queue.auto).toHaveBeenCalledWith(scope, 300_000);
+    expect(queue.auto).toHaveBeenCalledWith(scope, 30_000);
     expect(state.acquireLease.mock.calls.length).toBe(0);
     expect(extractor.extract.mock.calls.length).toBe(0);
   });
@@ -273,7 +273,7 @@ describe('의미 worker의 quiet·force·snapshot·fence 수락', () => {
       { ...lease, attemptSeq: 2 },
       { runStatus: 'idle', lastErrorCode: null },
     );
-    expect(queue.auto).toHaveBeenCalledWith(scope, 300_000);
+    expect(queue.auto).toHaveBeenCalledWith(scope, 30_000);
   });
   it('완료된 source의 만료된 GC lease는 takeover해 잔여 정리를 재개한다', async () => {
     const generation = '10000000-0000-4000-8000-000000000050';

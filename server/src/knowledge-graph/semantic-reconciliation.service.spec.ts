@@ -104,7 +104,7 @@ describe('의미 복구의 job 선택과 전달 실패 뒤 재개', () => {
       indexedSeq: 0,
       gcRequired: false,
       observedAt: new Date('2026-10-09T00:00:00Z'),
-      delay: 300_000,
+      delay: 30_000,
     },
     {
       name: '최신 세대 GC',

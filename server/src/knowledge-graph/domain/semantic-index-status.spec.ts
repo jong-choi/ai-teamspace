@@ -88,7 +88,7 @@ describe('의미 색인 status의 단일 판정 순서', () => {
       )?.status,
     ).toBe('queued');
   });
-  it('U7-15 최초 관측이나 owner 변경 뒤 5분 미만은 waiting과 남은 시간을 표시한다', () => {
+  it('U7-15 최초 관측이나 owner 변경 뒤 quiet 시간 미만은 waiting과 남은 시간을 표시한다', () => {
     expect(
       deriveSemanticIndexStatus(
         semanticCurrentFixture({ state: null }),
@@ -98,13 +98,13 @@ describe('의미 색인 status의 단일 판정 순서', () => {
     ).toMatchObject({ status: 'waiting', quietRemainingMs: null });
     expect(
       deriveSemanticIndexStatus(semanticCurrentFixture(), now, fp),
-    ).toMatchObject({ status: 'waiting', quietRemainingMs: 300_000 });
+    ).toMatchObject({ status: 'waiting', quietRemainingMs: 30_000 });
     const observed = semanticCurrentFixture({
       state: semanticStateFixture({ observedAt: now }),
     });
     expect(
       deriveSemanticIndexStatus(observed, new Date(0), fp)?.quietRemainingMs,
-    ).toBe(300_000);
+    ).toBe(30_000);
   });
   it('U7-15 quiet 뒤 미처리 요구는 이전 활성 결과가 있으면 stale이다', () => {
     expect(

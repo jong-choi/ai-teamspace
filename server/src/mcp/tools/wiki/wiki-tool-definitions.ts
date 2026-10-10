@@ -30,7 +30,7 @@ export const wikiSearchTool = defineMcpTool({
   name: 'wiki_search',
   title: '위키 검색',
   description:
-    '명시한 조직의 위키 문서 제목과 본문을 검색합니다. wiki:read scope와 호출 시점의 조직 멤버십을 모두 검증합니다.',
+    '명시한 조직의 위키 문서 제목과 본문에서 검색어와 글자가 일치하는 문서를 찾습니다. 의미로 찾거나 문서에서 추출한 관계까지 보려면 knowledge_search를 씁니다. wiki:read scope와 호출 시점의 조직 멤버십을 모두 검증합니다.',
   inputSchema: QueryWikiSearchSchema.extend(organizationIdField),
   outputSchema: WikiSearchResultSchema,
   requiredScope: 'wiki:read',

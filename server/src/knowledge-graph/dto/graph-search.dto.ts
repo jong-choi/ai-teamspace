@@ -68,6 +68,17 @@ export const SearchResponseSchema = z
   .strict()
   .meta({ id: 'KnowledgeGraphSearchResponse' });
 
+/** 사람이 보는 화면보다 긴 발췌가 필요한 호출자(Agent 도구)가 쓰는 발췌 상한이다. */
+export const SEARCH_LONG_EXCERPT_MAX_LENGTH = 1500;
+
+export const LongExcerptSearchResultItemSchema = SearchResultItemSchema.extend({
+  excerpt: z.string().max(SEARCH_LONG_EXCERPT_MAX_LENGTH).nullable(),
+});
+
+export const LongExcerptSearchResponseSchema = SearchResponseSchema.extend({
+  items: z.array(LongExcerptSearchResultItemSchema),
+});
+
 export type SearchQuery = z.infer<typeof SearchQuerySchema>;
 export type SearchMode = z.infer<typeof SearchModeSchema>;
 export type SearchResponse = z.infer<typeof SearchResponseSchema>;

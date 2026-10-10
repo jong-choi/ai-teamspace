@@ -13,13 +13,16 @@ import {
   type GraphEdge,
   type GraphNode,
   type GraphSnapshot,
-  GraphSnapshotSchema,
 } from '@/knowledge-graph/dto/graph-snapshot.dto';
 import { sourceNodeId } from '@/knowledge-graph/graph-read-support';
 import { KnowledgeGraphExploreService } from '@/knowledge-graph/knowledge-graph-explore.service';
 import { KnowledgeGraphSearchService } from '@/knowledge-graph/knowledge-graph-search.service';
 import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import type { McpScope } from '@/mcp/contracts/mcp-scope';
+import {
+  KnowledgeContextOutputSchema,
+  KnowledgeSearchOutputSchema,
+} from '@/mcp/tools/knowledge-graph/knowledge-graph-tool-definitions';
 
 import {
   type McpActor,
@@ -346,8 +349,23 @@ describeKnowledgeGraph('M8-02~08 지식 그래프 MCP E2E', () => {
       expect(result.isError).not.toBe(true);
 
       const httpBody = SearchResponseSchema.parse(http.body);
-      const mcpBody = SearchResponseSchema.parse(result.structuredContent);
-      expect(mcpBody).toEqual(httpBody);
+      const mcpBody = KnowledgeSearchOutputSchema.parse(
+        result.structuredContent,
+      );
+      // MCP는 같은 검색 결과에 긴 발췌와 관계, 업무 원본 목록을 더해 돌려준다.
+      expect(
+        mcpBody.items.map(({ relations, excerpt, ...item }) => {
+          void relations;
+          void excerpt;
+          return item;
+        }),
+      ).toEqual(
+        httpBody.items.map(({ excerpt, ...item }) => {
+          void excerpt;
+          return item;
+        }),
+      );
+      expect(mcpBody.records).toEqual([]);
       expect(JSON.stringify(mcpBody)).not.toContain(foreignSourceId);
 
       const before = searchSpy.mock.calls.length;
@@ -420,13 +438,15 @@ describeKnowledgeGraph('M8-02~08 지식 그래프 MCP E2E', () => {
       });
       expect(result.isError).not.toBe(true);
 
-      const snapshot = GraphSnapshotSchema.parse(result.structuredContent);
+      const snapshot = KnowledgeContextOutputSchema.parse(
+        result.structuredContent,
+      );
       expect(observedKinds).toEqual([WIKI_ONLY_KINDS]);
       expect(snapshot.nodes.map((node) => node.kind)).toEqual([
         'wiki_document',
       ]);
-      expect(snapshot.edges).toEqual([]);
-      expect(snapshot.nodes[0]?.connectedEdgeCount).toBe(0);
+      expect(snapshot.relations).toEqual([]);
+      expect(snapshot.entities).toEqual([]);
       expect(JSON.stringify(snapshot)).not.toContain('PROJECT_SCOPE_SECRET');
     } finally {
       await mcp.close();

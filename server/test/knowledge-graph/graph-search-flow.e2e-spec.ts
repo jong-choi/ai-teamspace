@@ -11,7 +11,6 @@ import { createNeo4jGraph } from '@repo/knowledge-graph';
 import { KnowledgeGraphReconciliationScheduler } from '@/jobs/knowledge-graph/knowledge-graph-reconciliation.scheduler';
 import { KnowledgeGraphSemanticReconciliationScheduler } from '@/jobs/knowledge-graph/knowledge-graph-semantic-reconciliation.scheduler';
 import knowledgeGraphConfig from '@/knowledge-graph/config/knowledge-graph.config';
-import { SearchResponseSchema } from '@/knowledge-graph/dto/graph-search.dto';
 import { SemanticEmbedder } from '@/knowledge-graph/infrastructure/embedding/semantic-embedder.provider';
 import { SemanticGraphExtractor } from '@/knowledge-graph/infrastructure/extraction/semantic-graph-extractor.provider';
 import { KnowledgeGraphDetailService } from '@/knowledge-graph/knowledge-graph-detail.service';
@@ -24,6 +23,7 @@ import {
   TestSemanticExtractor,
 } from '@/knowledge-graph/testing/semantic-flow.context';
 import { KnowledgeGraphMcpRegistrar } from '@/mcp/tools/knowledge-graph/knowledge-graph-mcp.registrar';
+import { KnowledgeSearchOutputSchema } from '@/mcp/tools/knowledge-graph/knowledge-graph-tool-definitions';
 import { McpKnowledgeScopeResolver } from '@/mcp/tools/knowledge-graph/mcp-knowledge-scope.resolver';
 import { OutboxSemanticSourceState } from '@/outbox/outbox-semantic-source-state';
 import { waitForCondition } from '@/testing/wait-for-condition';
@@ -185,7 +185,7 @@ describeKnowledgeGraph(
         .tools();
       if (!knowledgeSearch)
         throw new Error('knowledge_search MCP 도구가 등록되지 않았습니다.');
-      const mcp = SearchResponseSchema.parse(
+      const mcp = KnowledgeSearchOutputSchema.parse(
         await knowledgeSearch.invoke(
           {
             organizationId,
@@ -204,7 +204,14 @@ describeKnowledgeGraph(
           async () => undefined,
         ),
       );
-      expect(mcp.items).toEqual(refreshed.body.items);
+      expect(mcp.items).toMatchObject(
+        (refreshed.body.items as { excerpt: unknown }[]).map(
+          ({ excerpt, ...item }) => {
+            void excerpt;
+            return item;
+          },
+        ),
+      );
       expect(mcp.items[0]).toMatchObject({
         source: { id: created.id, title: 'F8-01 변경 제목' },
         semantic: {

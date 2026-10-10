@@ -28,7 +28,11 @@ import type {
   SearchQuery,
   SearchResponse,
 } from '@/knowledge-graph/dto/graph-search.dto';
-import { SearchResponseSchema } from '@/knowledge-graph/dto/graph-search.dto';
+import {
+  LongExcerptSearchResponseSchema,
+  SEARCH_LONG_EXCERPT_MAX_LENGTH,
+  SearchResponseSchema,
+} from '@/knowledge-graph/dto/graph-search.dto';
 import { GraphCompletenessService } from '@/knowledge-graph/graph-completeness.service';
 import { SemanticEmbedder } from '@/knowledge-graph/infrastructure/embedding/semantic-embedder.provider';
 import { KnowledgeGraphSemanticSearchReader } from '@/knowledge-graph/infrastructure/graph/knowledge-graph-semantic-search-reader.provider';
@@ -60,6 +64,7 @@ export class KnowledgeGraphSearchService {
     organizationId: string,
     query: SearchQuery,
     allowedNodeKinds?: readonly SearchAllowedNodeKind[],
+    options?: { longExcerpt?: boolean },
   ): Promise<SearchResponse> {
     const startedAt = Date.now();
     assertKnowledgeGraphQueryEnabled(this.config);
@@ -176,10 +181,17 @@ export class KnowledgeGraphSearchService {
       organizationId,
       query,
       candidates: fused,
+      excerptMaxLength: options?.longExcerpt
+        ? SEARCH_LONG_EXCERPT_MAX_LENGTH
+        : undefined,
     });
     await this.pg(() => this.access.assertReadable(actor, organizationId));
 
-    const response = SearchResponseSchema.parse({
+    const response = (
+      options?.longExcerpt
+        ? LongExcerptSearchResponseSchema
+        : SearchResponseSchema
+    ).parse({
       mode: query.mode,
       completeness,
       semanticRecall,
@@ -254,6 +266,7 @@ export class KnowledgeGraphSearchService {
     organizationId: string;
     query: SearchQuery;
     candidates: ReturnType<typeof fuseSearchCandidates>;
+    excerptMaxLength: number | undefined;
   }) {
     const ids = [
       ...new Set(input.candidates.map((candidate) => candidate.sourceId)),
@@ -317,6 +330,7 @@ export class KnowledgeGraphSearchService {
         excerpt: buildPlainTextExcerpt({
           text: semantic?.text ?? owner.contentMarkdown,
           query: input.query.q,
+          maxLength: input.excerptMaxLength,
         }),
       });
     }

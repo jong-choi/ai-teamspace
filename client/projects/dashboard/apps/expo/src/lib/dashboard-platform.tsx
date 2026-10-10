@@ -1,8 +1,9 @@
-import { type ReactNode, useMemo } from 'react';
+import { type ReactNode, useCallback, useMemo, useState } from 'react';
 import { Platform } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { File, Paths } from 'expo-file-system';
 import * as Linking from 'expo-linking';
+import { usePathname, useRouter } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 
 import {
@@ -14,6 +15,7 @@ import {
   DashboardNotificationsProvider,
   useDashboardNotifications,
 } from '@/lib/dashboard-notifications';
+import { useDemoAutoSignIn } from '@/lib/demo-auto-sign-in';
 import { pickImageFile } from '@/lib/pick-image-file';
 
 type ExpoDashboardPlatformProviderProps = {
@@ -51,6 +53,20 @@ function ExpoDashboardPlatformBridge({ children }: { children: ReactNode }) {
     [currentUserId, userName, userEmail, userImage],
   );
   const { notifyError, notifySuccess } = useDashboardNotifications();
+  const router = useRouter();
+  // 방문자가 처음 연 주소다. 특정 화면을 열었으면 자동 로그인 뒤에도 그 화면에 둔다.
+  const [initialPathname] = useState(usePathname());
+  const notifyDemoSignedIn = useCallback(() => {
+    notifySuccess({ title: '데모 계정으로 로그인되었습니다' });
+    if (initialPathname === '/') router.replace('/calendar');
+  }, [initialPathname, notifySuccess, router]);
+  const demoSigningIn = useDemoAutoSignIn({
+    authenticated: currentUserId !== null,
+    pending: session.isPending,
+    onSignedIn: notifyDemoSignedIn,
+    refetch: refetchSession,
+  });
+  const sessionPending = session.isPending || demoSigningIn;
 
   const value = useMemo<DashboardPlatformValue>(
     () => ({
@@ -59,7 +75,7 @@ function ExpoDashboardPlatformBridge({ children }: { children: ReactNode }) {
       currentUser,
       currentUsername,
       sessionError: Boolean(session.error),
-      sessionPending: session.isPending,
+      sessionPending,
       copyText: async (text: string) => {
         await Clipboard.setStringAsync(text);
       },
@@ -90,7 +106,7 @@ function ExpoDashboardPlatformBridge({ children }: { children: ReactNode }) {
       refetchSession,
       notifyError,
       notifySuccess,
-      session.isPending,
+      sessionPending,
       currentUser,
       session.error,
     ],

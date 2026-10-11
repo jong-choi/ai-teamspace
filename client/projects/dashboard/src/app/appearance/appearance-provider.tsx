@@ -76,7 +76,7 @@ export function AppearanceProvider({
       COLOR_THEME_OPTIONS.find(({ id }) => id === applied.colorThemePreference)
         ?.className ?? 'theme-default',
       FONT_SIZE_OPTIONS.find(({ id }) => id === applied.fontSizePreference)
-        ?.className ?? 'font-size-small',
+        ?.className ?? 'font-size-medium',
       RADIUS_OPTIONS.find(({ id }) => id === applied.radiusPreference)
         ?.className ?? 'radius-medium',
     ],

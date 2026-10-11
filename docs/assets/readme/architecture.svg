@@ -1,0 +1,340 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="1680"
+  height="850"
+  viewBox="0 0 1680 850"
+  role="img"
+  aria-labelledby="title desc"
+>
+  <title id="title">AIJR 시스템 아키텍처</title>
+  <desc id="desc">
+    Expo 클라이언트와 외부 AI가 NestJS API와 MCP로 업무 기능을 사용한다. 내장
+    에이전트는 MCP를 통해 업무를 처리하고, PostgreSQL과 Redis에 실행 상태를
+    저장한다. Outbox와 BullMQ 워커가 Neo4j 지식 그래프를 갱신하며, Hocuspocus가
+    위키 공동 편집을 처리한다.
+  </desc>
+  <defs>
+    <marker
+      id="arrow"
+      markerWidth="8"
+      markerHeight="8"
+      refX="7"
+      refY="4"
+      orient="auto"
+    >
+      <path d="M0 0 8 4 0 8" fill="none" stroke="#a1a1aa" stroke-width="1.5" />
+    </marker>
+  </defs>
+  <rect width="1680" height="850" rx="24" fill="#fafafa" />
+  <g font-family="system-ui,-apple-system,sans-serif" fill="#18181b">
+    <text x="64" y="78" font-size="34" font-weight="750">AIJR</text>
+    <text x="172" y="77" font-size="24" fill="#71717a">
+      사람과 AI가 공유하는 업무 공간
+    </text>
+    <text x="64" y="139" font-size="13" fill="#a1a1aa" font-weight="650">
+      클라이언트
+    </text>
+    <text x="464" y="139" font-size="13" fill="#a1a1aa" font-weight="650">
+      API · 인증 · 도구
+    </text>
+    <text x="864" y="139" font-size="13" fill="#a1a1aa" font-weight="650">
+      업무 · 에이전트 · 실시간
+    </text>
+    <text x="1264" y="139" font-size="13" fill="#a1a1aa" font-weight="650">
+      저장 · 비동기 반영
+    </text>
+    <rect
+      x="64"
+      y="166"
+      width="312"
+      height="148"
+      rx="16"
+      fill="#fff"
+      stroke="#e4e4e7"
+    />
+    <rect x="86" y="190" width="5" height="24" rx="2" fill="#6366f1" />
+    <text x="104" y="210" font-size="22" fill="#18181b" font-weight="700">
+      Expo / React Native
+    </text>
+    <text x="88" y="246" font-size="16" fill="#71717a" font-weight="400">
+      Web · iOS · Android
+    </text>
+    <text x="88" y="275" font-size="16" fill="#71717a" font-weight="400">
+      React Query · Orval
+    </text>
+    <rect
+      x="64"
+      y="350"
+      width="312"
+      height="148"
+      rx="16"
+      fill="#fff"
+      stroke="#e4e4e7"
+    />
+    <rect x="86" y="374" width="5" height="24" rx="2" fill="#8b5cf6" />
+    <text x="104" y="394" font-size="22" fill="#18181b" font-weight="700">
+      외부 AI 도구
+    </text>
+    <text x="88" y="430" font-size="16" fill="#71717a" font-weight="400">
+      코딩 에이전트 · 채팅 서비스
+    </text>
+    <text x="88" y="459" font-size="16" fill="#71717a" font-weight="400">
+      MCP 클라이언트
+    </text>
+    <rect
+      x="64"
+      y="580"
+      width="312"
+      height="148"
+      rx="16"
+      fill="#fff"
+      stroke="#e4e4e7"
+    />
+    <rect x="86" y="604" width="5" height="24" rx="2" fill="#14b8a6" />
+    <text x="104" y="624" font-size="22" fill="#18181b" font-weight="700">
+      위키 공동 편집
+    </text>
+    <text x="88" y="660" font-size="16" fill="#71717a" font-weight="400">
+      Yjs CRDT
+    </text>
+    <text x="88" y="689" font-size="16" fill="#71717a" font-weight="400">
+      실시간 동기화
+    </text>
+    <rect
+      x="464"
+      y="166"
+      width="312"
+      height="148"
+      rx="16"
+      fill="#fff"
+      stroke="#e4e4e7"
+    />
+    <rect x="486" y="190" width="5" height="24" rx="2" fill="#6366f1" />
+    <text x="504" y="210" font-size="22" fill="#18181b" font-weight="700">
+      NestJS API
+    </text>
+    <text x="488" y="246" font-size="16" fill="#71717a" font-weight="400">
+      OpenAPI · Zod DTO
+    </text>
+    <text x="488" y="275" font-size="16" fill="#71717a" font-weight="400">
+      Better Auth 인증
+    </text>
+    <rect
+      x="464"
+      y="350"
+      width="312"
+      height="148"
+      rx="16"
+      fill="#fff"
+      stroke="#e4e4e7"
+    />
+    <rect x="486" y="374" width="5" height="24" rx="2" fill="#8b5cf6" />
+    <text x="504" y="394" font-size="22" fill="#18181b" font-weight="700">
+      MCP 서버
+    </text>
+    <text x="488" y="430" font-size="16" fill="#71717a" font-weight="400">
+      OAuth · 접근 키 인증
+    </text>
+    <text x="488" y="459" font-size="16" fill="#71717a" font-weight="400">
+      조직 정책 · 개인 권한
+    </text>
+    <rect
+      x="864"
+      y="166"
+      width="312"
+      height="148"
+      rx="16"
+      fill="#fff"
+      stroke="#e4e4e7"
+    />
+    <rect x="886" y="190" width="5" height="24" rx="2" fill="#6366f1" />
+    <text x="904" y="210" font-size="22" fill="#18181b" font-weight="700">
+      업무 기능
+    </text>
+    <text x="888" y="246" font-size="16" fill="#71717a" font-weight="400">
+      프로젝트 · 이슈 · 위키
+    </text>
+    <text x="888" y="275" font-size="16" fill="#71717a" font-weight="400">
+      회의일정 · 채팅 · 지식 그래프
+    </text>
+    <rect
+      x="864"
+      y="350"
+      width="312"
+      height="180"
+      rx="16"
+      fill="#fff"
+      stroke="#e4e4e7"
+    />
+    <rect x="886" y="374" width="5" height="24" rx="2" fill="#8b5cf6" />
+    <text x="904" y="394" font-size="22" fill="#18181b" font-weight="700">
+      내장 AI 에이전트
+    </text>
+    <text x="888" y="430" font-size="16" fill="#71717a" font-weight="400">
+      DeepAgents · LangGraph
+    </text>
+    <text x="888" y="459" font-size="16" fill="#71717a" font-weight="400">
+      MCP 도구 호출 · 사용자 승인
+    </text>
+    <text x="888" y="488" font-size="16" fill="#71717a" font-weight="400">
+      Agent Protocol · SSE
+    </text>
+    <rect
+      x="864"
+      y="580"
+      width="312"
+      height="148"
+      rx="16"
+      fill="#fff"
+      stroke="#e4e4e7"
+    />
+    <rect x="886" y="604" width="5" height="24" rx="2" fill="#14b8a6" />
+    <text x="904" y="624" font-size="22" fill="#18181b" font-weight="700">
+      Hocuspocus
+    </text>
+    <text x="888" y="660" font-size="16" fill="#71717a" font-weight="400">
+      위키 공동 편집 서버
+    </text>
+    <text x="888" y="689" font-size="16" fill="#71717a" font-weight="400">
+      API와 분리된 프로세스
+    </text>
+    <rect
+      x="1264"
+      y="166"
+      width="352"
+      height="148"
+      rx="16"
+      fill="#fff"
+      stroke="#e4e4e7"
+    />
+    <rect x="1286" y="190" width="5" height="24" rx="2" fill="#6366f1" />
+    <text x="1304" y="210" font-size="22" fill="#18181b" font-weight="700">
+      PostgreSQL / Drizzle
+    </text>
+    <text x="1288" y="246" font-size="16" fill="#71717a" font-weight="400">
+      업무 원본 · Outbox
+    </text>
+    <text x="1288" y="275" font-size="16" fill="#71717a" font-weight="400">
+      에이전트 체크포인트
+    </text>
+    <rect
+      x="1264"
+      y="350"
+      width="352"
+      height="148"
+      rx="16"
+      fill="#fff"
+      stroke="#e4e4e7"
+    />
+    <rect x="1286" y="374" width="5" height="24" rx="2" fill="#8b5cf6" />
+    <text x="1304" y="394" font-size="22" fill="#18181b" font-weight="700">
+      Redis
+    </text>
+    <text x="1288" y="430" font-size="16" fill="#71717a" font-weight="400">
+      실행 대기열 · 스트림 재전송
+    </text>
+    <text x="1288" y="459" font-size="16" fill="#71717a" font-weight="400">
+      채팅 Pub/Sub
+    </text>
+    <rect
+      x="1264"
+      y="580"
+      width="352"
+      height="148"
+      rx="16"
+      fill="#fff"
+      stroke="#e4e4e7"
+    />
+    <rect x="1286" y="604" width="5" height="24" rx="2" fill="#14b8a6" />
+    <text x="1304" y="624" font-size="22" fill="#18181b" font-weight="700">
+      BullMQ → Neo4j
+    </text>
+    <text x="1288" y="660" font-size="16" fill="#71717a" font-weight="400">
+      Outbox 워커 · 그래프 반영
+    </text>
+    <text x="1288" y="689" font-size="16" fill="#71717a" font-weight="400">
+      문서 관계 추출 · 벡터 검색
+    </text>
+    <path
+      d="M376 240 H458"
+      stroke="#a1a1aa"
+      stroke-width="1.5"
+      fill="none"
+      marker-end="url(#arrow)"
+    />
+    <text x="384" y="228" font-size="13" fill="#71717a" font-weight="400">
+      HTTP
+    </text>
+    <path
+      d="M776 240 H858"
+      stroke="#a1a1aa"
+      stroke-width="1.5"
+      fill="none"
+      marker-end="url(#arrow)"
+    />
+    <path
+      d="M1176 240 H1258"
+      stroke="#a1a1aa"
+      stroke-width="1.5"
+      fill="none"
+      marker-end="url(#arrow)"
+    />
+    <path
+      d="M376 424 H458"
+      stroke="#a1a1aa"
+      stroke-width="1.5"
+      fill="none"
+      marker-end="url(#arrow)"
+    />
+    <text x="384" y="412" font-size="13" fill="#71717a" font-weight="400">
+      MCP
+    </text>
+    <path
+      d="M864 424 H782"
+      stroke="#a1a1aa"
+      stroke-width="1.5"
+      fill="none"
+      marker-end="url(#arrow)"
+    />
+    <text x="791" y="412" font-size="13" fill="#71717a" font-weight="400">
+      MCP
+    </text>
+    <path
+      d="M1176 424 H1258"
+      stroke="#a1a1aa"
+      stroke-width="1.5"
+      fill="none"
+      marker-end="url(#arrow)"
+    />
+    <path
+      d="M620 350 V320 H1020 V314"
+      stroke="#a1a1aa"
+      stroke-width="1.5"
+      fill="none"
+      marker-end="url(#arrow)"
+    />
+    <path
+      d="M376 654 H858"
+      stroke="#a1a1aa"
+      stroke-width="1.5"
+      fill="none"
+      marker-end="url(#arrow)"
+    />
+    <text x="530" y="640" font-size="14" fill="#71717a" font-weight="400">
+      공동 편집 WebSocket
+    </text>
+    <path
+      d="M1616 240 H1640 V654 H1622"
+      stroke="#a1a1aa"
+      stroke-width="1.5"
+      fill="none"
+      marker-end="url(#arrow)"
+    />
+    <text x="64" y="795" font-size="15" fill="#18181b" font-weight="650">
+      계약의 단일 원본
+    </text>
+    <text x="260" y="795" font-size="18" fill="#71717a" font-weight="400">
+      Drizzle → drizzle-zod → DTO → OpenAPI → Orval
+    </text>
+  </g>
+</svg>

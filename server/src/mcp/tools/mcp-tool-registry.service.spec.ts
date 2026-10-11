@@ -107,6 +107,7 @@ describe('MCP tool registry', () => {
       'calendar_meetings_list',
       'calendar_meeting_get',
       'calendar_availability_check',
+      'calendar_rooms_list',
       'knowledge_search',
       'knowledge_get_context',
     ]);

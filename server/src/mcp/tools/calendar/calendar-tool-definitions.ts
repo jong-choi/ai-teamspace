@@ -8,6 +8,7 @@ import {
   MeetingDetailSchema,
   MeetingListSchema,
 } from '@/calendar/dto/meeting.dto';
+import { MeetingRoomListSchema } from '@/calendar/dto/meeting-room.dto';
 import { QueryCalendarMeetingsSchema } from '@/calendar/dto/query-calendar-meetings.dto';
 import { RescheduleMeetingSchema } from '@/calendar/dto/reschedule-meeting.dto';
 import { RsvpMeetingSchema } from '@/calendar/dto/rsvp-meeting.dto';
@@ -43,7 +44,7 @@ export const calendarMeetingsListTool = defineMcpTool({
   inputSchema: QueryCalendarMeetingsSchema.safeExtend({
     ...organizationIdField,
     attendeeUserId: QueryCalendarMeetingsSchema.shape.attendeeUserId.describe(
-      '이 사용자가 참석자로 초대된 회의만 조회합니다. 주최만 한 회의는 빠집니다.',
+      '이 사용자가 주최하거나 참석자로 초대된 회의만 조회합니다.',
     ),
     search: QueryCalendarMeetingsSchema.shape.search.describe(
       '제목·장소·회의실 이름에 들어 있는 글자.',
@@ -85,14 +86,17 @@ export const calendarMeetingCreateTool = defineMcpTool({
     '회의를 만듭니다. 사용자가 주최자가 되고 참석자에게 알림이 갑니다.',
   inputSchema: CreateMeetingSchema.safeExtend({
     ...organizationIdField,
+    category: CreateMeetingSchema.shape.category.describe(
+      '회의 성격. 따로 정해지지 않은 회의는 team입니다.',
+    ),
     timeZone: CreateMeetingSchema.shape.timeZone.describe(
       'IANA 시간대(예: Asia/Seoul).',
     ),
     locationType: CreateMeetingSchema.shape.locationType.describe(
-      'meeting_room이면 meetingRoomId가, other면 locationText가 필요합니다.',
+      'online은 온라인 회의. meeting_room이면 meetingRoomId가, other면 locationText가 필요합니다.',
     ),
     meetingRoomId: CreateMeetingSchema.shape.meetingRoomId.describe(
-      '회의실 ID. 그 회의실을 쓰는 회의의 meetingRoomId에서 얻습니다.',
+      'calendar_rooms_list 결과의 회의실 id.',
     ),
     attendeeUserIds: CreateMeetingSchema.shape.attendeeUserIds.describe(
       '주최자를 뺀 참석자 userId 목록.',
@@ -154,7 +158,12 @@ export const calendarMeetingRsvpTool = defineMcpTool({
   name: 'calendar_meeting_rsvp',
   title: '캘린더 회의 RSVP 변경',
   description: '사용자 본인의 회의 참석 여부를 응답합니다.',
-  inputSchema: RsvpMeetingSchema.extend(meetingIdentityFields),
+  inputSchema: RsvpMeetingSchema.extend({
+    ...meetingIdentityFields,
+    status: RsvpMeetingSchema.shape.status.describe(
+      'accepted는 참석, tentative는 미정, declined는 불참.',
+    ),
+  }),
   outputSchema: mutationToolOutputSchema(
     MeetingDetailSchema,
     CalendarMeetingRsvpMutationReceiptSchema,
@@ -162,6 +171,18 @@ export const calendarMeetingRsvpTool = defineMcpTool({
   requiredScope: 'calendar:write',
   classification: 'write',
   annotations: writeAnnotations,
+});
+
+export const calendarRoomsListTool = defineMcpTool({
+  name: 'calendar_rooms_list',
+  title: '회의실 목록 조회',
+  description:
+    '조직의 회의실 목록을 조회합니다. 결과의 id를 회의 생성·일정 변경의 meetingRoomId에 씁니다.',
+  inputSchema: z.object(organizationIdField),
+  outputSchema: MeetingRoomListSchema,
+  requiredScope: 'calendar:read',
+  classification: 'read',
+  annotations: readOnlyAnnotations,
 });
 
 export const calendarToolDefinitions = [
@@ -172,4 +193,5 @@ export const calendarToolDefinitions = [
   calendarMeetingRescheduleTool,
   calendarMeetingCancelTool,
   calendarMeetingRsvpTool,
+  calendarRoomsListTool,
 ] as const;

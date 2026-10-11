@@ -1,5 +1,6 @@
 import type { CalendarAvailabilityService } from '@/calendar/calendar-availability.service';
 import type { CalendarMeetingQueryService } from '@/calendar/calendar-meeting-query.service';
+import type { CalendarMeetingRoomService } from '@/calendar/calendar-meeting-room.service';
 import type { CalendarParticipationService } from '@/calendar/calendar-participation.service';
 import type { CalendarSchedulingService } from '@/calendar/calendar-scheduling.service';
 import type { McpAuthContext } from '@/mcp/contracts/mcp-auth-context';
@@ -50,11 +51,17 @@ describe('Calendar MCP registrar', () => {
     Parameters<CalendarParticipationService['updateRsvp']>
   >();
 
+  const listMeetingRooms = jest.fn<
+    ReturnType<CalendarMeetingRoomService['listMeetingRooms']>,
+    Parameters<CalendarMeetingRoomService['listMeetingRooms']>
+  >();
+
   const registrar = new CalendarMcpRegistrar(
     { listMeetings, getMeeting },
     { previewAvailability },
     { createMeeting, rescheduleMeeting, cancelMeeting },
     { updateRsvp },
+    { listMeetingRooms },
   );
 
   beforeEach(() => {
@@ -67,6 +74,7 @@ describe('Calendar MCP registrar', () => {
       rescheduleMeeting,
       cancelMeeting,
       updateRsvp,
+      listMeetingRooms,
     ]) {
       mock.mockRejectedValue(stop);
     }
@@ -238,6 +246,17 @@ describe('Calendar MCP registrar', () => {
       'org-a',
       meetingId,
       { status: 'accepted' },
+    );
+  });
+
+  it('회의실 목록은 조직 identity를 전달한다', async () => {
+    await expect(
+      registrar.tools()[7]!.invoke({ organizationId: 'org-a' }, auth, allow),
+    ).rejects.toBe(stop);
+
+    expect(listMeetingRooms).toHaveBeenCalledWith(
+      { userId: 'user-a' },
+      'org-a',
     );
   });
 });

@@ -1,7 +1,7 @@
 import { calendarToolDefinitions } from '@/mcp/tools/calendar/calendar-tool-definitions';
 
 describe('Calendar MCP tool 정의', () => {
-  it('v1 Calendar tool 일곱 개를 고정한다', () => {
+  it('v1 Calendar tool 여덟 개를 고정한다', () => {
     expect(
       calendarToolDefinitions.map(({ name, requiredScope }) => ({
         name,
@@ -21,6 +21,7 @@ describe('Calendar MCP tool 정의', () => {
       },
       { name: 'calendar_meeting_cancel', requiredScope: 'calendar:write' },
       { name: 'calendar_meeting_rsvp', requiredScope: 'calendar:write' },
+      { name: 'calendar_rooms_list', requiredScope: 'calendar:read' },
     ]);
   });
 

@@ -91,6 +91,9 @@ export const projectTicketCreateTool = defineMcpTool({
   description: '프로젝트에 티켓을 만듭니다.',
   inputSchema: CreateTicketSchema.extend({
     ...projectIdentityFields,
+    priority: CreateTicketSchema.shape.priority.describe(
+      'urgent가 가장 높고 low가 가장 낮습니다.',
+    ),
     columnId: CreateTicketSchema.shape.columnId.describe(
       'project_columns_list 결과의 컬럼 id.',
     ),
@@ -117,6 +120,9 @@ export const projectTicketUpdateTool = defineMcpTool({
     '티켓 내용을 수정합니다. 바꿀 인자만 넣습니다. 컬럼 이동은 project_ticket_move를 씁니다.',
   inputSchema: UpdateTicketSchema.safeExtend({
     ...ticketIdentityFields,
+    priority: UpdateTicketSchema.shape.priority.describe(
+      'urgent가 가장 높고 low가 가장 낮습니다.',
+    ),
     assigneeUserId: UpdateTicketSchema.shape.assigneeUserId.describe(
       '새 담당자 userId. null이면 담당자를 비웁니다.',
     ),

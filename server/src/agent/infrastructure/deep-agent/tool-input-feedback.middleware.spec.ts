@@ -1,4 +1,7 @@
-import { describeToolInputProblems } from '@/agent/infrastructure/deep-agent/tool-input-feedback.middleware';
+import {
+  describeToolInputProblems,
+  dropEmptyOptionalArguments,
+} from '@/agent/infrastructure/deep-agent/tool-input-feedback.middleware';
 
 const meetingsListSchema = {
   type: 'object',
@@ -83,5 +86,33 @@ describe('describeToolInputProblems', () => {
         { from: '2026-10-12T00:00:00+09:00', extra: 1 },
       ),
     ).toEqual([]);
+  });
+});
+
+describe('dropEmptyOptionalArguments', () => {
+  it('빈 문자열이나 null로 채운 선택 인자를 뺀다', () => {
+    expect(
+      dropEmptyOptionalArguments(meetingsListSchema, {
+        from: '2026-10-12T00:00:00+09:00',
+        search: '',
+        projectId: null,
+        category: 'team',
+      }),
+    ).toEqual({ from: '2026-10-12T00:00:00+09:00', category: 'team' });
+  });
+
+  it('스키마가 null을 받는 인자와 필수 인자는 그대로 둔다', () => {
+    expect(
+      dropEmptyOptionalArguments(meetingsListSchema, { from: '', dueAt: null }),
+    ).toEqual({ from: '', dueAt: null });
+  });
+
+  it('도구에 없는 인자는 건드리지 않는다', () => {
+    expect(
+      dropEmptyOptionalArguments(meetingsListSchema, {
+        from: '2026-10-12T00:00:00+09:00',
+        contentMarkdown: '',
+      }),
+    ).toEqual({ from: '2026-10-12T00:00:00+09:00', contentMarkdown: '' });
   });
 });

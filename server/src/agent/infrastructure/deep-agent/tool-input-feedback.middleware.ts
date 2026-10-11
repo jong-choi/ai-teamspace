@@ -1,4 +1,4 @@
-import { ToolMessage } from '@langchain/core/messages';
+import { AIMessage, ToolMessage } from '@langchain/core/messages';
 import { Validator } from '@langchain/core/utils/json_schema';
 import { isInteropZodSchema } from '@langchain/core/utils/types';
 import { createMiddleware } from 'langchain';
@@ -126,11 +126,68 @@ export function describeToolInputProblems(
 }
 
 /**
+ * 값 없이 빈 문자열이나 null로 채운 선택 인자를 뺀다.
+ * 스키마가 그 값을 받는 인자(예: null로 담당자를 비우는 인자)는 그대로 둔다.
+ */
+export function dropEmptyOptionalArguments(
+  inputSchema: unknown,
+  args: Record<string, unknown>,
+): Record<string, unknown> {
+  const parsed = toolInputSchemaSchema.safeParse(inputSchema);
+  if (!parsed.success) return args;
+  const { properties, required, $defs } = parsed.data;
+
+  return Object.fromEntries(
+    Object.entries(args).filter(([name, value]) => {
+      const property = properties[name];
+      if (property === undefined || required.includes(name)) return true;
+      if (value !== '' && value !== null) return true;
+      return new Validator({ ...property, $defs }).validate(value).valid;
+    }),
+  );
+}
+
+/**
  * JSON Schema 도구(MCP 도구)의 인자를 실행 전에 확인하고,
  * 어긋나면 원인을 적은 오류 결과를 모델에게 돌려준다.
  */
 export const toolInputFeedbackMiddleware = createMiddleware({
   name: 'ToolInputFeedback',
+  // 승인 요청과 실행이 같은 인자를 보도록 모델 응답 단계에서 빈 선택 인자를 정리한다.
+  wrapModelCall: async (request, handler) => {
+    const response = await handler(request);
+    if (!AIMessage.isInstance(response) || !response.tool_calls?.length) {
+      return response;
+    }
+
+    const schemas = new Map<string, unknown>();
+    for (const tool of request.tools) {
+      if ('schema' in tool && !isInteropZodSchema(tool.schema)) {
+        schemas.set(String(tool.name), tool.schema);
+      }
+    }
+
+    return new AIMessage({
+      id: response.id,
+      name: response.name,
+      content: response.content,
+      additional_kwargs: response.additional_kwargs,
+      response_metadata: response.response_metadata,
+      usage_metadata: response.usage_metadata,
+      invalid_tool_calls: response.invalid_tool_calls,
+      tool_calls: response.tool_calls.map((toolCall) =>
+        schemas.has(toolCall.name)
+          ? {
+              ...toolCall,
+              args: dropEmptyOptionalArguments(
+                schemas.get(toolCall.name),
+                toolCall.args,
+              ),
+            }
+          : toolCall,
+      ),
+    });
+  },
   wrapToolCall: async (request, handler) => {
     const { tool, toolCall } = request;
     if (

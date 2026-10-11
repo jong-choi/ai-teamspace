@@ -61,6 +61,7 @@ import { OrganizationsModule } from '@/organizations/organizations.module';
   exports: [
     CalendarAvailabilityService,
     CalendarMeetingQueryService,
+    CalendarMeetingRoomService,
     CalendarParticipationService,
     CalendarSchedulingService,
   ],

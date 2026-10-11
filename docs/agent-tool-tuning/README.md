@@ -70,3 +70,4 @@ Work OS 에이전트의 시스템 프롬프트, MCP 도구 설명, 인자 설명
 | [02-round-1.md](02-round-1.md)                 | 1차 개선 내용과 측정 2 (1회)                  |
 | [03-baseline-scored.md](03-baseline-scored.md) | 고치기 전 실행 기록을 Langfuse 점수로 채점    |
 | [04-round-1-scored.md](04-round-1-scored.md)   | 1차 개선본 재측정과 Langfuse 채점 (1회)       |
+| [05-round-2.md](05-round-2.md)                 | 2차 개선 내용과 측정 (2회)                    |

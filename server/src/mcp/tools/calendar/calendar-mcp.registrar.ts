@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 
 import { CalendarAvailabilityService } from '@/calendar/calendar-availability.service';
 import { CalendarMeetingQueryService } from '@/calendar/calendar-meeting-query.service';
+import { CalendarMeetingRoomService } from '@/calendar/calendar-meeting-room.service';
 import { CalendarParticipationService } from '@/calendar/calendar-participation.service';
 import { CalendarSchedulingService } from '@/calendar/calendar-scheduling.service';
 import { bindMcpTool, type BoundMcpTool } from '@/mcp/tools/bound-mcp-tool';
@@ -13,6 +14,7 @@ import {
   calendarMeetingRescheduleTool,
   calendarMeetingRsvpTool,
   calendarMeetingsListTool,
+  calendarRoomsListTool,
 } from '@/mcp/tools/calendar/calendar-tool-definitions';
 import { toMcpOrganizationActor } from '@/mcp/tools/mcp-application-actor';
 import {
@@ -40,6 +42,11 @@ type CalendarParticipationToolsService = Pick<
   'updateRsvp'
 >;
 
+type CalendarRoomToolsService = Pick<
+  CalendarMeetingRoomService,
+  'listMeetingRooms'
+>;
+
 @Injectable()
 export class CalendarMcpRegistrar {
   constructor(
@@ -51,6 +58,8 @@ export class CalendarMcpRegistrar {
     private readonly schedulingService: CalendarSchedulingToolsService,
     @Inject(CalendarParticipationService)
     private readonly participationService: CalendarParticipationToolsService,
+    @Inject(CalendarMeetingRoomService)
+    private readonly roomService: CalendarRoomToolsService,
   ) {}
 
   tools(): BoundMcpTool[] {
@@ -120,6 +129,12 @@ export class CalendarMcpRegistrar {
         );
         return { result, mutation: calendarMeetingRsvpReceipt(result) };
       }),
+      bindMcpTool(calendarRoomsListTool, async (input, auth) =>
+        this.roomService.listMeetingRooms(
+          toMcpOrganizationActor(auth),
+          input.organizationId,
+        ),
+      ),
     ];
   }
 }

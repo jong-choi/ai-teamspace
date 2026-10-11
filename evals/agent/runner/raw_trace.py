@@ -10,7 +10,7 @@ from datasets.schema import EvalCase
 from fixtures.lifecycle import FixtureLease
 from runner.trajectory import ObservedTrajectory
 
-RAW_TEXT_LIMIT = 6_000
+RAW_TEXT_LIMIT = 60_000
 _UNSAFE_FILE_CHARACTERS = re.compile(r"[^a-z0-9._-]+")
 
 

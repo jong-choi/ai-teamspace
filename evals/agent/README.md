@@ -62,6 +62,15 @@ Write cases change the workspace, so run passes through the wrapper, which resto
 uv run python scripts/summarize_round.py ../../.temp/evals/agent/<label>
 ```
 
+To score a round in Langfuse, push each trial's transcript and counted scores, let the LLM-as-a-judge evaluators run, and pull the result. The evaluators and the judge model connection are described in [docs/agent-tool-tuning/langfuse-setup.md](../../docs/agent-tool-tuning/langfuse-setup.md).
+
+```bash
+uv run python scripts/langfuse_scores.py setup    # once, registers the evaluators
+uv run python scripts/langfuse_scores.py push ../../.temp/evals/agent/<label>
+uv run python scripts/langfuse_scores.py pull ../../.temp/evals/agent/<label>
+uv run python scripts/score_report.py ../../.temp/evals/agent/<label> [../../.temp/evals/agent/<previous>]
+```
+
 Each pass writes, next to the redacted report, `tool-manifest.json` (the tool names, descriptions and input schemas offered to the model) and `raw/<case>.trial-<n>.json` (tool arguments, tool replies, token usage and the conversation). The raw files are for local review only and stay under `.temp`.
 
 A tool reply with `status=error` counts as a tool error even though the run continues. When a write call fails and the agent proposes the same tool again, the harness repeats the approval up to two times so the recovery is observable; the trial still fails on the interrupt count.

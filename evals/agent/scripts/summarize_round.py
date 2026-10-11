@@ -23,18 +23,14 @@ def _tool_errors(raw: dict[str, Any]) -> int:
         1
         for message in raw.get("messages", [])
         if message.get("type") == "tool"
-        and (
-            message.get("status") == "error"
-            or str(message.get("text") or "").startswith("Error")
-        )
+        and (message.get("status") == "error" or str(message.get("text") or "").startswith("Error"))
     )
 
 
 def _manifest_size(tools: list[dict[str, Any]]) -> dict[str, int]:
     descriptions = sum(len(str(tool.get("description") or "")) for tool in tools)
     schemas = sum(
-        len(json.dumps(tool.get("inputSchema") or {}, ensure_ascii=False))
-        for tool in tools
+        len(json.dumps(tool.get("inputSchema") or {}, ensure_ascii=False)) for tool in tools
     )
     return {"tools": len(tools), "description_chars": descriptions, "schema_chars": schemas}
 
@@ -107,7 +103,7 @@ def main() -> int:
             f"| {sum(item['errors'] for item in items)} "
             f"| {'/'.join(str(len(item['tools'])) for item in items)} "
             f"| {'/'.join(str(item['model_calls']) for item in items)} "
-            f"| {'/'.join(f'{item['latency_s']:.0f}' for item in items)} "
+            f"| {'/'.join(f'{item["latency_s"]:.0f}' for item in items)} "
             f"| {', '.join(failures) or '-'} |"
         )
     return 0

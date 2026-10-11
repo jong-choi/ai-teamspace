@@ -17,12 +17,12 @@ import {
   AgentHitlUnsupported,
 } from '@core/features/agent-chat/components/agent-hitl-card';
 import { mapAgentChatError } from '@core/features/agent-chat/lib/agent-chat-errors';
-import { AGENT_CLIENT_CONTEXT_CONFIGURABLE_KEY } from '@core/features/agent-chat/lib/agent-client-context';
 import {
   getAgentDraftKey,
   resolveAgentReasoningEffort,
 } from '@core/features/agent-chat/lib/agent-chat-store';
 import { groupAgentChatTurns } from '@core/features/agent-chat/lib/agent-chat-turns';
+import { AGENT_CLIENT_CONTEXT_CONFIGURABLE_KEY } from '@core/features/agent-chat/lib/agent-client-context';
 import {
   type AgentHitlResumeDecision,
   parseAgentHitlInterrupts,

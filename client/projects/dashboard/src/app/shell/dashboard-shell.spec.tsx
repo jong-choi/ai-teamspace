@@ -23,6 +23,9 @@ jest.mock('@core/features/agent-chat/agent-chat-panel', () => ({
 jest.mock('@core/app/shell/dashboard-navigation-content', () => ({
   DashboardNavigationContent: () => null,
 }));
+jest.mock('@core/app/shell/dashboard-account-avatar', () => ({
+  DashboardAccountAvatar: () => null,
+}));
 jest.mock('@core/app/shell/dashboard-organization-label', () => ({
   DashboardOrganizationLabel: () => null,
 }));

@@ -14,6 +14,7 @@ import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
+import { DashboardAccountAvatar } from '@core/app/shell/dashboard-account-avatar';
 import { ThemeToggle } from '@core/app/shell/theme-toggle';
 import { DashboardQueryBoundary } from '@core/app/state/dashboard-query-state';
 import { CreateOrganizationDialog } from '@core/features/organizations/create-organization-dialog';
@@ -29,7 +30,6 @@ import {
   Network,
   Plus,
   Settings,
-  UserRound,
   Users,
 } from 'lucide-react-native';
 
@@ -229,9 +229,7 @@ function AccountFooter() {
   return (
     <View className="flex-row items-center justify-between pt-1">
       <View className="min-w-0 flex-1 flex-row items-center gap-2.5">
-        <View className="size-7 shrink-0 items-center justify-center rounded-full border border-border bg-secondary">
-          <Icon as={UserRound} className="size-4 text-secondary-foreground" />
-        </View>
+        <DashboardAccountAvatar />
         <View className="min-w-0 flex-1">
           <Text className="truncate text-xs font-semibold">{title}</Text>
           <Text className="truncate text-2xs text-muted-foreground">

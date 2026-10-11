@@ -20,6 +20,7 @@ import { Button } from '@repo/client/rnr/components/ui/button';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
 import { cn } from '@repo/client/rnr/lib/utils';
+import { DashboardAccountAvatar } from '@core/app/shell/dashboard-account-avatar';
 import {
   DashboardNavigationContent,
   type DashboardNavigationItemId,
@@ -31,7 +32,7 @@ import { useAgentChatStore } from '@core/features/agent-chat/agent-chat-provider
 import { useAgentChatWideLayout } from '@core/features/agent-chat/lib/use-agent-chat-layout';
 import { useAgentChatOutsidePress } from '@core/features/agent-chat/lib/use-agent-chat-outside-press';
 
-import { Building2, Menu, Sparkles, UserRound, X } from 'lucide-react-native';
+import { Building2, Menu, Sparkles, X } from 'lucide-react-native';
 
 const DashboardShellContext = createContext(false);
 
@@ -157,7 +158,10 @@ export function DashboardShell({
             className="z-30 shrink-0 flex-row items-center justify-between border-b border-border bg-background px-4 pb-3 lg:hidden"
             style={{ paddingTop: insets.top + 12 }}
           >
-            <View className="min-w-0 flex-1 flex-row items-center gap-2.5">
+            <View
+              {...agentChatOutsidePress}
+              className="min-w-0 flex-1 flex-row items-center gap-2.5"
+            >
               <Button
                 accessibilityLabel="메뉴 열기"
                 accessibilityState={{ expanded: drawerOpen }}
@@ -186,11 +190,8 @@ export function DashboardShell({
                 pendingApproval={agentChatPendingApproval}
               />
               <ThemeToggle />
-              <View className="ml-1 size-7 items-center justify-center rounded-full bg-secondary">
-                <Icon
-                  as={UserRound}
-                  className="size-4 text-secondary-foreground"
-                />
+              <View className="ml-1">
+                <DashboardAccountAvatar />
               </View>
             </View>
           </View>

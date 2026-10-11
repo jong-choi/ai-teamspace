@@ -1,11 +1,10 @@
 import { useMemo } from 'react';
+import { useGlobalSearchParams, useSegments } from 'expo-router';
 
 import {
   type AgentClientContext,
   buildAgentClientContext,
 } from '@core/features/agent-chat/lib/agent-client-context';
-
-import { useGlobalSearchParams, useSegments } from 'expo-router';
 
 /** 사용자가 지금 보고 있는 화면을 Agent run에 실어 보낼 맥락으로 읽는다. */
 export function useAgentClientContext(): AgentClientContext {

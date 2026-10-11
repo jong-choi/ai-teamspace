@@ -159,19 +159,19 @@ function OrganizationSwitcher({
 
   if (collapsed) {
     return (
-      <View className="mb-4 items-center">
-        <Button
+      // 펼친 트리거와 같은 높이를 차지해 접고 펼칠 때 아래 메뉴가 위아래로 움직이지 않게 한다.
+      <View className="mb-4 h-[46px] items-center justify-center">
+        <Pressable
           accessibilityLabel="사이드바 열기"
+          accessibilityRole="button"
           accessibilityState={{ expanded: false }}
-          className="h-10 w-10 rounded-lg"
+          className="h-10 w-10 items-center justify-center rounded-lg border border-border bg-card web:hover:bg-accent"
           onPress={onToggleSidebar}
-          size="icon"
-          variant="outline"
         >
           <View className="size-7 items-center justify-center rounded bg-primary">
             <Icon as={Building2} className="size-4 text-primary-foreground" />
           </View>
-        </Button>
+        </Pressable>
       </View>
     );
   }

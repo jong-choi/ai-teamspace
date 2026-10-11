@@ -120,7 +120,10 @@ export function DashboardShell({
             'absolute inset-y-0 left-0 z-50 min-h-0 w-72 overflow-hidden border-r border-border bg-sidebar px-4 pb-4',
             'web:transition-transform web:duration-200',
             'lg:relative lg:z-auto lg:shrink-0 lg:translate-x-0 lg:py-4',
-            sidebarCollapsed ? 'lg:w-16 lg:px-2' : 'lg:w-64 lg:px-3.5',
+            // 오른쪽 테두리 1px만큼 padding을 줄여 접힌 아이콘을 64px 폭의 정중앙에 둔다.
+            sidebarCollapsed
+              ? 'lg:w-16 lg:pl-2 lg:pr-[7px]'
+              : 'lg:w-64 lg:px-3.5',
             drawerOpen ? 'translate-x-0' : '-translate-x-full',
           )}
           testID="dashboard-sidebar"

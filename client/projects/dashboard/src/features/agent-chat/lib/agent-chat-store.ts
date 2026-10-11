@@ -23,6 +23,7 @@ export type AgentChatState = {
   activeThreadId: string | null;
   activeThreadTitle: string | null;
   drafts: Readonly<Record<string, string>>;
+  threadScrollOffsets: Readonly<Record<string, number>>;
   pendingStarter: { threadId: string; message: string } | null;
   reasoningEffort: AgentReasoningEffort | null;
   queue: readonly AgentQueuedMessage[];
@@ -38,6 +39,11 @@ export type AgentChatActions = {
   selectThread: (threadId: string, title: string) => void;
   newThread: () => void;
   setDraft: (key: string, value: string) => void;
+  rememberThreadScrollOffset: (
+    organizationId: string,
+    threadId: string,
+    offset: number,
+  ) => void;
   startThread: (input: {
     threadId: string;
     title: string;
@@ -65,6 +71,7 @@ export const initialAgentChatState: AgentChatState = {
   activeThreadId: null,
   activeThreadTitle: null,
   drafts: {},
+  threadScrollOffsets: {},
   pendingStarter: null,
   reasoningEffort: null,
   queue: [],
@@ -120,6 +127,18 @@ export function createAgentChatStore(
       }),
     setDraft: (key, value) =>
       set((state) => ({ drafts: { ...state.drafts, [key]: value } })),
+    rememberThreadScrollOffset: (organizationId, threadId, offset) =>
+      set((state) =>
+        state.organizationId !== organizationId ||
+        state.threadScrollOffsets[threadId] === offset
+          ? state
+          : {
+              threadScrollOffsets: {
+                ...state.threadScrollOffsets,
+                [threadId]: offset,
+              },
+            },
+      ),
     startThread: ({ threadId, title, message }) =>
       set((state) => {
         const drafts = { ...state.drafts };

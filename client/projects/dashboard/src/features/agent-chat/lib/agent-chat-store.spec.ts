@@ -9,6 +9,22 @@ import {
 import { describe, expect, it } from '@jest/globals';
 
 describe('Agent 채팅 store', () => {
+  it('대화별 스크롤 위치를 유지하고 조직 전환 뒤 늦게 저장되는 이전 위치는 무시한다', () => {
+    const store = createAgentChatStore();
+    const chat = store.getState();
+    chat.setOrganization('org-a');
+    chat.rememberThreadScrollOffset('org-a', 't-1', 180);
+    chat.rememberThreadScrollOffset('org-a', 't-2', 420);
+    chat.newThread();
+    expect(store.getState().threadScrollOffsets).toEqual({
+      't-1': 180,
+      't-2': 420,
+    });
+    chat.setOrganization('org-b');
+    chat.rememberThreadScrollOffset('org-a', 't-1', 200);
+    expect(store.getState().threadScrollOffsets).toEqual({});
+  });
+
   it('닫기와 확대를 오가도 draft와 선택 thread를 유지한다', () => {
     const store = createAgentChatStore();
     const chat = store.getState();

@@ -322,7 +322,9 @@ export function AgentThreadSession({
           </>
         }
         hydrating={!hydrated}
+        organizationId={organizationId}
         running={running}
+        threadId={threadId}
         turns={turns}
       />
       <View className="shrink-0 border-t border-border/60 bg-background px-3 pb-3 pt-2">

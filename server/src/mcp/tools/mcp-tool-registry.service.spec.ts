@@ -103,6 +103,7 @@ describe('MCP tool registry', () => {
       'projects_list',
       'project_get',
       'project_columns_list',
+      'project_tickets_list',
       'project_ticket_get',
       'calendar_meetings_list',
       'calendar_meeting_get',

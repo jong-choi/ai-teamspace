@@ -67,6 +67,14 @@ describe('toRelationLines', () => {
     });
   });
 
+  it('낱말을 주면 양 끝 이름에 그 낱말이 든 관계만 남긴다', () => {
+    expect(toRelationLines(snapshot, 10, ['리뉴얼'])).toEqual({
+      lines: ['리뉴얼 기획서 -[wiki_parent]-> 제품'],
+      truncated: false,
+    });
+    expect(toRelationLines(snapshot, 10, ['정산']).lines).toEqual([]);
+  });
+
   it('상한을 넘으면 잘랐다고 알린다', () => {
     expect(toRelationLines(snapshot, 1)).toEqual({
       lines: ['최유진 -[RESPONSIBLE_FOR]-> 홈'],

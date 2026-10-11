@@ -98,7 +98,7 @@ describe('KnowledgeGraphMcpRegistrar', () => {
     explore.mockResolvedValueOnce({
       nodes: [
         { id: 'e1', kind: 'semantic_entity', title: '최유진' },
-        { id: 'e2', kind: 'semantic_entity', title: '홈' },
+        { id: 'e2', kind: 'semantic_entity', title: '리뉴얼 홈' },
         { id: documentNodeId, kind: 'wiki_document', title: '리뉴얼 기획서' },
       ],
       edges: [
@@ -148,7 +148,7 @@ describe('KnowledgeGraphMcpRegistrar', () => {
     );
 
     expect(output).toMatchObject({
-      items: [{ relations: ['최유진 -[RESPONSIBLE_FOR]-> 홈'] }],
+      items: [{ relations: ['최유진 -[RESPONSIBLE_FOR]-> 리뉴얼 홈'] }],
       records: [
         {
           kind: 'project',

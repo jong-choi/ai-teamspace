@@ -43,7 +43,12 @@ const MIN_QUERY_TERM_LENGTH = 2;
 export function toRelationLines(
   snapshot: Pick<GraphSnapshot, 'nodes' | 'edges'>,
   limit: number,
+  terms?: readonly string[],
 ): { lines: string[]; truncated: boolean } {
+  const lowered = terms?.map((term) => term.toLowerCase());
+  const matchesTerms = (title: string) =>
+    lowered === undefined ||
+    lowered.some((term) => title.toLowerCase().includes(term));
   const titles = new Map(snapshot.nodes.map((node) => [node.id, node.title]));
   const lines: string[] = [];
   for (const edge of snapshot.edges) {
@@ -51,6 +56,8 @@ export function toRelationLines(
     const source = titles.get(edge.sourceNodeId);
     const target = titles.get(edge.targetNodeId);
     if (!source || !target) continue;
+    // 낱말을 주면 양 끝 중 하나의 이름에 그 낱말이 든 관계만 남긴다.
+    if (!matchesTerms(source) && !matchesTerms(target)) continue;
     const label = edge.predicate ?? edge.relation;
     lines.push(
       edge.directed

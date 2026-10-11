@@ -70,6 +70,32 @@ describe('Wiki MCP registrar', () => {
     });
   });
 
+  it('검색의 limit은 service에 넘기지 않고 결과 수만 줄인다', async () => {
+    const item = (documentId: string) => ({
+      documentId,
+      parentDocumentId: null,
+      title: '문서',
+      matchedIn: ['title' as const],
+    });
+    search.mockResolvedValue({
+      items: [
+        item('0199d54e-282e-7adf-8000-0000000000a1'),
+        item('0199d54e-282e-7adf-8000-0000000000a2'),
+      ],
+    });
+
+    const output = await registrar
+      .tools()[0]!
+      .invoke({ organizationId: 'org-a', q: '문서', limit: 1 }, auth, allow);
+
+    expect(search).toHaveBeenCalledWith({ userId: 'user-a' }, 'org-a', {
+      q: '문서',
+    });
+    expect(output).toMatchObject({
+      items: [{ documentId: '0199d54e-282e-7adf-8000-0000000000a1' }],
+    });
+  });
+
   it('문서 조회는 actor/organization/document identity를 전달한다', async () => {
     getDocument.mockResolvedValue(document);
 

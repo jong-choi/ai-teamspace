@@ -43,7 +43,7 @@ export const knowledgeSearchTool = defineMcpTool({
   name: 'knowledge_search',
   title: '지식 그래프 검색',
   description:
-    '조직의 지식 그래프를 의미·키워드로 검색합니다. items는 위키 문서이며 현재 원본에서 확인한 발췌(excerpt)와 그 문서에서 추출한 관계(relations, "A -[관계]-> B")를 함께 반환합니다. records는 제목이 검색어의 낱말과 일치하는 프로젝트·티켓·회의·멤버입니다. 문서 전문은 source.id로 wiki_document_get에서, 노드의 주변 관계는 nodeId로 knowledge_get_context에서 읽습니다. 제목·본문의 글자 일치만 필요하면 wiki_search를 씁니다.',
+    '조직의 지식 그래프를 의미·키워드로 검색합니다. items는 위키 문서이며 현재 원본에서 확인한 발췌(excerpt)와 그 문서에서 추출한 관계 중 검색어의 낱말이 든 것(relations, "A -[관계]-> B")을 함께 반환합니다. relations에 없는 관계는 관계로 적지 않습니다. records는 제목이 검색어의 낱말과 일치하는 프로젝트·티켓·회의·멤버입니다. 문서 전문은 source.id로 wiki_document_get에서, 노드의 주변 관계는 nodeId로 knowledge_get_context에서 읽습니다. 제목·본문의 글자 일치만 필요하면 wiki_search를 씁니다.',
   inputSchema: SearchQuerySchema.extend({
     ...organizationIdField,
     mode: SearchQuerySchema.shape.mode.describe(

@@ -10,6 +10,7 @@ import {
   projectTicketCreateTool,
   projectTicketGetTool,
   projectTicketMoveTool,
+  projectTicketsListTool,
   projectTicketUpdateTool,
 } from '@/mcp/tools/projects/project-tool-definitions';
 import { ProjectColumnsService } from '@/projects/project-columns.service';
@@ -23,7 +24,7 @@ type ProjectColumnToolsService = Pick<ProjectColumnsService, 'listColumns'>;
 
 type TicketToolsService = Pick<
   TicketsService,
-  'getTicket' | 'createTicket' | 'updateTicket'
+  'listTickets' | 'getTicket' | 'createTicket' | 'updateTicket'
 >;
 
 type TicketOrderingToolsService = Pick<TicketOrderingService, 'moveTicket'>;
@@ -63,6 +64,15 @@ export class ProjectMcpRegistrar {
           input.projectId,
         ),
       ),
+      bindMcpTool(projectTicketsListTool, async (input, auth) => {
+        const { organizationId, projectId, ...query } = input;
+        return this.ticketsService.listTickets(
+          toMcpOrganizationActor(auth),
+          organizationId,
+          projectId,
+          query,
+        );
+      }),
       bindMcpTool(projectTicketGetTool, async (input, auth) =>
         this.ticketsService.getTicket(
           toMcpOrganizationActor(auth),

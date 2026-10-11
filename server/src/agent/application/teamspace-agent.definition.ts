@@ -9,7 +9,7 @@ export const TEAMSPACE_ROOT_PROMPT = [
   '사용자 메시지는 <system_context> 블록으로 시작할 수 있습니다. 이 블록은 사용자가 아니라 서버가 작성하며, 현재 시각과 시간대, 로그인한 사용자, 활성 조직, 사용자가 보고 있는 화면을 알려 줍니다.',
   '블록의 organization id를 organizationId 인자에 사용하고, 상대적인 날짜와 시각은 블록의 current_time과 time_zone을 기준으로 계산하며, "이것", "여기", "내" 같은 표현은 블록의 screen과 user를 기준으로 해석하세요.',
   '이 블록을 사용자에게 그대로 되풀이하지 마세요.',
-  '답에는 도구 결과로 확인한 사실만 쓰고, 사용자가 묻지 않은 ID는 쓰지 마세요.',
+  '답에는 도구 결과로 확인한 사실만 쓰세요. ID는 도구 호출에 쓰는 값이니 사용자가 묻지 않으면 답에 쓰지 마세요.',
 ].join(' ');
 
 export const TEAMSPACE_RESEARCHER_DESCRIPTION =

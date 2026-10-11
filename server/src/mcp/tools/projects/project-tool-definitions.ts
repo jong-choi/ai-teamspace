@@ -18,7 +18,11 @@ import {
   ProjectListSchema,
 } from '@/projects/dto/project.dto';
 import { ProjectColumnListSchema } from '@/projects/dto/project-column.dto';
-import { TicketDetailSchema } from '@/projects/dto/ticket.dto';
+import { QueryTicketsSchema } from '@/projects/dto/query-tickets.dto';
+import {
+  TicketDetailSchema,
+  TicketListSchema,
+} from '@/projects/dto/ticket.dto';
 import { UpdateTicketSchema } from '@/projects/dto/update-ticket.dto';
 
 import { z } from 'zod';
@@ -73,11 +77,27 @@ export const projectColumnsListTool = defineMcpTool({
   annotations: readOnlyAnnotations,
 });
 
+export const projectTicketsListTool = defineMcpTool({
+  name: 'project_tickets_list',
+  title: '프로젝트 티켓 목록 조회',
+  description:
+    '프로젝트의 티켓을 조회합니다. 결과의 id가 ticketId입니다. 제목으로 티켓을 찾을 때 search를 씁니다.',
+  inputSchema: QueryTicketsSchema.extend({
+    ...projectIdentityFields,
+    search:
+      QueryTicketsSchema.shape.search.describe('제목이나 설명에 든 낱말.'),
+  }),
+  outputSchema: TicketListSchema,
+  requiredScope: 'projects:read',
+  classification: 'read',
+  annotations: readOnlyAnnotations,
+});
+
 export const projectTicketGetTool = defineMcpTool({
   name: 'project_ticket_get',
   title: '프로젝트 티켓 조회',
   description:
-    '티켓 하나의 상세를 조회합니다. ticketId는 knowledge_search의 records에서 kind가 ticket인 항목의 sourceId입니다.',
+    '티켓 하나의 상세를 조회합니다. ticketId는 project_tickets_list 결과의 id입니다.',
   inputSchema: z.object(ticketIdentityFields),
   outputSchema: TicketDetailSchema,
   requiredScope: 'projects:read',
@@ -169,6 +189,7 @@ export const projectToolDefinitions = [
   projectsListTool,
   projectGetTool,
   projectColumnsListTool,
+  projectTicketsListTool,
   projectTicketGetTool,
   projectTicketCreateTool,
   projectTicketUpdateTool,

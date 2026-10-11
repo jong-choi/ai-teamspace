@@ -26,12 +26,13 @@ export class WikiMcpRegistrar {
   tools(): BoundMcpTool[] {
     return [
       bindMcpTool(wikiSearchTool, async (input, auth) => {
-        const { organizationId, ...query } = input;
-        return this.wikiService.search(
+        const { organizationId, limit, ...query } = input;
+        const result = await this.wikiService.search(
           toMcpOrganizationActor(auth),
           organizationId,
           query,
         );
+        return { ...result, items: result.items.slice(0, limit) };
       }),
       bindMcpTool(wikiDocumentGetTool, async (input, auth) =>
         this.wikiService.getDocument(

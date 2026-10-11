@@ -44,6 +44,10 @@ describe('Projects MCP registrar', () => {
     ReturnType<TicketsService['updateTicket']>,
     Parameters<TicketsService['updateTicket']>
   >();
+  const listTickets = jest.fn<
+    ReturnType<TicketsService['listTickets']>,
+    Parameters<TicketsService['listTickets']>
+  >();
   const moveTicket = jest.fn<
     ReturnType<TicketOrderingService['moveTicket']>,
     Parameters<TicketOrderingService['moveTicket']>
@@ -52,7 +56,7 @@ describe('Projects MCP registrar', () => {
   const registrar = new ProjectMcpRegistrar(
     { listProjects, getProject },
     { listColumns },
-    { getTicket, createTicket, updateTicket },
+    { listTickets, getTicket, createTicket, updateTicket },
     { moveTicket },
   );
 
@@ -129,6 +133,23 @@ describe('Projects MCP registrar', () => {
     ).rejects.not.toBe(stop);
 
     expect(getTicket).not.toHaveBeenCalled();
+  });
+
+  it('티켓 목록은 project identity와 검색 조건을 나눠 전달한다', async () => {
+    listTickets.mockResolvedValue({ items: [] });
+
+    await tool('project_tickets_list').invoke(
+      { organizationId: 'org-a', projectId, search: '버벅임' },
+      auth,
+      allow,
+    );
+
+    expect(listTickets).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: 'user-a' }),
+      'org-a',
+      projectId,
+      { search: '버벅임' },
+    );
   });
 
   it('티켓 조회는 organization/project/ticket identity를 전달한다', async () => {

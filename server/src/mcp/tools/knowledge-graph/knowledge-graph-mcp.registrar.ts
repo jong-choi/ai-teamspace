@@ -67,6 +67,7 @@ export class KnowledgeGraphMcpRegistrar {
           allowedNodeKinds,
           { longExcerpt: true },
         );
+        const terms = toQueryTerms(query.q);
         const [relations, records] = await Promise.all([
           Promise.all(
             response.items.map((item) =>
@@ -75,6 +76,7 @@ export class KnowledgeGraphMcpRegistrar {
                 organizationId,
                 item.source.nodeId,
                 allowedNodeKinds,
+                terms,
               ),
             ),
           ),
@@ -120,6 +122,7 @@ export class KnowledgeGraphMcpRegistrar {
     organizationId: string,
     nodeId: string,
     allowedNodeKinds: readonly GraphNodeKind[],
+    terms: readonly string[],
   ): Promise<string[]> {
     const snapshot = await this.exploreService.explore(
       toMcpOrganizationActor(auth),
@@ -132,7 +135,7 @@ export class KnowledgeGraphMcpRegistrar {
       },
       allowedNodeKinds,
     );
-    return toRelationLines(snapshot, DOCUMENT_RELATION_LIMIT).lines;
+    return toRelationLines(snapshot, DOCUMENT_RELATION_LIMIT, terms).lines;
   }
 
   /** 검색은 위키 문서만 돌려주므로, 제목이 맞는 업무 원본을 따로 찾아 이어 갈 도구를 알 수 있게 한다. */

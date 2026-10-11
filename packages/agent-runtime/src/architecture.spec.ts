@@ -64,7 +64,7 @@ describe('Agent runtime 아키텍처 경계', () => {
     ).toBe(false);
   });
 
-  test('제품 Agent feature가 runtime 내부 경로와 WorkOS domain persistence를 우회하지 않는다', async () => {
+  test('제품 Agent feature가 runtime 내부 경로와 AI Teamspace domain persistence를 우회하지 않는다', async () => {
     const source = await readSources(await sourceFiles(productAgentSource));
 
     expect(source).not.toMatch(/@repo\/agent-runtime\//);
@@ -111,7 +111,7 @@ describe('Agent runtime 아키텍처 경계', () => {
         'infrastructure/auth/agent-identity.provider.ts',
         'infrastructure/model/agent-model.provider.ts',
         'infrastructure/mcp/mcp-credential.provider.ts',
-        'infrastructure/mcp/workos-tool-session.provider.ts',
+        'infrastructure/mcp/teamspace-tool-session.provider.ts',
       ].map((relativePath) =>
         readFile(path.join(productAgentSource, relativePath), 'utf8'),
       ),

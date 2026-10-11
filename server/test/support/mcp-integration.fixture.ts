@@ -13,7 +13,7 @@ import {
 } from '@/auth/infrastructure/persistence/drizzle/generated/auth.schema';
 import type { AllConfigType } from '@/config/config.type';
 import { DatabaseService } from '@/database/database.service';
-import { WORK_OS_MCP_PROTOCOL_VERSION } from '@/mcp/contracts/mcp-protocol';
+import { TEAMSPACE_MCP_PROTOCOL_VERSION } from '@/mcp/contracts/mcp-protocol';
 import type { McpScope } from '@/mcp/contracts/mcp-scope';
 import { OrganizationMemberListSchema } from '@/organizations/dto/organization-member-list.dto';
 import { project } from '@/projects/infrastructure/persistence/drizzle/schema/project.schema';
@@ -54,7 +54,7 @@ export interface OpenedMcpClient {
 }
 
 /**
- * official MCP client가 실제 HTTP로 접속하는 Work OS app integration fixture다.
+ * official MCP client가 실제 HTTP로 접속하는 AI Teamspace app integration fixture다.
  *
  * Better Auth issuer, MCP resource, OAuth redirect URL이 같은 origin을 가리켜야 하므로
  * ephemeral port를 먼저 정하고 관련 환경 변수를 덮어쓴 뒤 app을 만든다. close 때 복원한다.
@@ -263,7 +263,7 @@ export class McpIntegrationApp {
     };
   }
 
-  /** Work OS MCP에 modern protocol로 접속한 official client를 연다. */
+  /** AI Teamspace MCP에 modern protocol로 접속한 official client를 연다. */
   async connectClient(input: {
     name: string;
     headers?: Record<string, string>;
@@ -396,7 +396,7 @@ export function modernMcpRequest(
     headers: {
       Accept: 'application/json, text/event-stream',
       'Content-Type': 'application/json',
-      'MCP-Protocol-Version': WORK_OS_MCP_PROTOCOL_VERSION,
+      'MCP-Protocol-Version': TEAMSPACE_MCP_PROTOCOL_VERSION,
       'Mcp-Method': method,
     },
     body: JSON.stringify({
@@ -406,7 +406,7 @@ export function modernMcpRequest(
       params: {
         _meta: {
           'io.modelcontextprotocol/protocolVersion':
-            WORK_OS_MCP_PROTOCOL_VERSION,
+            TEAMSPACE_MCP_PROTOCOL_VERSION,
           'io.modelcontextprotocol/clientCapabilities': {},
           ...meta,
         },
@@ -418,7 +418,7 @@ export function modernMcpRequest(
 export function createModernMcpClient(name: string): Client {
   return new Client(
     { name, version: '0.0.1' },
-    { versionNegotiation: { mode: { pin: WORK_OS_MCP_PROTOCOL_VERSION } } },
+    { versionNegotiation: { mode: { pin: TEAMSPACE_MCP_PROTOCOL_VERSION } } },
   );
 }
 

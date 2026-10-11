@@ -14,7 +14,7 @@ import {
 } from '@/mcp/infrastructure/auth/mcp-credential.extractor';
 import { McpHttpSecurityGuard } from '@/mcp/infrastructure/transport/model-context-protocol/mcp-http-security.guard';
 import { rejectOversizedToolInput } from '@/mcp/infrastructure/transport/model-context-protocol/mcp-tool-input-bound';
-import { WorkOsMcpServerFactory } from '@/mcp/mcp-server.factory';
+import { TeamspaceMcpServerFactory } from '@/mcp/mcp-server.factory';
 import {
   McpAccessKeyAuthenticationError,
   McpAccessKeyRateLimitedError,
@@ -37,7 +37,7 @@ export class McpHttpHandler {
   constructor(
     authService: AuthService<Auth>,
     configService: ConfigService<AllConfigType>,
-    serverFactory: WorkOsMcpServerFactory,
+    serverFactory: TeamspaceMcpServerFactory,
     securityGuard: McpHttpSecurityGuard,
     accessKeyAuthenticator: McpAccessKeyAuthenticator,
   ) {

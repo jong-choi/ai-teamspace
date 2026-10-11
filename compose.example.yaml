@@ -1,4 +1,4 @@
-name: ${COMPOSE_PROJECT_NAME:-monorepo-erp}
+name: ${COMPOSE_PROJECT_NAME:-ai-teamspace}
 
 services:
   postgres:

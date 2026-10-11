@@ -8,7 +8,7 @@ import { createSemanticFlowContext } from '@/knowledge-graph/testing/semantic-fl
 import { outboxSemanticSourceState } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-semantic-source-state.schema';
 import { OutboxSemanticSourceState } from '@/outbox/outbox-semantic-source-state';
 
-import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
+import { waitForCondition } from '@test/agent/support/teamspace-agent.e2e-support';
 import { eq } from 'drizzle-orm';
 import * as Y from 'yjs';
 

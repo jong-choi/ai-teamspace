@@ -18,7 +18,7 @@ import knowledgeGraphConfig from '@/knowledge-graph/config/knowledge-graph.confi
 import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 
-import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
+import { waitForCondition } from '@test/agent/support/teamspace-agent.e2e-support';
 import { and, eq } from 'drizzle-orm';
 
 jest.setTimeout(30_000);

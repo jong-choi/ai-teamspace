@@ -1,15 +1,15 @@
-# WorkOS Agent integration
+# AI Teamspace Agent integration
 
 `server/src/agent`는 제품 소유 Agent feature다. generic Agent Protocol, durable queue/checkpoint/store, Nest transport는 `@repo/agent-runtime`가 소유하고 이 feature는 제품 정책과 external capability wiring만 소유한다.
 
 ## Structure
 
-- `application/`: authorization policy와 WorkOS Agent definition/factory
+- `application/`: authorization policy와 AI Teamspace Agent definition/factory
 - `domain/`: 제품 Agent가 공유하는 canonical actor contract
 - `config/`: Agent 전용 environment schema와 parsed configuration
 - `infrastructure/auth/`: Better Auth session을 Agent identity로 바꾸는 capability adapter
 - `infrastructure/model/`: model set capability port와 configured adapter
-- `infrastructure/mcp/`: built-in Work OS 내부 MCP 세션, approval policy
+- `infrastructure/mcp/`: built-in AI Teamspace 내부 MCP 세션, approval policy
 - `infrastructure/deep-agent/`: DeepAgents construction, protocol adaptation, session lifecycle
 - `infrastructure/runtime/`: runtime actor mapping과 durable runtime options assembly
 - `agent.module.ts`: composition root만 담당
@@ -22,20 +22,20 @@ Agent runtime이 검증 뒤 넣은 `langgraph_auth_*` configurable만 `agent-act
 
 ## MCP boundary
 
-WorkOS business capability는 MCP `tools/list` 결과만 사용한다. organization/wiki/chat 등 WorkOS domain service나 Drizzle persistence를 Agent feature가 직접 import하거나 tool schema를 복제하지 않는다.
+AI Teamspace business capability는 MCP `tools/list` 결과만 사용한다. organization/wiki/chat 등 AI Teamspace domain service나 Drizzle persistence를 Agent feature가 직접 import하거나 tool schema를 복제하지 않는다.
 
-built-in Work OS 도구는 별도 OAuth 위임 없이 서버 내부 연결을 사용한다. `FirstPartyWorkOsMcpAdapter`가 runtime이 검증한 `AgentActor`로 MCP feature의 `McpFirstPartyConnectionService`를 호출한다. 이 service는 다음과 같이 동작한다.
+built-in AI Teamspace 도구는 별도 OAuth 위임 없이 서버 내부 연결을 사용한다. `FirstPartyTeamspaceMcpAdapter`가 runtime이 검증한 `AgentActor`로 MCP feature의 `McpFirstPartyConnectionService`를 호출한다. 이 service는 다음과 같이 동작한다.
 
 - `McpAccessService.resolveFirstPartyAgentScopes`로 멤버십을 확인하고, 기존 기본값으로만 정책을 보장한 뒤 실효 scope를 계산한다.
 - `authMethod: 'first-party-agent'`, `allowedOrganizationIds: [actor.organizationId]` context로 HTTP endpoint와 같은 modern MCP handler를 프로세스 안에서 직접 호출한다.
 
 도구 호출 시점의 조직 정책·사용자 정책·멤버십·조직 범위 검사는 기존 MCP tool 인가 흐름이 그대로 수행한다. 전역 superuser token, anonymous fallback, 브라우저 세션 credential 재사용은 하지 않는다. 외부 MCP 서비스는 `agent-mcp-connections`가 별도 인증으로 연결하고 `CombinedMcpToolSessionAdapter`가 합친다.
 
-`McpToolApprovalPolicy`는 tool annotation의 `readOnlyHint: true`만 read-only로 인정하고 나머지 tool을 human approval interrupt 대상으로 분류한다. HTTP fixture MCP 서버를 쓰는 runtime E2E는 테스트 전용 `test/agent/support/http-workos-mcp-session.provider.ts`를 사용한다.
+`McpToolApprovalPolicy`는 tool annotation의 `readOnlyHint: true`만 read-only로 인정하고 나머지 tool을 human approval interrupt 대상으로 분류한다. HTTP fixture MCP 서버를 쓰는 runtime E2E는 테스트 전용 `test/agent/support/http-teamspace-mcp-session.provider.ts`를 사용한다.
 
 ## DeepAgent and protocol boundary
 
-`DeepAgentBuilder`는 root/researcher/operator definition을 실제 model/tool set으로 조립한다. `DeepAgentWorkOsGraphAdapter`가 actor/model/MCP session과 DeepAgents SDK를 소유하고, application의 `WorkOsAgentFactory`는 generic `WorkOsAgentGraphProvider`를 실행 factory와 state resolver로 노출하는 역할만 한다.
+`DeepAgentBuilder`는 root/researcher/operator definition을 실제 model/tool set으로 조립한다. `DeepAgentTeamspaceGraphAdapter`가 actor/model/MCP session과 DeepAgents SDK를 소유하고, application의 `TeamspaceAgentFactory`는 generic `TeamspaceAgentGraphProvider`를 실행 factory와 state resolver로 노출하는 역할만 한다.
 
 `DeepAgentProtocolAdapter`는 strongly typed DeepAgent surface와 generic `AgentGraph` contract 사이의 명시적 adapter다. runtime-owned checkpointer/store는 `AgentGraph.bindRuntimeResources()` capability를 통해 연결하며 제품 코드에서 `as never`나 `as unknown as` assertion patch를 사용하지 않는다.
 
@@ -58,4 +58,4 @@ Pending HITL을 일반 turn이 덮어쓰지 않도록 run-create의 thread statu
 - unit/integration test는 `server/src/agent/**/*.spec.ts`, `server/src/agent/**/*.integration.ts`
 - `server/test/agent`는 Agent Protocol/Nest/React SDK E2E와 그 fixture/support만 소유
 - build는 `*.spec.ts`, `*.integration.ts`를 제외한다
-- MCP infrastructure integration은 protocol-only fixture를 사용하며 WorkOS 업무 schema를 로컬에 재구현하지 않는다
+- MCP infrastructure integration은 protocol-only fixture를 사용하며 AI Teamspace 업무 schema를 로컬에 재구현하지 않는다

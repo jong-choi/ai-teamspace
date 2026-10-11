@@ -1,22 +1,22 @@
 import { Injectable } from '@nestjs/common';
 
 import {
-  WORKOS_AGENT_NAME,
-  WORKOS_OPERATOR_DESCRIPTION,
-  WORKOS_OPERATOR_PROMPT,
-  WORKOS_RESEARCHER_DESCRIPTION,
-  WORKOS_RESEARCHER_PROMPT,
-  WORKOS_ROOT_PROMPT,
-} from '@/agent/application/workos-agent.definition';
+  TEAMSPACE_AGENT_NAME,
+  TEAMSPACE_OPERATOR_DESCRIPTION,
+  TEAMSPACE_OPERATOR_PROMPT,
+  TEAMSPACE_RESEARCHER_DESCRIPTION,
+  TEAMSPACE_RESEARCHER_PROMPT,
+  TEAMSPACE_ROOT_PROMPT,
+} from '@/agent/application/teamspace-agent.definition';
 import { toolInputFeedbackMiddleware } from '@/agent/infrastructure/deep-agent/tool-input-feedback.middleware';
 import { createToolResultLocalTimeMiddleware } from '@/agent/infrastructure/deep-agent/tool-result-local-time.middleware';
-import type { WorkOsToolSession } from '@/agent/infrastructure/mcp/workos-tool-session.provider';
+import type { TeamspaceToolSession } from '@/agent/infrastructure/mcp/teamspace-tool-session.provider';
 import type { AgentModels } from '@/agent/infrastructure/model/agent-model.provider';
 
 import type { StructuredTool } from '@langchain/core/tools';
 import { createDeepAgent } from 'deepagents';
 
-interface WorkOsDeepAgentInput {
+interface TeamspaceDeepAgentInput {
   models: AgentModels;
   tools: StructuredTool[];
   readOnlyTools: StructuredTool[];
@@ -24,54 +24,54 @@ interface WorkOsDeepAgentInput {
   timeZone: string;
 }
 
-function createWorkOsDeepAgent(input: WorkOsDeepAgentInput) {
+function createTeamspaceDeepAgent(input: TeamspaceDeepAgentInput) {
   const middleware = [
     toolInputFeedbackMiddleware,
     createToolResultLocalTimeMiddleware(input.timeZone),
   ];
 
   return createDeepAgent({
-    name: WORKOS_AGENT_NAME,
+    name: TEAMSPACE_AGENT_NAME,
     model: input.models.root,
     tools: input.tools,
     interruptOn: input.interruptOn,
-    systemPrompt: WORKOS_ROOT_PROMPT,
+    systemPrompt: TEAMSPACE_ROOT_PROMPT,
     middleware,
     subagents: [
       {
         name: 'researcher',
-        description: WORKOS_RESEARCHER_DESCRIPTION,
+        description: TEAMSPACE_RESEARCHER_DESCRIPTION,
         // 부모 대화를 물려받아 <system_context>의 조직·시각·화면을 그대로 안다.
         mode: 'fork',
         model: input.models.researcher,
         tools: input.readOnlyTools,
-        systemPrompt: WORKOS_RESEARCHER_PROMPT,
+        systemPrompt: TEAMSPACE_RESEARCHER_PROMPT,
         middleware,
       },
       {
         name: 'operator',
-        description: WORKOS_OPERATOR_DESCRIPTION,
+        description: TEAMSPACE_OPERATOR_DESCRIPTION,
         mode: 'fork',
         model: input.models.operator,
         tools: input.tools,
         interruptOn: input.interruptOn,
-        systemPrompt: WORKOS_OPERATOR_PROMPT,
+        systemPrompt: TEAMSPACE_OPERATOR_PROMPT,
         middleware,
       },
     ],
   });
 }
 
-export type WorkOsDeepAgent = ReturnType<typeof createWorkOsDeepAgent>;
+export type TeamspaceDeepAgent = ReturnType<typeof createTeamspaceDeepAgent>;
 
 @Injectable()
 export class DeepAgentBuilder {
   buildExecution(input: {
     models: AgentModels;
-    session: WorkOsToolSession;
+    session: TeamspaceToolSession;
     timeZone: string;
-  }): WorkOsDeepAgent {
-    return createWorkOsDeepAgent({
+  }): TeamspaceDeepAgent {
+    return createTeamspaceDeepAgent({
       models: input.models,
       tools: input.session.tools,
       readOnlyTools: input.session.readOnlyTools,
@@ -80,8 +80,8 @@ export class DeepAgentBuilder {
     });
   }
 
-  buildState(models: AgentModels): WorkOsDeepAgent {
-    return createWorkOsDeepAgent({
+  buildState(models: AgentModels): TeamspaceDeepAgent {
+    return createTeamspaceDeepAgent({
       models,
       tools: [],
       readOnlyTools: [],

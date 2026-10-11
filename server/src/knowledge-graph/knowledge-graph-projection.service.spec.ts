@@ -6,8 +6,8 @@ import { KnowledgeGraphWriter } from '@/knowledge-graph/infrastructure/graph/kno
 import { CuratedProjectionSourceRepository } from '@/knowledge-graph/infrastructure/persistence/curated-projection-source.repository';
 import { ProjectionDeliveryRepository } from '@/knowledge-graph/infrastructure/persistence/projection-delivery.repository';
 import { ProjectionStateRepository } from '@/knowledge-graph/infrastructure/persistence/projection-state.repository';
-import { WorkosSourceAdapter } from '@/knowledge-graph/infrastructure/source/workos/workos-source.adapter';
-import { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
+import { TeamspaceSourceAdapter } from '@/knowledge-graph/infrastructure/source/teamspace/teamspace-source.adapter';
+import { TeamspaceSourceProvider } from '@/knowledge-graph/infrastructure/source/teamspace-source.provider';
 import { KnowledgeGraphProjectionService } from '@/knowledge-graph/knowledge-graph-projection.service';
 import { MembershipProjectionQueryService } from '@/organizations/membership-projection-query.service';
 import { OutboxAggregateEventSchema } from '@/outbox/outbox-aggregate-event.schema';
@@ -102,7 +102,7 @@ describe('업무 그래프 투영 처리', () => {
         { provide: ProjectionStateRepository, useValue: state },
         { provide: ProjectionDeliveryRepository, useValue: delivery },
         {
-          provide: WorkosSourceProvider,
+          provide: TeamspaceSourceProvider,
           useValue: {
             wiki: wikiReader.current,
             project: projectReader.current,
@@ -338,7 +338,7 @@ describe('업무 그래프 투영 처리', () => {
       membershipReader.current.mockResolvedValue(snapshot);
       const module = await Test.createTestingModule({
         providers: [
-          WorkosSourceAdapter,
+          TeamspaceSourceAdapter,
           { provide: WikiProjectionQueryService, useValue: wikiReader },
           { provide: ProjectProjectionQueryService, useValue: projectReader },
           {
@@ -358,7 +358,7 @@ describe('업무 그래프 투영 처리', () => {
         ],
       }).compile();
       const observed = await module
-        .get(WorkosSourceAdapter)
+        .get(TeamspaceSourceAdapter)
         .observeMembershipSnapshot(source.organizationId, source.aggregateId);
       await projection.applySourceEvent({
         ...payload,

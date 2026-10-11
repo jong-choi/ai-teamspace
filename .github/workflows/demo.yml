@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   deploy:
-    if: github.repository == 'jong-choi/monorepo-erp' && github.ref == 'refs/heads/main'
+    if: github.repository == 'jong-choi/ai-teamspace' && github.ref == 'refs/heads/main'
     runs-on: [self-hosted, Linux, ARM64, workos-demo]
     timeout-minutes: 60
     environment:

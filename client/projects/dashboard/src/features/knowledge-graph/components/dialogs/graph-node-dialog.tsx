@@ -254,7 +254,7 @@ function GraphNodeForm({
             maxLength={TITLE_MAX_LENGTH}
             onChangeText={setTitleValue}
             onSubmitEditing={submit}
-            placeholder="예: Work OS Architecture"
+            placeholder="예: AI Teamspace Architecture"
             value={titleValue}
           />
         </GraphFormField>

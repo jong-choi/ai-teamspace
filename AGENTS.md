@@ -525,10 +525,10 @@ server/src/<feature>/
 - Better Auth-owned schema의 상위 SSOT는 Better Auth config와 enabled plugin이다.
 - `server/src/auth/infrastructure/persistence/drizzle/generated`의 auth Drizzle schema는 Better Auth CLI 생성물이며 수동 수정하지 않는다.
 - Better Auth plugin이나 auth schema option을 변경하면 `npm run auth:schema`로 generated schema를 다시 만들고 `npm run db:generate`로 Drizzle migration을 생성한다.
-- Better Auth-owned table과 Work OS-owned table은 동일 PostgreSQL과 동일 Drizzle connection을 사용하되 소유권 경계는 분리한다.
-- Work OS table이 Better Auth-owned `user`를 DB foreign key로 참조해야 하면 `server/src/auth/infrastructure/persistence/drizzle/auth-user-reference.ts`가 노출하는 최소 schema reference만 사용한다. feature schema에서 generated auth schema를 직접 import하지 않는다.
+- Better Auth-owned table과 AI Teamspace-owned table은 동일 PostgreSQL과 동일 Drizzle connection을 사용하되 소유권 경계는 분리한다.
+- AI Teamspace table이 Better Auth-owned `user`를 DB foreign key로 참조해야 하면 `server/src/auth/infrastructure/persistence/drizzle/auth-user-reference.ts`가 노출하는 최소 schema reference만 사용한다. feature schema에서 generated auth schema를 직접 import하지 않는다.
 - auth schema reference module은 foreign key 구성에 필요한 column reference만 노출하고 query, mutation, business logic, generated table 전체 re-export를 넣지 않는다.
-- Work OS service/repository에서 `user`, `account`, `session`, `organization`, `member` 등 Better Auth-owned table을 직접 insert/update/delete하지 않는다.
+- AI Teamspace service/repository에서 `user`, `account`, `session`, `organization`, `member` 등 Better Auth-owned table을 직접 insert/update/delete하지 않는다.
 - Better Auth-owned invariant를 변경하는 작업은 Better Auth API를 adapter/provider 경계를 통해 수행한다.
 - auth generated schema와 `server/drizzle` migration 산출물은 formatter, lint fix, import sort 대상에서 제외한다.
 
@@ -574,7 +574,7 @@ Drizzle table
 - controller에서 transaction을 관리하지 않는다.
 - raw DB transaction object를 service/public contract로 노출하지 않는다.
 - Drizzle transaction은 Drizzle repository adapter에서 관리한다.
-- Better Auth와 Work OS가 같은 PostgreSQL/Drizzle connection을 사용해도 Better Auth-owned mutation을 Work OS transaction으로 직접 감싸지 않는다. Better Auth API 호출과 Work OS 상태 변경이 함께 필요한 workflow는 idempotency와 reconciliation을 설계한다.
+- Better Auth와 AI Teamspace가 같은 PostgreSQL/Drizzle connection을 사용해도 Better Auth-owned mutation을 AI Teamspace transaction으로 직접 감싸지 않는다. Better Auth API 호출과 AI Teamspace 상태 변경이 함께 필요한 workflow는 idempotency와 reconciliation을 설계한다.
 
 # 동시성
 

@@ -9,8 +9,8 @@ import { GeminiEmbedding2Module } from '@/knowledge-graph/infrastructure/embeddi
 import { KnowledgeGraphSemanticSearchReaderModule } from '@/knowledge-graph/infrastructure/graph/knowledge-graph-semantic-search-reader.module';
 import { SearchQuotaPersistenceModule } from '@/knowledge-graph/infrastructure/persistence/drizzle/search-quota-persistence.module';
 import { SemanticStatePersistenceModule } from '@/knowledge-graph/infrastructure/persistence/outbox/semantic-state-persistence.module';
-import { WorkosGraphSourceAccessModule } from '@/knowledge-graph/infrastructure/source-access/workos/workos-graph-source-access.module';
-import { WorkosGraphSourceSnapshotModule } from '@/knowledge-graph/infrastructure/source-snapshot/workos/workos-graph-source-snapshot.module';
+import { TeamspaceGraphSourceAccessModule } from '@/knowledge-graph/infrastructure/source-access/teamspace/teamspace-graph-source-access.module';
+import { TeamspaceGraphSourceSnapshotModule } from '@/knowledge-graph/infrastructure/source-snapshot/teamspace/teamspace-graph-source-snapshot.module';
 import { KnowledgeGraphSearchController } from '@/knowledge-graph/knowledge-graph-search.controller';
 import { KnowledgeGraphSearchService } from '@/knowledge-graph/knowledge-graph-search.service';
 
@@ -23,8 +23,8 @@ import { KnowledgeGraphSearchService } from '@/knowledge-graph/knowledge-graph-s
     KnowledgeGraphSemanticSearchReaderModule,
     SearchQuotaPersistenceModule,
     SemanticStatePersistenceModule,
-    WorkosGraphSourceAccessModule,
-    WorkosGraphSourceSnapshotModule,
+    TeamspaceGraphSourceAccessModule,
+    TeamspaceGraphSourceSnapshotModule,
   ],
   controllers: [KnowledgeGraphSearchController],
   providers: [KnowledgeGraphSearchService, TrustedOriginGuard],

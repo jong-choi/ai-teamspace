@@ -20,7 +20,7 @@ import { WikiDrizzlePersistenceModule } from '@/wiki/infrastructure/persistence/
 import { WikiRepository } from '@/wiki/infrastructure/persistence/wiki.repository';
 import { WikiProjectionQueryService } from '@/wiki/wiki-projection-query.service';
 
-import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
+import { waitForCondition } from '@test/agent/support/teamspace-agent.e2e-support';
 import { and, eq } from 'drizzle-orm';
 import * as Y from 'yjs';
 

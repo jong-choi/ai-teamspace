@@ -388,7 +388,9 @@ function AuthenticationFrame({
       <View className="w-full max-w-md gap-6 rounded-xl border border-border bg-background p-6 sm:p-8">
         <Link href="/" asChild>
           <Pressable accessibilityRole="link" className="self-start">
-            <Text className="text-sm font-bold tracking-tight">AI Work OS</Text>
+            <Text className="text-sm font-bold tracking-tight">
+              AI Teamspace
+            </Text>
           </Pressable>
         </Link>
         <Text className="text-2xl font-semibold tracking-tight">{title}</Text>

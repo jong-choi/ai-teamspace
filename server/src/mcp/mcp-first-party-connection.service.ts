@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
 import { McpAuthContextSchema } from '@/mcp/contracts/mcp-auth-context';
-import { WORK_OS_MCP_PROTOCOL_VERSION } from '@/mcp/contracts/mcp-protocol';
-import { WorkOsMcpServerFactory } from '@/mcp/mcp-server.factory';
+import { TEAMSPACE_MCP_PROTOCOL_VERSION } from '@/mcp/contracts/mcp-protocol';
+import { TeamspaceMcpServerFactory } from '@/mcp/mcp-server.factory';
 import { McpAccessService } from '@/mcp-access/mcp-access.service';
 
 import {
@@ -31,14 +31,14 @@ const FIRST_PARTY_CLIENT_INFO = {
 } as const;
 
 /**
- * 서버가 검증한 actor로 Work OS MCP 서버에 프로세스 내부 연결을 연다.
+ * 서버가 검증한 actor로 AI Teamspace MCP 서버에 프로세스 내부 연결을 연다.
  * OAuth credential 대신 현재 조직 정책·사용자 정책·멤버십을 기준으로 동작하며,
  * 도구 호출 시점의 권한 검사는 기존 MCP tool 인가 흐름이 그대로 수행한다.
  */
 @Injectable()
 export class McpFirstPartyConnectionService {
   constructor(
-    private readonly servers: WorkOsMcpServerFactory,
+    private readonly servers: TeamspaceMcpServerFactory,
     private readonly access: McpAccessService,
   ) {}
 
@@ -65,7 +65,7 @@ export class McpFirstPartyConnectionService {
       fetch: (url, init) => handler.fetch(new Request(url, init)),
     });
     const client = new Client(FIRST_PARTY_CLIENT_INFO, {
-      versionNegotiation: { mode: { pin: WORK_OS_MCP_PROTOCOL_VERSION } },
+      versionNegotiation: { mode: { pin: TEAMSPACE_MCP_PROTOCOL_VERSION } },
     });
 
     let closePromise: Promise<void> | undefined;

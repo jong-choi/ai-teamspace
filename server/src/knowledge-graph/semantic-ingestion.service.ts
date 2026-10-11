@@ -26,7 +26,7 @@ import { SemanticGraphExtractor } from '@/knowledge-graph/infrastructure/extract
 import { SemanticGraphStore } from '@/knowledge-graph/infrastructure/graph/semantic-graph-store.provider';
 import { SemanticSourceStateRepository } from '@/knowledge-graph/infrastructure/persistence/semantic-source-state.repository';
 import { SemanticJobQueueProvider } from '@/knowledge-graph/infrastructure/queue/semantic-job-queue.provider';
-import { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
+import { TeamspaceSourceProvider } from '@/knowledge-graph/infrastructure/source/teamspace-source.provider';
 import { SemanticCorrectionService } from '@/knowledge-graph/semantic-correction.service';
 import type {
   SemanticLease,
@@ -41,7 +41,7 @@ export class SemanticIngestionService {
   private readonly logger = new Logger(SemanticIngestionService.name);
   constructor(
     private readonly state: SemanticSourceStateRepository,
-    private readonly sources: WorkosSourceProvider,
+    private readonly sources: TeamspaceSourceProvider,
     private readonly queue: SemanticJobQueueProvider,
     private readonly chunker: SemanticChunkerProvider,
     private readonly extractor: SemanticGraphExtractor,

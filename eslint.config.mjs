@@ -112,7 +112,7 @@ export default tseslint.config(
         {
           type: 'server-contract',
           pattern:
-            'server/src/agent/infrastructure/mcp/{workos-tool-session.provider,workos-mcp-auth-provider.factory}.ts',
+            'server/src/agent/infrastructure/mcp/{teamspace-tool-session.provider,teamspace-mcp-auth-provider.factory}.ts',
           mode: 'full',
         },
         {

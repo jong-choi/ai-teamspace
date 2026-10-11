@@ -1,6 +1,6 @@
 import type { AgentActor } from '@/agent/domain/agent-actor';
-import type { WorkOsToolSession } from '@/agent/infrastructure/mcp/workos-tool-session.provider';
+import type { TeamspaceToolSession } from '@/agent/infrastructure/mcp/teamspace-tool-session.provider';
 
 export abstract class ExternalMcpToolSessionProvider {
-  abstract open(actor: AgentActor): Promise<WorkOsToolSession>;
+  abstract open(actor: AgentActor): Promise<TeamspaceToolSession>;
 }

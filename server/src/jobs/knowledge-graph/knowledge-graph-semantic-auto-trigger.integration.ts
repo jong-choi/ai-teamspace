@@ -6,7 +6,7 @@ import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-grap
 import { createSemanticFlowContext } from '@/knowledge-graph/testing/semantic-flow.context';
 import { OutboxSemanticSourceState } from '@/outbox/outbox-semantic-source-state';
 
-import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
+import { waitForCondition } from '@test/agent/support/teamspace-agent.e2e-support';
 import * as Y from 'yjs';
 
 jest.setTimeout(60_000);

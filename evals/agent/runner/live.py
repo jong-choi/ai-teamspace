@@ -15,8 +15,8 @@ from typing import Any, Protocol, cast
 import httpx
 
 from clients.langfuse import LangfuseTraceLookup
-from clients.workos_mcp import MODERN_PROTOCOL_VERSION, WorkOsMcpClient
-from clients.workos_mcp_raw import WorkOsMcpRawClient
+from clients.teamspace_mcp import MODERN_PROTOCOL_VERSION, TeamspaceMcpClient
+from clients.teamspace_mcp_raw import TeamspaceMcpRawClient
 from config.models import EvalTargetAdapter
 from config.settings import REPO_ROOT, EvalSettings
 from datasets.schema import EvalCase, EvalDataset
@@ -34,7 +34,7 @@ from runner.manifest import dependency_versions, tool_manifest_hash
 from runner.suite_runner import run_dataset_trials
 
 AGENT_PROTOCOL_VERSION = "v1"
-WORK_OS_MCP_ALIAS = "work-os"
+TEAMSPACE_MCP_ALIAS = "work-os"
 _DETERMINISTIC_RUNTIME_VERSION = "deterministic-fixture-v1"
 _DETERMINISTIC_MODEL_NAME = "dataset-contract-v1"
 _DETERMINISTIC_TOOL_NAMES = (
@@ -77,7 +77,7 @@ class LiveDiscovery:
     mcp_protocol_version: str
     mcp_resource_alias: str
     tool_manifest_hash: str
-    work_os_tool_names: frozenset[str]
+    teamspace_tool_names: frozenset[str]
     tools: tuple[dict[str, Any], ...] = ()
 
 
@@ -94,9 +94,9 @@ def deterministic_discovery() -> LiveDiscovery:
         server_runtime_version=_DETERMINISTIC_RUNTIME_VERSION,
         agent_protocol_version=AGENT_PROTOCOL_VERSION,
         mcp_protocol_version=MODERN_PROTOCOL_VERSION,
-        mcp_resource_alias=WORK_OS_MCP_ALIAS,
+        mcp_resource_alias=TEAMSPACE_MCP_ALIAS,
         tool_manifest_hash=tool_manifest_hash(tools),
-        work_os_tool_names=frozenset(_DETERMINISTIC_TOOL_NAMES),
+        teamspace_tool_names=frozenset(_DETERMINISTIC_TOOL_NAMES),
     )
 
 
@@ -181,7 +181,7 @@ async def _assert_mcp_access_key_rejected(
     *,
     label: str,
 ) -> None:
-    async with WorkOsMcpRawClient(
+    async with TeamspaceMcpRawClient(
         settings.mcp_resource_url,
         secret,
         timeout_seconds=settings.case_timeout_seconds,
@@ -215,7 +215,7 @@ async def capture_live_discovery(
     lease = await fixtures.setup(probe, owner=owner)
     secret = fixtures.mcp_bearer_token(lease)
     try:
-        mcp = WorkOsMcpClient(
+        mcp = TeamspaceMcpClient(
             settings.mcp_resource_url,
             bearer_token=secret,
             timeout_seconds=settings.case_timeout_seconds,
@@ -245,9 +245,9 @@ async def capture_live_discovery(
         server_runtime_version=_server_runtime_version(info),
         agent_protocol_version=AGENT_PROTOCOL_VERSION,
         mcp_protocol_version=MODERN_PROTOCOL_VERSION,
-        mcp_resource_alias=WORK_OS_MCP_ALIAS,
+        mcp_resource_alias=TEAMSPACE_MCP_ALIAS,
         tool_manifest_hash=tool_manifest_hash(tools),
-        work_os_tool_names=_tool_names(tools),
+        teamspace_tool_names=_tool_names(tools),
         tools=tuple(tools),
     )
 
@@ -369,7 +369,7 @@ async def run_live_dataset(
         settings.server_url,
         headers_for_lease=fixtures.agent_headers,
         assistant_id="workos",
-        work_os_tool_names=discovery.work_os_tool_names,
+        teamspace_tool_names=discovery.teamspace_tool_names,
         raw_dir=settings.output_dir / "raw",
     )
     trials = await run_dataset_trials(

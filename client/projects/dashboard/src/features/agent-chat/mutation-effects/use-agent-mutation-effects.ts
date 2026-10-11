@@ -13,7 +13,7 @@ export type AgentMutationEffectFailure = {
 };
 
 /**
- * 새로 완료된 Work OS write 도구의 영수증을 도구 단위로 즉시 화면 cache에 반영한다.
+ * 새로 완료된 AI Teamspace write 도구의 영수증을 도구 단위로 즉시 화면 cache에 반영한다.
  * - hydration 시점에 이미 끝나 있던 도구는 기준선으로 처리 완료 표시만 한다.
  * - `threadId:toolCallId`로 한 번만 처리하고, 실패는 자동 재시도하지 않는다.
  */

@@ -23,8 +23,8 @@ export const authClient = createAuthClient({
   basePath: authBasePath,
   plugins: [
     expoClient({
-      scheme: 'monorepoerp',
-      storagePrefix: 'monorepoerp',
+      scheme: 'aiteamspace',
+      storagePrefix: 'aiteamspace',
       storage: SecureStore,
     }),
     usernameClient(),
@@ -34,7 +34,7 @@ export const authClient = createAuthClient({
 configureApiRuntime({
   baseUrl: apiBaseUrl,
   credentials: native ? 'omit' : 'include',
-  expoOrigin: native ? 'monorepoerp://' : undefined,
+  expoOrigin: native ? 'aiteamspace://' : undefined,
   fetcher: native ? (input, init) => expoFetch(input, init) : undefined,
   getCookie: native ? () => authClient.getCookie() : undefined,
 });

@@ -132,7 +132,7 @@ export function DashboardShell({
                 </Text>
               </View>
               <Text className="text-sm font-semibold tracking-tight">
-                AI Work OS
+                AI Teamspace
               </Text>
             </View>
             <Button

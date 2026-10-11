@@ -9,7 +9,7 @@ import { SemanticGraphExtractor } from '@/knowledge-graph/infrastructure/extract
 import { SemanticGraphStore } from '@/knowledge-graph/infrastructure/graph/semantic-graph-store.provider';
 import { SemanticSourceStateRepository } from '@/knowledge-graph/infrastructure/persistence/semantic-source-state.repository';
 import { SemanticJobQueueProvider } from '@/knowledge-graph/infrastructure/queue/semantic-job-queue.provider';
-import { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
+import { TeamspaceSourceProvider } from '@/knowledge-graph/infrastructure/source/teamspace-source.provider';
 import { SemanticCorrectionService } from '@/knowledge-graph/semantic-correction.service';
 import { SemanticIngestionService } from '@/knowledge-graph/semantic-ingestion.service';
 import {
@@ -85,7 +85,7 @@ describe('의미 worker의 quiet·force·snapshot·fence 수락', () => {
       providers: [
         SemanticIngestionService,
         { provide: SemanticSourceStateRepository, useValue: state },
-        { provide: WorkosSourceProvider, useValue: sources },
+        { provide: TeamspaceSourceProvider, useValue: sources },
         { provide: SemanticJobQueueProvider, useValue: queue },
         { provide: SemanticChunkerProvider, useValue: chunker },
         { provide: SemanticGraphExtractor, useValue: extractor },

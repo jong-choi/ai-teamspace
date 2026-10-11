@@ -111,7 +111,7 @@ def configured_judge(settings: EvalSettings) -> Judge | None:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Work OS Agent black-box eval harness")
+    parser = argparse.ArgumentParser(description="AI Teamspace Agent black-box eval harness")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     subparsers.add_parser("settings", help="validate settings and print a secret-free manifest")

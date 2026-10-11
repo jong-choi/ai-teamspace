@@ -2,37 +2,37 @@ import type {
   AgentGraph,
   AgentGraphRuntimeResources,
 } from '@repo/agent-runtime';
-import type { WorkOsDeepAgent } from '@/agent/infrastructure/deep-agent/deep-agent.builder';
+import type { TeamspaceDeepAgent } from '@/agent/infrastructure/deep-agent/deep-agent.builder';
 import { DeepAgentLifecycle } from '@/agent/infrastructure/deep-agent/deep-agent-lifecycle';
 
 import { Command } from '@langchain/langgraph';
 
-type DeepAgentInput = Parameters<WorkOsDeepAgent['invoke']>[0];
-type DeepAgentInvokeConfig = Parameters<WorkOsDeepAgent['invoke']>[1];
-type DeepAgentStreamConfig = Parameters<WorkOsDeepAgent['stream']>[1];
-type DeepAgentEventConfig = Parameters<WorkOsDeepAgent['streamEvents']>[1];
+type DeepAgentInput = Parameters<TeamspaceDeepAgent['invoke']>[0];
+type DeepAgentInvokeConfig = Parameters<TeamspaceDeepAgent['invoke']>[1];
+type DeepAgentStreamConfig = Parameters<TeamspaceDeepAgent['stream']>[1];
+type DeepAgentEventConfig = Parameters<TeamspaceDeepAgent['streamEvents']>[1];
 type DeepAgentHistoryOptions = Parameters<
-  WorkOsDeepAgent['graph']['getStateHistory']
+  TeamspaceDeepAgent['graph']['getStateHistory']
 >[1];
 type DeepAgentUpdateValues = Parameters<
-  WorkOsDeepAgent['graph']['updateState']
+  TeamspaceDeepAgent['graph']['updateState']
 >[1];
 type DeepAgentSupersteps = Parameters<
-  WorkOsDeepAgent['graph']['bulkUpdateState']
+  TeamspaceDeepAgent['graph']['bulkUpdateState']
 >[1];
 type DeepAgentGraphConfig = Parameters<
-  WorkOsDeepAgent['graph']['getGraphAsync']
+  TeamspaceDeepAgent['graph']['getGraphAsync']
 >[0];
 type DeepAgentCheckpointer = Exclude<
-  WorkOsDeepAgent['checkpointer'],
+  TeamspaceDeepAgent['checkpointer'],
   boolean | undefined
 >;
-type DeepAgentStore = NonNullable<WorkOsDeepAgent['store']>;
+type DeepAgentStore = NonNullable<TeamspaceDeepAgent['store']>;
 
 /** DeepAgent/ReactAgent를 제품 외부의 Agent Protocol contract로 변환한다. */
 export class DeepAgentProtocolAdapter implements AgentGraph {
   constructor(
-    private readonly agent: WorkOsDeepAgent,
+    private readonly agent: TeamspaceDeepAgent,
     private readonly lifecycle: DeepAgentLifecycle,
     /** run input을 agent에 넘기기 직전에 한 번 가공한다. */
     private readonly prepareInput: <T>(input: T) => T = (input) => input,
@@ -53,14 +53,16 @@ export class DeepAgentProtocolAdapter implements AgentGraph {
 
   getState(config: {
     configurable?: Record<string, unknown>;
-  }): Promise<Awaited<ReturnType<WorkOsDeepAgent['graph']['getState']>>> {
+  }): Promise<Awaited<ReturnType<TeamspaceDeepAgent['graph']['getState']>>> {
     return this.lifecycle.value(() => this.agent.graph.getState(config));
   }
 
   getStateHistory(
     config: { configurable?: Record<string, unknown> },
     options?: unknown,
-  ): AsyncIterable<Awaited<ReturnType<WorkOsDeepAgent['graph']['getState']>>> {
+  ): AsyncIterable<
+    Awaited<ReturnType<TeamspaceDeepAgent['graph']['getState']>>
+  > {
     const historyOptions = toHistoryOptions(options);
     return this.lifecycle.iterable(() =>
       this.agent.graph.getStateHistory(config, historyOptions),
@@ -138,7 +140,7 @@ export class DeepAgentProtocolAdapter implements AgentGraph {
 }
 
 async function assertHitlResumeIntegrity(
-  agent: WorkOsDeepAgent,
+  agent: TeamspaceDeepAgent,
   input: DeepAgentInput,
   config: unknown,
 ): Promise<void> {

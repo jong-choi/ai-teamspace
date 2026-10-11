@@ -22,7 +22,7 @@ import { OutboxAggregateEventSchema } from '@/outbox/outbox-aggregate-event.sche
 import queueConfig from '@/queue/config/queue.config';
 import { createWorkerRedisOptions } from '@/queue/queue.config';
 
-import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
+import { waitForCondition } from '@test/agent/support/teamspace-agent.e2e-support';
 import { Queue } from 'bullmq';
 import { eq } from 'drizzle-orm';
 

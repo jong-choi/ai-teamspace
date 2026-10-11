@@ -18,7 +18,7 @@ import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-grap
 
 import { Document } from '@langchain/core/documents';
 import type { EmbeddingsInterface } from '@langchain/core/embeddings';
-import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
+import { waitForCondition } from '@test/agent/support/teamspace-agent.e2e-support';
 import { z } from 'zod';
 
 const vector = () => [1, ...Array.from({ length: 767 }, () => 0)];

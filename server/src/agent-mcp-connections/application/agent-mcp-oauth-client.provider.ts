@@ -44,7 +44,7 @@ export class AgentMcpOauthClientProvider implements OAuthClientProvider {
       token_endpoint_auth_method: 'none',
       grant_types: ['authorization_code', 'refresh_token'],
       response_types: ['code'],
-      client_name: 'Work OS Agent',
+      client_name: 'AI Teamspace Agent',
       software_id: 'work-os-agent-external-mcp',
     };
   }

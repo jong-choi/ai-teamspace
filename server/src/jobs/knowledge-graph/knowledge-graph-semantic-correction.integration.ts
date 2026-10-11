@@ -2,7 +2,7 @@ import { SemanticCorrectionService } from '@/knowledge-graph/semantic-correction
 import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
 import { createSemanticFlowContext } from '@/knowledge-graph/testing/semantic-flow.context';
 
-import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
+import { waitForCondition } from '@test/agent/support/teamspace-agent.e2e-support';
 
 jest.setTimeout(90_000);
 

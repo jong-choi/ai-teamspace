@@ -73,7 +73,7 @@ export function createAuthOptions(mcpConfig: McpConfig) {
           defaultExpiresIn:
             mcpConfig.accessKey.defaultExpiresInDays * 24 * 60 * 60,
           disableCustomExpiresTime: false,
-          // 사용자 만료 하한은 Work OS DTO가 검증한다. rotate는 남은 수명(하루 미만 포함)을 초 단위로 넘기므로 막지 않는다.
+          // 사용자 만료 하한은 AI Teamspace DTO가 검증한다. rotate는 남은 수명(하루 미만 포함)을 초 단위로 넘기므로 막지 않는다.
           minExpiresIn: 0,
           maxExpiresIn: mcpConfig.accessKey.maxExpiresInDays,
         },

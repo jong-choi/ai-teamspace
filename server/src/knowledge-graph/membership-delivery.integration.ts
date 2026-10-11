@@ -13,7 +13,7 @@ import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/driz
 import { OutboxAggregateChangePublisher } from '@/outbox/outbox-aggregate-change.publisher';
 import { OutboxAggregateVersionSchema } from '@/outbox/outbox-aggregate-event.schema';
 
-import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
+import { waitForCondition } from '@test/agent/support/teamspace-agent.e2e-support';
 import { McpIntegrationApp } from '@test/support/mcp-integration.fixture';
 import { and, eq, inArray } from 'drizzle-orm';
 

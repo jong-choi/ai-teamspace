@@ -17,7 +17,7 @@ module.exports = {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@core/(.*)$': '<rootDir>/../../src/$1',
     '^@repo/client/api-client$':
-      '<rootDir>/../../../../packages/api-client/src/generated/work-os.ts',
+      '<rootDir>/../../../../packages/api-client/src/generated/teamspace.ts',
     '^@repo/client/api-client/runtime$':
       '<rootDir>/../../../../packages/api-client/src/runtime.ts',
     '^@repo/client/api-client/schemas$':

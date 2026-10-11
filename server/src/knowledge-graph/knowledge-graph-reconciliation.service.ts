@@ -7,7 +7,7 @@ import {
 import { ProjectionDeliveryRepository } from '@/knowledge-graph/infrastructure/persistence/projection-delivery.repository';
 import { ProjectionStateRepository } from '@/knowledge-graph/infrastructure/persistence/projection-state.repository';
 import { ReconciliationScopeRepository } from '@/knowledge-graph/infrastructure/persistence/reconciliation-scope.repository';
-import { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
+import { TeamspaceSourceProvider } from '@/knowledge-graph/infrastructure/source/teamspace-source.provider';
 
 const OWNER_SOURCE_BATCH = 100;
 const MEMBERSHIP_OWNER_RESCAN_DELAY_MS = 15 * 60_000;
@@ -26,7 +26,7 @@ export class KnowledgeGraphReconciliationService {
   );
   constructor(
     private readonly scopes: ReconciliationScopeRepository,
-    private readonly sources: WorkosSourceProvider,
+    private readonly sources: TeamspaceSourceProvider,
     private readonly state: ProjectionStateRepository,
     private readonly delivery: ProjectionDeliveryRepository,
   ) {}

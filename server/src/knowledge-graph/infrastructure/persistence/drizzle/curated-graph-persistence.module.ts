@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { DatabaseModule } from '@/database/database.module';
-import { WorkosCuratedAccessModule } from '@/knowledge-graph/infrastructure/curated-access/workos/workos-curated-access.module';
+import { TeamspaceCuratedAccessModule } from '@/knowledge-graph/infrastructure/curated-access/teamspace/teamspace-curated-access.module';
 import { CuratedGraphRepository } from '@/knowledge-graph/infrastructure/persistence/curated-graph.repository';
 import { CuratedGraphDrizzleRepository } from '@/knowledge-graph/infrastructure/persistence/drizzle/repositories/curated-graph.repository';
 import { OutboxInfrastructureModule } from '@/outbox/outbox.module';
@@ -10,7 +10,7 @@ import { OutboxInfrastructureModule } from '@/outbox/outbox.module';
   imports: [
     DatabaseModule,
     OutboxInfrastructureModule,
-    WorkosCuratedAccessModule,
+    TeamspaceCuratedAccessModule,
   ],
   providers: [
     {

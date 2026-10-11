@@ -81,7 +81,7 @@ describe('Better Auth MCP access key provider', () => {
     jest.clearAllMocks();
   });
 
-  it('create는 Work OS 정책 필드를 server-side로 주입하고 secret을 한 번 반환한다', async () => {
+  it('create는 AI Teamspace 정책 필드를 server-side로 주입하고 secret을 한 번 반환한다', async () => {
     createApiKey.mockResolvedValue({
       ...stored,
       key: 'wos_mcp_one-time-secret',

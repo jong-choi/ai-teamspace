@@ -42,12 +42,12 @@ import type {
 import { useQueryClient } from '@tanstack/react-query';
 import { useShallow } from 'zustand/react/shallow';
 
-type WorkOsDeepAgent = {
+type TeamspaceDeepAgent = {
   readonly '~agentTypes': DeepAgentTypeConfigLike;
   readonly '~deepAgentTypes': DeepAgentTypeConfigLike;
 };
 
-export type AgentChatStreamState = ResolveStreamInterface<WorkOsDeepAgent>;
+export type AgentChatStreamState = ResolveStreamInterface<TeamspaceDeepAgent>;
 
 /**
  * 선택된 thread 하나의 stream 수명을 소유한다. 패널이 닫혀도 mount가 유지되어
@@ -101,7 +101,7 @@ export function AgentThreadSession({
     });
   }, [organizationId, queryClient, threadId, userId]);
 
-  const stream = useStream<WorkOsDeepAgent>({
+  const stream = useStream<TeamspaceDeepAgent>({
     assistantId: agentAssistantId,
     client,
     fetchStateHistory: false,

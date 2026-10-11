@@ -227,7 +227,7 @@ async def test_executor_collects_nested_public_events_without_raw_tool_result() 
     )
     executor = AgentProtocolExecutor(
         lambda _: client,
-        work_os_tool_names=frozenset({"get_ticket"}),
+        teamspace_tool_names=frozenset({"get_ticket"}),
     )
 
     trajectory = await executor.execute(case, lease())
@@ -237,7 +237,7 @@ async def test_executor_collects_nested_public_events_without_raw_tool_result() 
     assert trajectory.subagents == 1
     assert trajectory.final_response == "Ticket found."
     assert trajectory.tool_names() == ["get_ticket"]
-    assert trajectory.tools_called[0].source == ToolSource.WORK_OS
+    assert trajectory.tools_called[0].source == ToolSource.TEAMSPACE
     assert trajectory.tools_called[0].arguments == {
         "organizationId": "org-1",
         "ticketId": "ticket-1",

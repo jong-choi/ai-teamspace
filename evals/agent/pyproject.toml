@@ -1,7 +1,7 @@
 [project]
 name = "work-os-agent-evals"
 version = "0.1.0"
-description = "Black-box Agent Protocol/MCP evaluation harness for Work OS"
+description = "Black-box Agent Protocol/MCP evaluation harness for AI Teamspace"
 requires-python = ">=3.12,<3.13"
 dependencies = [
   "deepeval==4.2.8",

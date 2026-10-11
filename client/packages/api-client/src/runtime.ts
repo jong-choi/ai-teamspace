@@ -75,11 +75,11 @@ export async function getApiHeaders(input?: HeadersInit): Promise<Headers> {
   return headers;
 }
 
-export function workOsFetcher<T>(
+export function teamspaceFetcher<T>(
   url: string,
   options: ApiRequestOptions,
 ): Promise<T>;
-export async function workOsFetcher(
+export async function teamspaceFetcher(
   url: string,
   options: ApiRequestOptions,
 ): Promise<unknown> {
@@ -131,7 +131,7 @@ function parseProblemDetails(
   const result = ProblemDetails.safeParse(body);
   if (!result.success) {
     throw new Error(
-      `Work OS API returned an invalid Problem Details response (${status}).`,
+      `AI Teamspace API returned an invalid Problem Details response (${status}).`,
       {
         cause: body,
       },
@@ -140,7 +140,7 @@ function parseProblemDetails(
 
   if (result.data.status !== status) {
     throw new Error(
-      `Work OS API Problem Details status mismatch (${status} !== ${result.data.status}).`,
+      `AI Teamspace API Problem Details status mismatch (${status} !== ${result.data.status}).`,
       { cause: result.data },
     );
   }

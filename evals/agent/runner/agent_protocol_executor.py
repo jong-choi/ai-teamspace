@@ -90,9 +90,9 @@ class _Collector:
     def __init__(
         self,
         *,
-        work_os_tool_names: frozenset[str],
+        teamspace_tool_names: frozenset[str],
     ) -> None:
-        self._work_os_tool_names = work_os_tool_names
+        self._teamspace_tool_names = teamspace_tool_names
         self.sequence = 0
         self.events: list[TrajectoryEvent] = []
         self.completed_tools: list[ObservedToolCall] = []
@@ -284,8 +284,8 @@ class _Collector:
         self.pending_tools.clear()
 
     def _source_for(self, name: str) -> ToolSource:
-        if name in self._work_os_tool_names:
-            return ToolSource.WORK_OS
+        if name in self._teamspace_tool_names:
+            return ToolSource.TEAMSPACE
         return ToolSource.UNKNOWN
 
 
@@ -297,12 +297,12 @@ class AgentProtocolExecutor:
         client_factory: Callable[[FixtureLease], AgentExecutionClient],
         *,
         assistant_id: str = "workos",
-        work_os_tool_names: frozenset[str] | None = None,
+        teamspace_tool_names: frozenset[str] | None = None,
         raw_dir: Path | None = None,
     ) -> None:
         self._client_factory = client_factory
         self._assistant_id = assistant_id
-        self._work_os_tool_names = work_os_tool_names or frozenset()
+        self._teamspace_tool_names = teamspace_tool_names or frozenset()
         self._raw_dir = raw_dir
 
     @classmethod
@@ -312,7 +312,7 @@ class AgentProtocolExecutor:
         *,
         headers_for_lease: Callable[[FixtureLease], Mapping[str, str]],
         assistant_id: str = "workos",
-        work_os_tool_names: frozenset[str] | None = None,
+        teamspace_tool_names: frozenset[str] | None = None,
         raw_dir: Path | None = None,
     ) -> AgentProtocolExecutor:
         return cls(
@@ -321,7 +321,7 @@ class AgentProtocolExecutor:
                 headers=headers_for_lease(lease),
             ),
             assistant_id=assistant_id,
-            work_os_tool_names=work_os_tool_names,
+            teamspace_tool_names=teamspace_tool_names,
             raw_dir=raw_dir,
         )
 
@@ -336,7 +336,7 @@ class AgentProtocolExecutor:
         thread_id = _required_string(thread, "thread_id")
 
         collector = _Collector(
-            work_os_tool_names=self._work_os_tool_names,
+            teamspace_tool_names=self._teamspace_tool_names,
         )
         run_ids: list[str] = []
         run_statuses: list[str] = []

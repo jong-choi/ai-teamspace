@@ -14,7 +14,7 @@ import { mcpAccessKeyAllocation } from '@/mcp-access-keys/infrastructure/persist
 import { McpAccessKeyCoordinationRepository } from '@/mcp-access-keys/infrastructure/persistence/mcp-access-key-coordination.repository';
 import { McpAccessKeyReconciliationService } from '@/mcp-access-keys/mcp-access-key-reconciliation.service';
 
-import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
+import { waitForCondition } from '@test/agent/support/teamspace-agent.e2e-support';
 import {
   type McpActor,
   McpIntegrationApp,

@@ -4,7 +4,7 @@ import { ReconciliationScopeSchema } from '@/knowledge-graph/infrastructure/pers
 import { ProjectionDeliveryRepository } from '@/knowledge-graph/infrastructure/persistence/projection-delivery.repository';
 import { ProjectionStateRepository } from '@/knowledge-graph/infrastructure/persistence/projection-state.repository';
 import { ReconciliationScopeRepository } from '@/knowledge-graph/infrastructure/persistence/reconciliation-scope.repository';
-import { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
+import { TeamspaceSourceProvider } from '@/knowledge-graph/infrastructure/source/teamspace-source.provider';
 import { KnowledgeGraphReconciliationService } from '@/knowledge-graph/knowledge-graph-reconciliation.service';
 import { OutboxAggregateVersionSchema } from '@/outbox/outbox-aggregate-event.schema';
 
@@ -91,7 +91,7 @@ describe('P6 기획의 원본 발견·관찰·조직 삭제 복구', () => {
       providers: [
         KnowledgeGraphReconciliationService,
         { provide: ReconciliationScopeRepository, useValue: scopes },
-        { provide: WorkosSourceProvider, useValue: sources },
+        { provide: TeamspaceSourceProvider, useValue: sources },
         { provide: ProjectionStateRepository, useValue: state },
         { provide: ProjectionDeliveryRepository, useValue: delivery },
       ],

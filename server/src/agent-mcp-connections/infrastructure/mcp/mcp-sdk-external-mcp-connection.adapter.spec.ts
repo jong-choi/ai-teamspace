@@ -14,8 +14,8 @@ import type { AgentMcpConnectionRepository } from '@/agent-mcp-connections/infra
 import type { AllConfigType } from '@/config/config.type';
 
 import { Client } from '@modelcontextprotocol/client';
-import { startWorkOsMcpFixture } from '@test/agent/fixtures/workos-mcp.fixture';
-import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
+import { startTeamspaceMcpFixture } from '@test/agent/fixtures/teamspace-mcp.fixture';
+import { waitForCondition } from '@test/agent/support/teamspace-agent.e2e-support';
 
 describe('external MCP SDK connection adapter', () => {
   const actor: AgentActor = {
@@ -77,7 +77,7 @@ describe('external MCP SDK connection adapter', () => {
   }
 
   test('교체 전 bearer 검증은 persisted credential을 읽지 않고 ephemeral token만 사용한다', async () => {
-    const fixture = await startWorkOsMcpFixture();
+    const fixture = await startTeamspaceMcpFixture();
     const safeOutboundFetchMock = jest.fn(
       (input: string | URL, init?: RequestInit) =>
         fetch(input, { ...init, redirect: 'manual' }),
@@ -118,7 +118,7 @@ describe('external MCP SDK connection adapter', () => {
   });
 
   test('modern MCP를 연결하고 external tool을 모두 HITL 대상으로 노출한다', async () => {
-    const fixture = await startWorkOsMcpFixture();
+    const fixture = await startTeamspaceMcpFixture();
     const safeOutboundFetchMock = jest.fn(
       (input: string | URL, init?: RequestInit) =>
         fetch(input, { ...init, redirect: 'manual' }),
@@ -171,7 +171,7 @@ describe('external MCP SDK connection adapter', () => {
   });
 
   test('discovery는 policy filter 전 원본 tool catalog를 bounded timeout으로 반환한다', async () => {
-    const fixture = await startWorkOsMcpFixture();
+    const fixture = await startTeamspaceMcpFixture();
     const listTools = jest.spyOn(Client.prototype, 'listTools');
     const safeOutboundFetchMock = jest.fn(
       (input: string | URL, init?: RequestInit) =>
@@ -213,7 +213,7 @@ describe('external MCP SDK connection adapter', () => {
   });
 
   test('tool AbortSignal을 실제 MCP request까지 전파한다', async () => {
-    const fixture = await startWorkOsMcpFixture();
+    const fixture = await startTeamspaceMcpFixture();
     const safeOutboundFetchMock = jest.fn(
       (input: string | URL, init?: RequestInit) =>
         fetch(input, { ...init, redirect: 'manual' }),

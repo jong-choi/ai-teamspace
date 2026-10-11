@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 
 import { ProjectionDeliveryRepository } from '@/knowledge-graph/infrastructure/persistence/projection-delivery.repository';
-import { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
+import { TeamspaceSourceProvider } from '@/knowledge-graph/infrastructure/source/teamspace-source.provider';
 
 export type KnowledgeGraphBackfillKind = Parameters<
-  WorkosSourceProvider['listIds']
+  TeamspaceSourceProvider['listIds']
 >[0];
 
 @Injectable()
 export class KnowledgeGraphBackfillService {
   constructor(
-    private readonly sources: WorkosSourceProvider,
+    private readonly sources: TeamspaceSourceProvider,
     private readonly delivery: ProjectionDeliveryRepository,
   ) {}
 

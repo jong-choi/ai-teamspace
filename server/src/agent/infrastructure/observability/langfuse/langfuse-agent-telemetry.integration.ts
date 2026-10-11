@@ -9,15 +9,15 @@ import { AIMessage } from '@langchain/core/messages';
 import { fakeModel } from '@langchain/core/testing';
 import { createTraceId } from '@langfuse/tracing';
 import {
-  type StartedWorkOsMcpFixture,
-  startWorkOsMcpFixture,
-} from '@test/agent/fixtures/workos-mcp.fixture';
+  type StartedTeamspaceMcpFixture,
+  startTeamspaceMcpFixture,
+} from '@test/agent/fixtures/teamspace-mcp.fixture';
 import {
   FixtureModelProvider,
   startAgentApp,
   unusedModel,
   waitForCondition,
-} from '@test/agent/support/workos-agent.e2e-support';
+} from '@test/agent/support/teamspace-agent.e2e-support';
 import { z } from 'zod';
 
 jest.setTimeout(90_000);
@@ -61,10 +61,10 @@ const UNREACHABLE_LANGFUSE_URL = 'http://127.0.0.1:9';
 const UNREACHABLE_MCP_URL = 'http://127.0.0.1:9/mcp';
 
 describe('Langfuse Agent telemetry 통합', () => {
-  let fixture: StartedWorkOsMcpFixture;
+  let fixture: StartedTeamspaceMcpFixture;
 
   beforeAll(async () => {
-    fixture = await startWorkOsMcpFixture();
+    fixture = await startTeamspaceMcpFixture();
   });
 
   afterAll(async () => {

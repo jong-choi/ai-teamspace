@@ -7,7 +7,7 @@
       "@/assets/*": ["./assets/*"],
       "@core/*": ["../../src/*"],
       "@repo/client/api-client": [
-        "../../../../packages/api-client/src/generated/work-os.ts"
+        "../../../../packages/api-client/src/generated/teamspace.ts"
       ],
       "@repo/client/api-client/runtime": [
         "../../../../packages/api-client/src/runtime.ts"

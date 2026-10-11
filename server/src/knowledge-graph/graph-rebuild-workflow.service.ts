@@ -7,7 +7,7 @@ import type {
 import { semanticPipelineFingerprint } from '@/knowledge-graph/domain/semantic-pipeline';
 import { GraphRebuildProgressRepository } from '@/knowledge-graph/infrastructure/persistence/graph-rebuild-progress.repository';
 import { GraphRebuildWorkerRepository } from '@/knowledge-graph/infrastructure/persistence/graph-rebuild-request.repository';
-import { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
+import { TeamspaceSourceProvider } from '@/knowledge-graph/infrastructure/source/teamspace-source.provider';
 import { GraphSourceAccessProvider } from '@/knowledge-graph/infrastructure/source-access/graph-source-access.provider';
 
 const PROJECTION_KINDS: readonly GraphRebuildKind[] = [
@@ -37,7 +37,7 @@ export class GraphRebuildWorkflowService {
 
   constructor(
     private readonly repository: GraphRebuildWorkerRepository,
-    private readonly sources: WorkosSourceProvider,
+    private readonly sources: TeamspaceSourceProvider,
     private readonly access: GraphSourceAccessProvider,
     private readonly progress: GraphRebuildProgressRepository,
   ) {}

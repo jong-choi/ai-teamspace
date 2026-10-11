@@ -3,10 +3,10 @@ import { Module } from '@nestjs/common';
 import { DatabaseModule } from '@/database/database.module';
 import { GraphCorrectionWriteBoundaryDrizzleRepository } from '@/knowledge-graph/infrastructure/persistence/drizzle/repositories/graph-correction-write-boundary.repository';
 import { GraphCorrectionWriteRepository } from '@/knowledge-graph/infrastructure/persistence/graph-correction-write.repository';
-import { WorkosGraphSourceAccessModule } from '@/knowledge-graph/infrastructure/source-access/workos/workos-graph-source-access.module';
+import { TeamspaceGraphSourceAccessModule } from '@/knowledge-graph/infrastructure/source-access/teamspace/teamspace-graph-source-access.module';
 
 @Module({
-  imports: [DatabaseModule, WorkosGraphSourceAccessModule],
+  imports: [DatabaseModule, TeamspaceGraphSourceAccessModule],
   providers: [
     {
       provide: GraphCorrectionWriteRepository,

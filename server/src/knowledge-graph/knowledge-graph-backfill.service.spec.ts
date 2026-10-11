@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
 
 import { ProjectionDeliveryRepository } from '@/knowledge-graph/infrastructure/persistence/projection-delivery.repository';
-import { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
+import { TeamspaceSourceProvider } from '@/knowledge-graph/infrastructure/source/teamspace-source.provider';
 import { KnowledgeGraphBackfillService } from '@/knowledge-graph/knowledge-graph-backfill.service';
 
 describe('업무 그래프 초기 접수와 재조정', () => {
@@ -18,7 +18,7 @@ describe('업무 그래프 초기 접수와 재조정', () => {
     const moduleRef = await Test.createTestingModule({
       providers: [
         KnowledgeGraphBackfillService,
-        { provide: WorkosSourceProvider, useValue: { listIds } },
+        { provide: TeamspaceSourceProvider, useValue: { listIds } },
         {
           provide: ProjectionDeliveryRepository,
           useValue: { initializeBatch, requeuePendingBatch },

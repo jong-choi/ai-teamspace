@@ -26,7 +26,7 @@ export function AgentChatHome({
           />
         </View>
         <Text className="text-lg font-semibold tracking-tight">
-          Work OS Agent
+          AI Teamspace Agent
         </Text>
         <View className="mt-2 w-full gap-1.5">
           {examplePrompts.map((prompt) => (

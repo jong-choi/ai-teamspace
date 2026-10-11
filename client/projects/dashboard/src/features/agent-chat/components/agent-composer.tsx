@@ -185,7 +185,7 @@ export function AgentComposer({
           placeholder={
             blocked
               ? '승인 결정을 먼저 전달해 주세요'
-              : 'Work OS에 대해 묻거나 작업을 요청하세요...'
+              : 'AI Teamspace에 대해 묻거나 작업을 요청하세요...'
           }
           style={{ height }}
           value={draft}

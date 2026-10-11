@@ -17,9 +17,9 @@ import { GraphQueryPersistenceModule } from '@/knowledge-graph/infrastructure/pe
 import { OutboxProjectionFreshnessAdapter } from '@/knowledge-graph/infrastructure/persistence/outbox/outbox-projection-freshness.adapter';
 import { SemanticStatePersistenceModule } from '@/knowledge-graph/infrastructure/persistence/outbox/semantic-state-persistence.module';
 import { ProjectionFreshnessRepository } from '@/knowledge-graph/infrastructure/persistence/projection-freshness.repository';
-import { WorkosGraphSourceAccessModule } from '@/knowledge-graph/infrastructure/source-access/workos/workos-graph-source-access.module';
-import { WorkosGraphSourceDirectoryModule } from '@/knowledge-graph/infrastructure/source-directory/workos/workos-graph-source-directory.module';
-import { WorkosGraphSourceSnapshotModule } from '@/knowledge-graph/infrastructure/source-snapshot/workos/workos-graph-source-snapshot.module';
+import { TeamspaceGraphSourceAccessModule } from '@/knowledge-graph/infrastructure/source-access/teamspace/teamspace-graph-source-access.module';
+import { TeamspaceGraphSourceDirectoryModule } from '@/knowledge-graph/infrastructure/source-directory/teamspace/teamspace-graph-source-directory.module';
+import { TeamspaceGraphSourceSnapshotModule } from '@/knowledge-graph/infrastructure/source-snapshot/teamspace/teamspace-graph-source-snapshot.module';
 import { KnowledgeGraphController } from '@/knowledge-graph/knowledge-graph.controller';
 import { KnowledgeGraphDetailService } from '@/knowledge-graph/knowledge-graph-detail.service';
 import { KnowledgeGraphEdgeListService } from '@/knowledge-graph/knowledge-graph-edge-list.service';
@@ -40,9 +40,9 @@ import { OutboxInfrastructureModule } from '@/outbox/outbox.module';
     OutboxInfrastructureModule,
     SemanticCorrectionModule,
     SemanticStatePersistenceModule,
-    WorkosGraphSourceAccessModule,
-    WorkosGraphSourceDirectoryModule,
-    WorkosGraphSourceSnapshotModule,
+    TeamspaceGraphSourceAccessModule,
+    TeamspaceGraphSourceDirectoryModule,
+    TeamspaceGraphSourceSnapshotModule,
   ],
   controllers: [KnowledgeGraphController],
   providers: [

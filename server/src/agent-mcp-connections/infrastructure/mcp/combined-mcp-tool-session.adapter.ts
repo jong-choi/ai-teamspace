@@ -1,29 +1,29 @@
 import { Injectable, Logger } from '@nestjs/common';
 
 import type { AgentActor } from '@/agent/domain/agent-actor';
-import { FirstPartyWorkOsMcpAdapter } from '@/agent/infrastructure/mcp/first-party/first-party-workos-mcp.adapter';
+import { FirstPartyTeamspaceMcpAdapter } from '@/agent/infrastructure/mcp/first-party/first-party-teamspace-mcp.adapter';
 import {
-  type WorkOsToolSession,
-  WorkOsToolSessionProvider,
-} from '@/agent/infrastructure/mcp/workos-tool-session.provider';
+  type TeamspaceToolSession,
+  TeamspaceToolSessionProvider,
+} from '@/agent/infrastructure/mcp/teamspace-tool-session.provider';
 import { ExternalMcpToolSessionProvider } from '@/agent-mcp-connections/infrastructure/mcp/external-mcp-tool-session.provider';
 
 @Injectable()
-export class CombinedMcpToolSessionAdapter extends WorkOsToolSessionProvider {
+export class CombinedMcpToolSessionAdapter extends TeamspaceToolSessionProvider {
   private readonly logger = new Logger(CombinedMcpToolSessionAdapter.name);
 
   constructor(
-    private readonly workOs: FirstPartyWorkOsMcpAdapter,
+    private readonly teamspace: FirstPartyTeamspaceMcpAdapter,
     private readonly external: ExternalMcpToolSessionProvider,
   ) {
     super();
   }
 
-  async open(actor: AgentActor): Promise<WorkOsToolSession> {
-    const workOsSession = await this.workOs.open(actor);
-    this.markWorkOsTools(workOsSession);
+  async open(actor: AgentActor): Promise<TeamspaceToolSession> {
+    const teamspaceSession = await this.teamspace.open(actor);
+    this.markTeamspaceTools(teamspaceSession);
 
-    let externalSession: WorkOsToolSession | undefined;
+    let externalSession: TeamspaceToolSession | undefined;
     try {
       externalSession = await this.external.open(actor);
     } catch (error) {
@@ -33,15 +33,18 @@ export class CombinedMcpToolSessionAdapter extends WorkOsToolSessionProvider {
       });
     }
 
-    const tools = [...workOsSession.tools, ...(externalSession?.tools ?? [])];
+    const tools = [
+      ...teamspaceSession.tools,
+      ...(externalSession?.tools ?? []),
+    ];
     this.assertUniqueToolNames(tools.map((tool) => tool.name));
     const toolIdentities = new Map([
-      ...workOsSession.toolIdentities.entries(),
+      ...teamspaceSession.toolIdentities.entries(),
       ...(externalSession ? [...externalSession.toolIdentities.entries()] : []),
     ]);
     if (toolIdentities.size !== tools.length) {
       await Promise.allSettled([
-        workOsSession.close(),
+        teamspaceSession.close(),
         ...(externalSession ? [externalSession.close()] : []),
       ]);
       throw new Error('MCP tool identity 충돌이 감지되었습니다.');
@@ -50,7 +53,7 @@ export class CombinedMcpToolSessionAdapter extends WorkOsToolSessionProvider {
     let closePromise: Promise<void> | undefined;
     const close = (): Promise<void> => {
       closePromise ??= Promise.allSettled([
-        workOsSession.close(),
+        teamspaceSession.close(),
         ...(externalSession ? [externalSession.close()] : []),
       ]).then(() => undefined);
       return closePromise;
@@ -58,9 +61,9 @@ export class CombinedMcpToolSessionAdapter extends WorkOsToolSessionProvider {
 
     return {
       tools,
-      readOnlyTools: workOsSession.readOnlyTools,
+      readOnlyTools: teamspaceSession.readOnlyTools,
       interruptOn: {
-        ...workOsSession.interruptOn,
+        ...teamspaceSession.interruptOn,
         ...externalSession?.interruptOn,
       },
       toolIdentities,
@@ -68,12 +71,12 @@ export class CombinedMcpToolSessionAdapter extends WorkOsToolSessionProvider {
     };
   }
 
-  private markWorkOsTools(session: WorkOsToolSession): void {
+  private markTeamspaceTools(session: TeamspaceToolSession): void {
     for (const tool of session.tools) {
       const annotations = tool.metadata?.['annotations'];
       tool.metadata = {
         ...(annotations === undefined ? {} : { annotations }),
-        workOsMcp: {
+        teamspaceMcp: {
           source: 'workos',
           namespace: 'workos',
           originalToolName: tool.name,

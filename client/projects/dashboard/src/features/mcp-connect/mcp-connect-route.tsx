@@ -28,7 +28,7 @@ import { SettingsRouteFrame } from '@core/features/settings/settings-route-frame
 
 import { Copy, Plus } from 'lucide-react-native';
 
-// 외부 AI 도구가 Work OS를 MCP 서버로 쓰도록 연결하는 화면이다.
+// 외부 AI 도구가 AI Teamspace를 MCP 서버로 쓰도록 연결하는 화면이다.
 export function McpConnectRoute() {
   return (
     <SettingsRouteFrame
@@ -41,9 +41,9 @@ export function McpConnectRoute() {
         >
           <View className="mx-auto w-full max-w-7xl gap-6 p-4 sm:p-6 lg:p-8">
             <Text className="text-xs leading-5 text-muted-foreground">
-              Claude 같은 외부 AI 도구에서 Work OS의 위키, 프로젝트, 일정을 읽고
-              바꿀 수 있게 연결합니다. 접근 키를 만들면 키가 포함된 연결 주소를
-              받습니다. 그 주소를 외부 도구의 MCP 설정에 넣으면 됩니다.
+              Claude 같은 외부 AI 도구에서 AI Teamspace의 위키, 프로젝트, 일정을
+              읽고 바꿀 수 있게 연결합니다. 접근 키를 만들면 키가 포함된 연결
+              주소를 받습니다. 그 주소를 외부 도구의 MCP 설정에 넣으면 됩니다.
             </Text>
             <DashboardQueryBoundary
               fallback={
@@ -112,7 +112,7 @@ function ConnectionAddressSection({ info }: { info: McpConnectionInfo }) {
   return (
     <View className="gap-2">
       <SectionHeader
-        description="Work OS MCP 서버의 기본 주소입니다. 접근 키가 붙지 않은 주소라 이것만으로는 접속할 수 없습니다."
+        description="AI Teamspace MCP 서버의 기본 주소입니다. 접근 키가 붙지 않은 주소라 이것만으로는 접속할 수 없습니다."
         title="MCP 주소"
       />
       <View className="flex-row items-center gap-2 rounded-lg border border-border px-3 py-1.5">

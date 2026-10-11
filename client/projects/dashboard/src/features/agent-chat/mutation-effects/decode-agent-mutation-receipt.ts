@@ -8,7 +8,7 @@ import { getAgentToolSource } from '@core/features/agent-chat/lib/agent-tool-dis
 import type { ToolCallWithResult } from '@langchain/langgraph-sdk';
 
 /**
- * 성공한 Work OS write 도구의 structured 결과에서 변경 영수증을 꺼낸다.
+ * 성공한 AI Teamspace write 도구의 structured 결과에서 변경 영수증을 꺼낸다.
  * 외부 MCP 도구가 같은 모양을 흉내 내거나, 다른 조직 영수증이거나, 알 수 없는 version이면 무시한다.
  */
 export function decodeAgentMutationReceipt(

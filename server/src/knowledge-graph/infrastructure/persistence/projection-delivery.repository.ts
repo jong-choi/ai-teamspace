@@ -1,6 +1,6 @@
 import type { ReconciliationScope } from '@/knowledge-graph/domain/reconciliation-scope';
 import type { ProjectionStateRepository } from '@/knowledge-graph/infrastructure/persistence/projection-state.repository';
-import type { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
+import type { TeamspaceSourceProvider } from '@/knowledge-graph/infrastructure/source/teamspace-source.provider';
 
 export abstract class ProjectionDeliveryRepository {
   abstract recordOrganizationTombstones(
@@ -15,7 +15,7 @@ export abstract class ProjectionDeliveryRepository {
       Awaited<ReturnType<ProjectionStateRepository['current']>>
     >,
     snapshot: Awaited<
-      ReturnType<WorkosSourceProvider['observeMembershipSnapshot']>
+      ReturnType<TeamspaceSourceProvider['observeMembershipSnapshot']>
     >,
     scope: ReconciliationScope,
   ): Promise<'recorded' | 'unchanged' | 'lease_lost'>;
@@ -26,9 +26,9 @@ export abstract class ProjectionDeliveryRepository {
     deleted: boolean,
   ): Promise<void>;
   abstract initializeBatch(
-    kind: Parameters<WorkosSourceProvider['listIds']>[0],
+    kind: Parameters<TeamspaceSourceProvider['listIds']>[0],
     organizationId: string,
-    sources: Awaited<ReturnType<WorkosSourceProvider['listIds']>>,
+    sources: Awaited<ReturnType<TeamspaceSourceProvider['listIds']>>,
     scope?: ReconciliationScope,
   ): Promise<boolean>;
 }

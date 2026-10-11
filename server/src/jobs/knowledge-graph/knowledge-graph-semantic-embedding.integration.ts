@@ -7,7 +7,7 @@ import { outboxSemanticSourceState as stateTable } from '@/outbox/infrastructure
 import { OutboxSemanticSourceState } from '@/outbox/outbox-semantic-source-state';
 import { wikiDocument } from '@/wiki/infrastructure/persistence/drizzle/schema/wiki-document.schema';
 
-import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
+import { waitForCondition } from '@test/agent/support/teamspace-agent.e2e-support';
 import { eq } from 'drizzle-orm';
 
 jest.setTimeout(60_000);

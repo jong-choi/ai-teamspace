@@ -3,7 +3,7 @@ import {
   configureApiRuntime,
   getApiBaseUrl,
   getProblemDetails,
-  workOsFetcher,
+  teamspaceFetcher,
 } from '@repo/client/api-client/runtime';
 import {
   parseServerSentEvent,
@@ -35,12 +35,12 @@ describe('API 런타임', () => {
     configureApiRuntime({
       baseUrl: 'https://api.example.com/',
       credentials: 'omit',
-      expoOrigin: 'monorepoerp://',
+      expoOrigin: 'aiteamspace://',
       fetcher,
       getCookie: async () => 'better-auth.session=token',
     });
 
-    await workOsFetcher('/chat/channels', {
+    await teamspaceFetcher('/chat/channels', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     });
@@ -50,7 +50,7 @@ describe('API 런타임', () => {
     expect(url).toBe('https://api.example.com/chat/channels');
     const headers = new Headers(request?.headers);
     expect(headers.get('cookie')).toBe('better-auth.session=token');
-    expect(headers.get('expo-origin')).toBe('monorepoerp://');
+    expect(headers.get('expo-origin')).toBe('aiteamspace://');
     expect(headers.get('content-type')).toBe('application/json');
     expect(request?.credentials).toBe('omit');
   });
@@ -67,7 +67,7 @@ describe('API 런타임', () => {
     });
 
     await expect(
-      workOsFetcher('/chat/conversations', { method: 'GET' }),
+      teamspaceFetcher('/chat/conversations', { method: 'GET' }),
     ).rejects.toEqual(problem);
   });
 
@@ -77,7 +77,7 @@ describe('API 런타임', () => {
     });
 
     await expect(
-      workOsFetcher('/chat/conversations', { method: 'GET' }),
+      teamspaceFetcher('/chat/conversations', { method: 'GET' }),
     ).rejects.toThrow('invalid Problem Details response');
   });
 

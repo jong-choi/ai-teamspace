@@ -26,9 +26,9 @@ import type { CreateOrganizationInput } from '@/organizations/dto/create-organiz
 import type { OrganizationMemberList } from '@/organizations/dto/organization-member-list.dto';
 import type { QueryOrganizationMembersInput } from '@/organizations/dto/query-organization-members.dto';
 import {
-  getWorkOsOrganizationAdapter,
-  type WorkOsOrganizationAuth,
-} from '@/organizations/infrastructure/better-auth/work-os-organization.adapter';
+  getTeamspaceOrganizationAdapter,
+  type TeamspaceOrganizationAuth,
+} from '@/organizations/infrastructure/better-auth/teamspace-organization.adapter';
 import {
   type OrganizationActorContext,
   OrganizationProvider,
@@ -38,7 +38,7 @@ import { AuthService } from '@thallesp/nestjs-better-auth';
 import { APIError } from 'better-auth';
 
 type AuthApi = Auth['api'];
-type AuthContext = Awaited<WorkOsOrganizationAuth['$context']>;
+type AuthContext = Awaited<TeamspaceOrganizationAuth['$context']>;
 type AuthOrganization = Awaited<
   ReturnType<AuthApi['listOrganizations']>
 >[number];
@@ -68,7 +68,7 @@ function escapeLikeSearchValue(value: string): string {
 @Injectable()
 export class BetterAuthOrganizationAdapter extends OrganizationProvider {
   constructor(
-    private readonly authService: AuthService<WorkOsOrganizationAuth>,
+    private readonly authService: AuthService<TeamspaceOrganizationAuth>,
   ) {
     super();
   }
@@ -497,7 +497,7 @@ export class BetterAuthOrganizationAdapter extends OrganizationProvider {
     const authContext = await this.call(
       () => this.authService.instance.$context,
     );
-    return getWorkOsOrganizationAdapter(authContext);
+    return getTeamspaceOrganizationAdapter(authContext);
   }
 
   private mapOrganization(organization: AuthOrganization): Organization {

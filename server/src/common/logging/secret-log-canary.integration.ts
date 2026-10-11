@@ -3,9 +3,9 @@ import { format } from 'node:util';
 import { Logger } from '@nestjs/common';
 
 import {
-  type StartedWorkOsMcpFixture,
-  startWorkOsMcpFixture,
-} from '@test/agent/fixtures/workos-mcp.fixture';
+  type StartedTeamspaceMcpFixture,
+  startTeamspaceMcpFixture,
+} from '@test/agent/fixtures/teamspace-mcp.fixture';
 import {
   type LoopbackTlsCertificate,
   trustLoopbackTlsCertificate,
@@ -18,7 +18,7 @@ const SCOPES = ['wiki:read'] as const;
 describe('structured log secret canary 검증', () => {
   let target: McpIntegrationApp;
   let tls: LoopbackTlsCertificate;
-  let externalMcp: StartedWorkOsMcpFixture;
+  let externalMcp: StartedTeamspaceMcpFixture;
   let output = '';
   let stdoutWrite: jest.SpiedFunction<typeof process.stdout.write>;
   let stderrWrite: jest.SpiedFunction<typeof process.stderr.write>;
@@ -82,7 +82,7 @@ describe('structured log secret canary 검증', () => {
       .spyOn(Logger.prototype, 'fatal')
       .mockImplementation(captureConsole);
     tls = await trustLoopbackTlsCertificate();
-    externalMcp = await startWorkOsMcpFixture({ tls });
+    externalMcp = await startTeamspaceMcpFixture({ tls });
     target = await McpIntegrationApp.start({
       environment: { AGENT_EXTERNAL_MCP_ALLOW_PRIVATE_NETWORKS: 'true' },
       logger: ['log', 'error', 'warn', 'debug', 'verbose', 'fatal'],

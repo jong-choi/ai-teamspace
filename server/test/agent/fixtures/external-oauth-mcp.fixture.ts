@@ -50,7 +50,7 @@ export interface StartedExternalOauthMcpFixture {
 
 /**
  * DCR, authorization code+PKCE, refresh rotation을 실제 HTTPS로 제공하는 외부 MCP fixture다.
- * Work OS production module을 우회하지 않고 MCP SDK client의 표준 OAuth wire contract를 검증한다.
+ * AI Teamspace production module을 우회하지 않고 MCP SDK client의 표준 OAuth wire contract를 검증한다.
  */
 export async function startExternalOauthMcpFixture(options: {
   tls: { key: string; cert: string };

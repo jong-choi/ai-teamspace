@@ -12,7 +12,7 @@ import {
   createWorkerRedisOptions,
 } from '@/queue/queue.config';
 
-import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
+import { waitForCondition } from '@test/agent/support/teamspace-agent.e2e-support';
 import { Queue, Worker } from 'bullmq';
 import type { z } from 'zod';
 

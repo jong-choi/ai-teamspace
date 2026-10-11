@@ -25,7 +25,7 @@ import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/driz
 import { WikiDrizzlePersistenceModule } from '@/wiki/infrastructure/persistence/drizzle/drizzle-persistence.module';
 import { WikiRepository } from '@/wiki/infrastructure/persistence/wiki.repository';
 
-import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
+import { waitForCondition } from '@test/agent/support/teamspace-agent.e2e-support';
 import { and, eq } from 'drizzle-orm';
 import * as Y from 'yjs';
 

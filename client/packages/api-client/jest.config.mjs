@@ -9,7 +9,7 @@ export default {
   testEnvironment: 'node',
   testMatch: ['<rootDir>/src/**/*.spec.ts'],
   moduleNameMapper: {
-    '^@repo/client/api-client$': '<rootDir>/src/generated/work-os.ts',
+    '^@repo/client/api-client$': '<rootDir>/src/generated/teamspace.ts',
     '^@repo/client/api-client/schemas$':
       '<rootDir>/src/generated/schemas/index.ts',
     '^@repo/client/api-client/(.*)$': '<rootDir>/src/$1.ts',

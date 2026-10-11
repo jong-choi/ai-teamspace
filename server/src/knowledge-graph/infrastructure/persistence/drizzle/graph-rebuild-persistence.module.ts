@@ -12,7 +12,7 @@ import {
   GraphRebuildRequestRepository,
   GraphRebuildWorkerRepository,
 } from '@/knowledge-graph/infrastructure/persistence/graph-rebuild-request.repository';
-import { WorkosGraphSourceAccessModule } from '@/knowledge-graph/infrastructure/source-access/workos/workos-graph-source-access.module';
+import { TeamspaceGraphSourceAccessModule } from '@/knowledge-graph/infrastructure/source-access/teamspace/teamspace-graph-source-access.module';
 import { SemanticRefreshModule } from '@/knowledge-graph/semantic-refresh.module';
 import { OutboxInfrastructureModule } from '@/outbox/outbox.module';
 
@@ -23,7 +23,7 @@ import { OutboxInfrastructureModule } from '@/outbox/outbox.module';
     OutboxInfrastructureModule,
     RequestQuotaPersistenceModule,
     SemanticRefreshModule,
-    WorkosGraphSourceAccessModule,
+    TeamspaceGraphSourceAccessModule,
   ],
   providers: [
     {

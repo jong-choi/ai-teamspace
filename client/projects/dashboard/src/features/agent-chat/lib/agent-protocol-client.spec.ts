@@ -26,7 +26,7 @@ describe('Agent Protocol client', () => {
     configureApiRuntime({
       baseUrl: 'https://api.example.com/base/',
       credentials: 'omit',
-      expoOrigin: 'monorepoerp://',
+      expoOrigin: 'aiteamspace://',
       fetcher,
       getCookie: async () => 'better-auth.session=token',
     });
@@ -44,7 +44,7 @@ describe('Agent Protocol client', () => {
 
     const headers = new Headers(init?.headers);
     expect(headers.get('cookie')).toBe('better-auth.session=token');
-    expect(headers.get('expo-origin')).toBe('monorepoerp://');
+    expect(headers.get('expo-origin')).toBe('aiteamspace://');
     expect(headers.get('content-type')).toBe('application/json');
   });
 });

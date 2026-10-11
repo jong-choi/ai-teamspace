@@ -177,7 +177,7 @@ describe('Langfuse Agent telemetry adapter', () => {
       endedAt: new Date('2026-10-07T12:00:00.040Z'),
       error: {
         error: 'MCPClientError',
-        message: 'Work OS Agent MCP 권한 위임이 필요합니다.',
+        message: 'AI Teamspace Agent MCP 권한 위임이 필요합니다.',
         name: 'MCPClientError',
       },
     });

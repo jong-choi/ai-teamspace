@@ -12,7 +12,7 @@ import { outboxSemanticSourceState } from '@/outbox/infrastructure/persistence/d
 import { OutboxInfrastructureModule } from '@/outbox/outbox.module';
 import { OutboxSemanticSourceState } from '@/outbox/outbox-semantic-source-state';
 
-import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
+import { waitForCondition } from '@test/agent/support/teamspace-agent.e2e-support';
 import { and, eq, sql } from 'drizzle-orm';
 
 describeKnowledgeGraph(

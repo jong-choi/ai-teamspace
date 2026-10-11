@@ -1,10 +1,10 @@
 import { defineConfig } from 'orval';
 
 export default defineConfig({
-  workOs: {
+  teamspace: {
     input: process.env.OPENAPI_URL ?? './server/dist/openapi.json',
     output: {
-      target: './client/packages/api-client/src/generated/work-os.ts',
+      target: './client/packages/api-client/src/generated/teamspace.ts',
       schemas: {
         path: './client/packages/api-client/src/generated/schemas',
         type: 'zod',
@@ -22,7 +22,7 @@ export default defineConfig({
         },
         mutator: {
           path: './client/packages/api-client/src/runtime.ts',
-          name: 'workOsFetcher',
+          name: 'teamspaceFetcher',
         },
         query: {
           useQuery: false,

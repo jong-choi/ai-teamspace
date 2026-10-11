@@ -1,0 +1,23 @@
+import { Module } from '@nestjs/common';
+
+import { AuthMembershipLockModule } from '@/auth/auth-membership-lock.module';
+import { GraphSourceAccessProvider } from '@/knowledge-graph/infrastructure/source-access/graph-source-access.provider';
+import { TeamspaceGraphSourceAccessAdapter } from '@/knowledge-graph/infrastructure/source-access/teamspace/teamspace-graph-source-access.adapter';
+import { OrganizationsModule } from '@/organizations/organizations.module';
+import { WikiReferenceLockQueryModule } from '@/wiki/wiki-reference-lock-query.module';
+
+@Module({
+  imports: [
+    OrganizationsModule,
+    AuthMembershipLockModule,
+    WikiReferenceLockQueryModule,
+  ],
+  providers: [
+    {
+      provide: GraphSourceAccessProvider,
+      useClass: TeamspaceGraphSourceAccessAdapter,
+    },
+  ],
+  exports: [GraphSourceAccessProvider],
+})
+export class TeamspaceGraphSourceAccessModule {}

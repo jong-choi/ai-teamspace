@@ -11,13 +11,13 @@ import {
   requireScopes,
 } from '@modelcontextprotocol/server';
 
-export const WORK_OS_MCP_SERVER_INFO = {
+export const TEAMSPACE_MCP_SERVER_INFO = {
   name: 'work-os',
   version: '0.0.1',
 } as const;
 
 @Injectable()
-export class WorkOsMcpServerFactory {
+export class TeamspaceMcpServerFactory {
   constructor(private readonly toolRegistry: McpToolRegistryService) {}
 
   create(authInfo: AuthInfo): McpServer {
@@ -26,7 +26,7 @@ export class WorkOsMcpServerFactory {
 
   /** 서버가 이미 검증한 auth context로 MCP 서버를 만든다. 내부 built-in Agent 연결이 사용한다. */
   createForAuthContext(auth: McpAuthContext): McpServer {
-    const server = new McpServer(WORK_OS_MCP_SERVER_INFO);
+    const server = new McpServer(TEAMSPACE_MCP_SERVER_INFO);
 
     for (const tool of this.toolRegistry.toolsForAuth(auth)) {
       const { definition } = tool;

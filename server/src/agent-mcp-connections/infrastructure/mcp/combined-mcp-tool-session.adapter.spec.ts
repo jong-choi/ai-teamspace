@@ -1,11 +1,11 @@
 import type { AgentActor } from '@/agent/domain/agent-actor';
-import type { FirstPartyWorkOsMcpAdapter } from '@/agent/infrastructure/mcp/first-party/first-party-workos-mcp.adapter';
+import type { FirstPartyTeamspaceMcpAdapter } from '@/agent/infrastructure/mcp/first-party/first-party-teamspace-mcp.adapter';
 import { CombinedMcpToolSessionAdapter } from '@/agent-mcp-connections/infrastructure/mcp/combined-mcp-tool-session.adapter';
 import type { ExternalMcpToolSessionProvider } from '@/agent-mcp-connections/infrastructure/mcp/external-mcp-tool-session.provider';
 
 import type { StructuredTool } from '@langchain/core/tools';
 
-describe('Work OS와 external MCP combined session', () => {
+describe('AI Teamspace와 external MCP combined session', () => {
   const actor: AgentActor = {
     userId: 'user-1',
     organizationId: 'org-1',
@@ -19,68 +19,68 @@ describe('Work OS와 external MCP combined session', () => {
     } as unknown as StructuredTool;
   }
 
-  test('external 전체 장애에도 Work OS tools를 유지한다', async () => {
-    const workOsTool = tool('workos_search', true);
-    const workOsClose = jest.fn().mockResolvedValue(undefined);
-    const workOs = {
+  test('external 전체 장애에도 AI Teamspace tools를 유지한다', async () => {
+    const teamspaceTool = tool('workos_search', true);
+    const teamspaceClose = jest.fn().mockResolvedValue(undefined);
+    const teamspace = {
       open: jest.fn().mockResolvedValue({
-        tools: [workOsTool],
-        readOnlyTools: [workOsTool],
+        tools: [teamspaceTool],
+        readOnlyTools: [teamspaceTool],
         interruptOn: {},
         toolIdentities: new Map([
           [
-            workOsTool.name,
+            teamspaceTool.name,
             {
               source: 'workos' as const,
               namespace: 'workos' as const,
-              originalToolName: workOsTool.name,
+              originalToolName: teamspaceTool.name,
             },
           ],
         ]),
-        close: workOsClose,
+        close: teamspaceClose,
       }),
-    } as unknown as FirstPartyWorkOsMcpAdapter;
+    } as unknown as FirstPartyTeamspaceMcpAdapter;
     const external = {
       open: jest.fn().mockRejectedValue(new Error('remote failure')),
     } as unknown as ExternalMcpToolSessionProvider;
 
     const session = await new CombinedMcpToolSessionAdapter(
-      workOs,
+      teamspace,
       external,
     ).open(actor);
 
-    expect(session.tools).toEqual([workOsTool]);
-    expect(session.readOnlyTools).toEqual([workOsTool]);
-    expect(workOsTool.metadata?.['workOsMcp']).toEqual({
+    expect(session.tools).toEqual([teamspaceTool]);
+    expect(session.readOnlyTools).toEqual([teamspaceTool]);
+    expect(teamspaceTool.metadata?.['teamspaceMcp']).toEqual({
       source: 'workos',
       namespace: 'workos',
       originalToolName: 'workos_search',
     });
     await session.close();
-    expect(workOsClose).toHaveBeenCalledTimes(1);
+    expect(teamspaceClose).toHaveBeenCalledTimes(1);
   });
 
   test('external tools를 합치되 readOnly 승격 없이 interruptOn을 보존한다', async () => {
-    const workOsTool = tool('workos_read', true);
+    const teamspaceTool = tool('workos_read', true);
     const externalTool = tool('extexample1__search', true);
-    const workOs = {
+    const teamspace = {
       open: jest.fn().mockResolvedValue({
-        tools: [workOsTool],
-        readOnlyTools: [workOsTool],
+        tools: [teamspaceTool],
+        readOnlyTools: [teamspaceTool],
         interruptOn: {},
         toolIdentities: new Map([
           [
-            workOsTool.name,
+            teamspaceTool.name,
             {
               source: 'workos' as const,
               namespace: 'workos' as const,
-              originalToolName: workOsTool.name,
+              originalToolName: teamspaceTool.name,
             },
           ],
         ]),
         close: jest.fn().mockRejectedValue(new Error('close failure')),
       }),
-    } as unknown as FirstPartyWorkOsMcpAdapter;
+    } as unknown as FirstPartyTeamspaceMcpAdapter;
     const external = {
       open: jest.fn().mockResolvedValue({
         tools: [externalTool],
@@ -103,12 +103,12 @@ describe('Work OS와 external MCP combined session', () => {
     } as unknown as ExternalMcpToolSessionProvider;
 
     const session = await new CombinedMcpToolSessionAdapter(
-      workOs,
+      teamspace,
       external,
     ).open(actor);
 
-    expect(session.tools).toEqual([workOsTool, externalTool]);
-    expect(session.readOnlyTools).toEqual([workOsTool]);
+    expect(session.tools).toEqual([teamspaceTool, externalTool]);
+    expect(session.readOnlyTools).toEqual([teamspaceTool]);
     expect(session.interruptOn).toEqual({
       extexample1__search: true,
     });

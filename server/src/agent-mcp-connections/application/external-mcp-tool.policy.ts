@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import type { McpToolIdentity } from '@/agent/infrastructure/mcp/workos-tool-session.provider';
+import type { McpToolIdentity } from '@/agent/infrastructure/mcp/teamspace-tool-session.provider';
 import type { AgentMcpConnection } from '@/agent-mcp-connections/domain/agent-mcp-connection';
 import type { AgentMcpConnectionTool } from '@/agent-mcp-connections/domain/agent-mcp-connection-tool';
 import {
@@ -76,7 +76,7 @@ export class ExternalMcpToolPolicy {
       tool.name = canonicalName;
       tool.metadata = {
         ...(annotations === undefined ? {} : { annotations }),
-        workOsMcp: {
+        teamspaceMcp: {
           source: 'external',
           connectionId: connection.id,
           namespace: connection.namespace,

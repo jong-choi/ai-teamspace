@@ -9,9 +9,9 @@ import { GraphRebuildWorkflowService } from '@/knowledge-graph/graph-rebuild-wor
 import { CuratedProjectionPersistenceModule } from '@/knowledge-graph/infrastructure/persistence/drizzle/curated-projection-persistence.module';
 import { GraphRebuildPersistenceModule } from '@/knowledge-graph/infrastructure/persistence/drizzle/graph-rebuild-persistence.module';
 import { GraphRebuildProgressPersistenceModule } from '@/knowledge-graph/infrastructure/persistence/outbox/graph-rebuild-progress-persistence.module';
-import { WorkosSourceAdapter } from '@/knowledge-graph/infrastructure/source/workos/workos-source.adapter';
-import { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
-import { WorkosGraphSourceAccessModule } from '@/knowledge-graph/infrastructure/source-access/workos/workos-graph-source-access.module';
+import { TeamspaceSourceAdapter } from '@/knowledge-graph/infrastructure/source/teamspace/teamspace-source.adapter';
+import { TeamspaceSourceProvider } from '@/knowledge-graph/infrastructure/source/teamspace-source.provider';
+import { TeamspaceGraphSourceAccessModule } from '@/knowledge-graph/infrastructure/source-access/teamspace/teamspace-graph-source-access.module';
 import { MembershipProjectionQueryModule } from '@/organizations/membership-projection-query.module';
 import { ProjectProjectionQueryModule } from '@/projects/project-projection-query.module';
 import { TicketLabelProjectionQueryModule } from '@/projects/ticket-label-projection-query.module';
@@ -32,12 +32,12 @@ import { WikiProjectionQueryModule } from '@/wiki/wiki-projection-query.module';
     TicketLabelProjectionQueryModule,
     TicketProjectionQueryModule,
     WikiProjectionQueryModule,
-    WorkosGraphSourceAccessModule,
+    TeamspaceGraphSourceAccessModule,
   ],
   providers: [
     {
-      provide: WorkosSourceProvider,
-      useClass: WorkosSourceAdapter,
+      provide: TeamspaceSourceProvider,
+      useClass: TeamspaceSourceAdapter,
     },
     GraphRebuildWorkflowService,
     KnowledgeGraphRebuildProcessor,

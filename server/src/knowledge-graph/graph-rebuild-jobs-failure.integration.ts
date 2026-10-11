@@ -19,7 +19,7 @@ import { semanticPipelineFingerprint } from '@/knowledge-graph/domain/semantic-p
 import { GraphRebuildWorkflowService } from '@/knowledge-graph/graph-rebuild-workflow.service';
 import { GraphRebuildWorkerDrizzleRepository } from '@/knowledge-graph/infrastructure/persistence/drizzle/repositories/graph-rebuild-worker.repository';
 import { graphRebuildRequest } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/graph-rebuild-request.schema';
-import type { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
+import type { TeamspaceSourceProvider } from '@/knowledge-graph/infrastructure/source/teamspace-source.provider';
 import type { GraphSourceAccessProvider } from '@/knowledge-graph/infrastructure/source-access/graph-source-access.provider';
 import type { SemanticRefreshService } from '@/knowledge-graph/semantic-refresh.service';
 import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
@@ -231,7 +231,7 @@ describeKnowledgeGraph('F8-06 rebuild Jobs 장애 복구 전체 흐름', () => {
       {
         organizationExists: async () => true,
         listIds,
-      } as unknown as WorkosSourceProvider,
+      } as unknown as TeamspaceSourceProvider,
       {
         isAdministrator: async () => true,
       } as unknown as GraphSourceAccessProvider,
@@ -273,7 +273,7 @@ describeKnowledgeGraph('F8-06 rebuild Jobs 장애 복구 전체 흐름', () => {
       {
         organizationExists: async () => true,
         listIds: async () => [],
-      } as unknown as WorkosSourceProvider,
+      } as unknown as TeamspaceSourceProvider,
       {
         isAdministrator: async () => true,
       } as unknown as GraphSourceAccessProvider,

@@ -200,7 +200,7 @@ describe('채팅 E2E', () => {
     const trusted = await request(app.getHttpServer())
       .post('/chat/channels')
       .set('Cookie', nativeUser.cookie)
-      .set('expo-origin', 'monorepoerp://')
+      .set('expo-origin', 'aiteamspace://')
       .send({ name: 'Native 채널' });
     expect(trusted.status).toBe(201);
     expect(trusted.body.name).toBe('Native 채널');

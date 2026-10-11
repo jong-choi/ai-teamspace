@@ -4,8 +4,8 @@ import { ConfigService } from '@nestjs/config';
 import type { AgentActor } from '@/agent/domain/agent-actor';
 import type {
   McpToolIdentity,
-  WorkOsToolSession,
-} from '@/agent/infrastructure/mcp/workos-tool-session.provider';
+  TeamspaceToolSession,
+} from '@/agent/infrastructure/mcp/teamspace-tool-session.provider';
 import { classifyExternalMcpError } from '@/agent-mcp-connections/application/external-mcp-error-category';
 import { AgentMcpAuditPublisher } from '@/agent-mcp-connections/infrastructure/audit/agent-mcp-audit.publisher';
 import { ExternalMcpConnectionSessionProvider } from '@/agent-mcp-connections/infrastructure/mcp/external-mcp-connection-session.provider';
@@ -27,7 +27,7 @@ export class ExternalMcpToolSessionAdapter extends ExternalMcpToolSessionProvide
     super();
   }
 
-  async open(actor: AgentActor): Promise<WorkOsToolSession> {
+  async open(actor: AgentActor): Promise<TeamspaceToolSession> {
     const config = this.configService.getOrThrow('agentMcpConnections', {
       infer: true,
     });
@@ -82,7 +82,7 @@ export class ExternalMcpToolSessionAdapter extends ExternalMcpToolSessionProvide
         }),
     );
     const sessions = opened.filter(
-      (session): session is WorkOsToolSession => session !== null,
+      (session): session is TeamspaceToolSession => session !== null,
     );
     const tools = sessions.flatMap((session) => session.tools);
     const toolIdentities = new Map(
@@ -133,9 +133,9 @@ export class ExternalMcpToolSessionAdapter extends ExternalMcpToolSessionProvide
 
   private instrumentTool(
     actor: AgentActor,
-    tool: WorkOsToolSession['tools'][number],
+    tool: TeamspaceToolSession['tools'][number],
     identity: Extract<McpToolIdentity, { source: 'external' }>,
-  ): WorkOsToolSession['tools'][number] {
+  ): TeamspaceToolSession['tools'][number] {
     const originalInvoke = tool.invoke.bind(tool);
     tool.invoke = (async (...args: Parameters<typeof originalInvoke>) => {
       const startedAt = Date.now();

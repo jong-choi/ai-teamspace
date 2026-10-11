@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 
-import { WorkOsAgentGraphProvider } from '@/agent/application/workos-agent-graph.provider';
+import { TeamspaceAgentGraphProvider } from '@/agent/application/teamspace-agent-graph.provider';
 import { DeepAgentBuilder } from '@/agent/infrastructure/deep-agent/deep-agent.builder';
-import { DeepAgentWorkOsGraphAdapter } from '@/agent/infrastructure/deep-agent/deep-agent-workos-graph.adapter';
+import { DeepAgentTeamspaceGraphAdapter } from '@/agent/infrastructure/deep-agent/deep-agent-teamspace-graph.adapter';
 import { ConfiguredAgentModelModule } from '@/agent/infrastructure/model/configured/configured-agent-model.module';
 import { CombinedMcpToolSessionModule } from '@/agent-mcp-connections/infrastructure/mcp/combined-mcp-tool-session.module';
 import { OrganizationsModule } from '@/organizations/organizations.module';
@@ -16,10 +16,10 @@ import { OrganizationsModule } from '@/organizations/organizations.module';
   providers: [
     DeepAgentBuilder,
     {
-      provide: WorkOsAgentGraphProvider,
-      useClass: DeepAgentWorkOsGraphAdapter,
+      provide: TeamspaceAgentGraphProvider,
+      useClass: DeepAgentTeamspaceGraphAdapter,
     },
   ],
-  exports: [WorkOsAgentGraphProvider],
+  exports: [TeamspaceAgentGraphProvider],
 })
 export class DeepAgentModule {}

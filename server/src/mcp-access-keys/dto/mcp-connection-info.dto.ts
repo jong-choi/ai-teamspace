@@ -1,5 +1,5 @@
 import { createZodDto } from '@/common/dto/create-zod-dto';
-import { WORK_OS_MCP_PROTOCOL_VERSION } from '@/mcp/contracts/mcp-protocol';
+import { TEAMSPACE_MCP_PROTOCOL_VERSION } from '@/mcp/contracts/mcp-protocol';
 import { McpScopesSchema } from '@/mcp/contracts/mcp-scope';
 
 import { z } from 'zod';
@@ -7,7 +7,7 @@ import { z } from 'zod';
 export const McpConnectionInfoSchema = z
   .object({
     resourceUrl: z.url(),
-    protocolVersion: z.literal(WORK_OS_MCP_PROTOCOL_VERSION),
+    protocolVersion: z.literal(TEAMSPACE_MCP_PROTOCOL_VERSION),
     authMethods: z.array(z.enum(['oauth', 'personal-access-key'])).min(1),
     accessKey: z.object({
       prefix: z.string().min(1),

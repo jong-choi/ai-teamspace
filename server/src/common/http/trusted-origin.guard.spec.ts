@@ -14,11 +14,11 @@ describe('신뢰 출처 가드', () => {
     const context = createContext({
       method: 'POST',
       cookie: 'better-auth.session_token=test',
-      headers: { 'expo-origin': 'monorepoerp://' },
+      headers: { 'expo-origin': 'aiteamspace://' },
     });
 
     await expect(guard.canActivate(context)).resolves.toBe(true);
-    expect(isTrustedOrigin).toHaveBeenCalledWith('monorepoerp://', {
+    expect(isTrustedOrigin).toHaveBeenCalledWith('aiteamspace://', {
       allowRelativePaths: false,
     });
   });

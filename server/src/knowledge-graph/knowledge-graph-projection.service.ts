@@ -6,7 +6,7 @@ import { digestGraphJson } from '@/knowledge-graph/domain/graph-json-digest';
 import { KnowledgeGraphWriter } from '@/knowledge-graph/infrastructure/graph/knowledge-graph-writer.provider';
 import { ProjectionDeliveryRepository } from '@/knowledge-graph/infrastructure/persistence/projection-delivery.repository';
 import { ProjectionStateRepository } from '@/knowledge-graph/infrastructure/persistence/projection-state.repository';
-import { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
+import { TeamspaceSourceProvider } from '@/knowledge-graph/infrastructure/source/teamspace-source.provider';
 
 @Injectable()
 export class KnowledgeGraphProjectionService {
@@ -14,7 +14,7 @@ export class KnowledgeGraphProjectionService {
     @Inject(knowledgeGraphConfig.KEY)
     private readonly config: ConfigType<typeof knowledgeGraphConfig>,
     private readonly sourceState: ProjectionStateRepository,
-    private readonly sources: WorkosSourceProvider,
+    private readonly sources: TeamspaceSourceProvider,
     private readonly writer: KnowledgeGraphWriter,
     private readonly delivery: ProjectionDeliveryRepository,
   ) {}

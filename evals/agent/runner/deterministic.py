@@ -207,7 +207,7 @@ class DeterministicAgentExecutor:
                 ObservedToolCall(
                     sequence=call_sequence,
                     name=tool,
-                    source=ToolSource.WORK_OS,
+                    source=ToolSource.TEAMSPACE,
                     arguments=arguments,
                     is_error=False,
                     result_category="success",

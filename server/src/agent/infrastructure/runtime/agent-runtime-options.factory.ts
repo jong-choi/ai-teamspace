@@ -6,8 +6,8 @@ import {
   createDurableAgentRuntime,
 } from '@repo/agent-runtime';
 import { AgentAuthorizationPolicy } from '@/agent/application/agent-authorization.policy';
-import { WORKOS_AGENT_NAME } from '@/agent/application/workos-agent.definition';
-import { WorkOsAgentFactory } from '@/agent/application/workos-agent.factory';
+import { TEAMSPACE_AGENT_NAME } from '@/agent/application/teamspace-agent.definition';
+import { TeamspaceAgentFactory } from '@/agent/application/teamspace-agent.factory';
 import { AgentConfiguration } from '@/agent/config/agent-configuration';
 import { AgentTelemetryFactory } from '@/agent/infrastructure/observability/agent-telemetry.factory';
 
@@ -16,7 +16,7 @@ export class AgentRuntimeOptionsFactory {
   constructor(
     private readonly configuration: AgentConfiguration,
     private readonly authorization: AgentAuthorizationPolicy,
-    private readonly agents: WorkOsAgentFactory,
+    private readonly agents: TeamspaceAgentFactory,
     private readonly telemetryFactory: AgentTelemetryFactory,
   ) {}
 
@@ -28,7 +28,7 @@ export class AgentRuntimeOptionsFactory {
     let durable: Awaited<ReturnType<typeof createDurableAgentRuntime>>;
     try {
       durable = await createDurableAgentRuntime(
-        { [WORKOS_AGENT_NAME]: this.agents.createGraphFactory() },
+        { [TEAMSPACE_AGENT_NAME]: this.agents.createGraphFactory() },
         {
           ...durableConfiguration,
           overrides: {

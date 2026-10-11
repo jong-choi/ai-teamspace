@@ -4,7 +4,7 @@ import type { Auth } from '@/auth/auth';
 import type { AllConfigType } from '@/config/config.type';
 import { McpHttpHandler } from '@/mcp/infrastructure/transport/model-context-protocol/mcp-http.handler';
 import type { McpHttpSecurityGuard } from '@/mcp/infrastructure/transport/model-context-protocol/mcp-http-security.guard';
-import type { WorkOsMcpServerFactory } from '@/mcp/mcp-server.factory';
+import type { TeamspaceMcpServerFactory } from '@/mcp/mcp-server.factory';
 import {
   McpAccessKeyAuthenticationError,
   McpAccessKeyRateLimitedError,
@@ -55,7 +55,7 @@ describe('MCP HTTP credential routing', () => {
     authenticate,
   } as unknown as McpAccessKeyAuthenticator;
 
-  const serverFactory = { create } as unknown as WorkOsMcpServerFactory;
+  const serverFactory = { create } as unknown as TeamspaceMcpServerFactory;
   const securityGuard = { reject } as unknown as McpHttpSecurityGuard;
 
   beforeEach(() => {

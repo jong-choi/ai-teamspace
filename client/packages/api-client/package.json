@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/generated/work-os.ts",
+    ".": "./src/generated/teamspace.ts",
     "./runtime": "./src/runtime.ts",
     "./schemas": "./src/generated/schemas/index.ts",
     "./sse": "./src/sse.ts"

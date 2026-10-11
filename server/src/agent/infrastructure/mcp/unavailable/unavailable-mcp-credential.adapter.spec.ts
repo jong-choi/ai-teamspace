@@ -12,7 +12,7 @@ describe('사용 불가능한 MCP credential 어댑터', () => {
         permissions: [],
       }),
     ).toThrow(
-      'WorkOS MCP delegation credential provider가 구성되지 않았습니다.',
+      'AI Teamspace MCP delegation credential provider가 구성되지 않았습니다.',
     );
   });
 });

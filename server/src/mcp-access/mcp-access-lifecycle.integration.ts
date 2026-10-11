@@ -8,7 +8,7 @@ import { McpAccessMaintenanceModule } from '@/mcp-access/maintenance/mcp-access-
 import { McpAccessMaintenanceService } from '@/mcp-access/maintenance/mcp-access-maintenance.service';
 import { McpAccessService } from '@/mcp-access/mcp-access.service';
 
-import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
+import { waitForCondition } from '@test/agent/support/teamspace-agent.e2e-support';
 import {
   type McpActor,
   McpIntegrationApp,

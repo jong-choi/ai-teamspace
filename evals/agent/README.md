@@ -1,4 +1,4 @@
-# Work OS Agent evaluations
+# AI Teamspace Agent evaluations
 
 In `public-http` mode this project evaluates the existing Nest server strictly through public Agent Protocol, MCP, product API, and optional Langfuse API boundaries. It must not import production server repositories or private database state. The separate `deterministic-fixture` adapter is a repository-owned PR-fast harness oracle; it never claims to validate production model/server behavior.
 
@@ -36,7 +36,7 @@ uv run python -m runner.main run datasets/smoke/smoke.json \
   --baseline-report ../../.temp/evals/agent/baseline/report.json
 ```
 
-With `EVAL_TARGET_ADAPTER=public-http`, `run` requires a dedicated ephemeral target. It performs unauthenticated Agent Protocol `GET /info` capability capture, creates an isolated full-scope manifest actor through public Better Auth/product APIs, issues a short-lived public MCP access key, verifies MCP `2026-07-28`, captures the live tool manifest hash, revokes the probe key, and then runs bounded case/trial jobs through public Agent Protocol sessions. Personas with a valid session and an active organization also complete the first-party Agent OAuth delegation through the public `/mcp/agent-delegation/start` → authorize → consent → callback endpoints, because the Work OS Agent calls Work OS MCP with the user's delegation. Per-case MCP credentials, delegations, and sessions are isolated; active access keys and delegations are revoked during fixture cleanup.
+With `EVAL_TARGET_ADAPTER=public-http`, `run` requires a dedicated ephemeral target. It performs unauthenticated Agent Protocol `GET /info` capability capture, creates an isolated full-scope manifest actor through public Better Auth/product APIs, issues a short-lived public MCP access key, verifies MCP `2026-07-28`, captures the live tool manifest hash, revokes the probe key, and then runs bounded case/trial jobs through public Agent Protocol sessions. Personas with a valid session and an active organization also complete the first-party Agent OAuth delegation through the public `/mcp/agent-delegation/start` → authorize → consent → callback endpoints, because the AI Teamspace Agent calls AI Teamspace MCP with the user's delegation. Per-case MCP credentials, delegations, and sessions are isolated; active access keys and delegations are revoked during fixture cleanup.
 
 With `EVAL_TARGET_ADAPTER=deterministic-fixture`, the same CLI, suite runner, case runner, deterministic scorer, report writer, and baseline diff execute without network or provider credentials. The adapter materializes dataset-declared preconditions and expected tool/argument/HITL/auth-denial behavior as an in-memory oracle. Its manifest uses a distinct fixture runtime/model identity, so fixture reports cannot be compared to a live public target as an apples-to-apples baseline. Langfuse linkage and judge credentials are rejected in this mode.
 

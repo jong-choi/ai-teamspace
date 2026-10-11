@@ -19,7 +19,7 @@ import { KnowledgeGraphReconciliationScheduler } from '@/jobs/knowledge-graph/kn
 import knowledgeGraphConfig from '@/knowledge-graph/config/knowledge-graph.config';
 import { CuratedGraphModule } from '@/knowledge-graph/curated-graph.module';
 import { reconciliationScope } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/reconciliation-scope.schema';
-import { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
+import { TeamspaceSourceProvider } from '@/knowledge-graph/infrastructure/source/teamspace-source.provider';
 import { KnowledgeGraphReconciliationService } from '@/knowledge-graph/knowledge-graph-reconciliation.service';
 import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 import { OutboxAggregateProjectionState } from '@/outbox/outbox-aggregate-projection-state';
@@ -82,7 +82,7 @@ export function createReconciliationRecoveryContext() {
   const sources = () =>
     jobs
       .select(KnowledgeGraphJobsModule)
-      .get(WorkosSourceProvider, { strict: true });
+      .get(TeamspaceSourceProvider, { strict: true });
   const scheduler = (app = jobs) =>
     app.get(KnowledgeGraphReconciliationScheduler);
   const auth = () => jobs.get(AuthService<Auth>).instance;

@@ -4,9 +4,9 @@ import { agentMcpCredential } from '@/agent-mcp-connections/infrastructure/persi
 import type { McpScope } from '@/mcp/contracts/mcp-scope';
 
 import {
-  type StartedWorkOsMcpFixture,
-  startWorkOsMcpFixture,
-} from '@test/agent/fixtures/workos-mcp.fixture';
+  type StartedTeamspaceMcpFixture,
+  startTeamspaceMcpFixture,
+} from '@test/agent/fixtures/teamspace-mcp.fixture';
 import {
   type LoopbackTlsCertificate,
   trustLoopbackTlsCertificate,
@@ -21,11 +21,11 @@ const SCOPES: readonly McpScope[] = ['wiki:read'];
 
 describe('external MCP 연결 product 통합', () => {
   let tls: LoopbackTlsCertificate;
-  let fixture: StartedWorkOsMcpFixture;
+  let fixture: StartedTeamspaceMcpFixture;
 
   beforeAll(async () => {
     tls = await trustLoopbackTlsCertificate();
-    fixture = await startWorkOsMcpFixture({ tls });
+    fixture = await startTeamspaceMcpFixture({ tls });
   });
 
   afterAll(async () => {

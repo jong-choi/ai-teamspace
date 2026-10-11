@@ -20,9 +20,9 @@ import {
   OrganizationInvitationSchema,
 } from '@/organizations/domain/organization-invitation';
 import {
-  getWorkOsOrganizationAdapter,
-  type WorkOsOrganizationAuth,
-} from '@/organizations/infrastructure/better-auth/work-os-organization.adapter';
+  getTeamspaceOrganizationAdapter,
+  type TeamspaceOrganizationAuth,
+} from '@/organizations/infrastructure/better-auth/teamspace-organization.adapter';
 import {
   type CreateOrganizationInvitationProviderInput,
   OrganizationInvitationProvider,
@@ -37,13 +37,13 @@ const defaultMembershipLimit = 100;
 const defaultInvitationExpiresInSeconds = 60 * 60 * 48;
 
 type AuthApi = Auth['api'];
-type AuthContext = Awaited<WorkOsOrganizationAuth['$context']>;
+type AuthContext = Awaited<TeamspaceOrganizationAuth['$context']>;
 type AuthInvitation = Awaited<ReturnType<AuthApi['createInvitation']>>;
 
 @Injectable()
 export class BetterAuthOrganizationInvitationAdapter extends OrganizationInvitationProvider {
   constructor(
-    private readonly authService: AuthService<WorkOsOrganizationAuth>,
+    private readonly authService: AuthService<TeamspaceOrganizationAuth>,
   ) {
     super();
   }
@@ -354,12 +354,12 @@ export class BetterAuthOrganizationInvitationAdapter extends OrganizationInvitat
 
   private async organizationAdapter(): Promise<{
     authContext: AuthContext;
-    adapter: ReturnType<typeof getWorkOsOrganizationAdapter>;
+    adapter: ReturnType<typeof getTeamspaceOrganizationAdapter>;
   }> {
     const authContext = await this.authService.instance.$context;
     return {
       authContext,
-      adapter: getWorkOsOrganizationAdapter(authContext),
+      adapter: getTeamspaceOrganizationAdapter(authContext),
     };
   }
 

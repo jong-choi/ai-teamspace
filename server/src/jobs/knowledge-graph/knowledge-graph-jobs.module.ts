@@ -25,8 +25,8 @@ import { OutboxProjectionDeliveryAdapter } from '@/knowledge-graph/infrastructur
 import { OutboxProjectionStateAdapter } from '@/knowledge-graph/infrastructure/persistence/outbox/outbox-projection-state.adapter';
 import { ProjectionDeliveryRepository } from '@/knowledge-graph/infrastructure/persistence/projection-delivery.repository';
 import { ProjectionStateRepository } from '@/knowledge-graph/infrastructure/persistence/projection-state.repository';
-import { WorkosSourceAdapter } from '@/knowledge-graph/infrastructure/source/workos/workos-source.adapter';
-import { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
+import { TeamspaceSourceAdapter } from '@/knowledge-graph/infrastructure/source/teamspace/teamspace-source.adapter';
+import { TeamspaceSourceProvider } from '@/knowledge-graph/infrastructure/source/teamspace-source.provider';
 import { KnowledgeGraphBackfillService } from '@/knowledge-graph/knowledge-graph-backfill.service';
 import { KnowledgeGraphProjectionService } from '@/knowledge-graph/knowledge-graph-projection.service';
 import { KnowledgeGraphReconciliationService } from '@/knowledge-graph/knowledge-graph-reconciliation.service';
@@ -118,7 +118,7 @@ import { WikiProjectionQueryModule } from '@/wiki/wiki-projection-query.module';
       provide: ProjectionStateRepository,
       useClass: OutboxProjectionStateAdapter,
     },
-    { provide: WorkosSourceProvider, useClass: WorkosSourceAdapter },
+    { provide: TeamspaceSourceProvider, useClass: TeamspaceSourceAdapter },
     KnowledgeGraphBackfillService,
     KnowledgeGraphProjectionService,
     KnowledgeGraphReconciliationService,
@@ -137,7 +137,7 @@ import { WikiProjectionQueryModule } from '@/wiki/wiki-projection-query.module';
   exports: [
     OutboxAggregateChangePublisher,
     KnowledgeGraphBackfillService,
-    WorkosSourceProvider,
+    TeamspaceSourceProvider,
   ],
 })
 export class KnowledgeGraphJobsModule {}

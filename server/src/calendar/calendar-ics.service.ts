@@ -104,7 +104,7 @@ export class CalendarIcsService {
     const calendar = ical({
       name: selected.meeting.title,
       prodId: {
-        company: 'Work OS',
+        company: 'AI Teamspace',
         product: 'Meeting Calendar',
         language: 'KO',
       },

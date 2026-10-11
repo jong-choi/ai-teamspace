@@ -104,7 +104,7 @@ export function AgentChatPanel() {
         onToggleList={() => setListOpen((current) => !current)}
         showExpand={wide}
         showListToggle={!expanded}
-        title={title ?? 'Work OS Agent'}
+        title={title ?? 'AI Teamspace Agent'}
       />
       <AgentChatBody
         expanded={expanded}

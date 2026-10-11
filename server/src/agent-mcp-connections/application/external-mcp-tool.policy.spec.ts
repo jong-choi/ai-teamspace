@@ -30,7 +30,7 @@ describe('외부 MCP tool policy', () => {
       schema,
       metadata: {
         annotations: { readOnlyHint: true },
-        workOsMcp: { source: 'workos' },
+        teamspaceMcp: { source: 'workos' },
       },
     } as unknown as StructuredTool;
   }
@@ -60,7 +60,7 @@ describe('외부 MCP tool policy', () => {
 
     expect(result.tools).toHaveLength(1);
     expect(result.tools[0]?.name).toMatch(/^extexample1__/);
-    expect(result.tools[0]?.metadata?.['workOsMcp']).toMatchObject({
+    expect(result.tools[0]?.metadata?.['teamspaceMcp']).toMatchObject({
       source: 'external',
       connectionId: connection.id,
       originalToolName: 'search issues',

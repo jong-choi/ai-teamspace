@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /**
- * built-in Work OS write tool이 성공한 뒤 structured output에 담는 변경 영수증이다.
+ * built-in AI Teamspace write tool이 성공한 뒤 structured output에 담는 변경 영수증이다.
  * client는 Orval 생성 schema로 검증해 영향받은 업무 화면 cache만 갱신한다.
  * 권한 증표가 아니므로 화면 데이터는 항상 REST 재조회로 다시 받는다.
  * 제목·본문·이메일 같은 내용은 담지 않고 식별자와 시각만 담는다.

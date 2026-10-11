@@ -53,7 +53,7 @@ def test_build_run_manifest_uses_canonical_personas_and_live_protocol_data() -> 
         mcp_protocol_version="2026-07-28",
         mcp_resource_alias="work-os",
         tool_manifest_hash="a" * 64,
-        work_os_tool_names=frozenset({"wiki_get", "wiki_update"}),
+        teamspace_tool_names=frozenset({"wiki_get", "wiki_update"}),
     )
     timestamp = datetime(2026, 10, 8, tzinfo=UTC)
 

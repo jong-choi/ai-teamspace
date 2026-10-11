@@ -20,7 +20,7 @@ import { TicketChecklistRepository } from '@/projects/infrastructure/persistence
 import { TicketLabelRepository } from '@/projects/infrastructure/persistence/ticket-label.repository';
 import { TicketOrderingRepository } from '@/projects/infrastructure/persistence/ticket-ordering.repository';
 
-import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
+import { waitForCondition } from '@test/agent/support/teamspace-agent.e2e-support';
 import { and, eq } from 'drizzle-orm';
 
 jest.setTimeout(30_000);

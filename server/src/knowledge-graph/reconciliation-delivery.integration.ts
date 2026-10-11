@@ -6,7 +6,7 @@ import { createReconciliationRecoveryContext } from '@/knowledge-graph/testing/r
 import { outboxAggregateVersion } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-aggregate-version.schema';
 import { ProjectRepository } from '@/projects/infrastructure/persistence/project.repository';
 
-import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
+import { waitForCondition } from '@test/agent/support/teamspace-agent.e2e-support';
 import { and, eq } from 'drizzle-orm';
 
 jest.setTimeout(120_000);

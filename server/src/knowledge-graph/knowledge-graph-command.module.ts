@@ -10,8 +10,8 @@ import { GraphCorrectionCommandPersistenceModule } from '@/knowledge-graph/infra
 import { GraphQueryPersistenceModule } from '@/knowledge-graph/infrastructure/persistence/drizzle/graph-query-persistence.module';
 import { WikiRefreshPersistenceModule } from '@/knowledge-graph/infrastructure/persistence/drizzle/wiki-refresh-persistence.module';
 import { SemanticStatePersistenceModule } from '@/knowledge-graph/infrastructure/persistence/outbox/semantic-state-persistence.module';
-import { WorkosGraphSourceAccessModule } from '@/knowledge-graph/infrastructure/source-access/workos/workos-graph-source-access.module';
-import { WorkosGraphSourceSnapshotModule } from '@/knowledge-graph/infrastructure/source-snapshot/workos/workos-graph-source-snapshot.module';
+import { TeamspaceGraphSourceAccessModule } from '@/knowledge-graph/infrastructure/source-access/teamspace/teamspace-graph-source-access.module';
+import { TeamspaceGraphSourceSnapshotModule } from '@/knowledge-graph/infrastructure/source-snapshot/teamspace/teamspace-graph-source-snapshot.module';
 import { KnowledgeGraphCommandController } from '@/knowledge-graph/knowledge-graph-command.controller';
 import { SemanticCorrectionModule } from '@/knowledge-graph/semantic-correction.module';
 import { WikiKnowledgeGraphController } from '@/knowledge-graph/wiki-knowledge-graph.controller';
@@ -28,8 +28,8 @@ import { WikiProjectionQueryModule } from '@/wiki/wiki-projection-query.module';
     SemanticStatePersistenceModule,
     WikiProjectionQueryModule,
     WikiRefreshPersistenceModule,
-    WorkosGraphSourceAccessModule,
-    WorkosGraphSourceSnapshotModule,
+    TeamspaceGraphSourceAccessModule,
+    TeamspaceGraphSourceSnapshotModule,
   ],
   controllers: [WikiKnowledgeGraphController, KnowledgeGraphCommandController],
   providers: [

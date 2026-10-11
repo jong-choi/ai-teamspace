@@ -38,7 +38,7 @@ function tool(
 }
 
 describe('Agent 변경 영수증 해석', () => {
-  it('성공한 Work OS write 도구의 영수증을 Orval schema로 해석한다', () => {
+  it('성공한 AI Teamspace write 도구의 영수증을 Orval schema로 해석한다', () => {
     expect(
       decodeAgentMutationReceipt(tool('project_ticket_move', receipt), 'org-a'),
     ).toMatchObject({ kind: 'project_ticket', projectId: 'project-1' });

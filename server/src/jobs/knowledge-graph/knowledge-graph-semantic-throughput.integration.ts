@@ -2,7 +2,7 @@ import { describeSlowKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-
 import { createSemanticFlowContext } from '@/knowledge-graph/testing/semantic-flow.context';
 import { outboxSemanticSourceState as state } from '@/outbox/infrastructure/persistence/drizzle/schema/outbox-semantic-source-state.schema';
 
-import { waitForCondition } from '@test/agent/support/workos-agent.e2e-support';
+import { waitForCondition } from '@test/agent/support/teamspace-agent.e2e-support';
 import { and, eq, isNotNull } from 'drizzle-orm';
 
 // 100문서×3chunk를 실제 Jobs·BullMQ·Neo4j로 끝까지 색인해 처리량을 재므로 약 190초 걸린다.

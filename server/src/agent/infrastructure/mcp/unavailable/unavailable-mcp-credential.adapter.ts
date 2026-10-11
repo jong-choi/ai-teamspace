@@ -9,7 +9,7 @@ export class UnavailableMcpCredentialAdapter extends McpCredentialProvider {
   getCredential(actor: AgentActor): never {
     void actor;
     throw new Error(
-      'WorkOS MCP delegation credential provider가 구성되지 않았습니다.',
+      'AI Teamspace MCP delegation credential provider가 구성되지 않았습니다.',
     );
   }
 }

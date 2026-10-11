@@ -6,7 +6,7 @@ import { addExtraSchemas } from '@/openapi-extra-schemas';
 import { addProblemDetailsSchema } from 'nest-problem-details-filter/swagger';
 
 const openApiConfig = new DocumentBuilder()
-  .setTitle('Work OS API')
+  .setTitle('AI Teamspace API')
   .setVersion('1.0')
   .build();
 

@@ -32,7 +32,8 @@ export const GRAPH_FACT_CLASS_META: Record<
 > = {
   authoritative: {
     label: '확정',
-    description: 'Work OS 원본에서 온 사실입니다. 원본 화면에서 수정합니다.',
+    description:
+      'AI Teamspace 원본에서 온 사실입니다. 원본 화면에서 수정합니다.',
     dash: undefined,
   },
   extracted: {

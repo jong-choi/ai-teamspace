@@ -1,4 +1,4 @@
-import { WorkOsMcpServerFactory } from '@/mcp/mcp-server.factory';
+import { TeamspaceMcpServerFactory } from '@/mcp/mcp-server.factory';
 import type { BoundMcpTool } from '@/mcp/tools/bound-mcp-tool';
 import type { McpToolRegistryService } from '@/mcp/tools/mcp-tool-registry.service';
 import { organizationsListTool } from '@/mcp/tools/organizations/organization-tool-definitions';
@@ -21,7 +21,7 @@ const authInfo: AuthInfo = {
   extra: { mcpAuthContext: context },
 };
 
-describe('Work OS MCP server factory', () => {
+describe('AI Teamspace MCP server factory', () => {
   it('요청마다 새 McpServer를 만들고 현재 credential에 허용된 tool만 등록한다', () => {
     const tools: BoundMcpTool[] = [
       {
@@ -34,7 +34,7 @@ describe('Work OS MCP server factory', () => {
       toolsForAuth,
       invoke: jest.fn(),
     } as unknown as McpToolRegistryService;
-    const factory = new WorkOsMcpServerFactory(registry);
+    const factory = new TeamspaceMcpServerFactory(registry);
 
     const first = factory.create(authInfo);
     const second = factory.create(authInfo);
@@ -57,7 +57,7 @@ describe('Work OS MCP server factory', () => {
       invoke: jest.fn(),
     } as unknown as McpToolRegistryService;
 
-    new WorkOsMcpServerFactory(registry).create(authInfo);
+    new TeamspaceMcpServerFactory(registry).create(authInfo);
 
     expect(registryToolsForAuthMock).toHaveBeenCalledTimes(1);
   });

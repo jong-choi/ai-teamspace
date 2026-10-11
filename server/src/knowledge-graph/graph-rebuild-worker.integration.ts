@@ -11,7 +11,7 @@ import { semanticPipelineFingerprint } from '@/knowledge-graph/domain/semantic-p
 import { GraphRebuildWorkflowService } from '@/knowledge-graph/graph-rebuild-workflow.service';
 import { GraphRebuildWorkerDrizzleRepository } from '@/knowledge-graph/infrastructure/persistence/drizzle/repositories/graph-rebuild-worker.repository';
 import { graphRebuildRequest } from '@/knowledge-graph/infrastructure/persistence/drizzle/schema/graph-rebuild-request.schema';
-import type { WorkosSourceProvider } from '@/knowledge-graph/infrastructure/source/workos-source.provider';
+import type { TeamspaceSourceProvider } from '@/knowledge-graph/infrastructure/source/teamspace-source.provider';
 import type { GraphSourceAccessProvider } from '@/knowledge-graph/infrastructure/source-access/graph-source-access.provider';
 import type { SemanticRefreshService } from '@/knowledge-graph/semantic-refresh.service';
 import { describeKnowledgeGraph } from '@/knowledge-graph/testing/knowledge-graph-test-environment';
@@ -261,7 +261,7 @@ describeKnowledgeGraph('R8-09~13 rebuild worker PostgreSQL', () => {
     const sources = {
       organizationExists: jest.fn(async () => true),
       listIds: sourcesListIdsMock,
-    } as unknown as WorkosSourceProvider;
+    } as unknown as TeamspaceSourceProvider;
     const adminAccess = {
       isAdministrator: jest.fn(async () => true),
     } as unknown as GraphSourceAccessProvider;

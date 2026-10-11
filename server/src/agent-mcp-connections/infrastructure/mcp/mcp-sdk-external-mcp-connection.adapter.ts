@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import type { AgentActor } from '@/agent/domain/agent-actor';
-import type { WorkOsToolSession } from '@/agent/infrastructure/mcp/workos-tool-session.provider';
+import type { TeamspaceToolSession } from '@/agent/infrastructure/mcp/teamspace-tool-session.provider';
 import { AgentMcpCredentialService } from '@/agent-mcp-connections/application/agent-mcp-credential.service';
 import { AgentMcpOauthService } from '@/agent-mcp-connections/application/agent-mcp-oauth.service';
 import { ExternalMcpToolPolicy } from '@/agent-mcp-connections/application/external-mcp-tool.policy';
@@ -42,7 +42,7 @@ export class McpSdkExternalMcpConnectionAdapter
   async open(
     actor: AgentActor,
     connection: AgentMcpConnection,
-  ): Promise<WorkOsToolSession> {
+  ): Promise<TeamspaceToolSession> {
     const { client, close, config } = await this.connectClient(
       actor,
       connection,

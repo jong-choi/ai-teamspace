@@ -3,7 +3,7 @@ import type { MarkdownRange } from '@core/app/markdown/product-live-markdown';
 const MAX_MARKDOWN_PARSE_LENGTH = 100_000;
 
 /**
- * Work OS에서 허용하는 live Markdown 표시 범위다.
+ * AI Teamspace에서 허용하는 live Markdown 표시 범위다.
  * Canonical value는 원문 string이고, parser는 저장 형식을 바꾸지 않는다.
  */
 export function parseProductMarkdown(input: string): MarkdownRange[] {

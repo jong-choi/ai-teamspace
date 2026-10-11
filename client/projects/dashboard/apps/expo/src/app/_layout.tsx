@@ -4,6 +4,7 @@ import { type ReactNode, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
+import Head from 'expo-router/head';
 
 import { AppearanceProvider } from '@core/app/appearance/appearance-provider';
 import { DashboardErrorBoundary } from '@core/app/error/dashboard-error-boundary';
@@ -20,9 +21,23 @@ import { ExpoWikiCollaborationPlatformProvider } from '@/lib/wiki-collaboration-
 import { PortalHost } from '@rn-primitives/portal';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
+const APP_NAME = 'AI Workspace';
+const APP_DESCRIPTION =
+  '위키, 프로젝트, 일정, 대화를 AI와 함께 관리하는 팀 워크스페이스';
+
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <Head>
+        <title>{APP_NAME}</title>
+        <meta name="description" content={APP_DESCRIPTION} />
+        <meta name="application-name" content={APP_NAME} />
+        <meta name="apple-mobile-web-app-title" content={APP_NAME} />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content={APP_NAME} />
+        <meta property="og:title" content={APP_NAME} />
+        <meta property="og:description" content={APP_DESCRIPTION} />
+      </Head>
       <SafeAreaProvider>
         <AppearanceProvider
           storage={appearanceStorage}

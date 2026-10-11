@@ -303,7 +303,11 @@ export function useWikiCollaborationSession(input: {
             throw new Error('위키 공동편집 session scope가 변경되었습니다.');
           }
           authorizationExpiresAt = new Date(refreshed.expiresAt).getTime();
-          provider.setConfiguration({ token: refreshed.token });
+          // 토큰만 전달하면 SDK가 새 소켓을 만들므로 기존 연결을 함께 유지한다.
+          provider.setConfiguration({
+            token: refreshed.token,
+            websocketProvider: provider.configuration.websocketProvider,
+          });
           await provider.sendToken();
           setAuthReconnecting(false);
           scheduleAuthenticationRefresh();

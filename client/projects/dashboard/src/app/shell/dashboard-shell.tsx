@@ -32,7 +32,14 @@ import { useAgentChatStore } from '@core/features/agent-chat/agent-chat-provider
 import { useAgentChatWideLayout } from '@core/features/agent-chat/lib/use-agent-chat-layout';
 import { useAgentChatOutsidePress } from '@core/features/agent-chat/lib/use-agent-chat-outside-press';
 
-import { Building2, Menu, Sparkles, X } from 'lucide-react-native';
+import {
+  Building2,
+  Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Sparkles,
+  X,
+} from 'lucide-react-native';
 
 const DashboardShellContext = createContext(false);
 
@@ -68,6 +75,7 @@ export function DashboardShell({
                   : 'projects');
   const insets = useSafeAreaInsets();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
   const agentChatOpen = useAgentChatStore((state) => state.open);
   const agentChatExpanded = useAgentChatStore((state) => state.expanded);
   const agentChatPendingApproval = useAgentChatStore(
@@ -75,6 +83,7 @@ export function DashboardShell({
   );
   const toggleAgentChat = useAgentChatStore((state) => state.togglePanel);
   const wide = useAgentChatWideLayout();
+  const sidebarCollapsed = wide && !desktopSidebarOpen;
   const agentChatOutsidePress = useAgentChatOutsidePress();
   // 모바일에서 열렸거나 웹에서 확장되면 업무 본문은 숨기기만 하고 mount는 유지한다.
   const agentChatCoversBody = agentChatOpen && (!wide || agentChatExpanded);
@@ -117,10 +126,41 @@ export function DashboardShell({
           className={cn(
             'absolute inset-y-0 left-0 z-50 min-h-0 w-72 overflow-hidden border-r border-border bg-sidebar px-4 pb-4',
             'web:transition-transform web:duration-200',
-            'lg:relative lg:z-auto lg:w-64 lg:shrink-0 lg:translate-x-0 lg:px-3.5 lg:py-4',
+            'lg:relative lg:z-auto lg:shrink-0 lg:translate-x-0 lg:py-4',
+            sidebarCollapsed ? 'lg:w-16 lg:px-2' : 'lg:w-64 lg:px-3.5',
             drawerOpen ? 'translate-x-0' : '-translate-x-full',
           )}
+          testID="dashboard-sidebar"
         >
+          {wide ? (
+            <View
+              className={cn(
+                'mb-3 h-8 shrink-0 flex-row items-center',
+                sidebarCollapsed ? 'justify-center' : 'justify-between',
+              )}
+            >
+              {sidebarCollapsed ? null : (
+                <Text className="px-1 text-xs font-medium tracking-wider text-muted-foreground">
+                  AI Teamspace
+                </Text>
+              )}
+              <Button
+                accessibilityLabel={
+                  sidebarCollapsed ? '사이드바 열기' : '사이드바 닫기'
+                }
+                accessibilityState={{ expanded: desktopSidebarOpen }}
+                className="h-8 w-8"
+                onPress={() => setDesktopSidebarOpen((open) => !open)}
+                size="icon"
+                variant="ghost"
+              >
+                <Icon
+                  as={sidebarCollapsed ? PanelLeftOpen : PanelLeftClose}
+                  className="size-5 text-muted-foreground"
+                />
+              </Button>
+            </View>
+          ) : null}
           <View
             className="mb-3 shrink-0 flex-row items-center justify-between border-b border-border pb-3 lg:hidden"
             style={{ paddingTop: insets.top + 16 }}
@@ -148,6 +188,7 @@ export function DashboardShell({
 
           <DashboardNavigationContent
             activeItem={currentItem}
+            collapsed={sidebarCollapsed}
             onNavigate={() => setDrawerOpen(false)}
             organizationName={organizationName}
           />

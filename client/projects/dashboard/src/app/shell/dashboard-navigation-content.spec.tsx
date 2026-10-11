@@ -1,7 +1,10 @@
+import { View } from 'react-native';
+
 import type { DashboardPlatformValue } from '@core/app/platform/dashboard-platform';
 import { DashboardNavigationContent } from '@core/app/shell/dashboard-navigation-content';
 
 import { describe, expect, it, jest } from '@jest/globals';
+import { PortalHost } from '@rn-primitives/portal';
 import { fireEvent, render } from '@testing-library/react-native';
 
 let mockSession: Pick<
@@ -34,8 +37,64 @@ jest.mock('@core/app/platform/dashboard-platform', () => ({
   useDashboardPlatform: () => mockSession,
 }));
 jest.mock('@core/app/shell/theme-toggle', () => ({ ThemeToggle: () => null }));
+jest.mock('@core/features/organizations/organization-switcher-items', () => ({
+  OrganizationSwitcherItems: () => null,
+}));
 
 describe('사이드바 실제 계정 표시', () => {
+  it('접힌 메뉴는 글자를 숨겨도 각 아이콘으로 이동하고 계정 아바타와 조직 메뉴를 유지한다', async () => {
+    const measure = jest
+      .spyOn(View.prototype, 'measure')
+      .mockImplementation((callback) => {
+        callback(0, 0, 40, 40, 8, 60);
+      });
+    mockSession = {
+      currentUserId: 'user-1',
+      currentUser: {
+        id: 'user-1',
+        name: '로그인 사용자',
+        email: 'member@example.test',
+        image: null,
+      },
+      sessionPending: false,
+      sessionError: false,
+    };
+    mockOrganizationId = 'organization-a';
+    mockPush.mockClear();
+    const view = await render(
+      <>
+        <DashboardNavigationContent collapsed organizationName="테스트 조직" />
+        <PortalHost />
+      </>,
+    );
+    for (const label of [
+      '프로젝트',
+      '회의일정',
+      '위키',
+      '지식 그래프',
+      '설정',
+      '멤버',
+      '채팅',
+    ]) {
+      expect(view.queryByText(label)).toBeNull();
+      expect(view.getByLabelText(label)).toBeTruthy();
+    }
+    expect(view.queryByText('Workspace')).toBeNull();
+    expect(view.queryByText('테스트 조직')).toBeNull();
+    expect(view.queryByText('member@example.test')).toBeNull();
+    expect(view.getByLabelText('로그인 사용자 프로필 사진')).toBeTruthy();
+    await fireEvent.press(view.getByLabelText('프로젝트'));
+    expect(mockPush).toHaveBeenCalledWith('/projects');
+    await fireEvent.press(view.getByLabelText('멤버'));
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: '/organizations/[organizationId]/members',
+      params: { organizationId: 'organization-a' },
+    });
+    await fireEvent.press(view.getByLabelText('테스트 조직 선택'));
+    expect(view.getByText('새 조직')).toBeTruthy();
+    measure.mockRestore();
+  });
+
   it('현재 로그인 세션의 이름과 이메일을 표시한다', async () => {
     const view = await render(
       <DashboardNavigationContent organizationName="테스트 조직" />,

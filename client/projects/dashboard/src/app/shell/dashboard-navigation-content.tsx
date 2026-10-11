@@ -12,6 +12,11 @@ import {
 } from '@repo/client/rnr/components/ui/dropdown-menu';
 import { Icon } from '@repo/client/rnr/components/ui/icon';
 import { Text } from '@repo/client/rnr/components/ui/text';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@repo/client/rnr/components/ui/tooltip';
 import { cn } from '@repo/client/rnr/lib/utils';
 import { useDashboardPlatform } from '@core/app/platform/dashboard-platform';
 import { DashboardAccountAvatar } from '@core/app/shell/dashboard-account-avatar';
@@ -53,12 +58,14 @@ export type DashboardNavigationItemId = (typeof NAVIGATION_ITEMS)[number]['id'];
 
 type DashboardNavigationContentProps = {
   activeItem?: DashboardNavigationItemId;
+  collapsed?: boolean;
   organizationName?: string;
   onNavigate?: () => void;
 };
 
 export function DashboardNavigationContent({
   activeItem = 'projects',
+  collapsed = false,
   organizationName,
   onNavigate,
 }: DashboardNavigationContentProps) {
@@ -70,17 +77,12 @@ export function DashboardNavigationContent({
         showsVerticalScrollIndicator={false}
       >
         <SidebarOrganizationSwitcher
+          collapsed={collapsed}
           onNavigate={onNavigate}
           organizationName={organizationName}
         />
 
-        <View className="hidden lg:flex">
-          <Text className="mb-1.5 px-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Workspace
-          </Text>
-        </View>
-
-        <View className="gap-1 lg:gap-0.5">
+        <View className={cn('gap-1 lg:gap-0.5', collapsed && 'items-center')}>
           {NAVIGATION_ITEMS.filter((item) => item.id !== 'chat').map((item) => {
             const active = item.id === activeItem;
             if (item.id === 'members')
@@ -89,6 +91,7 @@ export function DashboardNavigationContent({
                   key={item.id}
                   item={item}
                   active={active}
+                  collapsed={collapsed}
                   onNavigate={onNavigate}
                 />
               );
@@ -107,6 +110,7 @@ export function DashboardNavigationContent({
                 key={item.id}
                 item={item}
                 active={active}
+                collapsed={collapsed}
                 route={route}
                 onNavigate={onNavigate}
               />
@@ -115,23 +119,31 @@ export function DashboardNavigationContent({
         </View>
       </ScrollView>
 
-      <View className="shrink-0 gap-2 border-t border-border pt-3">
+      <View
+        className={cn(
+          'shrink-0 gap-2 border-t border-border pt-3',
+          collapsed && 'items-center',
+        )}
+      >
         <NavigationItem
           item={CHAT_NAVIGATION_ITEM}
           active={activeItem === 'chat'}
+          collapsed={collapsed}
           route="/chat"
           onNavigate={onNavigate}
         />
-        <AccountFooter />
+        <AccountFooter collapsed={collapsed} />
       </View>
     </View>
   );
 }
 
 function OrganizationSwitcher({
+  collapsed,
   onNavigate,
   organizationName,
 }: {
+  collapsed: boolean;
   onNavigate?: () => void;
   organizationName?: string;
 }) {
@@ -139,36 +151,56 @@ function OrganizationSwitcher({
   const [createOpen, setCreateOpen] = useState(false);
 
   return (
-    <View className="mb-4">
+    <View className={cn('mb-4', collapsed && 'items-center')}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Pressable className="w-full flex-row items-center justify-between rounded-lg border border-border bg-card p-2 web:hover:bg-accent">
-            <View className="min-w-0 flex-1 flex-row items-center gap-2.5">
+          <Pressable
+            accessibilityLabel={`${organizationName ?? '조직'} 선택`}
+            className={cn(
+              'flex-row items-center rounded-lg border border-border bg-card web:hover:bg-accent',
+              collapsed
+                ? 'h-10 w-10 justify-center'
+                : 'w-full justify-between p-2',
+            )}
+          >
+            <View
+              className={cn(
+                'flex-row items-center',
+                !collapsed && 'min-w-0 flex-1 gap-2.5',
+              )}
+            >
               <View className="size-7 shrink-0 items-center justify-center rounded bg-primary">
                 <Icon
                   as={Building2}
                   className="size-4 text-primary-foreground"
                 />
               </View>
-              <View className="min-w-0 flex-1">
-                <Text className="truncate text-xs font-semibold">
-                  {organizationName ?? '조직 선택'}
-                </Text>
-                <Text className="text-2xs text-muted-foreground">
-                  {organizationName ? '현재 조직' : '활성 조직 없음'}
-                </Text>
-              </View>
+              {collapsed ? null : (
+                <View className="min-w-0 flex-1">
+                  <Text className="truncate text-xs font-semibold">
+                    {organizationName ?? '조직 선택'}
+                  </Text>
+                  <Text className="text-2xs text-muted-foreground">
+                    {organizationName ? '현재 조직' : '활성 조직 없음'}
+                  </Text>
+                </View>
+              )}
             </View>
-            <Icon
-              as={ChevronsUpDown}
-              className="size-4 shrink-0 text-muted-foreground"
-            />
+            {collapsed ? null : (
+              <Icon
+                as={ChevronsUpDown}
+                className="size-4 shrink-0 text-muted-foreground"
+              />
+            )}
           </Pressable>
         </DropdownMenuTrigger>
-        {/* 웹에서는 메뉴 폭을 트리거 폭에 맞춰 좌우 끝이 어긋나지 않게 한다. */}
+        {/* 접힌 사이드바에서는 아이콘 폭과 무관하게 메뉴 내용을 읽을 수 있는 폭을 유지한다. */}
         <DropdownMenuContent
           align="start"
-          className="w-60 rounded-lg p-1.5 shadow-none web:w-[var(--radix-dropdown-menu-trigger-width)]"
+          className={cn(
+            'w-60 rounded-lg p-1.5 shadow-none',
+            !collapsed && 'web:w-[var(--radix-dropdown-menu-trigger-width)]',
+          )}
           side="bottom"
         >
           {currentUserId ? (
@@ -214,7 +246,7 @@ function OrganizationSwitcher({
   );
 }
 
-function AccountFooter() {
+function AccountFooter({ collapsed }: { collapsed: boolean }) {
   const { currentUser, sessionPending, sessionError } = useDashboardPlatform();
   const title = sessionPending
     ? '계정 확인 중'
@@ -226,6 +258,16 @@ function AccountFooter() {
     : sessionError
       ? '로그인 정보를 다시 확인해 주세요.'
       : (currentUser?.email ?? '로그인해 주세요.');
+  if (collapsed) {
+    return (
+      <View
+        accessibilityLabel={title}
+        className="items-center justify-center pt-1"
+      >
+        <DashboardAccountAvatar />
+      </View>
+    );
+  }
   return (
     <View className="flex-row items-center justify-between pt-1">
       <View className="min-w-0 flex-1 flex-row items-center gap-2.5">
@@ -243,9 +285,11 @@ function AccountFooter() {
 }
 
 function SidebarOrganizationSwitcher({
+  collapsed,
   onNavigate,
   organizationName,
 }: {
+  collapsed: boolean;
   onNavigate?: () => void;
   organizationName?: string;
 }) {
@@ -253,28 +297,37 @@ function SidebarOrganizationSwitcher({
   if (organizationName || !currentUserId)
     return (
       <OrganizationSwitcher
+        collapsed={collapsed}
         onNavigate={onNavigate}
         organizationName={organizationName}
       />
     );
   return (
     <DashboardQueryBoundary
-      fallback={<OrganizationSwitcher onNavigate={onNavigate} />}
+      fallback={
+        <OrganizationSwitcher collapsed={collapsed} onNavigate={onNavigate} />
+      }
       resetKeys={[currentUserId]}
       title="활성 조직을 불러오지 못했습니다"
     >
-      <ResolvedOrganizationSwitcher onNavigate={onNavigate} />
+      <ResolvedOrganizationSwitcher
+        collapsed={collapsed}
+        onNavigate={onNavigate}
+      />
     </DashboardQueryBoundary>
   );
 }
 function ResolvedOrganizationSwitcher({
+  collapsed,
   onNavigate,
 }: {
+  collapsed: boolean;
   onNavigate?: () => void;
 }) {
   const { data } = useOrganizationsControllerGetActiveSuspense();
   return (
     <OrganizationSwitcher
+      collapsed={collapsed}
       onNavigate={onNavigate}
       organizationName={data.activeOrganization?.organization.name}
     />
@@ -284,18 +337,22 @@ function ResolvedOrganizationSwitcher({
 function NavigationItem({
   item,
   active,
+  collapsed = false,
   route,
   onNavigate,
 }: {
   item: (typeof NAVIGATION_ITEMS)[number];
   active: boolean;
+  collapsed?: boolean;
   route?: Href;
   onNavigate?: () => void;
 }) {
   const router = useRouter();
-  return (
+  const trigger = (
     <Pressable
+      accessibilityLabel={item.label}
       accessibilityRole={route ? 'link' : undefined}
+      accessibilityState={{ selected: active, disabled: !route }}
       disabled={!route}
       onPress={
         route
@@ -306,12 +363,15 @@ function NavigationItem({
           : undefined
       }
       className={cn(
-        'flex-row items-center justify-between rounded-md px-3 py-2 lg:px-2.5 lg:py-1.5',
+        'flex-row items-center rounded-md',
+        collapsed
+          ? 'h-10 w-10 justify-center'
+          : 'justify-between px-3 py-2 lg:px-2.5 lg:py-1.5',
         active && 'bg-accent',
         route && !active && 'web:hover:bg-accent/60',
       )}
     >
-      <View className="flex-row items-center gap-2.5">
+      <View className={cn('flex-row items-center', !collapsed && 'gap-2.5')}>
         <Icon
           as={item.icon}
           className={cn(
@@ -319,24 +379,36 @@ function NavigationItem({
             active && 'text-accent-foreground',
           )}
         />
-        <Text
-          className={cn(
-            'text-xs',
-            active
-              ? 'font-medium text-accent-foreground'
-              : 'text-muted-foreground',
-          )}
-        >
-          {item.label}
-        </Text>
+        {collapsed ? null : (
+          <Text
+            className={cn(
+              'text-xs',
+              active
+                ? 'font-medium text-accent-foreground'
+                : 'text-muted-foreground',
+            )}
+          >
+            {item.label}
+          </Text>
+        )}
       </View>
     </Pressable>
+  );
+  return collapsed ? (
+    <Tooltip>
+      <TooltipTrigger asChild>{trigger}</TooltipTrigger>
+      <TooltipContent side="right">
+        <Text>{item.label}</Text>
+      </TooltipContent>
+    </Tooltip>
+  ) : (
+    trigger
   );
 }
 function MembersNavigationItem(
   props: Pick<
     React.ComponentProps<typeof NavigationItem>,
-    'item' | 'active' | 'onNavigate'
+    'item' | 'active' | 'collapsed' | 'onNavigate'
   >,
 ) {
   const { currentUserId } = useDashboardPlatform();

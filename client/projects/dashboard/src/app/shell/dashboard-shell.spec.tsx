@@ -9,6 +9,7 @@ import { fireEvent, render } from '@testing-library/react-native';
 
 let mockWide = false;
 const mockBodyMounts = jest.fn();
+const mockNavigationContent = jest.fn();
 
 jest.mock('expo-router', () => ({
   usePathname: () => '/projects',
@@ -21,7 +22,10 @@ jest.mock('@core/features/agent-chat/agent-chat-panel', () => ({
   AgentChatPanel: () => null,
 }));
 jest.mock('@core/app/shell/dashboard-navigation-content', () => ({
-  DashboardNavigationContent: () => null,
+  DashboardNavigationContent: (props: unknown) => {
+    mockNavigationContent(props);
+    return null;
+  },
 }));
 jest.mock('@core/app/shell/dashboard-account-avatar', () => ({
   DashboardAccountAvatar: () => null,
@@ -71,6 +75,108 @@ describe('업무 shell의 Agent 채팅 토글', () => {
       </AgentChatProvider>,
     );
     expect(view.getByLabelText('Agent 채팅 열기, 승인 대기 중')).toBeTruthy();
+  });
+});
+
+describe('데스크톱 사이드바와 모바일 메뉴 상태', () => {
+  it('데스크톱은 펼쳐서 시작하고 아이콘 레일로 접었다가 다시 펼친다', async () => {
+    mockWide = true;
+    mockNavigationContent.mockClear();
+    const view = await render(
+      <AgentChatProvider>
+        <DashboardShell>
+          <Body />
+        </DashboardShell>
+      </AgentChatProvider>,
+    );
+    expect(
+      view.getByLabelText('사이드바 닫기').props.accessibilityState.expanded,
+    ).toBe(true);
+    await fireEvent.press(view.getByLabelText('사이드바 닫기'));
+    expect(
+      view.getByLabelText('사이드바 열기').props.accessibilityState.expanded,
+    ).toBe(false);
+    expect(mockNavigationContent).toHaveBeenLastCalledWith(
+      expect.objectContaining({ collapsed: true }),
+    );
+    await fireEvent.press(view.getByLabelText('사이드바 열기'));
+    expect(mockNavigationContent).toHaveBeenLastCalledWith(
+      expect.objectContaining({ collapsed: false }),
+    );
+  });
+
+  it('접힌 데스크톱에서 모바일로 바뀌어도 모바일 메뉴는 닫힌 전체 메뉴로 시작한다', async () => {
+    mockWide = true;
+    const view = await render(
+      <AgentChatProvider>
+        <DashboardShell>
+          <Body />
+        </DashboardShell>
+      </AgentChatProvider>,
+    );
+    await fireEvent.press(view.getByLabelText('사이드바 닫기'));
+    mockWide = false;
+    await view.rerender(
+      <AgentChatProvider>
+        <DashboardShell>
+          <Body />
+        </DashboardShell>
+      </AgentChatProvider>,
+    );
+    expect(view.queryByLabelText('사이드바 열기')).toBeNull();
+    expect(view.queryByLabelText('사이드바 닫기')).toBeNull();
+    expect(
+      view.getByLabelText('메뉴 열기').props.accessibilityState.expanded,
+    ).toBe(false);
+    expect(mockNavigationContent).toHaveBeenLastCalledWith(
+      expect.objectContaining({ collapsed: false }),
+    );
+    await fireEvent.press(view.getByLabelText('메뉴 열기'));
+    expect(
+      view.getByLabelText('메뉴 열기').props.accessibilityState.expanded,
+    ).toBe(true);
+    expect(mockNavigationContent).toHaveBeenLastCalledWith(
+      expect.objectContaining({ collapsed: false }),
+    );
+    mockWide = true;
+    await view.rerender(
+      <AgentChatProvider>
+        <DashboardShell>
+          <Body />
+        </DashboardShell>
+      </AgentChatProvider>,
+    );
+    expect(view.getByLabelText('사이드바 열기')).toBeTruthy();
+    expect(mockNavigationContent).toHaveBeenLastCalledWith(
+      expect.objectContaining({ collapsed: true }),
+    );
+  });
+
+  it('모바일 메뉴를 열어도 데스크톱 기본 펼침 상태는 바뀌지 않는다', async () => {
+    mockWide = false;
+    const view = await render(
+      <AgentChatProvider>
+        <DashboardShell>
+          <Body />
+        </DashboardShell>
+      </AgentChatProvider>,
+    );
+    expect(
+      view.getByLabelText('메뉴 열기').props.accessibilityState.expanded,
+    ).toBe(false);
+    await fireEvent.press(view.getByLabelText('메뉴 열기'));
+    mockWide = true;
+    await view.rerender(
+      <AgentChatProvider>
+        <DashboardShell>
+          <Body />
+        </DashboardShell>
+      </AgentChatProvider>,
+    );
+    expect(view.getByLabelText('사이드바 닫기')).toBeTruthy();
+    expect(mockNavigationContent).toHaveBeenLastCalledWith(
+      expect.objectContaining({ collapsed: false }),
+    );
   });
 });
 

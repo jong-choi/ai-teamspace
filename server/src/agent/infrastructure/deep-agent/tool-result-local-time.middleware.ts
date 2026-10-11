@@ -1,6 +1,13 @@
-import { formatLocalInstant } from '@/agent/domain/agent-system-context';
+import {
+  findAgentSystemContextTimeZone,
+  formatLocalInstant,
+} from '@/agent/domain/agent-system-context';
 
-import { ToolMessage } from '@langchain/core/messages';
+import {
+  type BaseMessage,
+  HumanMessage,
+  ToolMessage,
+} from '@langchain/core/messages';
 import { createMiddleware } from 'langchain';
 
 const UTC_INSTANT = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z/g;
@@ -18,31 +25,43 @@ export function localizeInstants(text: string, timeZone: string): string {
   });
 }
 
-/** 도구 결과의 UTC 시각을 사용자 time zone 기준으로 바꿔 모델에게 준다. */
-export function createToolResultLocalTimeMiddleware(timeZone: string) {
-  return createMiddleware({
-    name: 'ToolResultLocalTime',
-    wrapToolCall: async (request, handler) => {
-      const result = await handler(request);
-      if (!ToolMessage.isInstance(result)) return result;
-
-      return new ToolMessage({
-        id: result.id,
-        name: result.name,
-        content:
-          typeof result.content === 'string'
-            ? localizeInstants(result.content, timeZone)
-            : result.content.map((block) =>
-                block.type === 'text' && typeof block.text === 'string'
-                  ? { ...block, text: localizeInstants(block.text, timeZone) }
-                  : block,
-              ),
-        tool_call_id: result.tool_call_id,
-        status: result.status,
-        artifact: result.artifact,
-        additional_kwargs: result.additional_kwargs,
-        response_metadata: result.response_metadata,
-      });
-    },
-  });
+/** 대화에서 가장 최근 맥락 블록의 time zone을 찾는다. */
+export function findConversationTimeZone(
+  messages: BaseMessage[],
+): string | undefined {
+  for (const message of messages.toReversed()) {
+    if (!HumanMessage.isInstance(message)) continue;
+    const timeZone = findAgentSystemContextTimeZone(message.text);
+    if (timeZone !== undefined) return timeZone;
+  }
+  return undefined;
 }
+
+/** 도구 결과의 UTC 시각을 사용자 time zone 기준으로 바꿔 모델에게 준다. */
+export const toolResultLocalTimeMiddleware = createMiddleware({
+  name: 'ToolResultLocalTime',
+  wrapToolCall: async (request, handler) => {
+    const result = await handler(request);
+    if (!ToolMessage.isInstance(result)) return result;
+    const timeZone = findConversationTimeZone(request.state.messages);
+    if (timeZone === undefined) return result;
+
+    return new ToolMessage({
+      id: result.id,
+      name: result.name,
+      content:
+        typeof result.content === 'string'
+          ? localizeInstants(result.content, timeZone)
+          : result.content.map((block) =>
+              block.type === 'text' && typeof block.text === 'string'
+                ? { ...block, text: localizeInstants(block.text, timeZone) }
+                : block,
+            ),
+      tool_call_id: result.tool_call_id,
+      status: result.status,
+      artifact: result.artifact,
+      additional_kwargs: result.additional_kwargs,
+      response_metadata: result.response_metadata,
+    });
+  },
+});

@@ -8,8 +8,9 @@ import {
   TEAMSPACE_RESEARCHER_PROMPT,
   TEAMSPACE_ROOT_PROMPT,
 } from '@/agent/application/teamspace-agent.definition';
+import { filesystemToolExclusionMiddleware } from '@/agent/infrastructure/deep-agent/filesystem-tool-exclusion.middleware';
 import { toolInputFeedbackMiddleware } from '@/agent/infrastructure/deep-agent/tool-input-feedback.middleware';
-import { createToolResultLocalTimeMiddleware } from '@/agent/infrastructure/deep-agent/tool-result-local-time.middleware';
+import { toolResultLocalTimeMiddleware } from '@/agent/infrastructure/deep-agent/tool-result-local-time.middleware';
 import type { TeamspaceToolSession } from '@/agent/infrastructure/mcp/teamspace-tool-session.provider';
 import type { AgentModels } from '@/agent/infrastructure/model/agent-model.provider';
 
@@ -21,13 +22,13 @@ interface TeamspaceDeepAgentInput {
   tools: StructuredTool[];
   readOnlyTools: StructuredTool[];
   interruptOn: Record<string, true>;
-  timeZone: string;
 }
 
 function createTeamspaceDeepAgent(input: TeamspaceDeepAgentInput) {
   const middleware = [
+    filesystemToolExclusionMiddleware,
     toolInputFeedbackMiddleware,
-    createToolResultLocalTimeMiddleware(input.timeZone),
+    toolResultLocalTimeMiddleware,
   ];
 
   return createDeepAgent({
@@ -69,14 +70,12 @@ export class DeepAgentBuilder {
   buildExecution(input: {
     models: AgentModels;
     session: TeamspaceToolSession;
-    timeZone: string;
   }): TeamspaceDeepAgent {
     return createTeamspaceDeepAgent({
       models: input.models,
       tools: input.session.tools,
       readOnlyTools: input.session.readOnlyTools,
       interruptOn: input.session.interruptOn,
-      timeZone: input.timeZone,
     });
   }
 
@@ -86,7 +85,6 @@ export class DeepAgentBuilder {
       tools: [],
       readOnlyTools: [],
       interruptOn: {},
-      timeZone: 'UTC',
     });
   }
 }

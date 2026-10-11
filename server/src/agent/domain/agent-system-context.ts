@@ -66,6 +66,20 @@ export function renderAgentSystemContext(
 }
 
 /**
+ * 사용자 메시지에 붙은 맥락 블록에서 time zone을 읽는다.
+ * 승인 뒤 재개처럼 run이 화면 맥락 없이 이어질 때도 대화에 남은 블록으로 알 수 있다.
+ */
+export function findAgentSystemContextTimeZone(
+  content: string,
+): string | undefined {
+  const block = new RegExp(
+    `^<${AGENT_SYSTEM_CONTEXT_TAG}>\\n([\\s\\S]*?)\\n</${AGENT_SYSTEM_CONTEXT_TAG}>`,
+  ).exec(content);
+  const timeZone = /^time_zone: (.+)$/m.exec(block?.[1] ?? '')?.[1];
+  return timeZone === undefined ? undefined : resolveTimeZone(timeZone);
+}
+
+/**
  * run input의 마지막 사용자 메시지 앞에 맥락 블록을 붙인다.
  * 블록이 붙은 메시지가 그대로 thread에 남아야 이후 turn의 prompt prefix가 바뀌지 않는다.
  * 사용자 메시지가 없는 input(HITL resume 등)은 그대로 돌려준다.
@@ -127,8 +141,7 @@ function isHumanMessage(message: unknown): message is Record<string, unknown> {
   );
 }
 
-/** 알 수 없는 time zone은 UTC로 본다. */
-export function resolveTimeZone(timeZone: string | undefined): string {
+function resolveTimeZone(timeZone: string | undefined): string {
   if (!timeZone) return FALLBACK_TIME_ZONE;
   try {
     return new Intl.DateTimeFormat('en-US', { timeZone }).resolvedOptions()

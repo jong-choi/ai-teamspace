@@ -82,8 +82,7 @@ export const calendarAvailabilityCheckTool = defineMcpTool({
 export const calendarMeetingCreateTool = defineMcpTool({
   name: 'calendar_meeting_create',
   title: '캘린더 회의 생성',
-  description:
-    '회의를 만듭니다. 사용자가 주최자가 되고 참석자에게 알림이 갑니다.',
+  description: '회의를 만듭니다. 사용자가 주최자가 됩니다.',
   inputSchema: CreateMeetingSchema.safeExtend({
     ...organizationIdField,
     category: CreateMeetingSchema.shape.category.describe(
@@ -138,7 +137,7 @@ export const calendarMeetingRescheduleTool = defineMcpTool({
 export const calendarMeetingCancelTool = defineMcpTool({
   name: 'calendar_meeting_cancel',
   title: '캘린더 회의 취소',
-  description: '회의를 취소합니다. 참석자에게 알림이 갑니다.',
+  description: '회의를 취소합니다.',
   inputSchema: CancelMeetingSchema.extend({
     ...meetingIdentityFields,
     scope: CancelMeetingSchema.shape.scope.describe(

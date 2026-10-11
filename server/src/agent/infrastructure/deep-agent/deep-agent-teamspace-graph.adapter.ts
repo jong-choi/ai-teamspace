@@ -6,7 +6,6 @@ import { resolveAgentReasoningEffort } from '@/agent/domain/agent-reasoning-effo
 import {
   renderAgentSystemContext,
   resolveAgentClientContext,
-  resolveTimeZone,
   withAgentSystemContext,
 } from '@/agent/domain/agent-system-context';
 import { DeepAgentBuilder } from '@/agent/infrastructure/deep-agent/deep-agent.builder';
@@ -50,11 +49,7 @@ export class DeepAgentTeamspaceGraphAdapter extends TeamspaceAgentGraphProvider 
       const models = await this.models.createModels(actor, {
         reasoningEffort,
       });
-      const agent = this.builder.buildExecution({
-        models,
-        session,
-        timeZone: resolveTimeZone(clientContext.timeZone),
-      });
+      const agent = this.builder.buildExecution({ models, session });
       const { organization } = await this.memberships.requireAccess(
         { userId: actor.userId },
         actor.organizationId,

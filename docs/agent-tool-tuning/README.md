@@ -73,3 +73,4 @@ AI Teamspace 에이전트의 시스템 프롬프트, MCP 도구 설명, 인자 �
 | [05-round-2.md](05-round-2.md)                 | 2차 개선 내용과 측정 (2회)                    |
 | [06-round-3.md](06-round-3.md)                 | 3차 개선 내용과 측정 (2회)                    |
 | [07-round-4.md](07-round-4.md)                 | 4차 개선 내용과 측정 (1회)                    |
+| [08-summary.md](08-summary.md)                 | 전체 결과와 남은 문제                         |

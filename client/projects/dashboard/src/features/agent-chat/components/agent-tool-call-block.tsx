@@ -44,7 +44,7 @@ export function AgentToolCallBlock({ item }: { item: AgentToolCallItem }) {
   const external = item.source.kind === 'external';
   const hasDetails =
     item.fields.length > 0 ||
-    item.resultSummary !== null ||
+    item.resultDetails !== null ||
     item.state === 'denied' ||
     item.subagent !== null;
 
@@ -69,13 +69,25 @@ export function AgentToolCallBlock({ item }: { item: AgentToolCallItem }) {
             as={item.subagent ? Bot : external ? Plug : Wrench}
             className="size-3 text-muted-foreground"
           />
-          <Text
-            className="min-w-0 flex-1 text-xs font-medium text-foreground"
-            numberOfLines={1}
-          >
-            {item.label}
-            {item.subagent ? ` · ${item.subagent.name}` : ''}
-          </Text>
+          <View className="min-w-0 flex-1 flex-row items-center gap-1.5">
+            <Text
+              className="shrink text-xs font-medium text-foreground"
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {item.label}
+              {item.subagent ? ` · ${item.subagent.name}` : ''}
+            </Text>
+            {item.resultSummary ? (
+              <Text
+                className="min-w-0 flex-1 text-xs font-normal text-muted-foreground"
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {item.resultSummary}
+              </Text>
+            ) : null}
+          </View>
           {external && item.source.kind === 'external' ? (
             <Badge className="px-1.5 py-0" variant="outline">
               <Text className="text-2xs font-normal text-muted-foreground">
@@ -115,13 +127,13 @@ export function AgentToolCallBlock({ item }: { item: AgentToolCallItem }) {
                 ))}
               </View>
             ) : null}
-            {item.resultSummary ? (
+            {item.resultDetails !== null ? (
               <View className="gap-0.5">
                 <Text className="text-2xs font-medium text-muted-foreground">
                   결과
                 </Text>
-                <Text className="text-xs leading-4 text-foreground">
-                  {item.resultSummary}
+                <Text selectable className="text-xs leading-4 text-foreground">
+                  {item.resultDetails}
                 </Text>
               </View>
             ) : null}

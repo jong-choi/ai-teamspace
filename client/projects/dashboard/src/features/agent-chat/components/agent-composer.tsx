@@ -241,24 +241,6 @@ export function AgentComposer({
           </Text>
 
           <View className="flex-row items-center gap-1.5">
-            {busy && onStop ? (
-              <Button
-                accessibilityLabel={
-                  stopping ? 'Agent 실행 중지 중' : 'Agent 실행 중지'
-                }
-                className="h-7 w-7"
-                disabled={stopping}
-                onPress={onStop}
-                size="icon"
-                variant="outline"
-              >
-                {stopping ? (
-                  <ActivityIndicator size="small" />
-                ) : (
-                  <Icon as={Square} className="size-3" />
-                )}
-              </Button>
-            ) : null}
             <Button
               accessibilityLabel={busy ? '대기열에 추가' : '메시지 보내기'}
               className={cn(
@@ -282,6 +264,24 @@ export function AgentComposer({
                 />
               )}
             </Button>
+            {busy && onStop ? (
+              <Button
+                accessibilityLabel={
+                  stopping ? 'Agent 실행 중지 중' : 'Agent 실행 중지'
+                }
+                className="h-7 w-7"
+                disabled={stopping}
+                onPress={onStop}
+                size="icon"
+                variant="outline"
+              >
+                {stopping ? (
+                  <ActivityIndicator size="small" />
+                ) : (
+                  <Icon as={Square} className="size-3" />
+                )}
+              </Button>
+            ) : null}
           </View>
         </View>
       </View>

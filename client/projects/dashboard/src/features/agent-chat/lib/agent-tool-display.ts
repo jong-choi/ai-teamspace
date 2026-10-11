@@ -13,6 +13,7 @@ const fieldLabels = {
   title: '제목',
   name: '이름',
   query: '검색어',
+  q: '검색어',
   status: '상태',
   role: '역할',
   description: '설명',
@@ -33,6 +34,8 @@ const fieldLabels = {
 type DisplayFieldKey = keyof typeof fieldLabels;
 
 const toolLabels: Record<string, string> = {
+  knowledge_search: '지식 그래프 검색',
+  knowledge_get_context: '지식 그래프 맥락 조회',
   organizations_list: '조직 목록 확인',
   organization_members_list: '조직 멤버 확인',
   organization_invitation_create: '조직 초대 생성',
@@ -109,6 +112,28 @@ export function isAgentToolPermissionDenied(text: string): boolean {
   return permissionDeniedPattern.test(text);
 }
 
+// 상세 결과는 생략하지 않고, 인증 정보만 가린 채 원래 줄바꿈을 유지한다.
+export function formatAgentToolResult(value: unknown): string | null {
+  if (value == null) return null;
+  if (typeof value === 'string') {
+    try {
+      return formatAgentToolResult(JSON.parse(value));
+    } catch {
+      return redactInlineSecrets(value);
+    }
+  }
+  return (
+    JSON.stringify(
+      value,
+      (key, entry: unknown) => {
+        if (sensitiveKeyPattern.test(key)) return '••••';
+        return typeof entry === 'string' ? redactInlineSecrets(entry) : entry;
+      },
+      2,
+    ) ?? null
+  );
+}
+
 export function projectAgentToolDisplay(input: {
   name: string;
   args: unknown;
@@ -125,11 +150,36 @@ export function projectAgentToolDisplay(input: {
     label: getAgentToolLabel(input.name),
     fields: projectFields(input.args),
     resultSummary:
-      structured === undefined
+      projectKnowledgeResultSummary(input.name, structured) ??
+      projectKnowledgeResultSummary(input.name, input.result) ??
+      (structured === undefined
         ? projectResultSummary(input.result)
         : (projectResultSummary(structured) ??
-          projectResultSummary(input.result)),
+          projectResultSummary(input.result))),
   };
+}
+
+function projectKnowledgeResultSummary(
+  name: string,
+  value: unknown,
+): string | null {
+  if (!isRecord(value)) return null;
+  if (
+    name === 'knowledge_search' &&
+    Array.isArray(value['items']) &&
+    Array.isArray(value['records'])
+  ) {
+    return `문서 ${value['items'].length}개 · 업무 원본 ${value['records'].length}개`;
+  }
+  if (
+    name === 'knowledge_get_context' &&
+    Array.isArray(value['nodes']) &&
+    Array.isArray(value['entities']) &&
+    Array.isArray(value['relations'])
+  ) {
+    return `원본 ${value['nodes'].length}개 · 개념 ${value['entities'].length}개 · 관계 ${value['relations'].length}개`;
+  }
+  return null;
 }
 
 function projectFields(value: unknown): AgentToolDisplayField[] {
@@ -208,18 +258,19 @@ function formatSafeValue(value: unknown, maxLength: number): string | null {
 }
 
 function formatSafeText(value: string, maxLength: number): string {
-  const sanitized = value
-    .replace(inlineSecretPattern, (match) => {
-      const separatorIndex = Math.max(match.indexOf(':'), match.indexOf('='));
-      return separatorIndex >= 0
-        ? match.slice(0, separatorIndex + 1) + ' ••••'
-        : '••••';
-    })
-    .replace(/\s+/gu, ' ')
-    .trim();
+  const sanitized = redactInlineSecrets(value).replace(/\s+/gu, ' ').trim();
 
   if (sanitized.length <= maxLength) return sanitized;
   return sanitized.slice(0, Math.max(0, maxLength - 1)).trimEnd() + '…';
+}
+
+function redactInlineSecrets(value: string): string {
+  return value.replace(inlineSecretPattern, (match) => {
+    const separatorIndex = Math.max(match.indexOf(':'), match.indexOf('='));
+    return separatorIndex >= 0
+      ? match.slice(0, separatorIndex + 1) + ' ••••'
+      : '••••';
+  });
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

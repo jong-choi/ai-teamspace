@@ -3,6 +3,7 @@ import { AGENT_HITL_REJECT_PREFIX } from '@core/features/agent-chat/lib/agent-hi
 import {
   type AgentToolDisplayField,
   type AgentToolSource,
+  formatAgentToolResult,
   getAgentToolSource,
   isAgentToolPermissionDenied,
   projectAgentToolDisplay,
@@ -30,6 +31,7 @@ export type AgentToolCallItem = {
   state: AgentToolCallState;
   fields: AgentToolDisplayField[];
   resultSummary: string | null;
+  resultDetails: string | null;
   structured: unknown;
   subagent: AgentSubagentSummary | null;
 };
@@ -165,6 +167,7 @@ function projectToolCallItem(input: {
     state: resolveToolState(input.tool, resultText),
     fields: display.fields,
     resultSummary: display.resultSummary,
+    resultDetails: formatAgentToolResult(structured ?? (resultText || null)),
     structured,
     subagent: input.subagent,
   };

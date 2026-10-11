@@ -5,6 +5,7 @@ import {
 } from '@core/features/agent-chat/components/agent-composer';
 import { AgentHitlCard } from '@core/features/agent-chat/components/agent-hitl-card';
 import { AgentThreadList } from '@core/features/agent-chat/components/agent-thread-list';
+import { AgentToolCallBlock } from '@core/features/agent-chat/components/agent-tool-call-block';
 import { parseAgentHitlPresentation } from '@core/features/agent-chat/lib/agent-hitl';
 
 import { describe, expect, it, jest } from '@jest/globals';
@@ -186,6 +187,7 @@ describe('Agent assistant turn', () => {
               state: 'denied',
               fields: [],
               resultSummary: null,
+              resultDetails: null,
               structured: undefined,
               subagent: null,
             },
@@ -206,6 +208,38 @@ describe('Agent assistant turn', () => {
       expanded: true,
     });
     expect(view.getByText('완료')).toBeTruthy();
+  });
+});
+
+describe('도구 결과 표시', () => {
+  it('접힌 제목 옆에 요약을 표시하고 펼치면 상세 결과 전체를 보여 준다', async () => {
+    const details = '관계 정보\n' + '상세 결과 '.repeat(80) + '마지막 관계';
+    const view = await render(
+      <AgentToolCallBlock
+        item={{
+          kind: 'tool',
+          key: 'knowledge-1',
+          id: 'knowledge-1',
+          name: 'knowledge_search',
+          label: '지식 그래프 검색',
+          source: { kind: 'teamspace' },
+          state: 'completed',
+          fields: [],
+          resultSummary: '문서 3개 · 업무 원본 1개',
+          resultDetails: details,
+          structured: undefined,
+          subagent: null,
+        }}
+      />,
+    );
+    expect(view.getByText('문서 3개 · 업무 원본 1개').props).toMatchObject({
+      numberOfLines: 1,
+      ellipsizeMode: 'tail',
+    });
+    expect(view.queryByText(details)).toBeNull();
+    await fireEvent.press(view.getByLabelText('지식 그래프 검색 완료'));
+    expect(view.getByText(details).props.selectable).toBe(true);
+    expect(view.getByText(details).props.numberOfLines).toBeUndefined();
   });
 });
 

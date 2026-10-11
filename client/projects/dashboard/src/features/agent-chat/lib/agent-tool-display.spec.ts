@@ -1,8 +1,61 @@
-import { projectAgentToolDisplay } from '@core/features/agent-chat/lib/agent-tool-display';
+import {
+  formatAgentToolResult,
+  getAgentToolSource,
+  projectAgentToolDisplay,
+} from '@core/features/agent-chat/lib/agent-tool-display';
 
 import { describe, expect, it } from '@jest/globals';
 
 describe('Agent tool presentation', () => {
+  it('상세 결과는 중첩 관계와 긴 내용을 보존하고 인증 정보만 가린다', () => {
+    const description = '상세 내용 '.repeat(100);
+    const value = {
+      nodes: [{ title: '프로젝트', description }],
+      relations: ['김도윤 -[담당]-> 프로젝트'],
+      metadata: { token: 'private-secret', message: 'password=hidden-value' },
+    };
+    const details = formatAgentToolResult(JSON.stringify(value));
+    expect(details).toContain(description);
+    expect(details).toContain('김도윤 -[담당]-> 프로젝트');
+    expect(details).toContain('\n');
+    expect(details).not.toContain('private-secret');
+    expect(details).not.toContain('hidden-value');
+  });
+
+  it('지식 검색은 내부 도구로 표시하고 문서와 업무 원본을 각각 센다', () => {
+    const display = projectAgentToolDisplay({
+      name: 'knowledge_search',
+      args: { q: '리뉴얼' },
+      result: null,
+      structured: { items: [], records: [{ title: '리뉴얼 업무' }] },
+    });
+    expect(getAgentToolSource('knowledge_search')).toEqual({
+      kind: 'teamspace',
+    });
+    expect(display).toEqual({
+      label: '지식 그래프 검색',
+      fields: [{ label: '검색어', value: '리뉴얼' }],
+      resultSummary: '문서 0개 · 업무 원본 1개',
+    });
+  });
+
+  it('지식 맥락은 원본이 없어도 개념과 관계 결과를 표시한다', () => {
+    const display = projectAgentToolDisplay({
+      name: 'knowledge_get_context',
+      args: {},
+      result: {
+        nodes: [],
+        entities: ['리뉴얼', '최유진'],
+        relations: ['관계'],
+      },
+    });
+    expect(getAgentToolSource('knowledge_get_context')).toEqual({
+      kind: 'teamspace',
+    });
+    expect(display.label).toBe('지식 그래프 맥락 조회');
+    expect(display.resultSummary).toBe('원본 0개 · 개념 2개 · 관계 1개');
+  });
+
   it('canonical tool name을 사용자용 label로 바꾸고 raw name을 primary UI에 노출하지 않는다', () => {
     expect(
       projectAgentToolDisplay({

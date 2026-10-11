@@ -7,6 +7,8 @@ import {
   WikiCollaborationProtocolVersionError,
   WikiCollaborationStateCorruptedError,
   WikiCollaborationStateTooLargeError,
+  WikiDocumentContentEditAmbiguousError,
+  WikiDocumentContentEditNotFoundError,
   WikiDocumentHistoryCorruptedError,
 } from '@/wiki/domain/wiki.error';
 import {
@@ -399,5 +401,103 @@ describe('위키 공동편집 서비스', () => {
       documentName,
       42,
     );
+  });
+
+  describe('본문 부분 수정', () => {
+    const contentMarkdown = '# 캠페인\n- 확인 필요\n- 일정 확정\n- 확인 필요\n';
+
+    function persisted(markdown: string) {
+      const state = stateProvider.create(markdown);
+      repository.loadCollaborationState.mockResolvedValue({
+        id: documentId,
+        organizationId,
+        contentMarkdown: markdown,
+        collaborationState: new Uint8Array(state.encodedState),
+        collaborationSchemaVersion: 1,
+        collaborationPersistedAt: new Date(),
+      });
+    }
+
+    it('저장된 상태 위에 지정한 구간만 바꾼 상태를 준비한다', async () => {
+      persisted(contentMarkdown);
+
+      const prepared = await service.prepareContentEdit(
+        organizationId,
+        documentId,
+        { startLine: 4, oldText: '- 확인 필요', newText: '- 확인 완료' },
+      );
+
+      expect(prepared.documentName).toBe(documentName);
+      expect(stateProvider.decode(prepared.encodedState).contentMarkdown).toBe(
+        '# 캠페인\n- 확인 필요\n- 일정 확정\n- 확인 완료\n',
+      );
+      expect(repository.persistCollaborationSnapshot).not.toHaveBeenCalled();
+    });
+
+    it('위치가 모호하면 같은 문구가 시작하는 행 번호를 오류 메시지에 담는다', async () => {
+      persisted(contentMarkdown);
+
+      const failure = service.prepareContentEdit(organizationId, documentId, {
+        startLine: 3,
+        oldText: '- 확인 필요',
+        newText: '- 확인 완료',
+      });
+
+      await expect(failure).rejects.toBeInstanceOf(
+        WikiDocumentContentEditAmbiguousError,
+      );
+      await expect(failure).rejects.toThrow('2, 4행에서 시작합니다');
+    });
+
+    it('oldText가 본문에 없으면 저장하지 않고 거부한다', async () => {
+      persisted(contentMarkdown);
+
+      await expect(
+        service.prepareContentEdit(organizationId, documentId, {
+          startLine: 2,
+          oldText: '없는 문구',
+          newText: '새 문구',
+        }),
+      ).rejects.toBeInstanceOf(WikiDocumentContentEditNotFoundError);
+    });
+
+    it('수정한 사용자를 공동편집자로 기록하고 checkpoint와 함께 저장한다', async () => {
+      const edited = stateProvider.create('# 수정됨');
+      attributionProvider.snapshot.mockResolvedValue({
+        lastEditorUserId: userId,
+        collaboratorUserIds: ['user-b', userId],
+        maxSequence: 7,
+      });
+      repository.persistCollaborationSnapshot.mockResolvedValue({
+        changed: true,
+        checkpointCreated: true,
+        revision: 2,
+        contentMarkdown: '# 수정됨',
+        encodedState: edited.encodedState,
+      });
+
+      await service.commitContentEdit(
+        { documentName, encodedState: edited.encodedState },
+        userId,
+      );
+
+      expect(attributionProvider.record).toHaveBeenCalledWith(
+        documentName,
+        userId,
+      );
+      expect(repository.persistCollaborationSnapshot).toHaveBeenCalledWith(
+        organizationId,
+        documentId,
+        expect.objectContaining({ contentMarkdown: '# 수정됨' }),
+        userId,
+        ['user-b', userId],
+        WIKI_COLLABORATION_SCHEMA_VERSION,
+        true,
+      );
+      expect(attributionProvider.clearThrough).toHaveBeenCalledWith(
+        documentName,
+        7,
+      );
+    });
   });
 });

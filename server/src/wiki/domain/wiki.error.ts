@@ -44,6 +44,58 @@ export class WikiDocumentNotEmptyError extends ApplicationError {
   }
 }
 
+const maximumListedStartLines = 20;
+
+export class WikiDocumentContentEditNotFoundError extends ApplicationError {
+  constructor(options?: ErrorOptions) {
+    super(
+      'WIKI_DOCUMENT_CONTENT_EDIT_NOT_FOUND',
+      'conflict',
+      'oldText를 본문에서 찾지 못했습니다. 본문은 수정되지 않았습니다. 본문을 다시 읽고 글자 그대로 옮겨 다시 요청하세요.',
+      options,
+    );
+  }
+}
+
+export class WikiDocumentContentEditAmbiguousError extends ApplicationError {
+  constructor(
+    input: {
+      startLine: number;
+      startLines: readonly number[];
+      repeatedOnStartLine: boolean;
+    },
+    options?: ErrorOptions,
+  ) {
+    super(
+      'WIKI_DOCUMENT_CONTENT_EDIT_AMBIGUOUS',
+      'conflict',
+      describeAmbiguousContentEdit(input),
+      options,
+    );
+  }
+}
+
+function describeAmbiguousContentEdit(input: {
+  startLine: number;
+  startLines: readonly number[];
+  repeatedOnStartLine: boolean;
+}): string {
+  if (input.repeatedOnStartLine) {
+    return `${input.startLine}행 안에서 oldText가 여러 번 시작해 위치를 하나로 정할 수 없습니다. 본문은 수정되지 않았습니다. oldText를 앞뒤 문맥까지 넓혀 한 곳만 가리키게 한 뒤 다시 요청하세요.`;
+  }
+  const listed = input.startLines.slice(0, maximumListedStartLines);
+  const omitted = input.startLines.length - listed.length;
+  const lines =
+    omitted > 0
+      ? `${listed.join(', ')}행 외 ${omitted}곳`
+      : `${listed.join(', ')}행`;
+  const guidance =
+    omitted > 0
+      ? 'oldText를 더 길게 지정하거나 startLine을 이 중 하나로 지정해 다시 요청하세요.'
+      : 'startLine을 이 중 하나로 지정해 다시 요청하세요.';
+  return `${input.startLine}행에서 시작하는 oldText를 찾지 못했습니다. 본문은 수정되지 않았습니다. 같은 문구가 ${lines}에서 시작합니다. ${guidance}`;
+}
+
 export class WikiInvalidDocumentMoveError extends ApplicationError {
   constructor(options?: ErrorOptions) {
     super(

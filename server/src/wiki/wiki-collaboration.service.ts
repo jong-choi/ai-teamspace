@@ -12,6 +12,8 @@ import {
   WikiCollaborationProtocolVersionError,
   WikiCollaborationStateCorruptedError,
   WikiCollaborationStateTooLargeError,
+  WikiDocumentContentEditAmbiguousError,
+  WikiDocumentContentEditNotFoundError,
   WikiDocumentHistoryCorruptedError,
   WikiDocumentNotFoundError,
 } from '@/wiki/domain/wiki.error';
@@ -23,6 +25,11 @@ import {
   WIKI_COLLABORATION_PROTOCOL_VERSION,
   WIKI_COLLABORATION_SCHEMA_VERSION,
 } from '@/wiki/domain/wiki-collaboration-version';
+import {
+  createWikiContentEditPatch,
+  locateWikiContentEdit,
+  type WikiContentEdit,
+} from '@/wiki/domain/wiki-content-edit';
 import {
   type WikiCollaborationSessionResponse,
   WikiCollaborationSessionSchema,
@@ -47,6 +54,11 @@ export type WikiCollaborationConnectionContext = {
   documentId: string;
   canWrite: boolean;
   authorizationExpiresAt: Date;
+};
+
+export type PreparedWikiContentEdit = {
+  documentName: string;
+  encodedState: Uint8Array;
 };
 
 type WikiCollaborationOrganizationAccess = Pick<
@@ -183,10 +195,74 @@ export class WikiCollaborationService {
     await this.attributionProvider.record(documentName, context.userId);
   }
 
+  /**
+   * 저장된 공동편집 상태에서 수정 위치를 찾아 본문 수정을 적용한 상태를 만든다.
+   * 아직 저장하지 않으므로 위치를 정하지 못하면 아무것도 바뀌지 않는다.
+   */
+  async prepareContentEdit(
+    organizationId: string,
+    documentId: string,
+    edit: WikiContentEdit,
+  ): Promise<PreparedWikiContentEdit> {
+    const documentName = buildWikiCollaborationDocumentName({
+      organizationId,
+      documentId,
+    });
+    const currentState = await this.loadDocument(documentName);
+    const current = this.stateProvider.decode(currentState);
+    const location = locateWikiContentEdit(current.contentMarkdown, edit);
+    if (location.kind === 'not_found') {
+      throw new WikiDocumentContentEditNotFoundError();
+    }
+    if (location.kind === 'ambiguous') {
+      throw new WikiDocumentContentEditAmbiguousError({
+        startLine: edit.startLine,
+        startLines: location.startLines,
+        repeatedOnStartLine: location.repeatedOnStartLine,
+      });
+    }
+
+    const edited = this.stateProvider.applyTextPatch(
+      currentState,
+      createWikiContentEditPatch(location.index, edit),
+    );
+    return { documentName, encodedState: edited.encodedState };
+  }
+
+  /**
+   * 준비한 본문 수정을 공동편집자 한 명의 편집으로 기록하고 checkpoint와 함께 저장한다.
+   */
+  async commitContentEdit(
+    prepared: PreparedWikiContentEdit,
+    actorUserId: string,
+  ): Promise<void> {
+    await this.attributionProvider.record(prepared.documentName, actorUserId);
+    await this.persistEncodedState({
+      documentName: prepared.documentName,
+      encodedState: prepared.encodedState,
+      fallbackUserId: actorUserId,
+      createCheckpoint: true,
+    });
+  }
+
   async persistDocument(input: {
     documentName: string;
     encodedState: Uint8Array;
     fallbackContext: WikiCollaborationConnectionContext;
+    createCheckpoint: boolean;
+  }): Promise<void> {
+    await this.persistEncodedState({
+      documentName: input.documentName,
+      encodedState: input.encodedState,
+      fallbackUserId: input.fallbackContext.userId,
+      createCheckpoint: input.createCheckpoint,
+    });
+  }
+
+  private async persistEncodedState(input: {
+    documentName: string;
+    encodedState: Uint8Array;
+    fallbackUserId: string;
     createCheckpoint: boolean;
   }): Promise<void> {
     if (input.encodedState.byteLength > WIKI_COLLABORATION_MAX_STATE_BYTES) {
@@ -198,7 +274,7 @@ export class WikiCollaborationService {
       input.documentName,
     );
     const lastEditorUserId =
-      attribution.lastEditorUserId ?? input.fallbackContext.userId;
+      attribution.lastEditorUserId ?? input.fallbackUserId;
     const collaboratorUserIds =
       attribution.collaboratorUserIds.length > 0
         ? attribution.collaboratorUserIds

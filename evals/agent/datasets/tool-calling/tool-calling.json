@@ -1058,9 +1058,9 @@
       }
     },
     {
-      "id": "wiki-body-edit-unsupported",
+      "id": "wiki-body-edit",
       "version": "1.0.0",
-      "tags": ["tool-calling", "write", "wiki", "screen", "unsupported"],
+      "tags": ["tool-calling", "write", "wiki", "screen"],
       "input": [
         "이 문서의 '배포 전 확인' 목록 끝에 '모니터링 알림이 켜져 있는가' 항목을 추가해줘."
       ],
@@ -1082,9 +1082,36 @@
           }
         }
       ],
-      "forbidden_tools": ["wiki_document_create", "wiki_document_update"],
-      "argument_assertions": [],
-      "expected_interrupts": [],
+      "expected_tools": {
+        "mode": "ordered",
+        "tools": ["wiki_document_get", "wiki_document_update"]
+      },
+      "forbidden_tools": ["wiki_document_create"],
+      "argument_assertions": [
+        {
+          "tool": "wiki_document_update",
+          "path": "documentId",
+          "operator": "exact",
+          "value": "$wiki_document:release"
+        },
+        {
+          "tool": "wiki_document_update",
+          "path": "contentEdit.newText",
+          "operator": "contains",
+          "value": "모니터링 알림이 켜져 있는가"
+        },
+        {
+          "tool": "wiki_document_update",
+          "path": "title",
+          "operator": "absent"
+        }
+      ],
+      "expected_interrupts": [
+        {
+          "decision": "approve",
+          "before_tool": "wiki_document_update"
+        }
+      ],
       "outcome_assertions": [
         {
           "source": "wiki_document:release",
@@ -1094,9 +1121,15 @@
         },
         {
           "source": "wiki_document:release",
-          "path": "revision",
-          "operator": "equals",
-          "value": 1
+          "path": "contentMarkdown",
+          "operator": "contains",
+          "value": "모니터링 알림이 켜져 있는가"
+        },
+        {
+          "source": "wiki_document:release",
+          "path": "contentMarkdown",
+          "operator": "contains",
+          "value": "고객 응대팀이 바뀌는 내용을 알고 있는가"
         }
       ],
       "budget": {

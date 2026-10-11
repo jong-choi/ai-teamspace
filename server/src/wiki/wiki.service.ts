@@ -32,8 +32,13 @@ import {
 import { WikiCollaborationInvalidationPublisher } from '@/wiki/infrastructure/collaboration/wiki-collaboration-invalidation.provider';
 import { WikiCollaborationStateProvider } from '@/wiki/infrastructure/collaboration/wiki-collaboration-state.provider';
 import { WikiRepository } from '@/wiki/infrastructure/persistence/wiki.repository';
+import { WikiCollaborationService } from '@/wiki/wiki-collaboration.service';
 
 type WikiOrganizationAccess = Pick<OrganizationsService, 'getDetail'>;
+type WikiContentEditing = Pick<
+  WikiCollaborationService,
+  'prepareContentEdit' | 'commitContentEdit'
+>;
 
 @Injectable()
 export class WikiService {
@@ -43,6 +48,8 @@ export class WikiService {
     private readonly invalidationPublisher: WikiCollaborationInvalidationPublisher,
     @Inject(OrganizationsService)
     private readonly organizationsService: WikiOrganizationAccess,
+    @Inject(WikiCollaborationService)
+    private readonly contentEditing: WikiContentEditing,
   ) {}
 
   async getTree(
@@ -95,21 +102,52 @@ export class WikiService {
   ): Promise<WikiDocumentResponse> {
     await this.assertOrganizationAccess(context, organizationId);
     const current = await this.requireDocument(organizationId, documentId);
-    const updated = await this.wikiRepository.updateDocumentMetadata(
-      organizationId,
-      documentId,
-      context.userId,
-      {
-        parentDocumentId:
-          input.parentDocumentId === undefined
-            ? current.parentDocumentId
-            : input.parentDocumentId,
-        title: input.title ?? current.title,
-        position: input.position ?? current.position,
-      },
-    );
-    if (!updated) {
-      throw new WikiDocumentNotFoundError();
+    // 본문 수정 위치를 먼저 확정해, 위치 오류일 때 metadata만 바뀌는 일이 없게 한다.
+    const preparedContentEdit = input.contentEdit
+      ? await this.contentEditing.prepareContentEdit(
+          organizationId,
+          documentId,
+          input.contentEdit,
+        )
+      : null;
+
+    const metadataRequested =
+      input.parentDocumentId !== undefined ||
+      input.title !== undefined ||
+      input.position !== undefined;
+    let updated = current;
+    if (metadataRequested) {
+      const result = await this.wikiRepository.updateDocumentMetadata(
+        organizationId,
+        documentId,
+        context.userId,
+        {
+          parentDocumentId:
+            input.parentDocumentId === undefined
+              ? current.parentDocumentId
+              : input.parentDocumentId,
+          title: input.title ?? current.title,
+          position: input.position ?? current.position,
+        },
+      );
+      if (!result) {
+        throw new WikiDocumentNotFoundError();
+      }
+      updated = result;
+    }
+
+    if (preparedContentEdit) {
+      await this.contentEditing.commitContentEdit(
+        preparedContentEdit,
+        context.userId,
+      );
+      // 열려 있는 편집기가 저장된 본문을 바로 받도록 공동편집 서버에 알린다.
+      await this.invalidationPublisher.publish({
+        scope: 'document-content',
+        organizationId,
+        documentId,
+      });
+      updated = await this.requireDocument(organizationId, documentId);
     }
     return toWikiDocumentResponse(updated);
   }

@@ -1,6 +1,7 @@
 import type { OrganizationActorContext } from '@/organizations/organization-actor-context';
 import type { OrganizationsService } from '@/organizations/organizations.service';
 import {
+  WikiDocumentContentEditAmbiguousError,
   WikiDocumentNotEmptyError,
   WikiDocumentNotFoundError,
 } from '@/wiki/domain/wiki.error';
@@ -9,6 +10,7 @@ import { WikiCollaborationInvalidationPublisher } from '@/wiki/infrastructure/co
 import { YjsCollaborationStateAdapter } from '@/wiki/infrastructure/collaboration/yjs/yjs-collaboration-state.adapter';
 import { WikiRepository } from '@/wiki/infrastructure/persistence/wiki.repository';
 import { WikiService } from '@/wiki/wiki.service';
+import type { WikiCollaborationService } from '@/wiki/wiki-collaboration.service';
 
 import { jest } from '@jest/globals';
 
@@ -65,6 +67,12 @@ describe('위키 서비스', () => {
   let organizationsService: Pick<OrganizationsService, 'getDetail'>;
   let collaborationState: YjsCollaborationStateAdapter;
   let invalidationPublisher: FakeWikiCollaborationInvalidationPublisher;
+  let contentEditing: {
+    prepareContentEdit: jest.Mock<
+      WikiCollaborationService['prepareContentEdit']
+    >;
+    commitContentEdit: jest.Mock<WikiCollaborationService['commitContentEdit']>;
+  };
   let service: WikiService;
 
   beforeEach(() => {
@@ -85,11 +93,18 @@ describe('위키 서비스', () => {
     };
     collaborationState = new YjsCollaborationStateAdapter();
     invalidationPublisher = new FakeWikiCollaborationInvalidationPublisher();
+    contentEditing = {
+      prepareContentEdit:
+        jest.fn<WikiCollaborationService['prepareContentEdit']>(),
+      commitContentEdit:
+        jest.fn<WikiCollaborationService['commitContentEdit']>(),
+    };
     service = new WikiService(
       repository,
       collaborationState,
       invalidationPublisher,
       organizationsService,
+      contentEditing,
     );
   });
 
@@ -183,6 +198,69 @@ describe('위키 서비스', () => {
         position: 7,
       },
     );
+  });
+
+  it('본문 부분 수정은 공동편집 저장 경로로 반영하고 열린 편집기에 알린다', async () => {
+    const prepared = {
+      documentName: `wiki.${organizationId}.${rootDocumentId}`,
+      encodedState: collaborationState.create('# 수정됨').encodedState,
+    };
+    const contentEdit = {
+      startLine: 1,
+      oldText: '# 설계',
+      newText: '# 수정됨',
+    };
+    repository.findDocumentById
+      .mockResolvedValueOnce(document())
+      .mockResolvedValueOnce(
+        document({ contentMarkdown: '# 수정됨', revision: 2 }),
+      );
+    contentEditing.prepareContentEdit.mockResolvedValue(prepared);
+
+    const result = await service.updateDocument(
+      context,
+      organizationId,
+      rootDocumentId,
+      { contentEdit },
+    );
+
+    expect(contentEditing.prepareContentEdit).toHaveBeenCalledWith(
+      organizationId,
+      rootDocumentId,
+      contentEdit,
+    );
+    expect(contentEditing.commitContentEdit).toHaveBeenCalledWith(
+      prepared,
+      actorUserId,
+    );
+    expect(repository.updateDocumentMetadata).not.toHaveBeenCalled();
+    expect(invalidationPublisher.publish).toHaveBeenCalledWith({
+      scope: 'document-content',
+      organizationId,
+      documentId: rootDocumentId,
+    });
+    expect(result).toMatchObject({ contentMarkdown: '# 수정됨', revision: 2 });
+  });
+
+  it('본문 수정 위치를 정하지 못하면 metadata도 바꾸지 않는다', async () => {
+    repository.findDocumentById.mockResolvedValue(document());
+    contentEditing.prepareContentEdit.mockRejectedValue(
+      new WikiDocumentContentEditAmbiguousError({
+        startLine: 5,
+        startLines: [12, 48],
+        repeatedOnStartLine: false,
+      }),
+    );
+
+    await expect(
+      service.updateDocument(context, organizationId, rootDocumentId, {
+        title: '새 제목',
+        contentEdit: { startLine: 5, oldText: '확인 필요', newText: '완료' },
+      }),
+    ).rejects.toBeInstanceOf(WikiDocumentContentEditAmbiguousError);
+    expect(repository.updateDocumentMetadata).not.toHaveBeenCalled();
+    expect(contentEditing.commitContentEdit).not.toHaveBeenCalled();
+    expect(invalidationPublisher.publish).not.toHaveBeenCalled();
   });
 
   it('하위 문서가 있는 문서는 삭제하지 않는다', async () => {

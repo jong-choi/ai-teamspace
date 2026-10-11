@@ -5,6 +5,7 @@
  * OpenAPI spec version: 1.0
  */
 import * as zod from 'zod';
+import { WikiContentEdit } from './wikiContentEdit.zod';
 
 export const updateWikiDocumentParentDocumentIdRegExp = new RegExp('^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$');
 
@@ -16,7 +17,8 @@ export const updateWikiDocumentPositionMax = 9007199254740991;
 export const UpdateWikiDocument = zod.object({
   "parentDocumentId": zod.uuid().regex(updateWikiDocumentParentDocumentIdRegExp).nullish(),
   "title": zod.string().min(1).optional(),
-  "position": zod.int().min(updateWikiDocumentPositionMin).max(updateWikiDocumentPositionMax).optional()
+  "position": zod.int().min(updateWikiDocumentPositionMin).max(updateWikiDocumentPositionMax).optional(),
+  "contentEdit": WikiContentEdit.optional()
 });
 
 export type UpdateWikiDocument = zod.input<typeof UpdateWikiDocument>;

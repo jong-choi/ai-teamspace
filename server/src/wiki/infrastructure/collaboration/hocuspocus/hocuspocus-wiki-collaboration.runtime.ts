@@ -13,7 +13,7 @@ import {
 
 import { Redis as HocuspocusRedis } from '@hocuspocus/extension-redis';
 import { Throttle } from '@hocuspocus/extension-throttle';
-import { Server } from '@hocuspocus/server';
+import { type LocalTransactionOrigin, Server } from '@hocuspocus/server';
 import { Redis } from 'ioredis';
 import * as Y from 'yjs';
 
@@ -28,6 +28,11 @@ const protocolVersionParameter = 'protocolVersion';
 const serverPersistenceErrorPayload = JSON.stringify({
   type: 'server-persistence-error',
 });
+// 이미 DB에 저장된 상태를 메모리 문서에 합치는 것이므로 다시 저장하지 않는다.
+const persistedContentOrigin: LocalTransactionOrigin = {
+  source: 'local',
+  skipStoreHooks: true,
+};
 
 @Injectable()
 export class HocuspocusWikiCollaborationRuntime {
@@ -251,6 +256,15 @@ export class HocuspocusWikiCollaborationRuntime {
           );
           return;
         }
+        if (event.scope === 'document-content') {
+          await this.mergePersistedDocument(
+            buildWikiCollaborationDocumentName({
+              organizationId: event.organizationId,
+              documentId: event.documentId,
+            }),
+          );
+          return;
+        }
         this.closeOrganizationUser(event.organizationId, event.userId);
       },
     );
@@ -308,6 +322,28 @@ export class HocuspocusWikiCollaborationRuntime {
 
   closeDocument(documentName: string): void {
     this.server?.hocuspocus.closeConnections(documentName);
+  }
+
+  /**
+   * 공동편집 서버 밖에서 저장된 본문을 열려 있는 문서에 합쳐 접속 중인 편집기에 전달한다.
+   * 열려 있지 않은 문서는 다음에 열 때 DB에서 읽으므로 아무것도 하지 않는다.
+   */
+  async mergePersistedDocument(documentName: string): Promise<void> {
+    const hocuspocus = this.server?.hocuspocus;
+    if (!hocuspocus) {
+      return;
+    }
+    // 로드 중인 문서는 저장 전 상태를 읽었을 수 있으므로 로드가 끝난 뒤 합친다.
+    const loading = hocuspocus.loadingDocuments.get(documentName);
+    const document = loading
+      ? await loading.catch(() => undefined)
+      : hocuspocus.documents.get(documentName);
+    if (!document) {
+      return;
+    }
+    const persistedState =
+      await this.collaborationService.loadDocument(documentName);
+    Y.applyUpdate(document, persistedState, persistedContentOrigin);
   }
 
   closeOrganizationUser(organizationId: string, userId: string): void {

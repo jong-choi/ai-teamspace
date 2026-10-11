@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { WikiCollaborationStateCorruptedError } from '@/wiki/domain/wiki.error';
+import type { WikiTextPatch } from '@/wiki/domain/wiki-content-edit';
 import {
   type WikiCollaborationSnapshot,
   WikiCollaborationStateProvider,
@@ -21,13 +22,34 @@ export class YjsCollaborationStateAdapter extends WikiCollaborationStateProvider
   }
 
   decode(encodedState: Uint8Array): WikiCollaborationSnapshot {
-    try {
-      const document = new Y.Doc();
-      Y.applyUpdate(document, encodedState);
-      return toSnapshot(document);
-    } catch (error) {
-      throw new WikiCollaborationStateCorruptedError({ cause: error });
-    }
+    return toSnapshot(decodeDocument(encodedState));
+  }
+
+  applyTextPatch(
+    encodedState: Uint8Array,
+    patch: WikiTextPatch,
+  ): WikiCollaborationSnapshot {
+    const document = decodeDocument(encodedState);
+    const text = document.getText('markdown');
+    document.transact(() => {
+      if (patch.deleteCount > 0) {
+        text.delete(patch.index, patch.deleteCount);
+      }
+      if (patch.insertText.length > 0) {
+        text.insert(patch.index, patch.insertText);
+      }
+    });
+    return toSnapshot(document);
+  }
+}
+
+function decodeDocument(encodedState: Uint8Array): Y.Doc {
+  try {
+    const document = new Y.Doc();
+    Y.applyUpdate(document, encodedState);
+    return document;
+  } catch (error) {
+    throw new WikiCollaborationStateCorruptedError({ cause: error });
   }
 }
 

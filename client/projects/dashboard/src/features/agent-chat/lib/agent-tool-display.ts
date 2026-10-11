@@ -201,7 +201,29 @@ function projectFields(value: unknown): AgentToolDisplayField[] {
     if (fields.length >= MAX_VISIBLE_FIELDS) break;
   }
 
-  return fields;
+  return [...fields, ...projectContentEditFields(value['contentEdit'])].slice(
+    0,
+    MAX_VISIBLE_FIELDS,
+  );
+}
+
+// 위키 본문 부분 수정은 승인 전에 무엇이 무엇으로 바뀌는지 보여준다.
+function projectContentEditFields(value: unknown): AgentToolDisplayField[] {
+  if (!isRecord(value)) return [];
+  const oldText = value['oldText'];
+  const newText = value['newText'];
+  if (typeof oldText !== 'string' || typeof newText !== 'string') return [];
+
+  return [
+    {
+      label: '기존 문구',
+      value: formatSafeText(oldText, MAX_FIELD_VALUE_LENGTH),
+    },
+    {
+      label: '바꿀 문구',
+      value: formatSafeText(newText, MAX_FIELD_VALUE_LENGTH) || '(삭제)',
+    },
+  ];
 }
 
 function projectResultSummary(value: unknown): string | null {

@@ -69,6 +69,26 @@ describe('Agent tool presentation', () => {
     });
   });
 
+  it('위키 본문 부분 수정은 기존 문구와 바꿀 문구를 보여준다', () => {
+    expect(
+      projectAgentToolDisplay({
+        name: 'wiki_document_update',
+        args: {
+          documentId: 'document-a',
+          contentEdit: {
+            startLine: 4,
+            oldText: '> 오늘 딴 귤,\n내일 우리 집',
+            newText: '',
+          },
+        },
+        result: null,
+      }).fields,
+    ).toEqual([
+      { label: '기존 문구', value: '> 오늘 딴 귤, 내일 우리 집' },
+      { label: '바꿀 문구', value: '(삭제)' },
+    ]);
+  });
+
   it('unknown external tool은 raw technical name 대신 generic label을 사용한다', () => {
     const display = projectAgentToolDisplay({
       name: 'evil_vendor_debug_dump',

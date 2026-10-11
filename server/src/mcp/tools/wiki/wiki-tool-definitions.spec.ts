@@ -55,4 +55,34 @@ describe('Wiki MCP tool 정의', () => {
       title: '수정된 제목',
     });
   });
+
+  it('update는 본문 부분 수정만으로도 호출할 수 있다', () => {
+    const definition = wikiToolDefinitions[3];
+
+    expect(
+      definition.inputSchema.parse({
+        organizationId: 'org-a',
+        documentId: 'document-a',
+        contentEdit: {
+          startLine: 4,
+          oldText: '> 오늘 딴 귤',
+          newText: '> 아침에 딴 귤',
+        },
+      }),
+    ).toMatchObject({
+      contentEdit: {
+        startLine: 4,
+        oldText: '> 오늘 딴 귤',
+        newText: '> 아침에 딴 귤',
+      },
+    });
+
+    expect(() =>
+      definition.inputSchema.parse({
+        organizationId: 'org-a',
+        documentId: 'document-a',
+        contentEdit: { startLine: 4, oldText: '', newText: '추가' },
+      }),
+    ).toThrow();
+  });
 });

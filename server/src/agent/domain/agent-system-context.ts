@@ -127,7 +127,8 @@ function isHumanMessage(message: unknown): message is Record<string, unknown> {
   );
 }
 
-function resolveTimeZone(timeZone: string | undefined): string {
+/** 알 수 없는 time zone은 UTC로 본다. */
+export function resolveTimeZone(timeZone: string | undefined): string {
   if (!timeZone) return FALLBACK_TIME_ZONE;
   try {
     return new Intl.DateTimeFormat('en-US', { timeZone }).resolvedOptions()
@@ -138,7 +139,7 @@ function resolveTimeZone(timeZone: string | undefined): string {
 }
 
 /** 사용자 time zone의 벽시계 시각을 offset이 붙은 ISO 8601로 만든다. */
-function formatLocalInstant(
+export function formatLocalInstant(
   now: Date,
   timeZone: string,
 ): { instant: string; weekday: string } {

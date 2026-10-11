@@ -9,6 +9,7 @@ import {
   WORKOS_ROOT_PROMPT,
 } from '@/agent/application/workos-agent.definition';
 import { toolInputFeedbackMiddleware } from '@/agent/infrastructure/deep-agent/tool-input-feedback.middleware';
+import { createToolResultLocalTimeMiddleware } from '@/agent/infrastructure/deep-agent/tool-result-local-time.middleware';
 import type { WorkOsToolSession } from '@/agent/infrastructure/mcp/workos-tool-session.provider';
 import type { AgentModels } from '@/agent/infrastructure/model/agent-model.provider';
 
@@ -20,16 +21,22 @@ interface WorkOsDeepAgentInput {
   tools: StructuredTool[];
   readOnlyTools: StructuredTool[];
   interruptOn: Record<string, true>;
+  timeZone: string;
 }
 
 function createWorkOsDeepAgent(input: WorkOsDeepAgentInput) {
+  const middleware = [
+    toolInputFeedbackMiddleware,
+    createToolResultLocalTimeMiddleware(input.timeZone),
+  ];
+
   return createDeepAgent({
     name: WORKOS_AGENT_NAME,
     model: input.models.root,
     tools: input.tools,
     interruptOn: input.interruptOn,
     systemPrompt: WORKOS_ROOT_PROMPT,
-    middleware: [toolInputFeedbackMiddleware],
+    middleware,
     subagents: [
       {
         name: 'researcher',
@@ -39,7 +46,7 @@ function createWorkOsDeepAgent(input: WorkOsDeepAgentInput) {
         model: input.models.researcher,
         tools: input.readOnlyTools,
         systemPrompt: WORKOS_RESEARCHER_PROMPT,
-        middleware: [toolInputFeedbackMiddleware],
+        middleware,
       },
       {
         name: 'operator',
@@ -49,7 +56,7 @@ function createWorkOsDeepAgent(input: WorkOsDeepAgentInput) {
         tools: input.tools,
         interruptOn: input.interruptOn,
         systemPrompt: WORKOS_OPERATOR_PROMPT,
-        middleware: [toolInputFeedbackMiddleware],
+        middleware,
       },
     ],
   });
@@ -62,12 +69,14 @@ export class DeepAgentBuilder {
   buildExecution(input: {
     models: AgentModels;
     session: WorkOsToolSession;
+    timeZone: string;
   }): WorkOsDeepAgent {
     return createWorkOsDeepAgent({
       models: input.models,
       tools: input.session.tools,
       readOnlyTools: input.session.readOnlyTools,
       interruptOn: input.session.interruptOn,
+      timeZone: input.timeZone,
     });
   }
 
@@ -77,6 +86,7 @@ export class DeepAgentBuilder {
       tools: [],
       readOnlyTools: [],
       interruptOn: {},
+      timeZone: 'UTC',
     });
   }
 }

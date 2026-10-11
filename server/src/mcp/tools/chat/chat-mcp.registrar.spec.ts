@@ -33,6 +33,10 @@ describe('Chat MCP registrar', () => {
     ReturnType<ChatService['listConversations']>,
     Parameters<ChatService['listConversations']>
   >();
+  const getConversation = jest.fn<
+    ReturnType<ChatService['getConversation']>,
+    Parameters<ChatService['getConversation']>
+  >();
   const listMessages = jest.fn<
     ReturnType<ChatService['listMessages']>,
     Parameters<ChatService['listMessages']>
@@ -43,6 +47,7 @@ describe('Chat MCP registrar', () => {
   >();
 
   const registrar = new ChatMcpRegistrar({
+    getConversation,
     listConversations,
     listMessages,
     sendMessage,
@@ -64,8 +69,28 @@ describe('Chat MCP registrar', () => {
 
   it('메시지 목록은 policy tenant를 제거하고 conversation/query만 전달한다', async () => {
     listMessages.mockResolvedValue({ items: [], nextCursor: null });
+    getConversation.mockResolvedValue({
+      id: conversationId,
+      kind: 'channel',
+      name: '잡담',
+      topic: null,
+      participants: [
+        {
+          userId: 'user-a',
+          name: '김도윤',
+          username: null,
+          image: null,
+          joinedAt: '2026-10-01T00:00:00.000Z',
+          lastReadAt: null,
+        },
+      ],
+      unreadCount: 0,
+      latestMessage: null,
+      createdAt: '2026-10-01T00:00:00.000Z',
+      updatedAt: '2026-10-01T00:00:00.000Z',
+    });
 
-    await registrar.tools()[1]!.invoke(
+    const output = await registrar.tools()[1]!.invoke(
       {
         organizationId: 'org-a',
         conversationId,
@@ -77,6 +102,10 @@ describe('Chat MCP registrar', () => {
 
     expect(listMessages).toHaveBeenCalledWith('user-a', conversationId, {
       limit: 20,
+    });
+    expect(getConversation).toHaveBeenCalledWith('user-a', conversationId);
+    expect(output).toMatchObject({
+      participants: [{ userId: 'user-a', name: '김도윤' }],
     });
   });
 

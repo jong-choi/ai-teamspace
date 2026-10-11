@@ -1,3 +1,4 @@
+import { ChatConversationSchema } from '@/chat/dto/chat-conversation.dto';
 import { ChatConversationListSchema } from '@/chat/dto/chat-conversation-list.dto';
 import { ChatMessageSchema } from '@/chat/dto/chat-message.dto';
 import { ChatMessagePageSchema } from '@/chat/dto/chat-message-page.dto';
@@ -39,14 +40,22 @@ export const chatConversationsListTool = defineMcpTool({
 export const chatMessagesListTool = defineMcpTool({
   name: 'chat_messages_list',
   title: '채팅 메시지 목록 조회',
-  description: '대화의 최근 메시지를 조회합니다.',
+  description:
+    '대화의 최근 메시지를 조회합니다. 발신자 이름은 participants에서 senderUserId로 찾습니다.',
   inputSchema: QueryChatMessagesSchema.extend({
     ...conversationIdentityFields,
     before: QueryChatMessagesSchema.shape.before.describe(
       '더 오래된 메시지를 이어 읽을 때만 이전 응답의 nextCursor를 넣습니다.',
     ),
   }),
-  outputSchema: ChatMessagePageSchema,
+  outputSchema: ChatMessagePageSchema.extend({
+    participants: z.array(
+      ChatConversationSchema.shape.participants.element.pick({
+        userId: true,
+        name: true,
+      }),
+    ),
+  }),
   requiredScope: 'chat:read',
   classification: 'read',
   annotations: readOnlyAnnotations,

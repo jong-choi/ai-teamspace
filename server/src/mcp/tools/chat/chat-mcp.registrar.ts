@@ -11,7 +11,7 @@ import { chatMessageReceipt } from '@/mcp/tools/mcp-mutation-receipt.mapper';
 
 type ChatToolsService = Pick<
   ChatService,
-  'listConversations' | 'listMessages' | 'sendMessage'
+  'getConversation' | 'listConversations' | 'listMessages' | 'sendMessage'
 >;
 
 @Injectable()
@@ -29,11 +29,17 @@ export class ChatMcpRegistrar {
       bindMcpTool(chatMessagesListTool, async (input, auth) => {
         const { organizationId, conversationId, ...query } = input;
         void organizationId;
-        return this.chatService.listMessages(
-          auth.userId,
-          conversationId,
-          query,
-        );
+        const [page, conversation] = await Promise.all([
+          this.chatService.listMessages(auth.userId, conversationId, query),
+          this.chatService.getConversation(auth.userId, conversationId),
+        ]);
+        return {
+          ...page,
+          participants: conversation.participants.map(({ userId, name }) => ({
+            userId,
+            name,
+          })),
+        };
       }),
       bindMcpTool(chatMessageSendTool, async (input, auth) => {
         const { organizationId, conversationId, ...body } = input;

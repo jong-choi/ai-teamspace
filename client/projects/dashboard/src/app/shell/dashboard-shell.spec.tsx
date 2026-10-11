@@ -123,8 +123,13 @@ describe('데스크톱 사이드바와 모바일 메뉴 상태', () => {
         </DashboardShell>
       </AgentChatProvider>,
     );
-    expect(view.queryByLabelText('사이드바 열기')).toBeNull();
-    expect(view.queryByLabelText('사이드바 닫기')).toBeNull();
+    // 줄은 처음부터 렌더링하고 모바일 표시 여부는 반응형 클래스가 담당한다.
+    expect(
+      view.getByTestId('dashboard-sidebar-controls').props.className,
+    ).toContain('hidden');
+    expect(
+      view.getByTestId('dashboard-sidebar-controls').props.className,
+    ).toContain('lg:flex');
     expect(
       view.getByLabelText('메뉴 열기').props.accessibilityState.expanded,
     ).toBe(false);

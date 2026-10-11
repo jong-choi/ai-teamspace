@@ -132,35 +132,34 @@ export function DashboardShell({
           )}
           testID="dashboard-sidebar"
         >
-          {wide ? (
-            <View
-              className={cn(
-                'mb-3 h-8 shrink-0 flex-row items-center',
-                sidebarCollapsed ? 'justify-center' : 'justify-between',
-              )}
+          <View
+            className={cn(
+              'mb-1 hidden h-6 shrink-0 flex-row items-center lg:flex',
+              sidebarCollapsed ? 'justify-center' : 'justify-between',
+            )}
+            testID="dashboard-sidebar-controls"
+          >
+            {sidebarCollapsed ? null : (
+              <Text className="min-w-0 flex-1 text-center text-xs font-medium tracking-wider text-muted-foreground">
+                AI Teamspace
+              </Text>
+            )}
+            <Button
+              accessibilityLabel={
+                sidebarCollapsed ? '사이드바 열기' : '사이드바 닫기'
+              }
+              accessibilityState={{ expanded: desktopSidebarOpen }}
+              className="h-6 w-6"
+              onPress={() => setDesktopSidebarOpen((open) => !open)}
+              size="icon"
+              variant="ghost"
             >
-              {sidebarCollapsed ? null : (
-                <Text className="px-1 text-xs font-medium tracking-wider text-muted-foreground">
-                  AI Teamspace
-                </Text>
-              )}
-              <Button
-                accessibilityLabel={
-                  sidebarCollapsed ? '사이드바 열기' : '사이드바 닫기'
-                }
-                accessibilityState={{ expanded: desktopSidebarOpen }}
-                className="h-8 w-8"
-                onPress={() => setDesktopSidebarOpen((open) => !open)}
-                size="icon"
-                variant="ghost"
-              >
-                <Icon
-                  as={sidebarCollapsed ? PanelLeftOpen : PanelLeftClose}
-                  className="size-5 text-muted-foreground"
-                />
-              </Button>
-            </View>
-          ) : null}
+              <Icon
+                as={sidebarCollapsed ? PanelLeftOpen : PanelLeftClose}
+                className="size-4 text-muted-foreground"
+              />
+            </Button>
+          </View>
           <View
             className="mb-3 shrink-0 flex-row items-center justify-between border-b border-border pb-3 lg:hidden"
             style={{ paddingTop: insets.top + 16 }}

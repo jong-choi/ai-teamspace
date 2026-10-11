@@ -31,6 +31,7 @@ import { AuthModule as NestBetterAuthModule } from '@thallesp/nestjs-better-auth
           // MCP Streamable HTTP endpoint는 MCP SDK가 body를 직접 읽어 MCP 크기 제한과 JSON-RPC 오류 형식을 적용한다.
           bodyParser: {
             json: {
+              limit: 100 * 1024 * 1024,
               type: createJsonBodyTypeMatcher([mcpConfig.resourcePath]),
             },
           },

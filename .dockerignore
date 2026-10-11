@@ -1,0 +1,17 @@
+.git
+.temp
+**/node_modules
+**/dist
+**/.expo
+**/.turbo
+**/coverage
+**/.env
+**/.env.*
+!**/.env.example
+**/*.log
+**/*.tsbuildinfo
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+.DS_Store

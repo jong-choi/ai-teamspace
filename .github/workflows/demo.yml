@@ -1,0 +1,126 @@
+name: 데모 배포
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: workos-demo-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.repository == 'jong-choi/monorepo-erp' && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, Linux, ARM64, workos-demo]
+    timeout-minutes: 60
+    environment:
+      name: demo
+      url: https://${{ vars.DEMO_DOMAIN }}
+    env:
+      DEMO_IMAGE_TAG: ${{ github.sha }}
+      DEMO_DOMAIN: ${{ vars.DEMO_DOMAIN }}
+      DEMO_DEPLOY_PATH: ${{ vars.DEMO_DEPLOY_PATH }}
+      EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
+      EXPO_PUBLIC_DEMO_EMAIL: ${{ vars.EXPO_PUBLIC_DEMO_EMAIL }}
+      EXPO_PUBLIC_DEMO_ORGANIZATION_SLUG: ${{ vars.EXPO_PUBLIC_DEMO_ORGANIZATION_SLUG }}
+    steps:
+      - name: 소스 가져오기
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7 고정 버전
+        with:
+          persist-credentials: false
+
+      - name: Node.js 준비
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7 고정 버전
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: 배포 환경 파일 준비
+        env:
+          DEMO_COMPOSE_ENV: ${{ secrets.DEMO_COMPOSE_ENV }}
+          DEMO_SERVER_ENV: ${{ secrets.DEMO_SERVER_ENV }}
+          DEMO_SEED_ENV: ${{ secrets.DEMO_SEED_ENV }}
+          EXPO_PUBLIC_DEMO_PASSWORD: ${{ secrets.EXPO_PUBLIC_DEMO_PASSWORD }}
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          required = ['DEMO_DOMAIN', 'DEMO_DEPLOY_PATH', 'EXPO_PUBLIC_API_URL', 'EXPO_PUBLIC_DEMO_EMAIL', 'EXPO_PUBLIC_DEMO_ORGANIZATION_SLUG', 'EXPO_PUBLIC_DEMO_PASSWORD', 'DEMO_COMPOSE_ENV', 'DEMO_SERVER_ENV', 'DEMO_SEED_ENV']
+          for name in required:
+              if not os.environ.get(name):
+                  raise RuntimeError(f'필수 배포 설정이 없습니다: {name}')
+          repo = Path(os.environ['DEMO_DEPLOY_PATH']).resolve()
+          if not (repo / '.git').is_dir():
+              raise RuntimeError('배포 설정을 보관할 저장소 경로를 확인하세요.')
+          directory = repo / '.temp' / 'deploy-demo'
+          directory.mkdir(parents=True, exist_ok=True)
+          directory.chmod(0o700)
+          for filename, key in [('compose.env', 'DEMO_COMPOSE_ENV'), ('server.env', 'DEMO_SERVER_ENV'), ('seed.env', 'DEMO_SEED_ENV')]:
+              file = directory / filename
+              file.write_text(os.environ[key])
+              file.chmod(0o600)
+          web = {}
+          for key in ['EXPO_PUBLIC_API_URL', 'EXPO_PUBLIC_DEMO_EMAIL', 'EXPO_PUBLIC_DEMO_PASSWORD', 'EXPO_PUBLIC_DEMO_ORGANIZATION_SLUG']:
+              value = os.environ[key]
+              if any(character in value for character in "\n\r'"):
+                  raise RuntimeError(f'배포 설정 형식을 확인하세요: {key}')
+              web[key] = value
+          file = directory / 'web.env'
+          file.write_text(''.join(f"{key}='{value}'\n" for key, value in web.items()))
+          file.chmod(0o600)
+          with open(os.environ['GITHUB_ENV'], 'a') as output:
+              output.write(f'DEMO_SECRETS_DIR={directory}\n')
+          PY
+
+      - name: 의존성 설치와 루트 검증
+        run: |
+          set -euo pipefail
+          npm install --global npm@11.19.0
+          npm ci --no-audit --no-fund
+          npm run build --workspace @repo/knowledge-graph
+          set -a
+          source "$DEMO_SECRETS_DIR/server.env"
+          set +a
+          npm run check
+          NODE_ENV='test' npm run test -- --filter=@repo/server --only -- --runInBand src/auth/auth-options.spec.ts src/common/http/json-body-type.matcher.spec.ts
+
+      - name: 배포 이미지 빌드
+        run: |
+          set -euo pipefail
+          set -a
+          source "$DEMO_SECRETS_DIR/web.env"
+          set +a
+          docker build --target server --tag "workos-demo-server:$DEMO_IMAGE_TAG" --file infra/demo/Dockerfile .
+          docker build --target gateway --tag "workos-demo-gateway:$DEMO_IMAGE_TAG" --file infra/demo/Dockerfile \
+            --build-arg EXPO_PUBLIC_API_URL \
+            --build-arg EXPO_PUBLIC_DEMO_EMAIL \
+            --build-arg EXPO_PUBLIC_DEMO_PASSWORD \
+            --build-arg EXPO_PUBLIC_DEMO_ORGANIZATION_SLUG .
+
+      - name: 데모 데이터 초기화와 마이그레이션
+        run: |
+          set -euo pipefail
+          docker compose --project-name workos-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml config --quiet
+          docker compose --project-name workos-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml down --volumes --remove-orphans
+          docker compose --project-name workos-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml up --detach --wait --wait-timeout 300 postgres redis-queue redis-cache redis-collaboration neo4j garage
+          docker compose --project-name workos-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml run --rm --no-deps migrate
+
+      - name: 앱 시작과 오늘 기준 데모 시드
+        run: |
+          set -euo pipefail
+          docker compose --project-name workos-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml up --detach --wait --wait-timeout 300 api collaboration
+          base_date=$(TZ=Asia/Seoul date +%F)
+          docker compose --project-name workos-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml run --rm --no-deps -e "DEMO_BASE_DATE=$base_date" seed
+          docker compose --project-name workos-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml up --detach --wait --wait-timeout 300 jobs gateway
+
+      - name: 공개 응답 확인
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 12 --retry-all-errors --retry-delay 5 --max-time 15 "https://$DEMO_DOMAIN/healthz"
+          curl --fail --silent --show-error --max-time 15 "https://$DEMO_DOMAIN/backend/"
+          curl --fail --silent --show-error --max-time 15 --output /dev/null "https://$DEMO_DOMAIN/calendar"
+          docker compose --project-name workos-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml ps

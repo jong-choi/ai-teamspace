@@ -32,6 +32,8 @@ function createWorkOsDeepAgent(input: WorkOsDeepAgentInput) {
       {
         name: 'researcher',
         description: WORKOS_RESEARCHER_DESCRIPTION,
+        // 부모 대화를 물려받아 <system_context>의 조직·시각·화면을 그대로 안다.
+        mode: 'fork',
         model: input.models.researcher,
         tools: input.readOnlyTools,
         systemPrompt: WORKOS_RESEARCHER_PROMPT,
@@ -39,6 +41,7 @@ function createWorkOsDeepAgent(input: WorkOsDeepAgentInput) {
       {
         name: 'operator',
         description: WORKOS_OPERATOR_DESCRIPTION,
+        mode: 'fork',
         model: input.models.operator,
         tools: input.tools,
         interruptOn: input.interruptOn,

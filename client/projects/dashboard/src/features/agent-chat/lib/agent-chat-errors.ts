@@ -146,8 +146,7 @@ function presentationForKind(
       return {
         kind,
         title: 'Agent 연결이 끊어졌습니다',
-        description:
-          '대화 상태를 다시 확인하고 있습니다. 중복 작업을 막기 위해 같은 요청을 자동으로 다시 보내지 않습니다.',
+        description: '잠시 후 다시 시도해주세요.',
       };
     case 'reconnect_failed':
       return {

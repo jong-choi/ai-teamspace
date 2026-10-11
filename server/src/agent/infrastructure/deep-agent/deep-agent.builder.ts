@@ -9,6 +9,7 @@ import {
   TEAMSPACE_ROOT_PROMPT,
 } from '@/agent/application/teamspace-agent.definition';
 import { filesystemToolExclusionMiddleware } from '@/agent/infrastructure/deep-agent/filesystem-tool-exclusion.middleware';
+import { transientModelRetryMiddleware } from '@/agent/infrastructure/deep-agent/model-retry.middleware';
 import { toolInputFeedbackMiddleware } from '@/agent/infrastructure/deep-agent/tool-input-feedback.middleware';
 import { toolResultLocalTimeMiddleware } from '@/agent/infrastructure/deep-agent/tool-result-local-time.middleware';
 import type { TeamspaceToolSession } from '@/agent/infrastructure/mcp/teamspace-tool-session.provider';
@@ -29,6 +30,7 @@ function createTeamspaceDeepAgent(input: TeamspaceDeepAgentInput) {
     filesystemToolExclusionMiddleware,
     toolInputFeedbackMiddleware,
     toolResultLocalTimeMiddleware,
+    transientModelRetryMiddleware,
   ];
 
   return createDeepAgent({

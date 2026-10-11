@@ -32,14 +32,7 @@ import { useAgentChatStore } from '@core/features/agent-chat/agent-chat-provider
 import { useAgentChatWideLayout } from '@core/features/agent-chat/lib/use-agent-chat-layout';
 import { useAgentChatOutsidePress } from '@core/features/agent-chat/lib/use-agent-chat-outside-press';
 
-import {
-  Building2,
-  Menu,
-  PanelLeftClose,
-  PanelLeftOpen,
-  Sparkles,
-  X,
-} from 'lucide-react-native';
+import { Building2, Menu, Sparkles, X } from 'lucide-react-native';
 
 const DashboardShellContext = createContext(false);
 
@@ -133,34 +126,6 @@ export function DashboardShell({
           testID="dashboard-sidebar"
         >
           <View
-            className={cn(
-              'mb-1 hidden h-6 shrink-0 flex-row items-center lg:flex',
-              sidebarCollapsed ? 'justify-center' : 'justify-between',
-            )}
-            testID="dashboard-sidebar-controls"
-          >
-            {sidebarCollapsed ? null : (
-              <Text className="min-w-0 flex-1 text-center text-xs font-medium tracking-wider text-muted-foreground">
-                AI Teamspace
-              </Text>
-            )}
-            <Button
-              accessibilityLabel={
-                sidebarCollapsed ? '사이드바 열기' : '사이드바 닫기'
-              }
-              accessibilityState={{ expanded: desktopSidebarOpen }}
-              className="h-6 w-6"
-              onPress={() => setDesktopSidebarOpen((open) => !open)}
-              size="icon"
-              variant="ghost"
-            >
-              <Icon
-                as={sidebarCollapsed ? PanelLeftOpen : PanelLeftClose}
-                className="size-4 text-muted-foreground"
-              />
-            </Button>
-          </View>
-          <View
             className="mb-3 shrink-0 flex-row items-center justify-between border-b border-border pb-3 lg:hidden"
             style={{ paddingTop: insets.top + 16 }}
           >
@@ -189,6 +154,7 @@ export function DashboardShell({
             activeItem={currentItem}
             collapsed={sidebarCollapsed}
             onNavigate={() => setDrawerOpen(false)}
+            onToggleSidebar={() => setDesktopSidebarOpen((open) => !open)}
             organizationName={organizationName}
           />
         </View>

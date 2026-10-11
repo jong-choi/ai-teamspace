@@ -22,10 +22,7 @@ jest.mock('@core/features/agent-chat/agent-chat-panel', () => ({
   AgentChatPanel: () => null,
 }));
 jest.mock('@core/app/shell/dashboard-navigation-content', () => ({
-  DashboardNavigationContent: (props: unknown) => {
-    mockNavigationContent(props);
-    return null;
-  },
+  DashboardNavigationContent: MockNavigationContent,
 }));
 jest.mock('@core/app/shell/dashboard-account-avatar', () => ({
   DashboardAccountAvatar: () => null,
@@ -41,6 +38,23 @@ jest.mock('@core/app/shell/theme-toggle', () => ({ ThemeToggle: () => null }));
 function Body() {
   mockBodyMounts();
   return <Text>업무 본문</Text>;
+}
+
+function MockNavigationContent(
+  props: React.ComponentProps<
+    typeof import('@core/app/shell/dashboard-navigation-content').DashboardNavigationContent
+  >,
+) {
+  mockNavigationContent(props);
+  return (
+    <Text
+      accessibilityLabel={props.collapsed ? '사이드바 열기' : '사이드바 닫기'}
+      accessibilityState={{ expanded: !props.collapsed }}
+      onPress={props.onToggleSidebar}
+    >
+      워크스페이스 영역
+    </Text>
+  );
 }
 
 describe('업무 shell의 Agent 채팅 토글', () => {
@@ -123,13 +137,7 @@ describe('데스크톱 사이드바와 모바일 메뉴 상태', () => {
         </DashboardShell>
       </AgentChatProvider>,
     );
-    // 줄은 처음부터 렌더링하고 모바일 표시 여부는 반응형 클래스가 담당한다.
-    expect(
-      view.getByTestId('dashboard-sidebar-controls').props.className,
-    ).toContain('hidden');
-    expect(
-      view.getByTestId('dashboard-sidebar-controls').props.className,
-    ).toContain('lg:flex');
+    expect(view.queryByTestId('dashboard-sidebar-controls')).toBeNull();
     expect(
       view.getByLabelText('메뉴 열기').props.accessibilityState.expanded,
     ).toBe(false);

@@ -3,6 +3,7 @@ import { Pressable, ScrollView, View } from 'react-native';
 import { type Href, useRouter } from 'expo-router';
 
 import { useOrganizationsControllerGetActiveSuspense } from '@repo/client/api-client';
+import { Button } from '@repo/client/rnr/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,6 +34,7 @@ import {
   FolderKanban,
   MessageSquare,
   Network,
+  PanelLeftClose,
   Plus,
   Settings,
   Users,
@@ -61,6 +63,7 @@ type DashboardNavigationContentProps = {
   collapsed?: boolean;
   organizationName?: string;
   onNavigate?: () => void;
+  onToggleSidebar?: () => void;
 };
 
 export function DashboardNavigationContent({
@@ -68,6 +71,7 @@ export function DashboardNavigationContent({
   collapsed = false,
   organizationName,
   onNavigate,
+  onToggleSidebar,
 }: DashboardNavigationContentProps) {
   return (
     <View className="min-h-0 flex-1">
@@ -79,6 +83,7 @@ export function DashboardNavigationContent({
         <SidebarOrganizationSwitcher
           collapsed={collapsed}
           onNavigate={onNavigate}
+          onToggleSidebar={onToggleSidebar}
           organizationName={organizationName}
         />
 
@@ -141,41 +146,52 @@ export function DashboardNavigationContent({
 function OrganizationSwitcher({
   collapsed,
   onNavigate,
+  onToggleSidebar,
   organizationName,
 }: {
   collapsed: boolean;
   onNavigate?: () => void;
+  onToggleSidebar?: () => void;
   organizationName?: string;
 }) {
   const { currentUserId } = useDashboardPlatform();
   const [createOpen, setCreateOpen] = useState(false);
 
+  if (collapsed) {
+    return (
+      <View className="mb-4 items-center">
+        <Button
+          accessibilityLabel="사이드바 열기"
+          accessibilityState={{ expanded: false }}
+          className="h-10 w-10 rounded-lg"
+          onPress={onToggleSidebar}
+          size="icon"
+          variant="outline"
+        >
+          <View className="size-7 items-center justify-center rounded bg-primary">
+            <Icon as={Building2} className="size-4 text-primary-foreground" />
+          </View>
+        </Button>
+      </View>
+    );
+  }
+
   return (
-    <View className={cn('mb-4', collapsed && 'items-center')}>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Pressable
-            accessibilityLabel={`${organizationName ?? '조직'} 선택`}
-            className={cn(
-              'flex-row items-center rounded-lg border border-border bg-card web:hover:bg-accent',
-              collapsed
-                ? 'h-10 w-10 justify-center'
-                : 'w-full justify-between p-2',
-            )}
-          >
-            <View
-              className={cn(
-                'flex-row items-center',
-                !collapsed && 'min-w-0 flex-1 gap-2.5',
-              )}
+    <View className="mb-4 flex-row items-center gap-1">
+      <View className="min-w-0 flex-1">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Pressable
+              accessibilityLabel={`${organizationName ?? '조직'} 선택`}
+              className="w-full flex-row items-center justify-between rounded-lg border border-border bg-card p-2 web:hover:bg-accent"
             >
-              <View className="size-7 shrink-0 items-center justify-center rounded bg-primary">
-                <Icon
-                  as={Building2}
-                  className="size-4 text-primary-foreground"
-                />
-              </View>
-              {collapsed ? null : (
+              <View className="min-w-0 flex-1 flex-row items-center gap-2.5">
+                <View className="size-7 shrink-0 items-center justify-center rounded bg-primary">
+                  <Icon
+                    as={Building2}
+                    className="size-4 text-primary-foreground"
+                  />
+                </View>
                 <View className="min-w-0 flex-1">
                   <Text className="truncate text-xs font-semibold">
                     {organizationName ?? '조직 선택'}
@@ -184,61 +200,67 @@ function OrganizationSwitcher({
                     {organizationName ? '현재 조직' : '활성 조직 없음'}
                   </Text>
                 </View>
-              )}
-            </View>
-            {collapsed ? null : (
+              </View>
               <Icon
                 as={ChevronsUpDown}
                 className="size-4 shrink-0 text-muted-foreground"
               />
-            )}
-          </Pressable>
-        </DropdownMenuTrigger>
-        {/* 접힌 사이드바에서는 아이콘 폭과 무관하게 메뉴 내용을 읽을 수 있는 폭을 유지한다. */}
-        <DropdownMenuContent
-          align="start"
-          className={cn(
-            'w-60 rounded-lg p-1.5 shadow-none',
-            !collapsed && 'web:w-[var(--radix-dropdown-menu-trigger-width)]',
-          )}
-          side="bottom"
-        >
-          {currentUserId ? (
-            <>
-              <DashboardQueryBoundary
-                fallback={
-                  <DropdownMenuItem disabled>
-                    <Text className="text-xs text-muted-foreground">
-                      조직 목록을 불러오는 중...
-                    </Text>
-                  </DropdownMenuItem>
-                }
-                resetKeys={[currentUserId]}
-                title="조직 목록을 불러오지 못했습니다"
-              >
-                <OrganizationSwitcherItems onSwitched={onNavigate} />
-              </DashboardQueryBoundary>
-              <DropdownMenuSeparator />
-              {/* dialog는 메뉴 밖에서 렌더한다. 메뉴는 항목을 누르면 스스로 닫힌다. */}
-              <DropdownMenuItem
-                onPress={() => {
-                  onNavigate?.();
-                  setCreateOpen(true);
-                }}
-              >
-                <Icon as={Plus} className="size-3.5 text-muted-foreground" />
-                <Text className="text-xs">새 조직</Text>
+            </Pressable>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="start"
+            className="w-60 rounded-lg p-1.5 shadow-none web:w-[var(--radix-dropdown-menu-trigger-width)]"
+            side="bottom"
+          >
+            {currentUserId ? (
+              <>
+                <DashboardQueryBoundary
+                  fallback={
+                    <DropdownMenuItem disabled>
+                      <Text className="text-xs text-muted-foreground">
+                        조직 목록을 불러오는 중...
+                      </Text>
+                    </DropdownMenuItem>
+                  }
+                  resetKeys={[currentUserId]}
+                  title="조직 목록을 불러오지 못했습니다"
+                >
+                  <OrganizationSwitcherItems onSwitched={onNavigate} />
+                </DashboardQueryBoundary>
+                <DropdownMenuSeparator />
+                {/* dialog는 메뉴 밖에서 렌더한다. 메뉴는 항목을 누르면 스스로 닫힌다. */}
+                <DropdownMenuItem
+                  onPress={() => {
+                    onNavigate?.();
+                    setCreateOpen(true);
+                  }}
+                >
+                  <Icon as={Plus} className="size-3.5 text-muted-foreground" />
+                  <Text className="text-xs">새 조직</Text>
+                </DropdownMenuItem>
+              </>
+            ) : (
+              <DropdownMenuItem disabled>
+                <Text className="text-xs text-muted-foreground">
+                  로그인하면 조직을 선택할 수 있습니다.
+                </Text>
               </DropdownMenuItem>
-            </>
-          ) : (
-            <DropdownMenuItem disabled>
-              <Text className="text-xs text-muted-foreground">
-                로그인하면 조직을 선택할 수 있습니다.
-              </Text>
-            </DropdownMenuItem>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </View>
+      {onToggleSidebar ? (
+        <Button
+          accessibilityLabel="사이드바 닫기"
+          accessibilityState={{ expanded: true }}
+          className="hidden h-6 w-6 lg:flex"
+          onPress={onToggleSidebar}
+          size="icon"
+          variant="ghost"
+        >
+          <Icon as={PanelLeftClose} className="size-4 text-muted-foreground" />
+        </Button>
+      ) : null}
       {createOpen ? (
         <CreateOrganizationDialog onOpenChange={setCreateOpen} />
       ) : null}
@@ -287,10 +309,12 @@ function AccountFooter({ collapsed }: { collapsed: boolean }) {
 function SidebarOrganizationSwitcher({
   collapsed,
   onNavigate,
+  onToggleSidebar,
   organizationName,
 }: {
   collapsed: boolean;
   onNavigate?: () => void;
+  onToggleSidebar?: () => void;
   organizationName?: string;
 }) {
   const { currentUserId } = useDashboardPlatform();
@@ -299,13 +323,18 @@ function SidebarOrganizationSwitcher({
       <OrganizationSwitcher
         collapsed={collapsed}
         onNavigate={onNavigate}
+        onToggleSidebar={onToggleSidebar}
         organizationName={organizationName}
       />
     );
   return (
     <DashboardQueryBoundary
       fallback={
-        <OrganizationSwitcher collapsed={collapsed} onNavigate={onNavigate} />
+        <OrganizationSwitcher
+          collapsed={collapsed}
+          onNavigate={onNavigate}
+          onToggleSidebar={onToggleSidebar}
+        />
       }
       resetKeys={[currentUserId]}
       title="활성 조직을 불러오지 못했습니다"
@@ -313,6 +342,7 @@ function SidebarOrganizationSwitcher({
       <ResolvedOrganizationSwitcher
         collapsed={collapsed}
         onNavigate={onNavigate}
+        onToggleSidebar={onToggleSidebar}
       />
     </DashboardQueryBoundary>
   );
@@ -320,15 +350,18 @@ function SidebarOrganizationSwitcher({
 function ResolvedOrganizationSwitcher({
   collapsed,
   onNavigate,
+  onToggleSidebar,
 }: {
   collapsed: boolean;
   onNavigate?: () => void;
+  onToggleSidebar?: () => void;
 }) {
   const { data } = useOrganizationsControllerGetActiveSuspense();
   return (
     <OrganizationSwitcher
       collapsed={collapsed}
       onNavigate={onNavigate}
+      onToggleSidebar={onToggleSidebar}
       organizationName={data.activeOrganization?.organization.name}
     />
   );

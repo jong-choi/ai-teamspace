@@ -42,7 +42,7 @@ jest.mock('@core/features/organizations/organization-switcher-items', () => ({
 }));
 
 describe('사이드바 실제 계정 표시', () => {
-  it('접힌 메뉴는 글자를 숨겨도 각 아이콘으로 이동하고 계정 아바타와 조직 메뉴를 유지한다', async () => {
+  it('접힌 메뉴의 아이콘은 이동 기능을 유지하고 워크스페이스 아이콘은 사이드바만 펼친다', async () => {
     const measure = jest
       .spyOn(View.prototype, 'measure')
       .mockImplementation((callback) => {
@@ -61,9 +61,14 @@ describe('사이드바 실제 계정 표시', () => {
     };
     mockOrganizationId = 'organization-a';
     mockPush.mockClear();
+    const onToggleSidebar = jest.fn();
     const view = await render(
       <>
-        <DashboardNavigationContent collapsed organizationName="테스트 조직" />
+        <DashboardNavigationContent
+          collapsed
+          organizationName="테스트 조직"
+          onToggleSidebar={onToggleSidebar}
+        />
         <PortalHost />
       </>,
     );
@@ -90,6 +95,26 @@ describe('사이드바 실제 계정 표시', () => {
       pathname: '/organizations/[organizationId]/members',
       params: { organizationId: 'organization-a' },
     });
+    await fireEvent.press(view.getByLabelText('사이드바 열기'));
+    expect(onToggleSidebar).toHaveBeenCalledTimes(1);
+    expect(view.queryByLabelText('테스트 조직 선택')).toBeNull();
+    expect(view.queryByText('새 조직')).toBeNull();
+    await view.rerender(
+      <>
+        <DashboardNavigationContent
+          organizationName="테스트 조직"
+          onToggleSidebar={onToggleSidebar}
+        />
+        <PortalHost />
+      </>,
+    );
+    expect(view.queryByText('새 조직')).toBeNull();
+    expect(view.getByLabelText('사이드바 닫기').props.className).toContain(
+      'hidden',
+    );
+    expect(view.getByLabelText('사이드바 닫기').props.className).toContain(
+      'lg:flex',
+    );
     await fireEvent.press(view.getByLabelText('테스트 조직 선택'));
     expect(view.getByText('새 조직')).toBeTruthy();
     measure.mockRestore();

@@ -14,10 +14,10 @@ import type { McpAccessKeyAuthenticator } from '@/mcp-access-keys/mcp-access-key
 import type { AuthService } from '@thallesp/nestjs-better-auth';
 
 const config = {
-  resourceUrl: 'https://workos.example/mcp',
-  resourceOrigin: 'https://workos.example',
+  resourceUrl: 'https://teamspace.example/mcp',
+  resourceOrigin: 'https://teamspace.example',
   resourcePath: '/mcp',
-  allowedHosts: ['workos.example'],
+  allowedHosts: ['teamspace.example'],
   allowedOrigins: ['dashboard.example'],
   protocol: {
     maxRequestBodyBytes: 104_857,
@@ -41,7 +41,7 @@ describe('MCP HTTP credential routing', () => {
   const authService = {
     instance: {
       $context: Promise.resolve({
-        baseURL: 'https://workos.example/api/auth',
+        baseURL: 'https://teamspace.example/api/auth',
         internalAdapter: {},
       }),
     },
@@ -73,7 +73,7 @@ describe('MCP HTTP credential routing', () => {
     );
 
     const response = await handler.fetch(
-      new Request('https://workos.example/mcp', {
+      new Request('https://teamspace.example/mcp', {
         method: 'POST',
         headers: {
           authorization: 'Bearer wos_mcp_secret',
@@ -98,7 +98,7 @@ describe('MCP HTTP credential routing', () => {
     );
 
     const response = await handler.fetch(
-      new Request('https://workos.example/mcp', {
+      new Request('https://teamspace.example/mcp', {
         method: 'POST',
         headers: { authorization: 'Bearer wos_mcp_invalid' },
       }),
@@ -106,7 +106,7 @@ describe('MCP HTTP credential routing', () => {
 
     expect(response.status).toBe(401);
     expect(response.headers.get('www-authenticate')).toContain(
-      'resource_metadata="https://workos.example/.well-known/oauth-protected-resource/mcp"',
+      'resource_metadata="https://teamspace.example/.well-known/oauth-protected-resource/mcp"',
     );
     expect(authenticate).toHaveBeenCalledTimes(1);
     expect(authenticate).toHaveBeenCalledWith('wos_mcp_invalid');
@@ -124,7 +124,7 @@ describe('MCP HTTP credential routing', () => {
     );
 
     const response = await handler.fetch(
-      new Request('https://workos.example/mcp', {
+      new Request('https://teamspace.example/mcp', {
         method: 'POST',
         headers: { authorization: 'Bearer wos_mcp_secret' },
       }),
@@ -149,7 +149,7 @@ describe('MCP HTTP credential routing', () => {
     );
 
     const response = await handler.fetch(
-      new Request('https://workos.example/mcp', {
+      new Request('https://teamspace.example/mcp', {
         method: 'POST',
         headers: { authorization: 'Bearer wos_mcp_secret' },
       }),

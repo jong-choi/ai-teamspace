@@ -21,7 +21,7 @@ class TrajectoryEventKind(StrEnum):
 
 
 class ToolSource(StrEnum):
-    TEAMSPACE = "work_os"
+    TEAMSPACE = "teamspace"
     EXTERNAL_MCP = "external_mcp"
     UNKNOWN = "unknown"
 

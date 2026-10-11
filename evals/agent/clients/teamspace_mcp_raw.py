@@ -6,7 +6,7 @@ import httpx
 
 from clients.teamspace_mcp import MODERN_PROTOCOL_VERSION
 
-_CLIENT_NAME = "work-os-agent-evals"
+_CLIENT_NAME = "teamspace-agent-evals"
 _CLIENT_VERSION = "0.1.0"
 
 

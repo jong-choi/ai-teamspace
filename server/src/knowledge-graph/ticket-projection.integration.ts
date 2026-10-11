@@ -136,7 +136,7 @@ describeKnowledgeGraph('실제 Neo4j Ticket의 관계 교체와 source 소유권
     await writer.applyTicket(tracking(2), current);
     expect(
       await graph.query(
-        `MATCH (:KGWorkOSTicket {key: $key})-[relation]->(target)
+        `MATCH (:KGTeamspaceTicket {key: $key})-[relation]->(target)
       RETURN type(relation) AS kind, target.sourceId AS id ORDER BY kind`,
         { key },
       ),
@@ -148,7 +148,7 @@ describeKnowledgeGraph('실제 Neo4j Ticket의 관계 교체와 source 소유권
     ]);
     expect(
       await graph.query(
-        'MATCH (checklist:KGWorkOSTicketChecklist {organizationId: $organizationId})-[:KG_CHECKLIST_ITEM]->(item) RETURN checklist.sourceId AS checklistId, item.checklistId AS ownerId, item.completed AS completed',
+        'MATCH (checklist:KGTeamspaceTicketChecklist {organizationId: $organizationId})-[:KG_CHECKLIST_ITEM]->(item) RETURN checklist.sourceId AS checklistId, item.checklistId AS ownerId, item.completed AS completed',
         { organizationId },
       ),
     ).toEqual([
@@ -162,13 +162,13 @@ describeKnowledgeGraph('실제 Neo4j Ticket의 관계 교체와 source 소유권
     await writer.applyTicket(tracking(3), current);
     expect(
       await graph.query(
-        'MATCH (:KGWorkOSTicketChecklist {organizationId: $organizationId})-[relation:KG_CHECKLIST_ITEM]->() RETURN count(relation) AS count',
+        'MATCH (:KGTeamspaceTicketChecklist {organizationId: $organizationId})-[relation:KG_CHECKLIST_ITEM]->() RETURN count(relation) AS count',
         { organizationId },
       ),
     ).toEqual([{ count: '0' }]);
     expect(
       await graph.query(
-        'MATCH (item:KGWorkOSTicketChecklistItem {organizationId: $organizationId, sourceId: $itemId}) RETURN item.deleted AS deleted',
+        'MATCH (item:KGTeamspaceTicketChecklistItem {organizationId: $organizationId, sourceId: $itemId}) RETURN item.deleted AS deleted',
         { organizationId, itemId },
       ),
     ).toEqual([{ deleted: true }]);
@@ -196,7 +196,7 @@ describeKnowledgeGraph('실제 Neo4j Ticket의 관계 교체와 source 소유권
     await writer.applyTicket(tracking(1), source());
     expect(
       await graph.query(
-        'MATCH (label:KGWorkOSTicketLabel {key: $labelKey}) RETURN label.name AS name, label.color AS color, label.placeholder AS placeholder',
+        'MATCH (label:KGTeamspaceTicketLabel {key: $labelKey}) RETURN label.name AS name, label.color AS color, label.placeholder AS placeholder',
         { labelKey },
       ),
     ).toEqual([{ name: 'owner 최신 이름', color: 'red', placeholder: false }]);
@@ -211,7 +211,7 @@ describeKnowledgeGraph('실제 Neo4j Ticket의 관계 교체와 source 소유권
     await writer.applyTicket(tracking(2), source());
     expect(
       await graph.query(
-        'MATCH (label:KGWorkOSTicketLabel {key: $labelKey}) RETURN label.deleted AS deleted',
+        'MATCH (label:KGTeamspaceTicketLabel {key: $labelKey}) RETURN label.deleted AS deleted',
         { labelKey },
       ),
     ).toEqual([{ deleted: true }]);
@@ -244,13 +244,13 @@ describeKnowledgeGraph('실제 Neo4j Ticket의 관계 교체와 source 소유권
     await writer.applyTicket(tracking(2), current);
     expect(
       await graph.query(
-        'MATCH (:KGWorkOSTicket {key: $key})-[relation:KG_TICKET_LABEL]->() RETURN count(relation) AS count',
+        'MATCH (:KGTeamspaceTicket {key: $key})-[relation:KG_TICKET_LABEL]->() RETURN count(relation) AS count',
         { key },
       ),
     ).toEqual([{ count: '50' }]);
     expect(
       await graph.query(
-        'MATCH (:KGWorkOSTicket {key: $key})-[:KG_TICKET_CHECKLIST]->()-[relation:KG_CHECKLIST_ITEM]->() RETURN count(relation) AS count',
+        'MATCH (:KGTeamspaceTicket {key: $key})-[:KG_TICKET_CHECKLIST]->()-[relation:KG_CHECKLIST_ITEM]->() RETURN count(relation) AS count',
         { key },
       ),
     ).toEqual([{ count: '100' }]);
@@ -259,7 +259,7 @@ describeKnowledgeGraph('실제 Neo4j Ticket의 관계 교체와 source 소유권
   it('병렬 버전과 삭제 후 stale replay는 최신 tombstone으로 수렴하고 타 owner 관계를 보존한다', async () => {
     await writer.applyTicket(tracking(1), source());
     await graph.query(
-      'MATCH (ticket:KGWorkOSTicket {key: $key}) CREATE (ticket)-[:KG_TEST_FOREIGN]->(:KGTestReference {organizationId: $organizationId})',
+      'MATCH (ticket:KGTeamspaceTicket {key: $key}) CREATE (ticket)-[:KG_TEST_FOREIGN]->(:KGTestReference {organizationId: $organizationId})',
       { key, organizationId },
     );
     await Promise.all(
@@ -272,7 +272,7 @@ describeKnowledgeGraph('실제 Neo4j Ticket의 관계 교체와 source 소유권
     );
     expect(
       await graph.query(
-        'MATCH (ticket:KGWorkOSTicket {key: $key}) RETURN ticket.title AS title',
+        'MATCH (ticket:KGTeamspaceTicket {key: $key}) RETURN ticket.title AS title',
         { key },
       ),
     ).toEqual([{ title: '버전 8' }]);
@@ -280,13 +280,13 @@ describeKnowledgeGraph('실제 Neo4j Ticket의 관계 교체와 source 소유권
     await writer.applyTicket(tracking(8), source());
     expect(
       await graph.query(
-        'MATCH (ticket:KGWorkOSTicket {key: $key})-[relation]->() RETURN ticket.deleted AS deleted, collect(type(relation)) AS relations',
+        'MATCH (ticket:KGTeamspaceTicket {key: $key})-[relation]->() RETURN ticket.deleted AS deleted, collect(type(relation)) AS relations',
         { key },
       ),
     ).toEqual([{ deleted: true, relations: ['KG_TEST_FOREIGN'] }]);
     expect(
       await graph.query(
-        'MATCH (:KGWorkOSTicketChecklist {organizationId: $organizationId})-[relation:KG_CHECKLIST_ITEM]->() RETURN count(relation) AS count',
+        'MATCH (:KGTeamspaceTicketChecklist {organizationId: $organizationId})-[relation:KG_CHECKLIST_ITEM]->() RETURN count(relation) AS count',
         { organizationId },
       ),
     ).toEqual([{ count: '0' }]);
@@ -301,7 +301,7 @@ describeKnowledgeGraph('실제 Neo4j Ticket의 관계 교체와 source 소유권
     await writer.applyTicket(tracking(2, true), null);
     expect(
       await graph.query(
-        'MATCH (ticket:KGWorkOSTicket {sourceId: $ticketId}) RETURN ticket.organizationId AS organizationId, ticket.deleted AS deleted ORDER BY organizationId',
+        'MATCH (ticket:KGTeamspaceTicket {sourceId: $ticketId}) RETURN ticket.organizationId AS organizationId, ticket.deleted AS deleted ORDER BY organizationId',
         { ticketId },
       ),
     ).toEqual([
@@ -310,7 +310,7 @@ describeKnowledgeGraph('실제 Neo4j Ticket의 관계 교체와 source 소유권
     ]);
     expect(
       await graph.query(
-        'MATCH (ticket:KGWorkOSTicket {key: $otherKey})-[:KG_TICKET_LABEL]->(label) RETURN label.organizationId AS organizationId',
+        'MATCH (ticket:KGTeamspaceTicket {key: $otherKey})-[:KG_TICKET_LABEL]->(label) RETURN label.organizationId AS organizationId',
         { otherKey: JSON.stringify(['ticket', otherOrganizationId, ticketId]) },
       ),
     ).toEqual([{ organizationId: otherOrganizationId }]);
@@ -333,7 +333,7 @@ describeKnowledgeGraph('실제 Neo4j Ticket의 관계 교체와 source 소유권
     }
     expect(
       await graph.query(
-        'MATCH (ticket:KGWorkOSTicket {key: $key}) RETURN count(ticket) AS count',
+        'MATCH (ticket:KGTeamspaceTicket {key: $key}) RETURN count(ticket) AS count',
         { key },
       ),
     ).toEqual([{ count: '0' }]);

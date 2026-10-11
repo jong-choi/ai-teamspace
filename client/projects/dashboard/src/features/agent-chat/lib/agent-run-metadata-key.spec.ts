@@ -9,7 +9,7 @@ describe('Agent run metadata storage key', () => {
         { userId: 'user/a', organizationId: 'org:1' },
         'lg:stream:thread-1',
       ),
-    ).toBe('workos-agent:user%2Fa:org%3A1:lg:stream:thread-1');
+    ).toBe('teamspace-agent:user%2Fa:org%3A1:lg:stream:thread-1');
   });
 
   it('같은 thread여도 organization이 다르면 storage key가 다르다', () => {

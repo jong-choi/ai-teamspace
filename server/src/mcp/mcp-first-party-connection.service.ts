@@ -23,10 +23,12 @@ export type McpFirstPartyConnection = {
 
 // 요청은 아래 fetch에서 프로세스 내부 handler로 바로 전달되어 네트워크로 나가지 않는다.
 // 예약 TLD(.invalid)를 써서 실수로 외부 요청이 되더라도 해석되지 않게 한다.
-const FIRST_PARTY_ENDPOINT = new URL('http://work-os-first-party.invalid/mcp');
+const FIRST_PARTY_ENDPOINT = new URL(
+  'http://teamspace-first-party.invalid/mcp',
+);
 
 const FIRST_PARTY_CLIENT_INFO = {
-  name: 'work-os-first-party-agent',
+  name: 'teamspace-first-party-agent',
   version: '0.0.1',
 } as const;
 

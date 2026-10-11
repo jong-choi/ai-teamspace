@@ -10,7 +10,7 @@ const createdAt = new Date('2026-10-07T00:00:00.000Z');
 const updatedAt = new Date('2026-10-07T01:00:00.000Z');
 const stored = {
   id: 'key-a',
-  configId: 'workos-mcp-user',
+  configId: 'teamspace-mcp-user',
   name: 'CI',
   start: 'wos_mc',
   prefix: 'wos_mcp_',
@@ -34,7 +34,7 @@ const stored = {
     wiki: ['read'],
   }),
   metadata: JSON.stringify({
-    kind: 'workos-mcp-user',
+    kind: 'teamspace-mcp-user',
     version: 1,
     organizationGrant: {
       mode: 'selected',
@@ -90,7 +90,7 @@ describe('Better Auth MCP access key provider', () => {
         wiki: ['read'],
       },
       metadata: {
-        kind: 'workos-mcp-user',
+        kind: 'teamspace-mcp-user',
         version: 1,
         organizationGrant: {
           mode: 'selected',
@@ -112,7 +112,7 @@ describe('Better Auth MCP access key provider', () => {
 
     expect(createApiKey).toHaveBeenCalledWith({
       body: {
-        configId: 'workos-mcp-user',
+        configId: 'teamspace-mcp-user',
         userId: 'user-a',
         name: 'CI',
         prefix: 'wos_mcp_',
@@ -122,7 +122,7 @@ describe('Better Auth MCP access key provider', () => {
           wiki: ['read'],
         },
         metadata: {
-          kind: 'workos-mcp-user',
+          kind: 'teamspace-mcp-user',
           version: 1,
           organizationGrant: {
             mode: 'selected',
@@ -163,7 +163,7 @@ describe('Better Auth MCP access key provider', () => {
     expect(findMany).toHaveBeenCalledWith({
       model: 'apikey',
       where: [
-        { field: 'configId', value: 'workos-mcp-user' },
+        { field: 'configId', value: 'teamspace-mcp-user' },
         { field: 'referenceId', value: 'user-a' },
       ],
     });

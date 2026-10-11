@@ -199,7 +199,7 @@ describe('Langfuse Agent telemetry 통합', () => {
     try {
       const client = app.client(input.userId);
       const thread = await client.threads.create();
-      const run = await client.runs.create(thread.thread_id, 'workos', {
+      const run = await client.runs.create(thread.thread_id, 'teamspace', {
         input: { messages: [{ role: 'user', content: input.prompt }] },
       });
       await client.runs.join(thread.thread_id, run.run_id);

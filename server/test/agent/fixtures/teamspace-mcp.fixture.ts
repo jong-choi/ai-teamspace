@@ -81,7 +81,7 @@ export async function startTeamspaceMcpFixture(
 
 function createFixtureServer(actor: string, state: FixtureMcpState): McpServer {
   const server = new McpServer({
-    name: 'workos-agent-fixture',
+    name: 'teamspace-agent-fixture',
     version: '1.0.0',
   });
 

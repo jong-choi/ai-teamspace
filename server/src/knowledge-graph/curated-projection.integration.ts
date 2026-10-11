@@ -286,13 +286,13 @@ describeKnowledgeGraph(
       expect(await edgeCount()).toBe('1');
       expect(
         await graph.query(
-          'MATCH (node:KGWorkOSProject {key: $key}) RETURN node.name AS name, node.placeholder AS placeholder',
+          'MATCH (node:KGTeamspaceProject {key: $key}) RETURN node.name AS name, node.placeholder AS placeholder',
           { key: key('project', projectId) },
         ),
       ).toEqual([{ name: '업무 원본 수정 제목', placeholder: false }]);
       expect(
         await graph.query(
-          'MATCH (:KGWorkOSProject {key: $key})-[edge:KG_PROJECT_ORGANIZATION]->() RETURN count(edge) AS total',
+          'MATCH (:KGTeamspaceProject {key: $key})-[edge:KG_PROJECT_ORGANIZATION]->() RETURN count(edge) AS total',
           { key: key('project', projectId) },
         ),
       ).toEqual([{ total: '1' }]);

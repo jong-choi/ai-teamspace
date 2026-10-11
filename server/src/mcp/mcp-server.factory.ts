@@ -12,7 +12,7 @@ import {
 } from '@modelcontextprotocol/server';
 
 export const TEAMSPACE_MCP_SERVER_INFO = {
-  name: 'work-os',
+  name: 'teamspace',
   version: '0.0.1',
 } as const;
 

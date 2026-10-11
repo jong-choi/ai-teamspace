@@ -12,7 +12,7 @@ import { McpFirstPartyConnectionService } from '@/mcp/mcp-first-party-connection
 
 import { loadMcpTools } from '@langchain/mcp-adapters';
 
-const TEAMSPACE_SERVER_NAME = 'workos';
+const TEAMSPACE_SERVER_NAME = 'teamspace';
 
 /**
  * built-in AI Teamspace 도구를 서버 내부 MCP 연결로 연다.
@@ -46,8 +46,8 @@ export class FirstPartyTeamspaceMcpAdapter extends TeamspaceToolSessionProvider 
       const toolIdentities = new Map<string, McpToolIdentity>();
       for (const tool of tools) {
         toolIdentities.set(tool.name, {
-          source: 'workos',
-          namespace: 'workos',
+          source: 'teamspace',
+          namespace: 'teamspace',
           originalToolName: tool.name,
         });
       }

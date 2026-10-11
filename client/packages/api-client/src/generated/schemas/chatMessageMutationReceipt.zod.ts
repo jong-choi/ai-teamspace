@@ -13,7 +13,7 @@ import * as zod from 'zod';
 
 export const ChatMessageMutationReceipt = zod.object({
   "version": zod.literal(1),
-  "source": zod.enum(['workos']),
+  "source": zod.enum(['teamspace']),
   "organizationId": zod.string().min(1),
   "resourceId": zod.string().min(1),
   "kind": zod.enum(['chat_message']),

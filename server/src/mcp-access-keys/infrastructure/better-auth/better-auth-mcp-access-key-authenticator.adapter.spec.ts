@@ -34,14 +34,14 @@ describe('Better Auth MCP access key authenticator', () => {
       error: null,
       key: {
         id: 'key-a',
-        configId: 'workos-mcp-user',
+        configId: 'teamspace-mcp-user',
         referenceId: 'user-a',
         permissions: {
           wiki: ['write', 'read'],
           organizations: ['read'],
         },
         metadata: {
-          kind: 'workos-mcp-user',
+          kind: 'teamspace-mcp-user',
           version: 1,
           organizationGrant: {
             mode: 'selected',
@@ -65,7 +65,7 @@ describe('Better Auth MCP access key authenticator', () => {
     expect(verifyApiKey).toHaveBeenCalledTimes(1);
     expect(verifyApiKey).toHaveBeenCalledWith({
       body: {
-        configId: 'workos-mcp-user',
+        configId: 'teamspace-mcp-user',
         key: 'wos_mcp_secret',
       },
     });
@@ -108,11 +108,11 @@ describe('Better Auth MCP access key authenticator', () => {
       error: null,
       key: {
         id: 'key-a',
-        configId: 'workos-mcp-user',
+        configId: 'teamspace-mcp-user',
         referenceId: 'user-a',
         permissions: { organizations: ['read'] },
         metadata: {
-          kind: 'workos-mcp-user',
+          kind: 'teamspace-mcp-user',
           version: 1,
           organizationGrant: {
             mode: 'all-user-organizations',
@@ -134,7 +134,7 @@ describe('Better Auth MCP access key authenticator', () => {
       error: null,
       key: {
         id: 'key-a',
-        configId: 'workos-mcp-user',
+        configId: 'teamspace-mcp-user',
         referenceId: 'user-a',
         permissions: { wiki: ['admin'] },
         metadata: {

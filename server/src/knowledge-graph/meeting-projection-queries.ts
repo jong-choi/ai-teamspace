@@ -4,7 +4,7 @@ ON CREATE SET marker.appliedSeq = 0
 SET marker.writeFence = coalesce(marker.writeFence, 0) + 1
 WITH marker
 WHERE marker.appliedSeq < $sourceVersion
-MERGE (meeting:KGWorkOSMeeting {key: $sourceKey})
+MERGE (meeting:KGTeamspaceMeeting {key: $sourceKey})
 SET meeting.organizationId = $organizationId,
     meeting.sourceId = $sourceId,
     meeting.projectReference = $projectReference,
@@ -31,12 +31,12 @@ WHERE type(oldRel) IN [
 ]
 DELETE oldRel
 WITH DISTINCT marker, meeting
-MERGE (organizer:KGWorkOSUserReference {key: $organizerKey})
+MERGE (organizer:KGTeamspaceUserReference {key: $organizerKey})
 ON CREATE SET organizer.organizationId = $organizationId,
               organizer.sourceId = $organizerUserId
 MERGE (meeting)-[:KG_MEETING_ORGANIZER]->(organizer)
 FOREACH (ignored IN CASE WHEN $roomKey IS NULL THEN [] ELSE [1] END |
-  MERGE (room:KGWorkOSMeetingRoom {key: $roomKey})
+  MERGE (room:KGTeamspaceMeetingRoom {key: $roomKey})
   ON CREATE SET room.organizationId = $organizationId,
                 room.sourceId = $roomId,
                 room.placeholder = true,
@@ -44,7 +44,7 @@ FOREACH (ignored IN CASE WHEN $roomKey IS NULL THEN [] ELSE [1] END |
   MERGE (meeting)-[:KG_MEETING_ROOM]->(room)
 )
 FOREACH (ignored IN CASE WHEN $recurrenceKey IS NULL THEN [] ELSE [1] END |
-  MERGE (series:KGWorkOSMeetingRecurrence {key: $recurrenceKey})
+  MERGE (series:KGTeamspaceMeetingRecurrence {key: $recurrenceKey})
   ON CREATE SET series.organizationId = $organizationId,
       series.sourceId = $recurrenceId,
       series.placeholder = true,
@@ -52,7 +52,7 @@ FOREACH (ignored IN CASE WHEN $recurrenceKey IS NULL THEN [] ELSE [1] END |
   MERGE (meeting)-[:KG_MEETING_RECURRENCE]->(series)
 )
 FOREACH (attendee IN $attendees |
-  MERGE (user:KGWorkOSUserReference {key: attendee.key})
+  MERGE (user:KGTeamspaceUserReference {key: attendee.key})
   ON CREATE SET user.organizationId = $organizationId,
                 user.sourceId = attendee.userId
   MERGE (meeting)-[relation:KG_MEETING_ATTENDEE]->(user)
@@ -68,7 +68,7 @@ ON CREATE SET marker.appliedSeq = 0
 SET marker.writeFence = coalesce(marker.writeFence, 0) + 1
 WITH marker
 WHERE marker.appliedSeq < $sourceVersion
-OPTIONAL MATCH (meeting:KGWorkOSMeeting {key: $sourceKey})
+OPTIONAL MATCH (meeting:KGTeamspaceMeeting {key: $sourceKey})
 OPTIONAL MATCH (meeting)-[ownedRel]->()
 WHERE type(ownedRel) IN [
   'KG_MEETING_ROOM',

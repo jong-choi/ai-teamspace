@@ -247,7 +247,7 @@ describe('PostgreSQL Outbox와 BullMQ의 실제 전달', () => {
   outageTest(
     '실제 Redis 중단 중에는 PG 의도를 유지하고 복구 뒤 전달한다',
     async () => {
-      if (redisContainer !== 'workos-graph-verification-redis')
+      if (redisContainer !== 'teamspace-graph-verification-redis')
         throw new Error('전용 검증 Redis만 중단할 수 있습니다.');
       await record();
       await run('docker', ['pause', redisContainer]);

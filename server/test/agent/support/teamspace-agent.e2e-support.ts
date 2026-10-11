@@ -96,7 +96,7 @@ export async function startAgentApp(input: {
     mcpToolTimeoutMs: 5_000,
   });
   const deps = createInMemoryAgentRuntimeDeps(
-    { workos: graph },
+    { teamspace: graph },
     {
       auth: input.auth ?? testAgentAuth,
       ...(input.telemetry ? { telemetry: input.telemetry } : {}),

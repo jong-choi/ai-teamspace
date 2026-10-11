@@ -29,7 +29,7 @@ export const McpAccessKeyOrganizationGrantSchema = z.discriminatedUnion(
 
 export const McpAccessKeyMetadataSchema = z
   .object({
-    kind: z.literal('workos-mcp-user'),
+    kind: z.literal('teamspace-mcp-user'),
     version: z.literal(1),
     organizationGrant: McpAccessKeyOrganizationGrantSchema,
   })

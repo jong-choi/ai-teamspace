@@ -4,7 +4,7 @@ ON CREATE SET marker.appliedSeq = 0
 SET marker.writeFence = coalesce(marker.writeFence, 0) + 1
 WITH marker
 WHERE marker.appliedSeq < $sourceVersion
-MERGE (project:KGWorkOSProject {key: $sourceKey})
+MERGE (project:KGTeamspaceProject {key: $sourceKey})
 SET project.organizationId = $organizationId,
     project.sourceId = $sourceId,
     project.projectKey = $projectKey,
@@ -18,27 +18,27 @@ OPTIONAL MATCH (project)-[oldReference]->()
 WHERE type(oldReference) IN ['KG_PROJECT_ORGANIZATION', 'KG_PROJECT_CREATOR', 'KG_PROJECT_LEAD']
 DELETE oldReference
 WITH DISTINCT marker, project
-MERGE (organization:KGWorkOSOrganization {key: $organizationKey})
+MERGE (organization:KGTeamspaceOrganization {key: $organizationKey})
 ON CREATE SET organization.organizationId = $organizationId,
               organization.sourceId = $organizationId,
               organization.placeholder = true,
               organization.deleted = false
 MERGE (project)-[:KG_PROJECT_ORGANIZATION]->(organization)
-MERGE (creator:KGWorkOSUserReference {key: $creatorKey})
+MERGE (creator:KGTeamspaceUserReference {key: $creatorKey})
 ON CREATE SET creator.organizationId = $organizationId, creator.sourceId = $creatorUserId
 MERGE (project)-[:KG_PROJECT_CREATOR]->(creator)
 FOREACH (ignored IN CASE WHEN $leadKey IS NULL THEN [] ELSE [1] END |
-  MERGE (lead:KGWorkOSUserReference {key: $leadKey})
+  MERGE (lead:KGTeamspaceUserReference {key: $leadKey})
   ON CREATE SET lead.organizationId = $organizationId, lead.sourceId = $leadUserId
   MERGE (project)-[:KG_PROJECT_LEAD]->(lead)
 )
 WITH DISTINCT marker, project
-OPTIONAL MATCH (project)-[oldColumnRel:KG_PROJECT_COLUMN]->(oldColumn:KGWorkOSProjectColumn)
+OPTIONAL MATCH (project)-[oldColumnRel:KG_PROJECT_COLUMN]->(oldColumn:KGTeamspaceProjectColumn)
 SET oldColumn.deleted = true
 DELETE oldColumnRel
 WITH DISTINCT marker, project
 FOREACH (column IN $columns |
-  MERGE (columnNode:KGWorkOSProjectColumn {key: column.key})
+  MERGE (columnNode:KGTeamspaceProjectColumn {key: column.key})
   SET columnNode.organizationId = $organizationId,
       columnNode.sourceId = column.id,
       columnNode.projectId = $sourceId,
@@ -59,8 +59,8 @@ ON CREATE SET marker.appliedSeq = 0
 SET marker.writeFence = coalesce(marker.writeFence, 0) + 1
 WITH marker
 WHERE marker.appliedSeq < $sourceVersion
-OPTIONAL MATCH (project:KGWorkOSProject {key: $sourceKey})
-OPTIONAL MATCH (project)-[columnRel:KG_PROJECT_COLUMN]->(column:KGWorkOSProjectColumn)
+OPTIONAL MATCH (project:KGTeamspaceProject {key: $sourceKey})
+OPTIONAL MATCH (project)-[columnRel:KG_PROJECT_COLUMN]->(column:KGTeamspaceProjectColumn)
 SET column.deleted = true
 DELETE columnRel
 WITH DISTINCT marker, project

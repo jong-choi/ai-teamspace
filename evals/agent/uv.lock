@@ -1610,7 +1610,7 @@ wheels = [
 ]
 
 [[package]]
-name = "work-os-agent-evals"
+name = "teamspace-agent-evals"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

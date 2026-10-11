@@ -99,7 +99,7 @@ const sessions = {
       prefixToolNameWithServerName: false,
       defaultToolTimeout: configuration.mcp.toolTimeoutMs,
       servers: {
-        workos: {
+        teamspace: {
           transport: 'http',
           mode: 'modern',
           url: configuration.mcp.url,
@@ -108,7 +108,7 @@ const sessions = {
       },
     });
     try {
-      const tools = await adapter.listTools('workos');
+      const tools = await adapter.listTools('teamspace');
       return {
         tools,
         readOnlyTools: approvalPolicy.readOnlyTools(tools),
@@ -117,8 +117,8 @@ const sessions = {
           tools.map((tool) => [
             tool.name,
             {
-              source: 'workos',
-              namespace: 'workos',
+              source: 'teamspace',
+              namespace: 'teamspace',
               originalToolName: tool.name,
             },
           ]),
@@ -161,12 +161,12 @@ const auth = adaptAgentAuth(
 );
 
 const durable = await createDurableAgentRuntime(
-  { workos: graphFactory },
+  { teamspace: graphFactory },
   {
     postgresUri: databaseUrl,
     redisUri: redisUrl,
-    redisPrefix: `work-os:test:agent-process:${namespace}`,
-    runQueueName: `work-os-test-agent-process-${namespace}`,
+    redisPrefix: `teamspace:test:agent-process:${namespace}`,
+    runQueueName: `teamspace-test-agent-process-${namespace}`,
     runConcurrency: 1,
     runTimeoutMs: 10_000,
     overrides: { auth },
@@ -205,7 +205,7 @@ const client = new Client({
 try {
   if (phase === 'interrupt') {
     const thread = await client.threads.create();
-    const run = await client.runs.create(thread.thread_id, 'workos', {
+    const run = await client.runs.create(thread.thread_id, 'teamspace', {
       input: {
         messages: [{ role: 'user', content: 'process boundary write' }],
       },
@@ -218,7 +218,7 @@ try {
     });
   } else if (phase === 'resume') {
     if (!threadId) throw new Error('AGENT_PROCESS_THREAD_ID가 필요합니다.');
-    const run = await client.runs.create(threadId, 'workos', {
+    const run = await client.runs.create(threadId, 'teamspace', {
       command: { resume: { decisions: [{ type: 'approve' }] } },
     });
     await waitForRunStatus(client, threadId, run.run_id, 'success');

@@ -296,7 +296,7 @@ class AgentProtocolExecutor:
         self,
         client_factory: Callable[[FixtureLease], AgentExecutionClient],
         *,
-        assistant_id: str = "workos",
+        assistant_id: str = "teamspace",
         teamspace_tool_names: frozenset[str] | None = None,
         raw_dir: Path | None = None,
     ) -> None:
@@ -311,7 +311,7 @@ class AgentProtocolExecutor:
         server_url: str,
         *,
         headers_for_lease: Callable[[FixtureLease], Mapping[str, str]],
-        assistant_id: str = "workos",
+        assistant_id: str = "teamspace",
         teamspace_tool_names: frozenset[str] | None = None,
         raw_dir: Path | None = None,
     ) -> AgentProtocolExecutor:

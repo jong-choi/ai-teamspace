@@ -94,7 +94,7 @@ async def test_raw_mcp_helper_only_exposes_status_and_challenge(
             "protocolVersion": MODERN_PROTOCOL_VERSION,
             "capabilities": {},
             "clientInfo": {
-                "name": "work-os-agent-evals",
+                "name": "teamspace-agent-evals",
                 "version": "0.1.0",
             },
         },

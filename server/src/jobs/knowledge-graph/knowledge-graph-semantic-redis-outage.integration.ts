@@ -31,7 +31,7 @@ describeKnowledgeGraph('격리 Redis 장애 중 영속 수동 접수와 즉시 �
       async () => (await state.current(scope))?.state?.observedSeq === 1,
       '원본 관측이 없습니다.',
     );
-    await docker('docker', ['pause', 'workos-graph-verification-redis']);
+    await docker('docker', ['pause', 'teamspace-graph-verification-redis']);
     try {
       const requested = await context.refresh.requestManualRefresh(
         context.org,
@@ -61,7 +61,7 @@ describeKnowledgeGraph('격리 Redis 장애 중 영속 수동 접수와 즉시 �
       ).toBe(0);
       expect((await state.current(scope))?.state?.lastRequeuedAt).toBeNull();
     } finally {
-      await docker('docker', ['unpause', 'workos-graph-verification-redis']);
+      await docker('docker', ['unpause', 'teamspace-graph-verification-redis']);
     }
     const recoveredAt = performance.now();
     await context.app

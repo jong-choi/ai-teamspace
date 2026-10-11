@@ -37,7 +37,7 @@ describeKnowledgeGraph('전달 장애에서 실제 PG·Redis·Jobs·Neo4j 복구
     ).toBe(true);
     expect(
       await context.graph.query(
-        'MATCH (node) WHERE node.organizationId=$org AND (node:KGWorkOSWikiDocument OR node:KGWorkOSProject) RETURN count(node) AS nodes, count(DISTINCT node.key) AS uniqueNodes',
+        'MATCH (node) WHERE node.organizationId=$org AND (node:KGTeamspaceWikiDocument OR node:KGTeamspaceProject) RETURN count(node) AS nodes, count(DISTINCT node.key) AS uniqueNodes',
         { org },
       ),
     ).toEqual([{ nodes: '30', uniqueNodes: '30' }]);
@@ -99,7 +99,7 @@ describeKnowledgeGraph('전달 장애에서 실제 PG·Redis·Jobs·Neo4j 복구
     await context.converged(org);
     expect(
       await context.graph.query(
-        'MATCH (node:KGWorkOSProject {key:$key}) RETURN node.name AS name',
+        'MATCH (node:KGTeamspaceProject {key:$key}) RETURN node.name AS name',
         { key: JSON.stringify(['project', org, source.id]) },
       ),
     ).toEqual([{ name: '중단 뒤 최신' }]);

@@ -77,7 +77,7 @@ export function problemDetailsPlugin(
   const disabledPaths = new Set(options.disabledPaths ?? []);
 
   return {
-    id: 'work-os-problem-details',
+    id: 'teamspace-problem-details',
     // Better Auth의 built-in disabledPaths는 onResponse 전에 반환하므로 여기서 차단해 오류 형식을 유지한다.
     async onRequest(request, context) {
       const requestPath = new URL(request.url).pathname;

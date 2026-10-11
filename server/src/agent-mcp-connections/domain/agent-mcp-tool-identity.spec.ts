@@ -11,7 +11,7 @@ describe('외부 MCP tool identity 계약', () => {
 
     expect(AgentMcpNamespaceSchema.parse(namespace)).toBe(namespace);
     expect(namespace).toMatch(/^ext[a-z0-9]+$/);
-    expect(() => AgentMcpNamespaceSchema.parse('workos')).toThrow();
+    expect(() => AgentMcpNamespaceSchema.parse('teamspace')).toThrow();
     expect(() => AgentMcpNamespaceSchema.parse('internal')).toThrow();
   });
 

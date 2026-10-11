@@ -34,7 +34,7 @@ from runner.manifest import dependency_versions, tool_manifest_hash
 from runner.suite_runner import run_dataset_trials
 
 AGENT_PROTOCOL_VERSION = "v1"
-TEAMSPACE_MCP_ALIAS = "work-os"
+TEAMSPACE_MCP_ALIAS = "teamspace"
 _DETERMINISTIC_RUNTIME_VERSION = "deterministic-fixture-v1"
 _DETERMINISTIC_MODEL_NAME = "dataset-contract-v1"
 _DETERMINISTIC_TOOL_NAMES = (
@@ -368,7 +368,7 @@ async def run_live_dataset(
     executor = AgentProtocolExecutor.for_http(
         settings.server_url,
         headers_for_lease=fixtures.agent_headers,
-        assistant_id="workos",
+        assistant_id="teamspace",
         teamspace_tool_names=discovery.teamspace_tool_names,
         raw_dir=settings.output_dir / "raw",
     )

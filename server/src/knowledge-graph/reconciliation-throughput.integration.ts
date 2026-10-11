@@ -106,7 +106,7 @@ describeKnowledgeGraph('실제 membership 관찰·조직 삭제의 1K 처리량'
     );
     expect(
       await context.graph.query(
-        'MATCH (node:KGWorkOSProject) WHERE node.organizationId=$org AND node.deleted=false RETURN count(node) AS active',
+        'MATCH (node:KGTeamspaceProject) WHERE node.organizationId=$org AND node.deleted=false RETURN count(node) AS active',
         { org },
       ),
     ).toEqual([{ active: '0' }]);

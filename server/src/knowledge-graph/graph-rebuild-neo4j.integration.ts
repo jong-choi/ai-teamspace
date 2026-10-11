@@ -138,7 +138,7 @@ describeKnowledgeGraph(
     async function readGraph() {
       return graph.query(
         `MATCH (marker:KGProjectionSource {key: $sourceKey})
-       OPTIONAL MATCH (node:KGWorkOSWikiDocument {key: $sourceKey})
+       OPTIONAL MATCH (node:KGTeamspaceWikiDocument {key: $sourceKey})
        RETURN marker.appliedSeq AS version,
               marker.deleted AS markerDeleted,
               node.title AS title,
@@ -164,7 +164,7 @@ describeKnowledgeGraph(
       await writer.applyWiki(initial, document('초기 원본'));
 
       await graph.query(
-        'MATCH (node:KGWorkOSWikiDocument {key: $sourceKey}) DETACH DELETE node',
+        'MATCH (node:KGTeamspaceWikiDocument {key: $sourceKey}) DETACH DELETE node',
         { sourceKey },
       );
       expect(await readGraph()).toEqual([

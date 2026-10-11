@@ -4,7 +4,7 @@ ON CREATE SET marker.appliedSeq = 0
 SET marker.writeFence = coalesce(marker.writeFence, 0) + 1
 WITH marker
 WHERE marker.appliedSeq < $sourceVersion
-MERGE (ticket:KGWorkOSTicket {key: $sourceKey})
+MERGE (ticket:KGTeamspaceTicket {key: $sourceKey})
 SET ticket.organizationId = $organizationId,
     ticket.sourceId = $sourceId,
     ticket.projectId = $projectId,
@@ -30,20 +30,20 @@ WHERE type(oldRel) IN [
 ]
 DELETE oldRel
 WITH DISTINCT marker, ticket
-OPTIONAL MATCH (oldChecklist:KGWorkOSTicketChecklist {organizationId: $organizationId, ticketId: $sourceId})
+OPTIONAL MATCH (oldChecklist:KGTeamspaceTicketChecklist {organizationId: $organizationId, ticketId: $sourceId})
 OPTIONAL MATCH (oldChecklist)-[oldItemRel:KG_CHECKLIST_ITEM]->()
 SET oldChecklist.deleted = true
 DELETE oldItemRel
 WITH DISTINCT marker, ticket
-OPTIONAL MATCH (oldItem:KGWorkOSTicketChecklistItem {organizationId: $organizationId, ticketId: $sourceId})
+OPTIONAL MATCH (oldItem:KGTeamspaceTicketChecklistItem {organizationId: $organizationId, ticketId: $sourceId})
 SET oldItem.deleted = true
 WITH DISTINCT marker, ticket
-MERGE (project:KGWorkOSProject {key: $projectKey})
+MERGE (project:KGTeamspaceProject {key: $projectKey})
 ON CREATE SET project.organizationId = $organizationId,
               project.sourceId = $projectId,
               project.placeholder = true,
               project.deleted = false
-MERGE (column:KGWorkOSProjectColumn {key: $columnKey})
+MERGE (column:KGTeamspaceProjectColumn {key: $columnKey})
 ON CREATE SET column.organizationId = $organizationId,
               column.sourceId = $columnId,
               column.projectId = $projectId,
@@ -52,17 +52,17 @@ ON CREATE SET column.organizationId = $organizationId,
 MERGE (ticket)-[:KG_TICKET_PROJECT]->(project)
 MERGE (ticket)-[:KG_TICKET_COLUMN]->(column)
 FOREACH (ignored IN CASE WHEN $assigneeKey IS NULL THEN [] ELSE [1] END |
-  MERGE (assignee:KGWorkOSUserReference {key: $assigneeKey})
+  MERGE (assignee:KGTeamspaceUserReference {key: $assigneeKey})
   ON CREATE SET assignee.organizationId = $organizationId,
                 assignee.sourceId = $assigneeUserId
   MERGE (ticket)-[:KG_TICKET_ASSIGNEE]->(assignee)
 )
-MERGE (reporter:KGWorkOSUserReference {key: $reporterKey})
+MERGE (reporter:KGTeamspaceUserReference {key: $reporterKey})
 ON CREATE SET reporter.organizationId = $organizationId,
               reporter.sourceId = $reporterUserId
 MERGE (ticket)-[:KG_TICKET_REPORTER]->(reporter)
 FOREACH (label IN $labels |
-  MERGE (labelNode:KGWorkOSTicketLabel {key: label.key})
+  MERGE (labelNode:KGTeamspaceTicketLabel {key: label.key})
   ON CREATE SET labelNode.organizationId = $organizationId,
                 labelNode.sourceId = label.id,
                 labelNode.projectId = $projectId,
@@ -71,7 +71,7 @@ FOREACH (label IN $labels |
   MERGE (ticket)-[:KG_TICKET_LABEL]->(labelNode)
 )
 FOREACH (checklist IN $checklists |
-  MERGE (checklistNode:KGWorkOSTicketChecklist {key: checklist.key})
+  MERGE (checklistNode:KGTeamspaceTicketChecklist {key: checklist.key})
   SET checklistNode.organizationId = $organizationId,
       checklistNode.sourceId = checklist.id,
       checklistNode.ticketId = $sourceId,
@@ -80,7 +80,7 @@ FOREACH (checklist IN $checklists |
       checklistNode.deleted = false
   MERGE (ticket)-[:KG_TICKET_CHECKLIST]->(checklistNode)
   FOREACH (item IN checklist.items |
-    MERGE (itemNode:KGWorkOSTicketChecklistItem {key: item.key})
+    MERGE (itemNode:KGTeamspaceTicketChecklistItem {key: item.key})
     SET itemNode.organizationId = $organizationId,
         itemNode.sourceId = item.id,
         itemNode.ticketId = $sourceId,
@@ -102,7 +102,7 @@ ON CREATE SET marker.appliedSeq = 0
 SET marker.writeFence = coalesce(marker.writeFence, 0) + 1
 WITH marker
 WHERE marker.appliedSeq < $sourceVersion
-OPTIONAL MATCH (ticket:KGWorkOSTicket {key: $sourceKey})
+OPTIONAL MATCH (ticket:KGTeamspaceTicket {key: $sourceKey})
 OPTIONAL MATCH (ticket)-[ownedRel]->()
 WHERE type(ownedRel) IN [
   'KG_TICKET_PROJECT',
@@ -114,12 +114,12 @@ WHERE type(ownedRel) IN [
 ]
 DELETE ownedRel
 WITH DISTINCT marker, ticket
-OPTIONAL MATCH (checklist:KGWorkOSTicketChecklist {organizationId: $organizationId, ticketId: $sourceId})
+OPTIONAL MATCH (checklist:KGTeamspaceTicketChecklist {organizationId: $organizationId, ticketId: $sourceId})
 OPTIONAL MATCH (checklist)-[itemRel:KG_CHECKLIST_ITEM]->()
 SET checklist.deleted = true
 DELETE itemRel
 WITH DISTINCT marker, ticket
-OPTIONAL MATCH (item:KGWorkOSTicketChecklistItem {organizationId: $organizationId, ticketId: $sourceId})
+OPTIONAL MATCH (item:KGTeamspaceTicketChecklistItem {organizationId: $organizationId, ticketId: $sourceId})
 SET item.deleted = true
 WITH DISTINCT marker, ticket
 FOREACH (ignored IN CASE WHEN ticket IS NULL THEN [] ELSE [1] END |

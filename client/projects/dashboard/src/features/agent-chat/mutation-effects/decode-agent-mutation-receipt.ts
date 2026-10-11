@@ -18,7 +18,7 @@ export function decodeAgentMutationReceipt(
   if (tool.state !== 'completed' || tool.result?.status === 'error') {
     return null;
   }
-  if (getAgentToolSource(tool.call.name).kind !== 'workos') return null;
+  if (getAgentToolSource(tool.call.name).kind !== 'teamspace') return null;
 
   const structured = extractStructuredContent(tool.result?.artifact);
   if (

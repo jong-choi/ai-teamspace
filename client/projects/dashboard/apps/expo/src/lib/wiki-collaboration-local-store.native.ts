@@ -5,7 +5,7 @@ import type {
   WikiCollaborationLocalStore,
 } from '@core/features/wiki/collaboration/wiki-collaboration-platform';
 
-const databaseName = 'work-os-wiki-collaboration.db';
+const databaseName = 'teamspace-wiki-collaboration.db';
 
 export async function createWikiCollaborationLocalStore(
   key: WikiCollaborationLocalDocumentKey,

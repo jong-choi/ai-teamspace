@@ -2,7 +2,7 @@ import { createHash, randomBytes } from 'node:crypto';
 
 import { z } from 'zod';
 
-const RESERVED_NAMESPACES = new Set(['internal', 'workos']);
+const RESERVED_NAMESPACES = new Set(['internal', 'teamspace']);
 const TOOL_NAME_MAX_LENGTH = 64;
 const ORIGINAL_TOOL_NAME_MAX_LENGTH = 256;
 const TOOL_SCHEMA_MAX_BYTES = 128 * 1024;

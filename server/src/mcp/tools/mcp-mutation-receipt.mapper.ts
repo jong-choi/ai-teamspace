@@ -14,7 +14,7 @@ import type { z } from 'zod';
  * resource ID와 시각은 결과에서 가져오고, 결과 DTO에 없는 상위 식별자(조직·프로젝트)만
  * service가 소속을 검증한 입력값을 사용한다.
  */
-const base = { version: 1, source: 'workos' } as const;
+const base = { version: 1, source: 'teamspace' } as const;
 
 export function projectTicketReceipt(input: {
   organizationId: string;

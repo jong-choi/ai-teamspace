@@ -6,7 +6,7 @@ import type {
 } from '@core/features/agent-chat/agent-chat-platform';
 import { createAgentRunMetadataStorageKey } from '@core/features/agent-chat/lib/agent-run-metadata-key';
 
-const databaseName = 'work-os-agent-runtime.db';
+const databaseName = 'teamspace-agent-runtime.db';
 let database: SQLiteDatabase | null = null;
 
 export function createAgentRunMetadataStorage(

@@ -15,8 +15,8 @@ set -a
 . "$REPO_ROOT/.env"
 set +a
 
-POSTGRES_CONTAINER="${EVAL_POSTGRES_CONTAINER:-workos-agent-eval-postgres-1}"
-REDIS_QUEUE_CONTAINER="${EVAL_REDIS_QUEUE_CONTAINER:-workos-agent-eval-redis-queue-1}"
+POSTGRES_CONTAINER="${EVAL_POSTGRES_CONTAINER:-teamspace-agent-eval-postgres-1}"
+REDIS_QUEUE_CONTAINER="${EVAL_REDIS_QUEUE_CONTAINER:-teamspace-agent-eval-redis-queue-1}"
 SNAPSHOT_DB="${POSTGRES_DB}_seed_snapshot"
 STATE_DIR="$REPO_ROOT/.temp/agent-eval"
 SERVER_URL="${EVAL_SERVER_URL:-http://localhost:3200}"

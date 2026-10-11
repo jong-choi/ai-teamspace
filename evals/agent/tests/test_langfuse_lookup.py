@@ -33,7 +33,7 @@ def lookup_with(
             base_url="http://localhost:3300",
             public_key="pk-lf-test",
             secret_key=SecretStr("sk-lf-test"),
-            project_alias="work-os-agent",
+            project_alias="teamspace-agent",
             ingestion_wait_seconds=3,
         ),
         sleep=clock.sleep,

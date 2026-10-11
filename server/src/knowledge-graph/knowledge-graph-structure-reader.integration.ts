@@ -94,7 +94,7 @@ describeKnowledgeGraph('N8-03·04·05·08·09 A2 구조 조회 통합', () => {
 
     await graph.query(
       `
-      CREATE (project:KGWorkOSProject {
+      CREATE (project:KGTeamspaceProject {
         key: $projectKey,
         organizationId: $organizationId,
         sourceId: $projectId,
@@ -103,7 +103,7 @@ describeKnowledgeGraph('N8-03·04·05·08·09 A2 구조 조회 통합', () => {
       })
       WITH project
       UNWIND $members AS member
-      CREATE (user:KGWorkOSUserReference {
+      CREATE (user:KGTeamspaceUserReference {
         key: member.key,
         organizationId: $organizationId,
         sourceId: member.id,
@@ -125,9 +125,9 @@ describeKnowledgeGraph('N8-03·04·05·08·09 A2 구조 조회 통합', () => {
     );
     await graph.query(
       `
-      MATCH (project:KGWorkOSProject {key: $projectKey})
+      MATCH (project:KGTeamspaceProject {key: $projectKey})
       UNWIND $tickets AS ticket
-      CREATE (node:KGWorkOSTicket {
+      CREATE (node:KGTeamspaceTicket {
         key: ticket.key,
         organizationId: $organizationId,
         sourceId: ticket.id,
@@ -561,11 +561,11 @@ describeKnowledgeGraph('N8-03·04·05·08·09 A2 구조 조회 통합', () => {
       ),
     );
     for (const label of [
-      'KGWorkOSWikiDocument',
-      'KGWorkOSProject',
-      'KGWorkOSTicket',
-      'KGWorkOSMeeting',
-      'KGWorkOSUserReference',
+      'KGTeamspaceWikiDocument',
+      'KGTeamspaceProject',
+      'KGTeamspaceTicket',
+      'KGTeamspaceMeeting',
+      'KGTeamspaceUserReference',
       'KGCuratedNode',
     ]) {
       expect(labels.has(label)).toBe(true);

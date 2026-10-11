@@ -30,7 +30,7 @@ export const authOptions = {
 
 export const MCP_LOGIN_PAGE = '/login';
 export const MCP_CONSENT_PAGE = '/settings/mcp/consent';
-export const MCP_ACCESS_KEY_CONFIG_ID = 'workos-mcp-user';
+export const MCP_ACCESS_KEY_CONFIG_ID = 'teamspace-mcp-user';
 
 export const mcpAccessKeyFacadeDisabledPaths = [
   '/api-key/create',

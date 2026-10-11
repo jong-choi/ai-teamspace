@@ -21,7 +21,7 @@ describe('외부 MCP connection persistence 계약', () => {
         ownerUserId: 'user-1',
         organizationId: 'org-1',
         displayName: 'unsafe',
-        namespace: 'workos',
+        namespace: 'teamspace',
         endpoint: 'http://127.0.0.1/mcp',
         authKind: 'none',
       }),

@@ -99,7 +99,7 @@ describeKnowledgeGraph(
     }
     async function read(organizationId: string, userId: string) {
       return graph.query(
-        'MATCH (membership:KGWorkOSMembership {key: $key}) OPTIONAL MATCH (membership)-[relation]->() RETURN membership.role AS role, membership.deleted AS deleted, collect(type(relation)) AS relations',
+        'MATCH (membership:KGTeamspaceMembership {key: $key}) OPTIONAL MATCH (membership)-[relation]->() RETURN membership.role AS role, membership.deleted AS deleted, collect(type(relation)) AS relations',
         { key: JSON.stringify(['membership', organizationId, userId]) },
       );
     }
@@ -184,7 +184,7 @@ describeKnowledgeGraph(
       await applied(other.organizationId, other.userId, 1);
       expect(
         await graph.query(
-          'MATCH (membership:KGWorkOSMembership {key: $key})-[:KG_MEMBERSHIP_ORGANIZATION]->(organization) RETURN organization.organizationId AS organizationId',
+          'MATCH (membership:KGTeamspaceMembership {key: $key})-[:KG_MEMBERSHIP_ORGANIZATION]->(organization) RETURN organization.organizationId AS organizationId',
           {
             key: JSON.stringify([
               'membership',

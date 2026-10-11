@@ -86,7 +86,7 @@ async function createInterruptedWrite(
   client: Client,
 ): Promise<{ threadId: string; runId: string }> {
   const thread = await client.threads.create();
-  const run = await client.runs.create(thread.thread_id, 'workos', {
+  const run = await client.runs.create(thread.thread_id, 'teamspace', {
     input: { messages: [{ role: 'user', content: 'write fixture' }] },
   });
   await waitForRunStatus(client, thread.thread_id, run.run_id, 'interrupted');
@@ -124,9 +124,13 @@ describe('AI Teamspace Agent HITL 계약', () => {
       expect(JSON.stringify(state)).toContain('fixture_write');
       expect(JSON.stringify(state)).toContain('actionRequests');
 
-      const resumed = await client.runs.create(interrupted.threadId, 'workos', {
-        command: approveCommand(),
-      });
+      const resumed = await client.runs.create(
+        interrupted.threadId,
+        'teamspace',
+        {
+          command: approveCommand(),
+        },
+      );
       expect(resumed.run_id).not.toBe(interrupted.runId);
       await waitForRunStatus(
         client,
@@ -161,9 +165,13 @@ describe('AI Teamspace Agent HITL 계약', () => {
     try {
       const client = app.client('user-a');
       const interrupted = await createInterruptedWrite(client);
-      const resumed = await client.runs.create(interrupted.threadId, 'workos', {
-        command: rejectCommand(),
-      });
+      const resumed = await client.runs.create(
+        interrupted.threadId,
+        'teamspace',
+        {
+          command: rejectCommand(),
+        },
+      );
       expect(resumed.run_id).not.toBe(interrupted.runId);
       await waitForRunStatus(
         client,
@@ -192,21 +200,25 @@ describe('AI Teamspace Agent HITL 계약', () => {
       const interrupted = await createInterruptedWrite(client);
       expect(fixture.state.writes).toHaveLength(0);
 
-      const resumed = await client.runs.create(interrupted.threadId, 'workos', {
-        command: {
-          resume: {
-            decisions: [
-              {
-                type: 'edit',
-                editedAction: {
-                  name: 'fixture_write',
-                  args: { value: 'edited-value' },
+      const resumed = await client.runs.create(
+        interrupted.threadId,
+        'teamspace',
+        {
+          command: {
+            resume: {
+              decisions: [
+                {
+                  type: 'edit',
+                  editedAction: {
+                    name: 'fixture_write',
+                    args: { value: 'edited-value' },
+                  },
                 },
-              },
-            ],
+              ],
+            },
           },
         },
-      });
+      );
       expect(resumed.run_id).not.toBe(interrupted.runId);
       await waitForRunStatus(
         client,
@@ -236,21 +248,25 @@ describe('AI Teamspace Agent HITL 계약', () => {
       expect(fixture.state.writes).toHaveLength(0);
       expect(fixture.state.reads).toHaveLength(0);
 
-      const resumed = await client.runs.create(interrupted.threadId, 'workos', {
-        command: {
-          resume: {
-            decisions: [
-              {
-                type: 'edit',
-                editedAction: {
-                  name: 'fixture_read',
-                  args: { query: 'identity-swap' },
+      const resumed = await client.runs.create(
+        interrupted.threadId,
+        'teamspace',
+        {
+          command: {
+            resume: {
+              decisions: [
+                {
+                  type: 'edit',
+                  editedAction: {
+                    name: 'fixture_read',
+                    args: { query: 'identity-swap' },
+                  },
                 },
-              },
-            ],
+              ],
+            },
           },
         },
-      });
+      );
       await waitForCondition(
         async () => {
           const run = await client.runs.get(
@@ -294,9 +310,13 @@ describe('AI Teamspace Agent HITL 계약', () => {
       expect(fixture.state.writes).toHaveLength(0);
 
       revoked = true;
-      const resumed = await client.runs.create(interrupted.threadId, 'workos', {
-        command: approveCommand(),
-      });
+      const resumed = await client.runs.create(
+        interrupted.threadId,
+        'teamspace',
+        {
+          command: approveCommand(),
+        },
+      );
       await waitForCondition(
         async () => {
           const run = await client.runs.get(
@@ -334,9 +354,13 @@ describe('AI Teamspace Agent HITL 계약', () => {
       expect(fixture.writes).toHaveLength(0);
 
       fixture.setWriteAllowed(false);
-      const resumed = await client.runs.create(interrupted.threadId, 'workos', {
-        command: approveCommand(),
-      });
+      const resumed = await client.runs.create(
+        interrupted.threadId,
+        'teamspace',
+        {
+          command: approveCommand(),
+        },
+      );
       await waitForRunStatus(
         client,
         interrupted.threadId,
@@ -385,7 +409,7 @@ describe('AI Teamspace Agent HITL 계약', () => {
 
       membershipActive = false;
       await expect(
-        client.runs.create(interrupted.threadId, 'workos', {
+        client.runs.create(interrupted.threadId, 'teamspace', {
           command: approveCommand(),
         }),
       ).rejects.toThrow('HTTP 403');
@@ -412,10 +436,10 @@ describe('AI Teamspace Agent HITL 계약', () => {
       const client = app.client('user-a');
       const interrupted = await createInterruptedWrite(client);
       const attempts = await Promise.allSettled([
-        client.runs.create(interrupted.threadId, 'workos', {
+        client.runs.create(interrupted.threadId, 'teamspace', {
           command: approveCommand(),
         }),
-        client.runs.create(interrupted.threadId, 'workos', {
+        client.runs.create(interrupted.threadId, 'teamspace', {
           command: approveCommand(),
         }),
       ]);
@@ -469,9 +493,13 @@ describe('AI Teamspace Agent HITL 계약', () => {
     try {
       const client = app.client('user-a');
       const interrupted = await createInterruptedWrite(client);
-      const resumed = await client.runs.create(interrupted.threadId, 'workos', {
-        command: approveCommand(),
-      });
+      const resumed = await client.runs.create(
+        interrupted.threadId,
+        'teamspace',
+        {
+          command: approveCommand(),
+        },
+      );
 
       await Promise.allSettled([
         client.runs.cancel(interrupted.threadId, resumed.run_id, true),
@@ -514,9 +542,13 @@ describe('AI Teamspace Agent HITL 계약', () => {
     try {
       const client = app.client('user-a');
       const interrupted = await createInterruptedWrite(client);
-      const resumed = await client.runs.create(interrupted.threadId, 'workos', {
-        command: approveCommand(),
-      });
+      const resumed = await client.runs.create(
+        interrupted.threadId,
+        'teamspace',
+        {
+          command: approveCommand(),
+        },
+      );
       await waitForRunStatus(
         client,
         interrupted.threadId,
@@ -526,7 +558,7 @@ describe('AI Teamspace Agent HITL 계약', () => {
       expect(fixture.state.writes).toHaveLength(1);
 
       const replay = await Promise.allSettled([
-        client.runs.create(interrupted.threadId, 'workos', {
+        client.runs.create(interrupted.threadId, 'teamspace', {
           command: approveCommand(),
         }),
       ]);
@@ -579,7 +611,7 @@ describe('AI Teamspace Agent HITL 계약', () => {
             'x-test-user': 'user-a',
           },
           body: JSON.stringify({
-            assistant_id: 'workos',
+            assistant_id: 'teamspace',
             input: {
               messages: [{ role: 'user', content: 'overwrite pending HITL' }],
             },
@@ -612,7 +644,7 @@ describe('AI Teamspace Agent HITL 계약', () => {
 
       const attempt = await client.runs.create(
         otherThread.thread_id,
-        'workos',
+        'teamspace',
         {
           command: approveCommand(),
         },
@@ -655,7 +687,7 @@ describe('AI Teamspace Agent HITL 계약', () => {
 
       for (const attacker of unauthorizedClients) {
         await expect(
-          attacker.runs.create(interrupted.threadId, 'workos', {
+          attacker.runs.create(interrupted.threadId, 'teamspace', {
             command: approveCommand(),
           }),
         ).rejects.toThrow('HTTP 404');

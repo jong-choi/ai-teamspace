@@ -87,13 +87,13 @@ function endpointLabel(kind: CuratedEdge['sourceNodeKind']): string {
     case 'curated_node':
       return 'KGCuratedNode';
     case 'wiki_document':
-      return 'KGWorkOSWikiDocument';
+      return 'KGTeamspaceWikiDocument';
     case 'project':
-      return 'KGWorkOSProject';
+      return 'KGTeamspaceProject';
     case 'ticket':
-      return 'KGWorkOSTicket';
+      return 'KGTeamspaceTicket';
     case 'meeting':
-      return 'KGWorkOSMeeting';
+      return 'KGTeamspaceMeeting';
   }
 }
 

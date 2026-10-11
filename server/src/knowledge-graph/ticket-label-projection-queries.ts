@@ -4,7 +4,7 @@ ON CREATE SET marker.appliedSeq = 0
 SET marker.writeFence = coalesce(marker.writeFence, 0) + 1
 WITH marker
 WHERE marker.appliedSeq < $sourceVersion
-MERGE (label:KGWorkOSTicketLabel {key: $sourceKey})
+MERGE (label:KGTeamspaceTicketLabel {key: $sourceKey})
 SET label.organizationId = $organizationId,
     label.sourceId = $sourceId,
     label.projectId = $projectId,
@@ -23,7 +23,7 @@ ON CREATE SET marker.appliedSeq = 0
 SET marker.writeFence = coalesce(marker.writeFence, 0) + 1
 WITH marker
 WHERE marker.appliedSeq < $sourceVersion
-OPTIONAL MATCH (label:KGWorkOSTicketLabel {key: $sourceKey})
+OPTIONAL MATCH (label:KGTeamspaceTicketLabel {key: $sourceKey})
 FOREACH (ignored IN CASE WHEN label IS NULL THEN [] ELSE [1] END |
   SET label.deleted = true
 )

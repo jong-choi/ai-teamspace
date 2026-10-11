@@ -1,14 +1,14 @@
 # 데모 배포
 
-기존 Nginx Proxy Manager가 HTTPS를 종료하고 `npm-network`의 `workos-demo-gateway:80`으로 전달한다. 앱 전용 Nginx는 Expo Web 정적 파일을 제공하고 `/backend/` 요청의 접두어를 제거해 Nest API로 전달한다. `/collaboration`은 위키 공동편집 WebSocket으로 전달한다. 외부 호스트 포트는 추가하지 않는다.
+기존 Nginx Proxy Manager가 HTTPS를 종료하고 `npm-network`의 `teamspace-demo-gateway:80`으로 전달한다. 앱 전용 Nginx는 Expo Web 정적 파일을 제공하고 `/backend/` 요청의 접두어를 제거해 Nest API로 전달한다. `/collaboration`은 위키 공동편집 WebSocket으로 전달한다. 외부 호스트 포트는 추가하지 않는다.
 
-데모 전용 Compose project는 `workos-demo`다. PostgreSQL, Redis 3개, Neo4j, Garage와 API, jobs, 공동편집, gateway를 관리한다. Langfuse는 포함하지 않는다. 저장소 간 데이터를 공유하지 않고 이 project의 볼륨을 유지한다.
+데모 전용 Compose project는 `teamspace-demo`다. PostgreSQL, Redis 3개, Neo4j, Garage와 API, jobs, 공동편집, gateway를 관리한다. Langfuse는 포함하지 않는다. 저장소 간 데이터를 공유하지 않고 이 project의 볼륨을 유지한다.
 
 실제 설정은 Git에서 제외된 `.temp/deploy-demo/`의 `compose.env`, `server.env`, `seed.env`, `web.env`에 보관한다. 서버 설정의 원본 key 목록은 [서버 예시](../../server/.env.example), 시드 설정은 [시드 예시](../../demo/.env.example), Compose와 웹 설정은 [배포 예시](.env.example)를 따른다. 실제 공급자 key와 서버 secret은 웹 빌드로 전달하지 않는다.
 
 배포는 서버와 웹 이미지를 순차 빌드한 뒤 데모 스택을 중지하고 데모 전용 데이터 볼륨을 삭제한다. 저장소 healthcheck, Drizzle migration, API·공동편집 시작, 실행일 기준 시드, jobs·gateway 시작 순서로 초기 상태를 만든다. 매 실행마다 PostgreSQL, Redis, Neo4j, Garage의 데모 데이터를 초기화하며 최초 시드 여부를 구분하지 않는다. 수동 배포·검증용 임시 스크립트는 `.temp/deploy-demo/`에만 두고 Git에 포함하지 않는다.
 
-GitHub Environment 이름은 `demo`, 전용 러너 label은 `workos-demo`다. 배포와 데이터 초기화는 같은 Actions `concurrency` group을 사용해 동시에 실행되지 않게 한다. 초기화 동안 데모 서비스는 잠시 중단된다.
+GitHub Environment 이름은 `demo`, 전용 러너 label은 `teamspace-demo`다. 배포와 데이터 초기화는 같은 Actions `concurrency` group을 사용해 동시에 실행되지 않게 한다. 초기화 동안 데모 서비스는 잠시 중단된다.
 
 | GitHub Secret               | 내용                                         |
 | --------------------------- | -------------------------------------------- |

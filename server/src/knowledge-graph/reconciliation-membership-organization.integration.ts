@@ -58,7 +58,7 @@ describeKnowledgeGraph('회원 변경·조직 삭제의 실제 그래프 복구'
     await observe();
     expect(
       await context.graph.query(
-        'MATCH (node:KGWorkOSMembership {key:$key}) RETURN node.role AS role, node.deleted AS deleted',
+        'MATCH (node:KGTeamspaceMembership {key:$key}) RETURN node.role AS role, node.deleted AS deleted',
         { key },
       ),
     ).toEqual([{ role: 'admin', deleted: false }]);
@@ -69,7 +69,7 @@ describeKnowledgeGraph('회원 변경·조직 삭제의 실제 그래프 복구'
     await observe();
     expect(
       await context.graph.query(
-        'MATCH (node:KGWorkOSMembership {key:$key}) OPTIONAL MATCH (node)-[relation]->() RETURN node.deleted AS deleted, count(relation) AS relations',
+        'MATCH (node:KGTeamspaceMembership {key:$key}) OPTIONAL MATCH (node)-[relation]->() RETURN node.deleted AS deleted, count(relation) AS relations',
         { key },
       ),
     ).toEqual([{ deleted: true, relations: '0' }]);
@@ -79,7 +79,7 @@ describeKnowledgeGraph('회원 변경·조직 삭제의 실제 그래프 복구'
     await observe();
     expect(
       await context.graph.query(
-        'MATCH (node:KGWorkOSMembership {key:$key}) RETURN node.role AS role, node.deleted AS deleted',
+        'MATCH (node:KGTeamspaceMembership {key:$key}) RETURN node.role AS role, node.deleted AS deleted',
         { key },
       ),
     ).toEqual([{ role: 'member', deleted: false }]);
@@ -171,7 +171,7 @@ describeKnowledgeGraph('회원 변경·조직 삭제의 실제 그래프 복구'
     ).toEqual([]);
     expect(
       await context.graph.query(
-        'MATCH (node) WHERE node.organizationId=$org AND (node:KGWorkOSWikiDocument OR node:KGWorkOSProject OR node:KGWorkOSTicket OR node:KGWorkOSMeeting OR node:KGCuratedNode OR node:KGWorkOSMembership) AND coalesce(node.deleted,false)=false RETURN count(node) AS active',
+        'MATCH (node) WHERE node.organizationId=$org AND (node:KGTeamspaceWikiDocument OR node:KGTeamspaceProject OR node:KGTeamspaceTicket OR node:KGTeamspaceMeeting OR node:KGCuratedNode OR node:KGTeamspaceMembership) AND coalesce(node.deleted,false)=false RETURN count(node) AS active',
         { org },
       ),
     ).toEqual([{ active: '0' }]);

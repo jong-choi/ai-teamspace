@@ -8,11 +8,11 @@ import type { McpConfig } from '@/mcp/config/mcp-config.type';
 import { MCP_ACCESS_KEY_PREFIX } from '@/mcp-access-keys/domain/mcp-access-key-contract';
 
 const mcpConfig: McpConfig = {
-  resourceUrl: 'https://workos.example/mcp',
-  resourceOrigin: 'https://workos.example',
+  resourceUrl: 'https://teamspace.example/mcp',
+  resourceOrigin: 'https://teamspace.example',
   resourcePath: '/mcp',
-  allowedHosts: ['workos.example'],
-  allowedOrigins: ['workos.example'],
+  allowedHosts: ['teamspace.example'],
+  allowedOrigins: ['teamspace.example'],
   protocol: {
     maxRequestBodyBytes: 104_857,
     maxToolInputElements: 1_000,
@@ -58,7 +58,7 @@ describe('Better Auth MCP option factory', () => {
   });
 
   it('Personal MCP Access Key의 config ID와 prefix를 고정한다', () => {
-    expect(MCP_ACCESS_KEY_CONFIG_ID).toBe('workos-mcp-user');
+    expect(MCP_ACCESS_KEY_CONFIG_ID).toBe('teamspace-mcp-user');
     expect(MCP_ACCESS_KEY_PREFIX).toBe('wos_mcp_');
 
     const apiKeyPlugin = createAuthOptions(mcpConfig).plugins.find(

@@ -34,8 +34,8 @@ jest.setTimeout(30_000);
 const databaseUrl = process.env['DATABASE_URL'];
 const redisUrl = process.env['AGENT_TEST_REDIS_URL'];
 const integrationDescribe = databaseUrl && redisUrl ? describe : describe.skip;
-const REDIS_PREFIX_ROOT = 'work-os:test:agent03';
-const RUN_QUEUE_ROOT = 'work-os-test-agent03';
+const REDIS_PREFIX_ROOT = 'teamspace:test:agent03';
+const RUN_QUEUE_ROOT = 'teamspace-test-agent03';
 
 interface StartedDurableApp {
   app: INestApplication;
@@ -58,7 +58,7 @@ async function startDurableApp(input: {
     mcpToolTimeoutMs: 2_000,
   });
   const durable = await createDurableAgentRuntime(
-    { workos: graph },
+    { teamspace: graph },
     {
       postgresUri: databaseUrl,
       redisUri: redisUrl,
@@ -157,7 +157,7 @@ integrationDescribe('AI Teamspace DeepAgent durable runtime', () => {
 
     const client = first.client();
     const thread = await client.threads.create();
-    const output = await client.runs.wait(thread.thread_id, 'workos', {
+    const output = await client.runs.wait(thread.thread_id, 'teamspace', {
       input: { messages: [{ role: 'user', content: 'persist fixture read' }] },
     });
     expect(JSON.stringify(output)).toContain('durable deepagent complete');
@@ -223,7 +223,7 @@ integrationDescribe('AI Teamspace DeepAgent durable runtime', () => {
       const clientA = instanceA.client();
       const clientB = instanceB.client();
       const thread = await clientA.threads.create();
-      const run = await clientA.runs.create(thread.thread_id, 'workos', {
+      const run = await clientA.runs.create(thread.thread_id, 'teamspace', {
         input: {
           messages: [{ role: 'user', content: 'cancel cross instance' }],
         },
@@ -287,7 +287,7 @@ integrationDescribe('AI Teamspace DeepAgent durable runtime', () => {
       const clientA = instanceA.client();
       const clientB = instanceB.client();
       const thread = await clientA.threads.create();
-      const run = await clientA.runs.create(thread.thread_id, 'workos', {
+      const run = await clientA.runs.create(thread.thread_id, 'teamspace', {
         input: { messages: [{ role: 'user', content: 'deep replay' }] },
         streamMode: 'values',
         streamResumable: true,
@@ -360,7 +360,7 @@ integrationDescribe('AI Teamspace DeepAgent durable runtime', () => {
       const thread = await clientA.threads.create();
       const interrupted = await clientA.runs.create(
         thread.thread_id,
-        'workos',
+        'teamspace',
         {
           input: {
             messages: [{ role: 'user', content: 'multi instance write' }],
@@ -391,7 +391,7 @@ integrationDescribe('AI Teamspace DeepAgent durable runtime', () => {
               'x-test-user': 'user-a',
             },
             body: JSON.stringify({
-              assistant_id: 'workos',
+              assistant_id: 'teamspace',
               input: {
                 messages: [{ role: 'user', content: 'must not replace HITL' }],
               },
@@ -405,9 +405,13 @@ integrationDescribe('AI Teamspace DeepAgent durable runtime', () => {
         );
         expect(fixture.state.writes).toHaveLength(0);
 
-        const resumed = await clientB.runs.create(thread.thread_id, 'workos', {
-          command: { resume: { decisions: [{ type: 'approve' }] } },
-        });
+        const resumed = await clientB.runs.create(
+          thread.thread_id,
+          'teamspace',
+          {
+            command: { resume: { decisions: [{ type: 'approve' }] } },
+          },
+        );
         expect(resumed.run_id).not.toBe(interrupted.run_id);
         await waitForRunStatus(
           clientB,
@@ -447,7 +451,7 @@ integrationDescribe('AI Teamspace DeepAgent durable runtime', () => {
     const thread = await firstClient.threads.create();
     const interruptedRun = await firstClient.runs.create(
       thread.thread_id,
-      'workos',
+      'teamspace',
       {
         input: { messages: [{ role: 'user', content: 'durable write' }] },
       },
@@ -478,7 +482,7 @@ integrationDescribe('AI Teamspace DeepAgent durable runtime', () => {
       const persisted = await client.threads.getState(thread.thread_id);
       expect(JSON.stringify(persisted)).toContain('fixture_write');
 
-      const resumed = await client.runs.create(thread.thread_id, 'workos', {
+      const resumed = await client.runs.create(thread.thread_id, 'teamspace', {
         command: { resume: { decisions: [{ type: 'approve' }] } },
       });
       expect(resumed.run_id).not.toBe(interruptedRun.run_id);

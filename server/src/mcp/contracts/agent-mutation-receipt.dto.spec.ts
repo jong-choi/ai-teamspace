@@ -35,7 +35,7 @@ describe('Agent 변경 영수증 계약', () => {
   it('kind와 맞지 않는 operation 조합을 거부한다', () => {
     const base = {
       version: 1,
-      source: 'workos',
+      source: 'teamspace',
       organizationId: 'org-a',
       resourceId: 'doc-a',
       revision: 2,
@@ -61,7 +61,7 @@ describe('Agent 변경 영수증 계약', () => {
   it('알 수 없는 version과 외부 source를 거부한다', () => {
     const receipt = {
       version: 1,
-      source: 'workos',
+      source: 'teamspace',
       kind: 'organization_invitation',
       operation: 'created',
       organizationId: 'org-a',

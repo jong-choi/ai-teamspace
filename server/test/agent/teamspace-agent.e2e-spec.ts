@@ -90,7 +90,7 @@ describe('AI Teamspace DeepAgent와 MCP fixture', () => {
     try {
       const client = app.client('user-a');
       const thread = await client.threads.create();
-      const output = await client.runs.wait(thread.thread_id, 'workos', {
+      const output = await client.runs.wait(thread.thread_id, 'teamspace', {
         input: { messages: [{ role: 'user', content: 'read fixture' }] },
         config: {
           configurable: {
@@ -153,7 +153,7 @@ describe('AI Teamspace DeepAgent와 MCP fixture', () => {
     try {
       const client = app.client('user-a');
       const thread = await client.threads.create();
-      const output = await client.runs.wait(thread.thread_id, 'workos', {
+      const output = await client.runs.wait(thread.thread_id, 'teamspace', {
         input: { messages: [{ role: 'user', content: 'canary read' }] },
       });
       const state = await client.threads.getState(thread.thread_id);
@@ -198,7 +198,7 @@ describe('AI Teamspace DeepAgent와 MCP fixture', () => {
         organizationB.threads.getHistory(thread.thread_id),
       ).rejects.toThrow('HTTP 404');
       await expect(
-        organizationB.runs.create(thread.thread_id, 'workos', {
+        organizationB.runs.create(thread.thread_id, 'teamspace', {
           input: { messages: [{ role: 'user', content: 'forged org run' }] },
         }),
       ).rejects.toThrow('HTTP 404');
@@ -244,10 +244,10 @@ describe('AI Teamspace DeepAgent와 MCP fixture', () => {
       ]);
 
       const [resultA, resultB] = await Promise.all([
-        userA.runs.wait(threadA.thread_id, 'workos', {
+        userA.runs.wait(threadA.thread_id, 'teamspace', {
           input: { messages: [{ role: 'user', content: 'read as A' }] },
         }),
-        userB.runs.wait(threadB.thread_id, 'workos', {
+        userB.runs.wait(threadB.thread_id, 'teamspace', {
           input: { messages: [{ role: 'user', content: 'read as B' }] },
         }),
       ]);
@@ -291,7 +291,7 @@ describe('AI Teamspace DeepAgent와 MCP fixture', () => {
     try {
       const userA = app.client('user-a');
       const thread = await userA.threads.create();
-      await userA.runs.wait(thread.thread_id, 'workos', {
+      await userA.runs.wait(thread.thread_id, 'teamspace', {
         input: {
           messages: [{ role: 'user', content: 'read with forged auth' }],
         },
@@ -347,7 +347,7 @@ describe('AI Teamspace DeepAgent와 MCP fixture', () => {
     try {
       const client = app.client('user-a');
       const thread = await client.threads.create();
-      const run = await client.runs.create(thread.thread_id, 'workos', {
+      const run = await client.runs.create(thread.thread_id, 'teamspace', {
         input: { messages: [{ role: 'user', content: 'research twice' }] },
       });
       await waitForRunStatus(client, thread.thread_id, run.run_id, 'success');
@@ -378,7 +378,7 @@ describe('AI Teamspace DeepAgent와 MCP fixture', () => {
     try {
       const client = app.client('user-a');
       const thread = await client.threads.create();
-      const run = await client.runs.create(thread.thread_id, 'workos', {
+      const run = await client.runs.create(thread.thread_id, 'teamspace', {
         input: { messages: [{ role: 'user', content: 'cancel model' }] },
       });
       await waitForCondition(
@@ -425,7 +425,7 @@ describe('AI Teamspace DeepAgent와 MCP fixture', () => {
     try {
       const client = app.client('user-a');
       const thread = await client.threads.create();
-      const run = await client.runs.create(thread.thread_id, 'workos', {
+      const run = await client.runs.create(thread.thread_id, 'teamspace', {
         input: { messages: [{ role: 'user', content: 'wait then cancel' }] },
       });
       await waitForRunStatus(client, thread.thread_id, run.run_id, 'running');
@@ -502,11 +502,15 @@ describe('AI Teamspace DeepAgent와 MCP fixture', () => {
     try {
       const client = app.client('user-a');
       const thread = await client.threads.create();
-      const interrupted = await client.runs.create(thread.thread_id, 'workos', {
-        input: {
-          messages: [{ role: 'user', content: 'nested parallel work' }],
+      const interrupted = await client.runs.create(
+        thread.thread_id,
+        'teamspace',
+        {
+          input: {
+            messages: [{ role: 'user', content: 'nested parallel work' }],
+          },
         },
-      });
+      );
       await waitForRunStatus(
         client,
         thread.thread_id,
@@ -517,7 +521,7 @@ describe('AI Teamspace DeepAgent와 MCP fixture', () => {
       expect(researcher.callCount).toBe(1);
       expect(fixture.state.writes).toHaveLength(0);
 
-      const resumed = await client.runs.create(thread.thread_id, 'workos', {
+      const resumed = await client.runs.create(thread.thread_id, 'teamspace', {
         command: { resume: { decisions: [{ type: 'approve' }] } },
       });
       await waitForRunStatus(
@@ -569,7 +573,7 @@ describe('AI Teamspace DeepAgent와 MCP fixture', () => {
     try {
       const client = app.client('user-a');
       const thread = await client.threads.create();
-      const run = await client.runs.create(thread.thread_id, 'workos', {
+      const run = await client.runs.create(thread.thread_id, 'teamspace', {
         input: { messages: [{ role: 'user', content: 'delegate write' }] },
       });
       await waitForRunStatus(
@@ -585,7 +589,7 @@ describe('AI Teamspace DeepAgent와 MCP fixture', () => {
       expect(serialized).toContain('fixture_write');
       expect(serialized).toContain('interrupt');
 
-      const swapped = await client.runs.create(thread.thread_id, 'workos', {
+      const swapped = await client.runs.create(thread.thread_id, 'teamspace', {
         command: {
           resume: {
             decisions: [

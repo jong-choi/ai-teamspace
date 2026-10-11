@@ -22,7 +22,7 @@ const context: RunTelemetryContext = {
   runId: 'run-123',
   threadId: 'thread-123',
   assistantId: 'assistant-123',
-  graphId: 'work-os-agent',
+  graphId: 'teamspace-agent',
   userId: 'raw-user-123',
   trigger: 'stream',
   streamModes: ['messages'],

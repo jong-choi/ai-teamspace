@@ -28,8 +28,8 @@ jest.setTimeout(60_000);
 const databaseUrl = process.env['DATABASE_URL'];
 const redisUrl = process.env['AGENT_TEST_REDIS_URL'];
 const integrationDescribe = databaseUrl && redisUrl ? describe : describe.skip;
-const redisPrefix = 'work-os:test:agent-runtime';
-const runQueueName = 'work-os-test-agent-runtime-runs';
+const redisPrefix = 'teamspace:test:agent-runtime';
+const runQueueName = 'teamspace-test-agent-runtime-runs';
 
 let abortObserved = false;
 let slowStarted = false;
@@ -933,8 +933,8 @@ async function cleanupOwnedRedisKeys(): Promise<void> {
     for (const pattern of [
       `${redisPrefix}:*`,
       `bull:${runQueueName}*`,
-      'work-os:test:process:*',
-      'bull:work-os-test-process-*',
+      'teamspace:test:process:*',
+      'bull:teamspace-test-process-*',
     ]) {
       let cursor = '0';
       do {

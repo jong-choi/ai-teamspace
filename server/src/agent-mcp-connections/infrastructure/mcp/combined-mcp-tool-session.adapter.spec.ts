@@ -20,7 +20,7 @@ describe('AI Teamspace와 external MCP combined session', () => {
   }
 
   test('external 전체 장애에도 AI Teamspace tools를 유지한다', async () => {
-    const teamspaceTool = tool('workos_search', true);
+    const teamspaceTool = tool('teamspace_search', true);
     const teamspaceClose = jest.fn().mockResolvedValue(undefined);
     const teamspace = {
       open: jest.fn().mockResolvedValue({
@@ -31,8 +31,8 @@ describe('AI Teamspace와 external MCP combined session', () => {
           [
             teamspaceTool.name,
             {
-              source: 'workos' as const,
-              namespace: 'workos' as const,
+              source: 'teamspace' as const,
+              namespace: 'teamspace' as const,
               originalToolName: teamspaceTool.name,
             },
           ],
@@ -52,16 +52,16 @@ describe('AI Teamspace와 external MCP combined session', () => {
     expect(session.tools).toEqual([teamspaceTool]);
     expect(session.readOnlyTools).toEqual([teamspaceTool]);
     expect(teamspaceTool.metadata?.['teamspaceMcp']).toEqual({
-      source: 'workos',
-      namespace: 'workos',
-      originalToolName: 'workos_search',
+      source: 'teamspace',
+      namespace: 'teamspace',
+      originalToolName: 'teamspace_search',
     });
     await session.close();
     expect(teamspaceClose).toHaveBeenCalledTimes(1);
   });
 
   test('external tools를 합치되 readOnly 승격 없이 interruptOn을 보존한다', async () => {
-    const teamspaceTool = tool('workos_read', true);
+    const teamspaceTool = tool('teamspace_read', true);
     const externalTool = tool('extexample1__search', true);
     const teamspace = {
       open: jest.fn().mockResolvedValue({
@@ -72,8 +72,8 @@ describe('AI Teamspace와 external MCP combined session', () => {
           [
             teamspaceTool.name,
             {
-              source: 'workos' as const,
-              namespace: 'workos' as const,
+              source: 'teamspace' as const,
+              namespace: 'teamspace' as const,
               originalToolName: teamspaceTool.name,
             },
           ],

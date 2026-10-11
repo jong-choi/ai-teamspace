@@ -14,7 +14,7 @@ import type { AllConfigType } from '@/config/config.type';
 import { Redis, type RedisOptions } from 'ioredis';
 import { Observable, Subject } from 'rxjs';
 
-const CHANNEL_PREFIX = 'work-os:chat:user:';
+const CHANNEL_PREFIX = 'teamspace:chat:user:';
 const REDIS_READY_TIMEOUT_MS = 1_500;
 const redisOptions = {
   connectTimeout: 1_000,

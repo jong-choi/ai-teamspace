@@ -9,13 +9,13 @@ permissions:
   contents: read
 
 concurrency:
-  group: workos-demo-deploy
+  group: teamspace-demo-deploy
   cancel-in-progress: false
 
 jobs:
   reset:
     if: github.repository == 'jong-choi/ai-teamspace' && github.ref == 'refs/heads/main'
-    runs-on: [self-hosted, Linux, ARM64, workos-demo]
+    runs-on: [self-hosted, Linux, ARM64, teamspace-demo]
     timeout-minutes: 30
     environment: demo
     env:
@@ -46,7 +46,7 @@ jobs:
           services = ['api', 'jobs', 'collaboration', 'gateway', 'postgres', 'redis-queue', 'redis-cache', 'redis-collaboration', 'neo4j', 'garage']
           overrides = {}
           for service in services:
-              ids = subprocess.check_output(['docker', 'ps', '-aq', '--filter', 'label=com.docker.compose.project=workos-demo', '--filter', f'label=com.docker.compose.service={service}', '--filter', 'label=com.docker.compose.oneoff=False'], text=True).split()
+              ids = subprocess.check_output(['docker', 'ps', '-aq', '--filter', 'label=com.docker.compose.project=teamspace-demo', '--filter', f'label=com.docker.compose.service={service}', '--filter', 'label=com.docker.compose.oneoff=False'], text=True).split()
               if len(ids) != 1:
                   raise RuntimeError(f'현재 데모 container를 확인하세요: {service}')
               image = subprocess.check_output(['docker', 'inspect', '--format', '{{.Image}}', ids[0]], text=True).strip()
@@ -56,27 +56,27 @@ jobs:
               overrides[service] = overrides['api'].copy()
           Path('.temp/deploy-demo/reset-images.json').write_text(json.dumps({'services': overrides}))
           PY
-          docker compose --project-name workos-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml -f .temp/deploy-demo/reset-images.json config --quiet
+          docker compose --project-name teamspace-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml -f .temp/deploy-demo/reset-images.json config --quiet
           printf 'DEMO_SECRETS_DIR=%s\nDEMO_IMAGE_TAG=%s\n' "$DEMO_SECRETS_DIR" "$DEMO_IMAGE_TAG" >> "$GITHUB_ENV"
 
       - name: 데모 저장소 초기화
         run: |
           set -euo pipefail
-          docker compose --project-name workos-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml -f .temp/deploy-demo/reset-images.json down --volumes --remove-orphans
-          docker compose --project-name workos-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml -f .temp/deploy-demo/reset-images.json up --detach --wait --wait-timeout 300 postgres redis-queue redis-cache redis-collaboration neo4j garage
-          docker compose --project-name workos-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml -f .temp/deploy-demo/reset-images.json run --rm --no-deps migrate
+          docker compose --project-name teamspace-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml -f .temp/deploy-demo/reset-images.json down --volumes --remove-orphans
+          docker compose --project-name teamspace-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml -f .temp/deploy-demo/reset-images.json up --detach --wait --wait-timeout 300 postgres redis-queue redis-cache redis-collaboration neo4j garage
+          docker compose --project-name teamspace-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml -f .temp/deploy-demo/reset-images.json run --rm --no-deps migrate
 
       - name: 오늘 기준 시드와 앱 시작
         run: |
           set -euo pipefail
-          docker compose --project-name workos-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml -f .temp/deploy-demo/reset-images.json up --detach --wait --wait-timeout 300 api collaboration
+          docker compose --project-name teamspace-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml -f .temp/deploy-demo/reset-images.json up --detach --wait --wait-timeout 300 api collaboration
           base_date=$(TZ=Asia/Seoul date +%F)
-          docker compose --project-name workos-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml -f .temp/deploy-demo/reset-images.json run --rm --no-deps -e "DEMO_BASE_DATE=$base_date" seed
-          docker compose --project-name workos-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml -f .temp/deploy-demo/reset-images.json up --detach --wait --wait-timeout 300 jobs gateway
+          docker compose --project-name teamspace-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml -f .temp/deploy-demo/reset-images.json run --rm --no-deps -e "DEMO_BASE_DATE=$base_date" seed
+          docker compose --project-name teamspace-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml -f .temp/deploy-demo/reset-images.json up --detach --wait --wait-timeout 300 jobs gateway
 
       - name: 초기화 결과 확인
         run: |
           set -euo pipefail
           curl --fail --silent --show-error --retry 12 --retry-all-errors --retry-delay 5 --max-time 15 "https://$DEMO_DOMAIN/healthz"
           curl --fail --silent --show-error --max-time 15 "https://$DEMO_DOMAIN/backend/"
-          docker compose --project-name workos-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml -f .temp/deploy-demo/reset-images.json ps
+          docker compose --project-name teamspace-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml -f .temp/deploy-demo/reset-images.json ps

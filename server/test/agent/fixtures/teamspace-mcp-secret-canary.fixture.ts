@@ -6,7 +6,7 @@ import { createMcpHandler, McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 
 export const TEAMSPACE_MCP_SECRET_CANARY =
-  'access-token-CANARY-workos-agent-secret';
+  'access-token-CANARY-teamspace-agent-secret';
 
 export async function startTeamspaceMcpSecretCanaryFixture(): Promise<{
   url: string;
@@ -58,7 +58,7 @@ export async function startTeamspaceMcpSecretCanaryFixture(): Promise<{
 
 function createFixtureServer(): McpServer {
   const server = new McpServer({
-    name: 'workos-agent-secret-canary',
+    name: 'teamspace-agent-secret-canary',
     version: '1.0.0',
   });
   server.registerTool(

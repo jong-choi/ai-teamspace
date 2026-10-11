@@ -6,7 +6,7 @@ import {
 
 import { createStore } from 'zustand/vanilla';
 
-const APPEARANCE_STORAGE_KEY = 'work-os-appearance';
+const APPEARANCE_STORAGE_KEY = 'teamspace-appearance';
 
 // 화면 설정을 기기에 보관하는 저장소다. Web은 localStorage를 쓴다.
 export type AppearanceStorage = {

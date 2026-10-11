@@ -1,34 +1,34 @@
 export const READ_STRUCTURE_NODE_DETAIL = `
 CALL {
-  MATCH (node:KGWorkOSWikiDocument {key: $nodeId})
+  MATCH (node:KGTeamspaceWikiDocument {key: $nodeId})
   WHERE node.organizationId = $organizationId
     AND coalesce(node.deleted, false) = false
   RETURN node.key AS id, 'wiki_document' AS kind,
     coalesce(node.title, node.sourceId, node.key) AS title,
     node.sourceId AS sourceId, node.sourceUpdatedAt AS sourceUpdatedAt
   UNION ALL
-  MATCH (node:KGWorkOSProject {key: $nodeId})
+  MATCH (node:KGTeamspaceProject {key: $nodeId})
   WHERE node.organizationId = $organizationId
     AND coalesce(node.deleted, false) = false
   RETURN node.key AS id, 'project' AS kind,
     coalesce(node.name, node.sourceId, node.key) AS title,
     node.sourceId AS sourceId, node.sourceUpdatedAt AS sourceUpdatedAt
   UNION ALL
-  MATCH (node:KGWorkOSTicket {key: $nodeId})
+  MATCH (node:KGTeamspaceTicket {key: $nodeId})
   WHERE node.organizationId = $organizationId
     AND coalesce(node.deleted, false) = false
   RETURN node.key AS id, 'ticket' AS kind,
     coalesce(node.title, node.sourceId, node.key) AS title,
     node.sourceId AS sourceId, node.sourceUpdatedAt AS sourceUpdatedAt
   UNION ALL
-  MATCH (node:KGWorkOSMeeting {key: $nodeId})
+  MATCH (node:KGTeamspaceMeeting {key: $nodeId})
   WHERE node.organizationId = $organizationId
     AND coalesce(node.deleted, false) = false
   RETURN node.key AS id, 'meeting' AS kind,
     coalesce(node.title, node.sourceId, node.key) AS title,
     node.sourceId AS sourceId, node.sourceUpdatedAt AS sourceUpdatedAt
   UNION ALL
-  MATCH (node:KGWorkOSUserReference {key: $nodeId})
+  MATCH (node:KGTeamspaceUserReference {key: $nodeId})
   WHERE node.organizationId = $organizationId
     AND coalesce(node.deleted, false) = false
   RETURN node.key AS id, 'member' AS kind,
@@ -51,7 +51,7 @@ CALL {
   WITH frontierKey
   CALL {
     WITH frontierKey
-    MATCH (source:KGWorkOSWikiDocument {key: frontierKey})-[rel:KG_WIKI_PARENT]->(target:KGWorkOSWikiDocument)
+    MATCH (source:KGTeamspaceWikiDocument {key: frontierKey})-[rel:KG_WIKI_PARENT]->(target:KGTeamspaceWikiDocument)
     WHERE 'KG_WIKI_PARENT' IN $relations
       AND source.organizationId = $organizationId
       AND target.organizationId = $organizationId
@@ -62,7 +62,7 @@ CALL {
       target.key AS targetKey, 'wiki_document' AS targetKind, target.sourceId AS targetId
     UNION ALL
     WITH frontierKey
-    MATCH (source:KGWorkOSWikiDocument)-[rel:KG_WIKI_PARENT]->(target:KGWorkOSWikiDocument {key: frontierKey})
+    MATCH (source:KGTeamspaceWikiDocument)-[rel:KG_WIKI_PARENT]->(target:KGTeamspaceWikiDocument {key: frontierKey})
     WHERE 'KG_WIKI_PARENT' IN $relations
       AND source.organizationId = $organizationId
       AND target.organizationId = $organizationId
@@ -73,7 +73,7 @@ CALL {
       target.key AS targetKey, 'wiki_document' AS targetKind, target.sourceId AS targetId
     UNION ALL
     WITH frontierKey
-    MATCH (source:KGWorkOSTicket {key: frontierKey})-[rel:KG_TICKET_PROJECT]->(target:KGWorkOSProject)
+    MATCH (source:KGTeamspaceTicket {key: frontierKey})-[rel:KG_TICKET_PROJECT]->(target:KGTeamspaceProject)
     WHERE 'KG_TICKET_PROJECT' IN $relations
       AND source.organizationId = $organizationId
       AND target.organizationId = $organizationId
@@ -84,7 +84,7 @@ CALL {
       target.key AS targetKey, 'project' AS targetKind, target.sourceId AS targetId
     UNION ALL
     WITH frontierKey
-    MATCH (source:KGWorkOSTicket)-[rel:KG_TICKET_PROJECT]->(target:KGWorkOSProject {key: frontierKey})
+    MATCH (source:KGTeamspaceTicket)-[rel:KG_TICKET_PROJECT]->(target:KGTeamspaceProject {key: frontierKey})
     WHERE 'KG_TICKET_PROJECT' IN $relations
       AND source.organizationId = $organizationId
       AND target.organizationId = $organizationId
@@ -95,7 +95,7 @@ CALL {
       target.key AS targetKey, 'project' AS targetKind, target.sourceId AS targetId
     UNION ALL
     WITH frontierKey
-    MATCH (source:KGWorkOSTicket {key: frontierKey})-[rel:KG_TICKET_ASSIGNEE]->(target:KGWorkOSUserReference)
+    MATCH (source:KGTeamspaceTicket {key: frontierKey})-[rel:KG_TICKET_ASSIGNEE]->(target:KGTeamspaceUserReference)
     WHERE 'KG_TICKET_ASSIGNEE' IN $relations
       AND source.organizationId = $organizationId
       AND target.organizationId = $organizationId
@@ -106,7 +106,7 @@ CALL {
       target.key AS targetKey, 'member' AS targetKind, target.sourceId AS targetId
     UNION ALL
     WITH frontierKey
-    MATCH (source:KGWorkOSTicket)-[rel:KG_TICKET_ASSIGNEE]->(target:KGWorkOSUserReference {key: frontierKey})
+    MATCH (source:KGTeamspaceTicket)-[rel:KG_TICKET_ASSIGNEE]->(target:KGTeamspaceUserReference {key: frontierKey})
     WHERE 'KG_TICKET_ASSIGNEE' IN $relations
       AND source.organizationId = $organizationId
       AND target.organizationId = $organizationId
@@ -117,7 +117,7 @@ CALL {
       target.key AS targetKey, 'member' AS targetKind, target.sourceId AS targetId
     UNION ALL
     WITH frontierKey
-    MATCH (source:KGWorkOSTicket {key: frontierKey})-[rel:KG_TICKET_REPORTER]->(target:KGWorkOSUserReference)
+    MATCH (source:KGTeamspaceTicket {key: frontierKey})-[rel:KG_TICKET_REPORTER]->(target:KGTeamspaceUserReference)
     WHERE 'KG_TICKET_REPORTER' IN $relations
       AND source.organizationId = $organizationId
       AND target.organizationId = $organizationId
@@ -128,7 +128,7 @@ CALL {
       target.key AS targetKey, 'member' AS targetKind, target.sourceId AS targetId
     UNION ALL
     WITH frontierKey
-    MATCH (source:KGWorkOSTicket)-[rel:KG_TICKET_REPORTER]->(target:KGWorkOSUserReference {key: frontierKey})
+    MATCH (source:KGTeamspaceTicket)-[rel:KG_TICKET_REPORTER]->(target:KGTeamspaceUserReference {key: frontierKey})
     WHERE 'KG_TICKET_REPORTER' IN $relations
       AND source.organizationId = $organizationId
       AND target.organizationId = $organizationId
@@ -139,7 +139,7 @@ CALL {
       target.key AS targetKey, 'member' AS targetKind, target.sourceId AS targetId
     UNION ALL
     WITH frontierKey
-    MATCH (source:KGWorkOSProject {key: frontierKey})-[rel:KG_PROJECT_LEAD]->(target:KGWorkOSUserReference)
+    MATCH (source:KGTeamspaceProject {key: frontierKey})-[rel:KG_PROJECT_LEAD]->(target:KGTeamspaceUserReference)
     WHERE 'KG_PROJECT_LEAD' IN $relations
       AND source.organizationId = $organizationId
       AND target.organizationId = $organizationId
@@ -150,7 +150,7 @@ CALL {
       target.key AS targetKey, 'member' AS targetKind, target.sourceId AS targetId
     UNION ALL
     WITH frontierKey
-    MATCH (source:KGWorkOSProject)-[rel:KG_PROJECT_LEAD]->(target:KGWorkOSUserReference {key: frontierKey})
+    MATCH (source:KGTeamspaceProject)-[rel:KG_PROJECT_LEAD]->(target:KGTeamspaceUserReference {key: frontierKey})
     WHERE 'KG_PROJECT_LEAD' IN $relations
       AND source.organizationId = $organizationId
       AND target.organizationId = $organizationId
@@ -161,7 +161,7 @@ CALL {
       target.key AS targetKey, 'member' AS targetKind, target.sourceId AS targetId
     UNION ALL
     WITH frontierKey
-    MATCH (source:KGWorkOSProject {key: frontierKey})-[rel:KG_PROJECT_CREATOR]->(target:KGWorkOSUserReference)
+    MATCH (source:KGTeamspaceProject {key: frontierKey})-[rel:KG_PROJECT_CREATOR]->(target:KGTeamspaceUserReference)
     WHERE 'KG_PROJECT_CREATOR' IN $relations
       AND source.organizationId = $organizationId
       AND target.organizationId = $organizationId
@@ -172,7 +172,7 @@ CALL {
       target.key AS targetKey, 'member' AS targetKind, target.sourceId AS targetId
     UNION ALL
     WITH frontierKey
-    MATCH (source:KGWorkOSProject)-[rel:KG_PROJECT_CREATOR]->(target:KGWorkOSUserReference {key: frontierKey})
+    MATCH (source:KGTeamspaceProject)-[rel:KG_PROJECT_CREATOR]->(target:KGTeamspaceUserReference {key: frontierKey})
     WHERE 'KG_PROJECT_CREATOR' IN $relations
       AND source.organizationId = $organizationId
       AND target.organizationId = $organizationId
@@ -183,7 +183,7 @@ CALL {
       target.key AS targetKey, 'member' AS targetKind, target.sourceId AS targetId
     UNION ALL
     WITH frontierKey
-    MATCH (source:KGWorkOSMeeting {key: frontierKey})-[rel:KG_MEETING_ORGANIZER]->(target:KGWorkOSUserReference)
+    MATCH (source:KGTeamspaceMeeting {key: frontierKey})-[rel:KG_MEETING_ORGANIZER]->(target:KGTeamspaceUserReference)
     WHERE 'KG_MEETING_ORGANIZER' IN $relations
       AND source.organizationId = $organizationId
       AND target.organizationId = $organizationId
@@ -194,7 +194,7 @@ CALL {
       target.key AS targetKey, 'member' AS targetKind, target.sourceId AS targetId
     UNION ALL
     WITH frontierKey
-    MATCH (source:KGWorkOSMeeting)-[rel:KG_MEETING_ORGANIZER]->(target:KGWorkOSUserReference {key: frontierKey})
+    MATCH (source:KGTeamspaceMeeting)-[rel:KG_MEETING_ORGANIZER]->(target:KGTeamspaceUserReference {key: frontierKey})
     WHERE 'KG_MEETING_ORGANIZER' IN $relations
       AND source.organizationId = $organizationId
       AND target.organizationId = $organizationId
@@ -205,7 +205,7 @@ CALL {
       target.key AS targetKey, 'member' AS targetKind, target.sourceId AS targetId
     UNION ALL
     WITH frontierKey
-    MATCH (source:KGWorkOSMeeting {key: frontierKey})-[rel:KG_MEETING_ATTENDEE]->(target:KGWorkOSUserReference)
+    MATCH (source:KGTeamspaceMeeting {key: frontierKey})-[rel:KG_MEETING_ATTENDEE]->(target:KGTeamspaceUserReference)
     WHERE 'KG_MEETING_ATTENDEE' IN $relations
       AND source.organizationId = $organizationId
       AND target.organizationId = $organizationId
@@ -216,7 +216,7 @@ CALL {
       target.key AS targetKey, 'member' AS targetKind, target.sourceId AS targetId
     UNION ALL
     WITH frontierKey
-    MATCH (source:KGWorkOSMeeting)-[rel:KG_MEETING_ATTENDEE]->(target:KGWorkOSUserReference {key: frontierKey})
+    MATCH (source:KGTeamspaceMeeting)-[rel:KG_MEETING_ATTENDEE]->(target:KGTeamspaceUserReference {key: frontierKey})
     WHERE 'KG_MEETING_ATTENDEE' IN $relations
       AND source.organizationId = $organizationId
       AND target.organizationId = $organizationId
@@ -239,7 +239,7 @@ ORDER BY frontierKey, relationshipType, sourceKey, targetKey`;
 
 export const READ_STRUCTURE_EDGES = `
 CALL {
-  MATCH (source:KGWorkOSWikiDocument)-[rel:KG_WIKI_PARENT]->(target:KGWorkOSWikiDocument)
+  MATCH (source:KGTeamspaceWikiDocument)-[rel:KG_WIKI_PARENT]->(target:KGTeamspaceWikiDocument)
   WHERE 'KG_WIKI_PARENT' IN $relations
     AND source.organizationId = $organizationId
     AND target.organizationId = $organizationId
@@ -249,7 +249,7 @@ CALL {
     source.key AS sourceKey, 'wiki_document' AS sourceKind, source.sourceId AS sourceId,
     target.key AS targetKey, 'wiki_document' AS targetKind, target.sourceId AS targetId
   UNION ALL
-  MATCH (source:KGWorkOSTicket)-[rel:KG_TICKET_PROJECT]->(target:KGWorkOSProject)
+  MATCH (source:KGTeamspaceTicket)-[rel:KG_TICKET_PROJECT]->(target:KGTeamspaceProject)
   WHERE 'KG_TICKET_PROJECT' IN $relations
     AND source.organizationId = $organizationId
     AND target.organizationId = $organizationId
@@ -259,7 +259,7 @@ CALL {
     source.key AS sourceKey, 'ticket' AS sourceKind, source.sourceId AS sourceId,
     target.key AS targetKey, 'project' AS targetKind, target.sourceId AS targetId
   UNION ALL
-  MATCH (source:KGWorkOSTicket)-[rel:KG_TICKET_ASSIGNEE]->(target:KGWorkOSUserReference)
+  MATCH (source:KGTeamspaceTicket)-[rel:KG_TICKET_ASSIGNEE]->(target:KGTeamspaceUserReference)
   WHERE 'KG_TICKET_ASSIGNEE' IN $relations
     AND source.organizationId = $organizationId
     AND target.organizationId = $organizationId
@@ -269,7 +269,7 @@ CALL {
     source.key AS sourceKey, 'ticket' AS sourceKind, source.sourceId AS sourceId,
     target.key AS targetKey, 'member' AS targetKind, target.sourceId AS targetId
   UNION ALL
-  MATCH (source:KGWorkOSTicket)-[rel:KG_TICKET_REPORTER]->(target:KGWorkOSUserReference)
+  MATCH (source:KGTeamspaceTicket)-[rel:KG_TICKET_REPORTER]->(target:KGTeamspaceUserReference)
   WHERE 'KG_TICKET_REPORTER' IN $relations
     AND source.organizationId = $organizationId
     AND target.organizationId = $organizationId
@@ -279,7 +279,7 @@ CALL {
     source.key AS sourceKey, 'ticket' AS sourceKind, source.sourceId AS sourceId,
     target.key AS targetKey, 'member' AS targetKind, target.sourceId AS targetId
   UNION ALL
-  MATCH (source:KGWorkOSProject)-[rel:KG_PROJECT_LEAD]->(target:KGWorkOSUserReference)
+  MATCH (source:KGTeamspaceProject)-[rel:KG_PROJECT_LEAD]->(target:KGTeamspaceUserReference)
   WHERE 'KG_PROJECT_LEAD' IN $relations
     AND source.organizationId = $organizationId
     AND target.organizationId = $organizationId
@@ -289,7 +289,7 @@ CALL {
     source.key AS sourceKey, 'project' AS sourceKind, source.sourceId AS sourceId,
     target.key AS targetKey, 'member' AS targetKind, target.sourceId AS targetId
   UNION ALL
-  MATCH (source:KGWorkOSProject)-[rel:KG_PROJECT_CREATOR]->(target:KGWorkOSUserReference)
+  MATCH (source:KGTeamspaceProject)-[rel:KG_PROJECT_CREATOR]->(target:KGTeamspaceUserReference)
   WHERE 'KG_PROJECT_CREATOR' IN $relations
     AND source.organizationId = $organizationId
     AND target.organizationId = $organizationId
@@ -299,7 +299,7 @@ CALL {
     source.key AS sourceKey, 'project' AS sourceKind, source.sourceId AS sourceId,
     target.key AS targetKey, 'member' AS targetKind, target.sourceId AS targetId
   UNION ALL
-  MATCH (source:KGWorkOSMeeting)-[rel:KG_MEETING_ORGANIZER]->(target:KGWorkOSUserReference)
+  MATCH (source:KGTeamspaceMeeting)-[rel:KG_MEETING_ORGANIZER]->(target:KGTeamspaceUserReference)
   WHERE 'KG_MEETING_ORGANIZER' IN $relations
     AND source.organizationId = $organizationId
     AND target.organizationId = $organizationId
@@ -309,7 +309,7 @@ CALL {
     source.key AS sourceKey, 'meeting' AS sourceKind, source.sourceId AS sourceId,
     target.key AS targetKey, 'member' AS targetKind, target.sourceId AS targetId
   UNION ALL
-  MATCH (source:KGWorkOSMeeting)-[rel:KG_MEETING_ATTENDEE]->(target:KGWorkOSUserReference)
+  MATCH (source:KGTeamspaceMeeting)-[rel:KG_MEETING_ATTENDEE]->(target:KGTeamspaceUserReference)
   WHERE 'KG_MEETING_ATTENDEE' IN $relations
     AND source.organizationId = $organizationId
     AND target.organizationId = $organizationId
@@ -336,7 +336,7 @@ LIMIT toInteger($limit)`;
 
 export const READ_STRUCTURE_EDGE_DETAIL = `
 CALL {
-  MATCH (source:KGWorkOSWikiDocument {key: $sourceKey})-[rel:KG_WIKI_PARENT]->(target:KGWorkOSWikiDocument {key: $targetKey})
+  MATCH (source:KGTeamspaceWikiDocument {key: $sourceKey})-[rel:KG_WIKI_PARENT]->(target:KGTeamspaceWikiDocument {key: $targetKey})
   WHERE $relationshipType = 'KG_WIKI_PARENT'
     AND source.organizationId = $organizationId
     AND target.organizationId = $organizationId
@@ -346,7 +346,7 @@ CALL {
     source.key AS sourceKey, 'wiki_document' AS sourceKind, source.sourceId AS sourceId,
     target.key AS targetKey, 'wiki_document' AS targetKind, target.sourceId AS targetId
   UNION ALL
-  MATCH (source:KGWorkOSTicket {key: $sourceKey})-[rel:KG_TICKET_PROJECT]->(target:KGWorkOSProject {key: $targetKey})
+  MATCH (source:KGTeamspaceTicket {key: $sourceKey})-[rel:KG_TICKET_PROJECT]->(target:KGTeamspaceProject {key: $targetKey})
   WHERE $relationshipType = 'KG_TICKET_PROJECT'
     AND source.organizationId = $organizationId
     AND target.organizationId = $organizationId
@@ -356,7 +356,7 @@ CALL {
     source.key AS sourceKey, 'ticket' AS sourceKind, source.sourceId AS sourceId,
     target.key AS targetKey, 'project' AS targetKind, target.sourceId AS targetId
   UNION ALL
-  MATCH (source:KGWorkOSTicket {key: $sourceKey})-[rel:KG_TICKET_ASSIGNEE]->(target:KGWorkOSUserReference {key: $targetKey})
+  MATCH (source:KGTeamspaceTicket {key: $sourceKey})-[rel:KG_TICKET_ASSIGNEE]->(target:KGTeamspaceUserReference {key: $targetKey})
   WHERE $relationshipType = 'KG_TICKET_ASSIGNEE'
     AND source.organizationId = $organizationId
     AND target.organizationId = $organizationId
@@ -366,7 +366,7 @@ CALL {
     source.key AS sourceKey, 'ticket' AS sourceKind, source.sourceId AS sourceId,
     target.key AS targetKey, 'member' AS targetKind, target.sourceId AS targetId
   UNION ALL
-  MATCH (source:KGWorkOSTicket {key: $sourceKey})-[rel:KG_TICKET_REPORTER]->(target:KGWorkOSUserReference {key: $targetKey})
+  MATCH (source:KGTeamspaceTicket {key: $sourceKey})-[rel:KG_TICKET_REPORTER]->(target:KGTeamspaceUserReference {key: $targetKey})
   WHERE $relationshipType = 'KG_TICKET_REPORTER'
     AND source.organizationId = $organizationId
     AND target.organizationId = $organizationId
@@ -376,7 +376,7 @@ CALL {
     source.key AS sourceKey, 'ticket' AS sourceKind, source.sourceId AS sourceId,
     target.key AS targetKey, 'member' AS targetKind, target.sourceId AS targetId
   UNION ALL
-  MATCH (source:KGWorkOSProject {key: $sourceKey})-[rel:KG_PROJECT_LEAD]->(target:KGWorkOSUserReference {key: $targetKey})
+  MATCH (source:KGTeamspaceProject {key: $sourceKey})-[rel:KG_PROJECT_LEAD]->(target:KGTeamspaceUserReference {key: $targetKey})
   WHERE $relationshipType = 'KG_PROJECT_LEAD'
     AND source.organizationId = $organizationId
     AND target.organizationId = $organizationId
@@ -386,7 +386,7 @@ CALL {
     source.key AS sourceKey, 'project' AS sourceKind, source.sourceId AS sourceId,
     target.key AS targetKey, 'member' AS targetKind, target.sourceId AS targetId
   UNION ALL
-  MATCH (source:KGWorkOSProject {key: $sourceKey})-[rel:KG_PROJECT_CREATOR]->(target:KGWorkOSUserReference {key: $targetKey})
+  MATCH (source:KGTeamspaceProject {key: $sourceKey})-[rel:KG_PROJECT_CREATOR]->(target:KGTeamspaceUserReference {key: $targetKey})
   WHERE $relationshipType = 'KG_PROJECT_CREATOR'
     AND source.organizationId = $organizationId
     AND target.organizationId = $organizationId
@@ -396,7 +396,7 @@ CALL {
     source.key AS sourceKey, 'project' AS sourceKind, source.sourceId AS sourceId,
     target.key AS targetKey, 'member' AS targetKind, target.sourceId AS targetId
   UNION ALL
-  MATCH (source:KGWorkOSMeeting {key: $sourceKey})-[rel:KG_MEETING_ORGANIZER]->(target:KGWorkOSUserReference {key: $targetKey})
+  MATCH (source:KGTeamspaceMeeting {key: $sourceKey})-[rel:KG_MEETING_ORGANIZER]->(target:KGTeamspaceUserReference {key: $targetKey})
   WHERE $relationshipType = 'KG_MEETING_ORGANIZER'
     AND source.organizationId = $organizationId
     AND target.organizationId = $organizationId
@@ -406,7 +406,7 @@ CALL {
     source.key AS sourceKey, 'meeting' AS sourceKind, source.sourceId AS sourceId,
     target.key AS targetKey, 'member' AS targetKind, target.sourceId AS targetId
   UNION ALL
-  MATCH (source:KGWorkOSMeeting {key: $sourceKey})-[rel:KG_MEETING_ATTENDEE]->(target:KGWorkOSUserReference {key: $targetKey})
+  MATCH (source:KGTeamspaceMeeting {key: $sourceKey})-[rel:KG_MEETING_ATTENDEE]->(target:KGTeamspaceUserReference {key: $targetKey})
   WHERE $relationshipType = 'KG_MEETING_ATTENDEE'
     AND source.organizationId = $organizationId
     AND target.organizationId = $organizationId

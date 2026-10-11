@@ -97,7 +97,7 @@ describeKnowledgeGraph('Neo4j Community의 Wiki 원본 fencing', () => {
 
   function read() {
     return graph.query(
-      `MATCH (node:KGWorkOSWikiDocument {key: $sourceKey})
+      `MATCH (node:KGTeamspaceWikiDocument {key: $sourceKey})
       MATCH (marker:KGProjectionSource {key: $sourceKey})
       OPTIONAL MATCH (node)-[:KG_WIKI_PARENT]->(parent)
       RETURN node.title AS title, node.deleted AS deleted, marker.appliedSeq AS version,
@@ -189,7 +189,7 @@ describeKnowledgeGraph('Neo4j Community의 Wiki 원본 fencing', () => {
       document('조직 B', null, otherOrganizationId),
     );
     await graph.query(
-      `MATCH (node:KGWorkOSWikiDocument {key: $sourceKey})
+      `MATCH (node:KGTeamspaceWikiDocument {key: $sourceKey})
       CREATE (target:KGTestCurated {organizationId: $organizationId})
       CREATE (node)-[:KG_TEST_CURATED]->(target)`,
       { sourceKey, organizationId },
@@ -198,13 +198,13 @@ describeKnowledgeGraph('Neo4j Community의 Wiki 원본 fencing', () => {
     await writer.applyWiki(tracking(3, true), null);
     expect(
       await graph.query(
-        `MATCH (node:KGWorkOSWikiDocument {organizationId: $otherOrganizationId}) RETURN node.title AS title, node.deleted AS deleted`,
+        `MATCH (node:KGTeamspaceWikiDocument {organizationId: $otherOrganizationId}) RETURN node.title AS title, node.deleted AS deleted`,
         { otherOrganizationId },
       ),
     ).toEqual([{ title: '조직 B', deleted: false }]);
     expect(
       await graph.query(
-        'MATCH (:KGWorkOSWikiDocument {key: $sourceKey})-[relation:KG_TEST_CURATED]->() RETURN count(relation) AS count',
+        'MATCH (:KGTeamspaceWikiDocument {key: $sourceKey})-[relation:KG_TEST_CURATED]->() RETURN count(relation) AS count',
         { sourceKey },
       ),
     ).toEqual([{ count: '1' }]);

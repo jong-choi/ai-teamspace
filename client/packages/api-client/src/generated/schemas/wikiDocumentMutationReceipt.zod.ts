@@ -16,7 +16,7 @@ export const wikiDocumentMutationReceiptUpdatedAtRegExp = new RegExp('^(?:(?:\\d
 
 export const WikiDocumentMutationReceipt = zod.object({
   "version": zod.literal(1),
-  "source": zod.enum(['workos']),
+  "source": zod.enum(['teamspace']),
   "organizationId": zod.string().min(1),
   "resourceId": zod.string().min(1),
   "kind": zod.enum(['wiki_document']),

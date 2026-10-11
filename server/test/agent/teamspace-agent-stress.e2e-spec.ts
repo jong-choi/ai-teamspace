@@ -16,7 +16,7 @@ const stressIterations = parseStressIterations(
   process.env['AGENT_STRESS_ITERATIONS'],
 );
 const stressSeed =
-  process.env['AGENT_STRESS_SEED']?.trim() || 'workos-agent-stress-v1';
+  process.env['AGENT_STRESS_SEED']?.trim() || 'teamspace-agent-stress-v1';
 
 jest.setTimeout(120_000);
 
@@ -65,7 +65,7 @@ stressDescribe('AI Teamspace Agent 반복 stress acceptance', () => {
         const thread = await client.threads.create();
         const interrupted = await client.runs.create(
           thread.thread_id,
-          'workos',
+          'teamspace',
           {
             input: {
               messages: [
@@ -84,9 +84,13 @@ stressDescribe('AI Teamspace Agent 반복 stress acceptance', () => {
           'interrupted',
         );
 
-        const resumed = await client.runs.create(thread.thread_id, 'workos', {
-          command: { resume: { decisions: [{ type: 'approve' }] } },
-        });
+        const resumed = await client.runs.create(
+          thread.thread_id,
+          'teamspace',
+          {
+            command: { resume: { decisions: [{ type: 'approve' }] } },
+          },
+        );
         await waitForRunStatus(
           client,
           thread.thread_id,
@@ -134,7 +138,7 @@ stressDescribe('AI Teamspace Agent 반복 stress acceptance', () => {
       const client = app.client('stress-user');
       for (let index = 0; index < stressIterations; index += 1) {
         const thread = await client.threads.create();
-        const run = await client.runs.create(thread.thread_id, 'workos', {
+        const run = await client.runs.create(thread.thread_id, 'teamspace', {
           input: {
             messages: [
               { role: 'user', content: `stress cancel ${stressSeed}-${index}` },

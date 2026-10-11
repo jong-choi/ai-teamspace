@@ -89,7 +89,7 @@ describeKnowledgeGraph('Neo4j Project의 관계와 공유 column 소유권', () 
   }
   function references() {
     return graph.query(
-      `MATCH (project:KGWorkOSProject {key: $sourceKey})-[relation]->(target)
+      `MATCH (project:KGTeamspaceProject {key: $sourceKey})-[relation]->(target)
       WHERE type(relation) IN ['KG_PROJECT_ORGANIZATION', 'KG_PROJECT_CREATOR', 'KG_PROJECT_LEAD']
       RETURN type(relation) AS kind, target.sourceId AS id ORDER BY kind`,
       { sourceKey },
@@ -121,7 +121,7 @@ describeKnowledgeGraph('Neo4j Project의 관계와 공유 column 소유권', () 
 
   it('placeholder를 실제 원본으로 바꾸고 column 교체 때 삭제된 column만 비활성화한다', async () => {
     await graph.query(
-      'CREATE (:KGWorkOSProject {key: $sourceKey, organizationId: $organizationId, placeholder: true})',
+      'CREATE (:KGTeamspaceProject {key: $sourceKey, organizationId: $organizationId, placeholder: true})',
       { sourceKey, organizationId },
     );
     await writer.applyProject(tracking(1), source());
@@ -130,13 +130,13 @@ describeKnowledgeGraph('Neo4j Project의 관계와 공유 column 소유권', () 
     await writer.applyProject(tracking(2), current);
     expect(
       await graph.query(
-        'MATCH (project:KGWorkOSProject {key: $sourceKey}) RETURN project.placeholder AS placeholder',
+        'MATCH (project:KGTeamspaceProject {key: $sourceKey}) RETURN project.placeholder AS placeholder',
         { sourceKey },
       ),
     ).toEqual([{ placeholder: false }]);
     expect(
       await graph.query(
-        `MATCH (:KGWorkOSProject {key: $sourceKey})-[:KG_PROJECT_COLUMN]->(column)
+        `MATCH (:KGTeamspaceProject {key: $sourceKey})-[:KG_PROJECT_COLUMN]->(column)
       RETURN column.sourceId AS id, column.name AS name, column.placeholder AS placeholder, column.deleted AS deleted`,
         { sourceKey },
       ),
@@ -150,7 +150,7 @@ describeKnowledgeGraph('Neo4j Project의 관계와 공유 column 소유권', () 
     ]);
     expect(
       await graph.query(
-        'MATCH (column:KGWorkOSProjectColumn {organizationId: $organizationId, sourceId: $id}) RETURN column.deleted AS deleted',
+        'MATCH (column:KGTeamspaceProjectColumn {organizationId: $organizationId, sourceId: $id}) RETURN column.deleted AS deleted',
         { organizationId, id: secondColumnId },
       ),
     ).toEqual([{ deleted: true }]);
@@ -164,7 +164,7 @@ describeKnowledgeGraph('Neo4j Project의 관계와 공유 column 소유권', () 
     );
     expect(
       await graph.query(
-        'MATCH (project:KGWorkOSProject {key: $sourceKey}) RETURN project.archivedAt IS NOT NULL AS archived',
+        'MATCH (project:KGTeamspaceProject {key: $sourceKey}) RETURN project.archivedAt IS NOT NULL AS archived',
         { sourceKey },
       ),
     ).toEqual([{ archived: true }]);
@@ -172,7 +172,7 @@ describeKnowledgeGraph('Neo4j Project의 관계와 공유 column 소유권', () 
     await writer.applyProject(tracking(2), source(null, new Date()));
     expect(
       await graph.query(
-        'MATCH (project:KGWorkOSProject {key: $sourceKey}) RETURN project.archivedAt AS archivedAt, project.deleted AS deleted',
+        'MATCH (project:KGTeamspaceProject {key: $sourceKey}) RETURN project.archivedAt AS archivedAt, project.deleted AS deleted',
         { sourceKey },
       ),
     ).toEqual([{ archivedAt: null, deleted: false }]);
@@ -189,13 +189,13 @@ describeKnowledgeGraph('Neo4j Project의 관계와 공유 column 소유권', () 
     expect(await references()).toEqual([]);
     expect(
       await graph.query(
-        'MATCH (project:KGWorkOSProject {key: $sourceKey}) RETURN project.deleted AS deleted',
+        'MATCH (project:KGTeamspaceProject {key: $sourceKey}) RETURN project.deleted AS deleted',
         { sourceKey },
       ),
     ).toEqual([{ deleted: true }]);
     expect(
       await graph.query(
-        'MATCH (:KGWorkOSProject {key: $sourceKey})-[relation:KG_PROJECT_COLUMN]->() RETURN count(relation) AS count',
+        'MATCH (:KGTeamspaceProject {key: $sourceKey})-[relation:KG_PROJECT_COLUMN]->() RETURN count(relation) AS count',
         { sourceKey },
       ),
     ).toEqual([{ count: '0' }]);
@@ -213,7 +213,7 @@ describeKnowledgeGraph('Neo4j Project의 관계와 공유 column 소유권', () 
     await writer.applyProject(tracking(2), current);
     expect(
       await graph.query(
-        'MATCH (:KGWorkOSProject {key: $sourceKey})-[relation:KG_PROJECT_COLUMN]->() RETURN count(relation) AS count',
+        'MATCH (:KGTeamspaceProject {key: $sourceKey})-[relation:KG_PROJECT_COLUMN]->() RETURN count(relation) AS count',
         { sourceKey },
       ),
     ).toEqual([{ count: '100' }]);

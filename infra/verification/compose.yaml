@@ -1,7 +1,7 @@
 # 지식 그래프 통합·E2E 검증 전용 PostgreSQL·Redis·Neo4j다. 개발·운영 데이터와 분리한다.
 # 데이터는 named volume에 저장해 재부팅·재생성 후에도 유지하고, Docker 재시작 시 자동으로 다시 띄운다.
 # 테스트 스크립트가 docker exec로 container 이름을 직접 쓰므로 container_name을 고정한다.
-name: work-os-graph-verification
+name: teamspace-graph-verification
 
 x-logging: &logging
   driver: json-file
@@ -12,7 +12,7 @@ x-logging: &logging
 services:
   postgres:
     image: postgres:17-alpine
-    container_name: workos-graph-verification-postgres
+    container_name: teamspace-graph-verification-postgres
     environment:
       POSTGRES_DB: graph_kg_test
       POSTGRES_USER: graph_test
@@ -31,7 +31,7 @@ services:
 
   redis:
     image: redis:8.2.10-alpine
-    container_name: workos-graph-verification-redis
+    container_name: teamspace-graph-verification-redis
     command:
       ['redis-server', '--appendonly', 'yes', '--appendfsync', 'everysec']
     volumes:
@@ -48,7 +48,7 @@ services:
 
   neo4j:
     image: neo4j:2025.09-community
-    container_name: workos-graph-verification-neo4j
+    container_name: teamspace-graph-verification-neo4j
     environment:
       NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:?NEO4J_PASSWORD가 필요합니다}
       # 이미지에 포함된 labs의 APOC Core jar를 설치한다.

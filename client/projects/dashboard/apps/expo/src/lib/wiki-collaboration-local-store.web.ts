@@ -6,7 +6,7 @@ import type {
 import { clearDocument, IndexeddbPersistence, storeState } from 'y-indexeddb';
 import * as Y from 'yjs';
 
-const databasePrefix = 'work-os-wiki-collaboration';
+const databasePrefix = 'teamspace-wiki-collaboration';
 const recoveryReadyKey = 'recovery-ready';
 
 export async function createWikiCollaborationLocalStore(

@@ -142,7 +142,7 @@ describeKnowledgeGraph('Wiki의 PG commit과 실제 Jobs·Neo4j 투영', () => {
 
   async function read(id: string) {
     return graph.query(
-      `MATCH (node:KGWorkOSWikiDocument {key: $key})
+      `MATCH (node:KGTeamspaceWikiDocument {key: $key})
       MATCH (marker:KGProjectionSource {key: $key})
       OPTIONAL MATCH (node)-[:KG_WIKI_PARENT]->(parent)
       RETURN node.title AS title, node.deleted AS deleted, marker.appliedSeq AS version,

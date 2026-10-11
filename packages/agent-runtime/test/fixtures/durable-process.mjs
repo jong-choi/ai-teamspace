@@ -55,8 +55,8 @@ const durable = await createDurableAgentRuntime(
   {
     postgresUri: databaseUrl,
     redisUri: redisUrl,
-    redisPrefix: `work-os:test:process:${namespace}`,
-    runQueueName: `work-os-test-process-${namespace}`,
+    redisPrefix: `teamspace:test:process:${namespace}`,
+    runQueueName: `teamspace-test-process-${namespace}`,
     runConcurrency: 1,
     runTimeoutMs: 10_000,
     overrides: { auth },

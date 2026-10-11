@@ -170,7 +170,7 @@ describeKnowledgeGraph('F8-05 rebuild 중 live write 최신 CAS', () => {
     return graph.query(
       `UNWIND [$aKey, $bKey] AS key
        MATCH (marker:KGProjectionSource {key: key})
-       OPTIONAL MATCH (document:KGWorkOSWikiDocument {key: key})
+       OPTIONAL MATCH (document:KGTeamspaceWikiDocument {key: key})
        RETURN key, marker.appliedSeq AS version, marker.deleted AS markerDeleted,
               document.title AS title, document.deleted AS deleted
        ORDER BY key`,

@@ -76,7 +76,7 @@ function createFixtureServer(
   writeAllowed: boolean,
 ): McpServer {
   const server = new McpServer({
-    name: 'workos-agent-process-fixture',
+    name: 'teamspace-agent-process-fixture',
     version: '1.0.0',
   });
   server.registerTool(

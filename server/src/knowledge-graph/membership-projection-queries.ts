@@ -4,7 +4,7 @@ ON CREATE SET marker.appliedSeq = 0
 SET marker.writeFence = coalesce(marker.writeFence, 0) + 1
 WITH marker
 WHERE marker.appliedSeq < $sourceVersion
-MERGE (membership:KGWorkOSMembership {key: $sourceKey})
+MERGE (membership:KGTeamspaceMembership {key: $sourceKey})
 SET membership.organizationId = $organizationId,
     membership.userId = $userId,
     membership.role = $role,
@@ -15,12 +15,12 @@ OPTIONAL MATCH (membership)-[oldRel]->()
 WHERE type(oldRel) IN ['KG_MEMBERSHIP_ORGANIZATION', 'KG_MEMBERSHIP_USER']
 DELETE oldRel
 WITH DISTINCT marker, membership
-MERGE (organization:KGWorkOSOrganization {key: $organizationKey})
+MERGE (organization:KGTeamspaceOrganization {key: $organizationKey})
 ON CREATE SET organization.organizationId = $organizationId,
               organization.sourceId = $organizationId,
               organization.deleted = false,
               organization.placeholder = true
-MERGE (user:KGWorkOSUserReference {key: $userKey})
+MERGE (user:KGTeamspaceUserReference {key: $userKey})
 ON CREATE SET user.organizationId = $organizationId,
               user.sourceId = $userId
 MERGE (membership)-[:KG_MEMBERSHIP_ORGANIZATION]->(organization)
@@ -35,7 +35,7 @@ ON CREATE SET marker.appliedSeq = 0
 SET marker.writeFence = coalesce(marker.writeFence, 0) + 1
 WITH marker
 WHERE marker.appliedSeq < $sourceVersion
-OPTIONAL MATCH (membership:KGWorkOSMembership {key: $sourceKey})
+OPTIONAL MATCH (membership:KGTeamspaceMembership {key: $sourceKey})
 OPTIONAL MATCH (membership)-[ownedRel]->()
 WHERE type(ownedRel) IN ['KG_MEMBERSHIP_ORGANIZATION', 'KG_MEMBERSHIP_USER']
 DELETE ownedRel

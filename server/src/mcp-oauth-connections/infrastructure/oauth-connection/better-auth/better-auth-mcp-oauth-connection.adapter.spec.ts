@@ -6,7 +6,7 @@ import { BetterAuthMcpOAuthConnectionAdapter } from '@/mcp-oauth-connections/inf
 
 import type { AuthService } from '@thallesp/nestjs-better-auth';
 
-const resourceUrl = 'https://workos.example/mcp';
+const resourceUrl = 'https://teamspace.example/mcp';
 const otherResource = 'https://other.example/api';
 
 describe('Better Auth MCP OAuth connection provider', () => {

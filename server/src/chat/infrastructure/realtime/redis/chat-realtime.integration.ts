@@ -10,7 +10,7 @@ import { filter, firstValueFrom, timeout } from 'rxjs';
 
 const userId = 'chat-realtime-integration-user';
 const conversationId = '11111111-1111-4111-8111-111111111111';
-const channel = `work-os:chat:user:${userId}`;
+const channel = `teamspace:chat:user:${userId}`;
 
 describe('채팅 Redis 실시간 통합', () => {
   it('서로 다른 Redis 어댑터 인스턴스 사이에서 사용자 이벤트를 전달한다', async () => {

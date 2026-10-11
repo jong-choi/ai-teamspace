@@ -77,7 +77,7 @@ describeKnowledgeGraph(
 
     beforeAll(async () => {
       for (const key of flagKeys) process.env[key] = 'true';
-      process.env.BULLMQ_PREFIX = `work-os:graph:p8-a3:f801:${randomUUID()}`;
+      process.env.BULLMQ_PREFIX = `teamspace:graph:p8-a3:f801:${randomUUID()}`;
       fixture = await KnowledgeGraphHttpFixture.boot(prefix, configureApi);
       graph = await createNeo4jGraph({
         url: process.env.NEO4J_URI!,

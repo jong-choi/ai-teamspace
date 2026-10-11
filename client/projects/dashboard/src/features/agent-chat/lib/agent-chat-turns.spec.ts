@@ -62,7 +62,7 @@ describe('Agent 대화 turn 묶기', () => {
     expect(assistant.items[0]).toMatchObject({
       label: '회의 생성',
       state: 'completed',
-      source: { kind: 'workos' },
+      source: { kind: 'teamspace' },
       fields: [{ label: '제목', value: '주간 회의' }],
     });
   });

@@ -79,7 +79,7 @@ describe('AI Teamspace MCP 요청 보안 순서 통합', () => {
   it('X-API-Key header의 access key로도 official client가 도구를 조회한다', async () => {
     const actor = await target.createActor({ scopes: WIKI_SCOPES });
     const mcp = await target.connectClient({
-      name: 'work-os-x-api-key',
+      name: 'teamspace-x-api-key',
       headers: { 'X-API-Key': actor.secret },
     });
 

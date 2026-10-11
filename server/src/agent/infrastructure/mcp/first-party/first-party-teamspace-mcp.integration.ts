@@ -76,7 +76,7 @@ describe('built-in Agent 내부 AI Teamspace MCP 연결', () => {
       ).parse(structured);
       const document = output.result;
       expect(output.mutation).toMatchObject({
-        source: 'workos',
+        source: 'teamspace',
         kind: 'wiki_document',
         operation: 'created',
         organizationId: actor.organizationId,

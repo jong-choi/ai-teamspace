@@ -1,4 +1,4 @@
-export const TEAMSPACE_AGENT_NAME = 'workos';
+export const TEAMSPACE_AGENT_NAME = 'teamspace';
 
 export const TEAMSPACE_ROOT_PROMPT = [
   '당신은 AI Teamspace 제품 에이전트입니다.',

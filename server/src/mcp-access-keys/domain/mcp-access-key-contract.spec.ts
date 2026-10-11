@@ -35,7 +35,7 @@ describe('MCP access key canonical contract', () => {
 
   it('selected organization grant를 dedupe/canonicalize한다', () => {
     const metadata = McpAccessKeyMetadataSchema.parse({
-      kind: 'workos-mcp-user',
+      kind: 'teamspace-mcp-user',
       version: 1,
       organizationGrant: {
         mode: 'selected',
@@ -49,7 +49,7 @@ describe('MCP access key canonical contract', () => {
 
 describe('MCP credential extraction', () => {
   it('wos_mcp_ Bearer만 API key verifier로 routing한다', () => {
-    const request = new Request('https://workos.example/mcp', {
+    const request = new Request('https://teamspace.example/mcp', {
       headers: { authorization: 'Bearer wos_mcp_secret' },
     });
 
@@ -61,7 +61,7 @@ describe('MCP credential extraction', () => {
   });
 
   it('다른 Bearer는 OAuth verifier로 routing한다', () => {
-    const request = new Request('https://workos.example/mcp', {
+    const request = new Request('https://teamspace.example/mcp', {
       headers: { authorization: 'Bearer oauth-token' },
     });
 
@@ -72,7 +72,7 @@ describe('MCP credential extraction', () => {
   });
 
   it('Authorization 없이 X-API-Key를 compatibility surface로 허용한다', () => {
-    const request = new Request('https://workos.example/mcp', {
+    const request = new Request('https://teamspace.example/mcp', {
       headers: { 'x-api-key': 'wos_mcp_secret' },
     });
 
@@ -84,7 +84,7 @@ describe('MCP credential extraction', () => {
   });
 
   it('Authorization과 X-API-Key 동시 사용을 거부한다', () => {
-    const request = new Request('https://workos.example/mcp', {
+    const request = new Request('https://teamspace.example/mcp', {
       headers: {
         authorization: 'Bearer oauth-token',
         'x-api-key': 'wos_mcp_secret',
@@ -98,7 +98,7 @@ describe('MCP credential extraction', () => {
 
   it('header가 없으면 주소의 wos_token을 API key로 받는다', () => {
     const request = new Request(
-      'https://workos.example/mcp?wos_token=wos_mcp_secret',
+      'https://teamspace.example/mcp?wos_token=wos_mcp_secret',
     );
 
     expect(extractMcpCredential(request)).toEqual({
@@ -110,7 +110,7 @@ describe('MCP credential extraction', () => {
 
   it('주소의 access key와 credential header 동시 사용을 거부한다', () => {
     const request = new Request(
-      'https://workos.example/mcp?wos_token=wos_mcp_secret',
+      'https://teamspace.example/mcp?wos_token=wos_mcp_secret',
       { headers: { authorization: 'Bearer oauth-token' } },
     );
 
@@ -121,7 +121,7 @@ describe('MCP credential extraction', () => {
 
   it('주소에 access key가 여러 번 실리면 거부한다', () => {
     const request = new Request(
-      'https://workos.example/mcp?wos_token=wos_mcp_a&wos_token=wos_mcp_b',
+      'https://teamspace.example/mcp?wos_token=wos_mcp_a&wos_token=wos_mcp_b',
     );
 
     expect(() => extractMcpCredential(request)).toThrow(
@@ -131,12 +131,12 @@ describe('MCP credential extraction', () => {
 
   it('MCP SDK로 넘기는 요청에서는 주소의 access key를 지운다', () => {
     const request = new Request(
-      'https://workos.example/mcp?wos_token=wos_mcp_secret&other=1',
+      'https://teamspace.example/mcp?wos_token=wos_mcp_secret&other=1',
       { method: 'POST', body: '{}' },
     );
 
     expect(withoutMcpUrlCredential(request).url).toBe(
-      'https://workos.example/mcp?other=1',
+      'https://teamspace.example/mcp?other=1',
     );
   });
 });

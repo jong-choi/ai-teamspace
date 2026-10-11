@@ -77,8 +77,8 @@ export class CombinedMcpToolSessionAdapter extends TeamspaceToolSessionProvider 
       tool.metadata = {
         ...(annotations === undefined ? {} : { annotations }),
         teamspaceMcp: {
-          source: 'workos',
-          namespace: 'workos',
+          source: 'teamspace',
+          namespace: 'teamspace',
           originalToolName: tool.name,
         },
       };

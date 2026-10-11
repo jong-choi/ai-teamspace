@@ -73,8 +73,8 @@ processDescribe('AI Teamspace Agent real-process durable acceptance', () => {
       // child process가 만든 이 test namespace의 Redis key만 정리한다.
       if (redisUrl) {
         await deleteRedisTestKeys(redisUrl, [
-          `work-os:test:agent-process:${namespace}:*`,
-          `bull:work-os-test-agent-process-${namespace}*`,
+          `teamspace:test:agent-process:${namespace}:*`,
+          `bull:teamspace-test-agent-process-${namespace}*`,
         ]);
       }
     }

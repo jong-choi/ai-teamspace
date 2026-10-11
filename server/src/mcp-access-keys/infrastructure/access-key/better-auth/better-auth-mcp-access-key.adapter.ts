@@ -64,7 +64,7 @@ export class BetterAuthMcpAccessKeyAdapter extends McpAccessKeyProvider {
           expiresIn: input.expiresInSeconds,
           permissions: scopesToPermissionMap(input.scopes),
           metadata: {
-            kind: 'workos-mcp-user',
+            kind: 'teamspace-mcp-user',
             version: 1,
             organizationGrant: input.organizationGrant,
           },
@@ -137,7 +137,7 @@ export class BetterAuthMcpAccessKeyAdapter extends McpAccessKeyProvider {
           expiresIn: input.expiresInSeconds,
           permissions: scopesToPermissionMap(input.scopes ?? current.scopes),
           metadata: {
-            kind: 'workos-mcp-user',
+            kind: 'teamspace-mcp-user',
             version: 1,
             organizationGrant:
               input.organizationGrant ?? current.organizationGrant,

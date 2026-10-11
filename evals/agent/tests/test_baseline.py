@@ -19,7 +19,7 @@ def manifest(*, tool_hash: str = "a" * 64, seed: int = 1) -> RunManifest:
         dependency_versions={"deepeval": "4.2.8"},
         agent_protocol_version="v1",
         mcp_protocol_version="2026-07-28",
-        mcp_resource_alias="work-os",
+        mcp_resource_alias="teamspace",
         tool_manifest_hash=tool_hash,
         dataset_id="routing",
         dataset_version="1.0.0",

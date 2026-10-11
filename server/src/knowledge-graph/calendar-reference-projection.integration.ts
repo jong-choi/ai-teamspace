@@ -169,13 +169,13 @@ describeKnowledgeGraph('실제 Neo4j Calendar 공유 원본의 독립 fence', ()
     );
     expect(
       await graph.query(
-        'MATCH (room:KGWorkOSMeetingRoom {organizationId: $organizationId}) RETURN room.name AS name, room.active AS active, room.placeholder AS placeholder',
+        'MATCH (room:KGTeamspaceMeetingRoom {organizationId: $organizationId}) RETURN room.name AS name, room.active AS active, room.placeholder AS placeholder',
         { organizationId },
       ),
     ).toEqual([{ name: '최신 회의실', active: false, placeholder: false }]);
     expect(
       await graph.query(
-        'MATCH (series:KGWorkOSMeetingRecurrence {organizationId: $organizationId}) RETURN series.frequency AS frequency, series.count AS count, series.interval AS interval, series.timeZone AS timeZone, series.placeholder AS placeholder',
+        'MATCH (series:KGTeamspaceMeetingRecurrence {organizationId: $organizationId}) RETURN series.frequency AS frequency, series.count AS count, series.interval AS interval, series.timeZone AS timeZone, series.placeholder AS placeholder',
         { organizationId },
       ),
     ).toEqual([
@@ -189,7 +189,7 @@ describeKnowledgeGraph('실제 Neo4j Calendar 공유 원본의 독립 fence', ()
     ]);
     expect(
       await graph.query(
-        'MATCH (:KGWorkOSMeeting {organizationId: $organizationId})-[relation]->(:KGWorkOSProject) RETURN count(relation) AS count',
+        'MATCH (:KGTeamspaceMeeting {organizationId: $organizationId})-[relation]->(:KGTeamspaceProject) RETURN count(relation) AS count',
         { organizationId },
       ),
     ).toEqual([{ count: '0' }]);
@@ -199,7 +199,7 @@ describeKnowledgeGraph('실제 Neo4j Calendar 공유 원본의 독립 fence', ()
     await writer.applyMeeting(tracking('meeting', meetingId, 1), meeting());
     expect(
       await graph.query(
-        'MATCH (series:KGWorkOSMeetingRecurrence {organizationId: $organizationId}) RETURN series.placeholder AS placeholder, series.frequency AS frequency',
+        'MATCH (series:KGTeamspaceMeetingRecurrence {organizationId: $organizationId}) RETURN series.placeholder AS placeholder, series.frequency AS frequency',
         { organizationId },
       ),
     ).toEqual([{ placeholder: true, frequency: null }]);
@@ -219,7 +219,7 @@ describeKnowledgeGraph('실제 Neo4j Calendar 공유 원본의 독립 fence', ()
     await writer.applyMeeting(tracking('meeting', meetingId, 2), meeting());
     expect(
       await graph.query(
-        'MATCH (room:KGWorkOSMeetingRoom {organizationId: $organizationId}), (series:KGWorkOSMeetingRecurrence {organizationId: $organizationId}) RETURN room.deleted AS roomDeleted, series.deleted AS seriesDeleted',
+        'MATCH (room:KGTeamspaceMeetingRoom {organizationId: $organizationId}), (series:KGTeamspaceMeetingRecurrence {organizationId: $organizationId}) RETURN room.deleted AS roomDeleted, series.deleted AS seriesDeleted',
         { organizationId },
       ),
     ).toEqual([{ roomDeleted: true, seriesDeleted: true }]);
@@ -245,7 +245,7 @@ describeKnowledgeGraph('실제 Neo4j Calendar 공유 원본의 독립 fence', ()
     );
     expect(
       await graph.query(
-        'MATCH (meeting:KGWorkOSMeeting {key: $key})-[relation]->(target) RETURN meeting.title AS title, type(relation) AS kind, target.sourceId AS id, relation.status AS status ORDER BY kind',
+        'MATCH (meeting:KGTeamspaceMeeting {key: $key})-[relation]->(target) RETURN meeting.title AS title, type(relation) AS kind, target.sourceId AS id, relation.status AS status ORDER BY kind',
         { key: JSON.stringify(['meeting', organizationId, meetingId]) },
       ),
     ).toEqual([
@@ -266,7 +266,7 @@ describeKnowledgeGraph('실제 Neo4j Calendar 공유 원본의 독립 fence', ()
     await writer.applyMeeting(tracking('meeting', meetingId, 6), meeting());
     expect(
       await graph.query(
-        'MATCH (meeting:KGWorkOSMeeting {key: $key}) OPTIONAL MATCH (meeting)-[relation]->() RETURN meeting.deleted AS deleted, count(relation) AS count',
+        'MATCH (meeting:KGTeamspaceMeeting {key: $key}) OPTIONAL MATCH (meeting)-[relation]->() RETURN meeting.deleted AS deleted, count(relation) AS count',
         { key: JSON.stringify(['meeting', organizationId, meetingId]) },
       ),
     ).toEqual([{ deleted: true, count: '0' }]);

@@ -1,7 +1,7 @@
 import { rejectOversizedToolInput } from '@/mcp/infrastructure/transport/model-context-protocol/mcp-tool-input-bound';
 
 function toolCall(argumentsValue: unknown, method = 'tools/call'): Request {
-  return new Request('https://workos.example/mcp', {
+  return new Request('https://teamspace.example/mcp', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -40,7 +40,7 @@ describe('MCP tool 입력 element 상한', () => {
     ).resolves.toBeUndefined();
     await expect(
       rejectOversizedToolInput(
-        new Request('https://workos.example/mcp', {
+        new Request('https://teamspace.example/mcp', {
           method: 'POST',
           body: '{"jsonrpc":',
         }),

@@ -13,8 +13,8 @@ const graph = new StateGraph(MessagesAnnotation)
 const validOptions = {
   postgresUri: 'postgresql://localhost/agent',
   redisUri: 'redis://localhost:6379',
-  redisPrefix: 'work-os:test:agent',
-  runQueueName: 'work-os-test-agent-runs',
+  redisPrefix: 'teamspace:test:agent',
+  runQueueName: 'teamspace-test-agent-runs',
   runConcurrency: 2,
 } as const;
 
@@ -32,7 +32,7 @@ describe('Agent durable runtime 설정', () => {
     await expect(
       createDurableAgentRuntime(
         { agent: graph },
-        { ...validOptions, runQueueName: 'work-os:agent:runs' },
+        { ...validOptions, runQueueName: 'teamspace:agent:runs' },
       ),
     ).rejects.toThrow('콜론');
   });

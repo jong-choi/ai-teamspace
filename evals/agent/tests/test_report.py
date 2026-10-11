@@ -21,7 +21,7 @@ def manifest() -> RunManifest:
         dependency_versions={"deepeval": "4.2.8"},
         agent_protocol_version="v1",
         mcp_protocol_version="2026-07-28",
-        mcp_resource_alias="work-os",
+        mcp_resource_alias="teamspace",
         tool_manifest_hash="a" * 64,
         dataset_id="smoke",
         dataset_version="1.0.0",

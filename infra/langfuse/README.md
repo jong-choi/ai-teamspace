@@ -8,7 +8,7 @@ Agent tracing과 eval harness linkage를 로컬에서 확인하기 위한 Langfu
 - image는 exact version(MinIO는 digest)으로 고정한다. 올릴 때는 [v3→v4 upgrade 문서](https://langfuse.com/self-hosting/upgrade/upgrade-guides/upgrade-v3-to-v4)와 SDK 호환표를 먼저 확인한다.
 - host에는 loopback(`127.0.0.1`)으로 Langfuse UI·API(`LANGFUSE_WEB_PORT`, 기본 3300)와 media upload용 MinIO API(`LANGFUSE_MINIO_PORT`, 기본 3390)만 연다.
 - Langfuse 제품 telemetry는 끈다(`TELEMETRY_ENABLED=false`).
-- 시작할 때 headless initialization으로 로컬 조직(`work-os-local`), 프로젝트(`work-os-agent`), 프로젝트 API key, 첫 사용자를 만든다. 이미 있으면 건너뛴다.
+- 시작할 때 headless initialization으로 로컬 조직(`teamspace-local`), 프로젝트(`teamspace-agent`), 프로젝트 API key, 첫 사용자를 만든다. 이미 있으면 건너뛴다.
 
 ## 실행
 

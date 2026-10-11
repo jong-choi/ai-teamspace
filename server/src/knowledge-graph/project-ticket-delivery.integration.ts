@@ -147,7 +147,7 @@ describeSlowKnowledgeGraph(
     }
     async function read(projectId: string) {
       return graph.query(
-        `MATCH (project:KGWorkOSProject {key: $key})
+        `MATCH (project:KGTeamspaceProject {key: $key})
       OPTIONAL MATCH (project)-[:KG_PROJECT_LEAD]->(lead)
       RETURN project.name AS name, project.archivedAt IS NOT NULL AS archived,
         lead.sourceId AS leadId, project.placeholder AS placeholder`,
@@ -223,7 +223,7 @@ describeSlowKnowledgeGraph(
       await applied(source.id, 3);
       expect(
         await graph.query(
-          `MATCH (:KGWorkOSProject {key: $key})-[:KG_PROJECT_COLUMN]->(column)
+          `MATCH (:KGTeamspaceProject {key: $key})-[:KG_PROJECT_COLUMN]->(column)
         RETURN column.name AS name, column.placeholder AS placeholder ORDER BY column.position`,
           { key: JSON.stringify(['project', organizationId, source.id]) },
         ),
@@ -305,7 +305,7 @@ describeSlowKnowledgeGraph(
         );
         expect(
           await graph.query(
-            `MATCH (ticket:KGWorkOSTicket {key: $key})-[:KG_TICKET_COLUMN]->(column)
+            `MATCH (ticket:KGTeamspaceTicket {key: $key})-[:KG_TICKET_COLUMN]->(column)
           RETURN ticket.position AS position, column.sourceId AS columnId,
             ticket.archivedAt AS archivedAt`,
             { key: JSON.stringify(['ticket', organizationId, ticket.id]) },
@@ -359,7 +359,7 @@ describeSlowKnowledgeGraph(
       await applied(label.id, 2, 'ticket_label');
       expect(
         await graph.query(
-          `MATCH (:KGWorkOSTicket {key: $key})-[:KG_TICKET_LABEL]->(label)
+          `MATCH (:KGTeamspaceTicket {key: $key})-[:KG_TICKET_LABEL]->(label)
       RETURN label.name AS name, label.color AS color, label.placeholder AS placeholder`,
           { key: JSON.stringify(['ticket', organizationId, ticketId]) },
         ),
@@ -392,7 +392,7 @@ describeSlowKnowledgeGraph(
       await applied(ticketId, 5, 'ticket');
       expect(
         await graph.query(
-          `MATCH (:KGWorkOSTicket {key: $key})-[:KG_TICKET_CHECKLIST]->(:KGWorkOSTicketChecklist)-[:KG_CHECKLIST_ITEM]->(item)
+          `MATCH (:KGTeamspaceTicket {key: $key})-[:KG_TICKET_CHECKLIST]->(:KGTeamspaceTicketChecklist)-[:KG_CHECKLIST_ITEM]->(item)
       RETURN item.title AS title, item.completed AS completed`,
           { key: JSON.stringify(['ticket', organizationId, ticketId]) },
         ),
@@ -420,7 +420,7 @@ describeSlowKnowledgeGraph(
       await applied(ticketId, 9, 'ticket');
       expect(
         await graph.query(
-          `MATCH (ticket:KGWorkOSTicket {key: $key})
+          `MATCH (ticket:KGTeamspaceTicket {key: $key})
       OPTIONAL MATCH (ticket)-[relation]->()
       WHERE type(relation) IN ['KG_TICKET_LABEL', 'KG_TICKET_CHECKLIST', 'KG_TICKET_ASSIGNEE']
       RETURN count(relation) AS count`,
@@ -429,7 +429,7 @@ describeSlowKnowledgeGraph(
       ).toEqual([{ count: '0' }]);
       expect(
         await graph.query(
-          'MATCH (:KGWorkOSTicketChecklist {organizationId: $organizationId, ticketId: $ticketId})-[relation:KG_CHECKLIST_ITEM]->() RETURN count(relation) AS count',
+          'MATCH (:KGTeamspaceTicketChecklist {organizationId: $organizationId, ticketId: $ticketId})-[relation:KG_CHECKLIST_ITEM]->() RETURN count(relation) AS count',
           { organizationId, ticketId },
         ),
       ).toEqual([{ count: '0' }]);

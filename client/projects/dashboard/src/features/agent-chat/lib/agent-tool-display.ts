@@ -73,7 +73,7 @@ export type AgentToolDisplay = {
 };
 
 export type AgentToolSource =
-  | { kind: 'workos' }
+  | { kind: 'teamspace' }
   | { kind: 'external'; namespace: string }
   | { kind: 'agent' };
 
@@ -98,7 +98,7 @@ export function getAgentToolLabel(name: string): string {
 }
 
 export function getAgentToolSource(name: string): AgentToolSource {
-  if (toolLabels[name]) return { kind: 'workos' };
+  if (toolLabels[name]) return { kind: 'teamspace' };
   if (agentToolLabels[name]) return { kind: 'agent' };
   const external = externalToolNamePattern.exec(name);
   if (external?.[1]) return { kind: 'external', namespace: external[1] };

@@ -7,13 +7,13 @@ permissions:
   contents: read
 
 concurrency:
-  group: workos-demo-deploy
+  group: teamspace-demo-deploy
   cancel-in-progress: false
 
 jobs:
   deploy:
     if: github.repository == 'jong-choi/ai-teamspace' && github.ref == 'refs/heads/main'
-    runs-on: [self-hosted, Linux, ARM64, workos-demo]
+    runs-on: [self-hosted, Linux, ARM64, teamspace-demo]
     timeout-minutes: 60
     environment:
       name: demo
@@ -94,8 +94,8 @@ jobs:
           set -a
           source "$DEMO_SECRETS_DIR/web.env"
           set +a
-          docker build --target server --tag "workos-demo-server:$DEMO_IMAGE_TAG" --file infra/demo/Dockerfile .
-          docker build --target gateway --tag "workos-demo-gateway:$DEMO_IMAGE_TAG" --file infra/demo/Dockerfile \
+          docker build --target server --tag "teamspace-demo-server:$DEMO_IMAGE_TAG" --file infra/demo/Dockerfile .
+          docker build --target gateway --tag "teamspace-demo-gateway:$DEMO_IMAGE_TAG" --file infra/demo/Dockerfile \
             --build-arg EXPO_PUBLIC_API_URL \
             --build-arg EXPO_PUBLIC_DEMO_EMAIL \
             --build-arg EXPO_PUBLIC_DEMO_PASSWORD \
@@ -104,18 +104,18 @@ jobs:
       - name: 데모 데이터 초기화와 마이그레이션
         run: |
           set -euo pipefail
-          docker compose --project-name workos-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml config --quiet
-          docker compose --project-name workos-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml down --volumes --remove-orphans
-          docker compose --project-name workos-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml up --detach --wait --wait-timeout 300 postgres redis-queue redis-cache redis-collaboration neo4j garage
-          docker compose --project-name workos-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml run --rm --no-deps migrate
+          docker compose --project-name teamspace-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml config --quiet
+          docker compose --project-name teamspace-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml down --volumes --remove-orphans
+          docker compose --project-name teamspace-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml up --detach --wait --wait-timeout 300 postgres redis-queue redis-cache redis-collaboration neo4j garage
+          docker compose --project-name teamspace-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml run --rm --no-deps migrate
 
       - name: 앱 시작과 오늘 기준 데모 시드
         run: |
           set -euo pipefail
-          docker compose --project-name workos-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml up --detach --wait --wait-timeout 300 api collaboration
+          docker compose --project-name teamspace-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml up --detach --wait --wait-timeout 300 api collaboration
           base_date=$(TZ=Asia/Seoul date +%F)
-          docker compose --project-name workos-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml run --rm --no-deps -e "DEMO_BASE_DATE=$base_date" seed
-          docker compose --project-name workos-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml up --detach --wait --wait-timeout 300 jobs gateway
+          docker compose --project-name teamspace-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml run --rm --no-deps -e "DEMO_BASE_DATE=$base_date" seed
+          docker compose --project-name teamspace-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml up --detach --wait --wait-timeout 300 jobs gateway
 
       - name: 공개 응답 확인
         run: |
@@ -123,4 +123,4 @@ jobs:
           curl --fail --silent --show-error --retry 12 --retry-all-errors --retry-delay 5 --max-time 15 "https://$DEMO_DOMAIN/healthz"
           curl --fail --silent --show-error --max-time 15 "https://$DEMO_DOMAIN/backend/"
           curl --fail --silent --show-error --max-time 15 --output /dev/null "https://$DEMO_DOMAIN/calendar"
-          docker compose --project-name workos-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml ps
+          docker compose --project-name teamspace-demo --env-file "$DEMO_SECRETS_DIR/compose.env" -f infra/demo/compose.yaml ps

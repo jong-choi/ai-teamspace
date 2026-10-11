@@ -8,7 +8,7 @@ import { z } from 'zod';
  */
 const receiptBaseShape = {
   version: z.literal(1),
-  source: z.literal('workos'),
+  source: z.literal('teamspace'),
   organizationId: z.string().min(1),
   resourceId: z.string().min(1),
 };

@@ -162,7 +162,7 @@ export class McpSdkExternalMcpConnectionAdapter
     const endpoint = await this.safeOutbound.assertSafe(connection.endpoint);
     const client = new Client(
       {
-        name: 'work-os-agent-external-mcp',
+        name: 'teamspace-agent-external-mcp',
         version: '0.0.1',
       },
       {

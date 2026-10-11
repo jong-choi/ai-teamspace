@@ -1,7 +1,7 @@
 # 로컬 개발·acceptance 전용 self-hosted Langfuse다. 운영 배포 구성이 아니다.
 # 공식 docker-compose.yml(v4.45.1)을 기준으로 image를 exact version으로 고정하고,
 # 모든 port를 loopback에만 열며, secret은 같은 디렉터리의 .env에서 필수로 읽는다.
-name: work-os-langfuse
+name: teamspace-langfuse
 
 x-logging: &logging
   driver: json-file
@@ -74,9 +74,9 @@ services:
       LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: http://localhost:${LANGFUSE_MINIO_PORT:-3390}
       LANGFUSE_S3_MEDIA_UPLOAD_INTERNAL_ENDPOINT: http://minio:9000
       # 로컬 조직·프로젝트·API key·첫 사용자를 시작 시 만든다. 이미 있으면 건너뛴다.
-      LANGFUSE_INIT_ORG_ID: work-os-local
+      LANGFUSE_INIT_ORG_ID: teamspace-local
       LANGFUSE_INIT_ORG_NAME: AI Teamspace Local
-      LANGFUSE_INIT_PROJECT_ID: work-os-agent
+      LANGFUSE_INIT_PROJECT_ID: teamspace-agent
       LANGFUSE_INIT_PROJECT_NAME: AI Teamspace Agent
       LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_INIT_PROJECT_PUBLIC_KEY:?LANGFUSE_INIT_PROJECT_PUBLIC_KEY가 필요합니다}
       LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_INIT_PROJECT_SECRET_KEY:?LANGFUSE_INIT_PROJECT_SECRET_KEY가 필요합니다}

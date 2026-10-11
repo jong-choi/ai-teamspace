@@ -142,7 +142,7 @@ describeKnowledgeGraph('위키 갱신 접수 → Jobs 색인 전체 흐름 E2E',
       'Redis 장애 중에도 갱신 요청은 PostgreSQL에 영속 접수된다.',
     );
     await observed(organizationId, documentId);
-    await docker('docker', ['pause', 'workos-graph-verification-redis']);
+    await docker('docker', ['pause', 'teamspace-graph-verification-redis']);
     let requestId: string;
     try {
       const response = await owner.agent
@@ -156,7 +156,7 @@ describeKnowledgeGraph('위키 갱신 접수 → Jobs 색인 전체 흐름 E2E',
       expect(pending.body).toMatchObject({ status: 'accepted', requestId });
       expect(extractor.calls.filter((call) => call === text)).toHaveLength(0);
     } finally {
-      await docker('docker', ['unpause', 'workos-graph-verification-redis']);
+      await docker('docker', ['unpause', 'teamspace-graph-verification-redis']);
     }
 
     const recoveredAt = performance.now();

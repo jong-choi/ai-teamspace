@@ -35,7 +35,7 @@ function ticketTool(
                   result: {},
                   mutation: {
                     version: 1,
-                    source: 'workos',
+                    source: 'teamspace',
                     organizationId: 'org-a',
                     resourceId: `ticket-${id}`,
                     kind: 'project_ticket',

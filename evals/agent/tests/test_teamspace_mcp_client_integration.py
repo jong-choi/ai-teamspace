@@ -37,7 +37,7 @@ async def _wait_for_tcp(port: int) -> None:
 
 async def test_official_mcp_client_against_official_streamable_http_server() -> None:
     server = MCPServer(
-        name="work-os-eval-fixture",
+        name="teamspace-eval-fixture",
         version="1.0.0",
         description="Black-box MCP client fixture",
     )
@@ -91,7 +91,7 @@ async def test_official_mcp_client_against_official_streamable_http_server() -> 
 
         assert discovery["protocolVersion"] == MODERN_PROTOCOL_VERSION
         server_info = cast(dict[str, object], discovery["serverInfo"])
-        assert server_info["name"] == "work-os-eval-fixture"
+        assert server_info["name"] == "teamspace-eval-fixture"
 
         capabilities = cast(dict[str, object], discovery["capabilities"])
         assert "tools" in capabilities

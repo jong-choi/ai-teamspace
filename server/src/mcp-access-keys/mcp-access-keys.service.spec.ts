@@ -8,10 +8,10 @@ describe('MCP access key management service', () => {
   it('connection info는 canonical config와 scope vocabulary에서만 만든다', () => {
     const service = new McpAccessKeysService({
       getOrThrow: () => ({
-        resourceUrl: 'https://workos.example/mcp',
-        resourceOrigin: 'https://workos.example',
+        resourceUrl: 'https://teamspace.example/mcp',
+        resourceOrigin: 'https://teamspace.example',
         resourcePath: '/mcp',
-        allowedHosts: ['workos.example'],
+        allowedHosts: ['teamspace.example'],
         allowedOrigins: ['dashboard.example'],
         protocol: {
           maxRequestBodyBytes: 104_857,
@@ -29,7 +29,7 @@ describe('MCP access key management service', () => {
     } as unknown as ConfigService<AllConfigType>);
 
     expect(service.getConnectionInfo()).toEqual({
-      resourceUrl: 'https://workos.example/mcp',
+      resourceUrl: 'https://teamspace.example/mcp',
       protocolVersion: '2026-07-28',
       authMethods: ['oauth', 'personal-access-key'],
       accessKey: {

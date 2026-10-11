@@ -6,10 +6,10 @@ import { McpHttpSecurityGuard } from '@/mcp/infrastructure/transport/model-conte
 function createGuard() {
   return new McpHttpSecurityGuard({
     getOrThrow: () => ({
-      resourceUrl: 'https://workos.example/mcp',
-      resourceOrigin: 'https://workos.example',
+      resourceUrl: 'https://teamspace.example/mcp',
+      resourceOrigin: 'https://teamspace.example',
       resourcePath: '/mcp',
-      allowedHosts: ['workos.example'],
+      allowedHosts: ['teamspace.example'],
       allowedOrigins: ['dashboard.example'],
       protocol: {
         maxRequestBodyBytes: 104_857,
@@ -29,9 +29,9 @@ function createGuard() {
 
 describe('MCP HTTP security guard', () => {
   it('허용된 Host와 Origin을 통과시킨다', () => {
-    const request = new Request('https://workos.example/mcp', {
+    const request = new Request('https://teamspace.example/mcp', {
       headers: {
-        host: 'workos.example',
+        host: 'teamspace.example',
         origin: 'https://dashboard.example',
       },
     });
@@ -40,15 +40,15 @@ describe('MCP HTTP security guard', () => {
   });
 
   it('Origin이 없는 non-browser MCP client를 허용한다', () => {
-    const request = new Request('https://workos.example/mcp', {
-      headers: { host: 'workos.example' },
+    const request = new Request('https://teamspace.example/mcp', {
+      headers: { host: 'teamspace.example' },
     });
 
     expect(createGuard().reject(request)).toBeUndefined();
   });
 
   it('allowlist 밖 Host를 JSON-RPC 403으로 거부한다', async () => {
-    const request = new Request('https://workos.example/mcp', {
+    const request = new Request('https://teamspace.example/mcp', {
       headers: { host: 'evil.example' },
     });
 
@@ -63,9 +63,9 @@ describe('MCP HTTP security guard', () => {
   });
 
   it('allowlist 밖 browser Origin을 JSON-RPC 403으로 거부한다', () => {
-    const request = new Request('https://workos.example/mcp', {
+    const request = new Request('https://teamspace.example/mcp', {
       headers: {
-        host: 'workos.example',
+        host: 'teamspace.example',
         origin: 'https://evil.example',
       },
     });

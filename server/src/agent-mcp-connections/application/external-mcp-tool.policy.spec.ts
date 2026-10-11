@@ -30,7 +30,7 @@ describe('외부 MCP tool policy', () => {
       schema,
       metadata: {
         annotations: { readOnlyHint: true },
-        teamspaceMcp: { source: 'workos' },
+        teamspaceMcp: { source: 'teamspace' },
       },
     } as unknown as StructuredTool;
   }

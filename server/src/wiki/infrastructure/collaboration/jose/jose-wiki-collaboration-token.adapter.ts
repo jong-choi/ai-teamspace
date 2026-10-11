@@ -14,8 +14,8 @@ import { jwtVerify, SignJWT } from 'jose';
 import { z } from 'zod';
 
 const tokenLifetimeSeconds = 5 * 60;
-const tokenIssuer = 'work-os-wiki-collaboration';
-const tokenAudience = 'work-os-wiki-collaboration';
+const tokenIssuer = 'teamspace-wiki-collaboration';
+const tokenAudience = 'teamspace-wiki-collaboration';
 const tokenPayloadSchema = z.object({
   sub: z.string().min(1),
   type: z.literal(WIKI_COLLABORATION_TOKEN_TYPE),

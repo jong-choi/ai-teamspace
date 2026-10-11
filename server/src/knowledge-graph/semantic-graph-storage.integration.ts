@@ -121,7 +121,7 @@ describeKnowledgeGraph(
       const first = inputs[0];
       if (!first) throw new Error('첫 의미 세대가 없습니다.');
       await graph.query(
-        'CREATE (:KGWorkOSWikiDocument {organizationId:$org, key:$key}), (:KGCuratedNode {organizationId:$org, key:$curatedKey})',
+        'CREATE (:KGTeamspaceWikiDocument {organizationId:$org, key:$key}), (:KGCuratedNode {organizationId:$org, key:$curatedKey})',
         {
           org: orgA,
           key: `p7-storage-authoritative-${randomUUID()}`,
@@ -145,7 +145,7 @@ describeKnowledgeGraph(
       ).toEqual([{ chunks: '3' }]);
       expect(
         await graph.query(
-          'MATCH (n:KGWorkOSWikiDocument) WHERE n.organizationId=$org RETURN count(n) AS kept',
+          'MATCH (n:KGTeamspaceWikiDocument) WHERE n.organizationId=$org RETURN count(n) AS kept',
           { org: orgA },
         ),
       ).toEqual([{ kept: '1' }]);

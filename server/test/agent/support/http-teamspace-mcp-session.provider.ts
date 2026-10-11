@@ -30,7 +30,7 @@ export class HttpTeamspaceMcpSessionProvider extends TeamspaceToolSessionProvide
       prefixToolNameWithServerName: false,
       defaultToolTimeout: mcp.toolTimeoutMs,
       servers: {
-        workos: {
+        teamspace: {
           transport: 'http',
           mode: 'modern',
           url: mcp.url,
@@ -46,12 +46,12 @@ export class HttpTeamspaceMcpSessionProvider extends TeamspaceToolSessionProvide
     };
 
     try {
-      const tools = await adapter.listTools('workos');
+      const tools = await adapter.listTools('teamspace');
       const toolIdentities = new Map<string, McpToolIdentity>();
       for (const tool of tools) {
         toolIdentities.set(tool.name, {
-          source: 'workos',
-          namespace: 'workos',
+          source: 'teamspace',
+          namespace: 'teamspace',
           originalToolName: tool.name,
         });
       }

@@ -6,8 +6,8 @@ import {
 } from '@repo/client/api-client/runtime';
 import { Client } from '@core/features/agent-chat/lib/langgraph-sdk-runtime';
 
-export const agentAssistantId = 'workos';
-export const agentGraphId = 'workos';
+export const agentAssistantId = 'teamspace';
+export const agentGraphId = 'teamspace';
 export const agentMessagesKey = 'messages';
 
 export function createAgentProtocolClient(): Client {

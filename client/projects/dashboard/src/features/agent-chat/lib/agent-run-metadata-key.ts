@@ -5,7 +5,7 @@ export function createAgentRunMetadataStorageKey(
   key: `lg:stream:${string}`,
 ): string {
   return [
-    'workos-agent',
+    'teamspace-agent',
     encodeURIComponent(namespace.userId),
     encodeURIComponent(namespace.organizationId),
     key,

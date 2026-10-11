@@ -190,7 +190,7 @@ describeKnowledgeGraph('Calendar의 실제 PG·Jobs·Neo4j 연결', () => {
     await applied('meeting_room', room.id, 2);
     expect(
       await graph.query(
-        'MATCH (:KGWorkOSMeeting {key: $key})-[:KG_MEETING_ROOM]->(room) RETURN room.name AS name, room.active AS active, room.placeholder AS placeholder',
+        'MATCH (:KGTeamspaceMeeting {key: $key})-[:KG_MEETING_ROOM]->(room) RETURN room.name AS name, room.active AS active, room.placeholder AS placeholder',
         { key: key('meeting', meeting.id) },
       ),
     ).toEqual([{ name: '수정 회의실', active: false, placeholder: false }]);
@@ -204,7 +204,7 @@ describeKnowledgeGraph('Calendar의 실제 PG·Jobs·Neo4j 연결', () => {
     await applied('meeting', meeting.id, 2);
     expect(
       await graph.query(
-        'MATCH (:KGWorkOSMeeting {key: $key})-[relation:KG_MEETING_ATTENDEE]->(attendee) RETURN attendee.sourceId AS userId, relation.status AS status ORDER BY userId',
+        'MATCH (:KGTeamspaceMeeting {key: $key})-[relation:KG_MEETING_ATTENDEE]->(attendee) RETURN attendee.sourceId AS userId, relation.status AS status ORDER BY userId',
         { key: key('meeting', meeting.id) },
       ),
     ).toEqual(
@@ -251,13 +251,13 @@ describeKnowledgeGraph('Calendar의 실제 PG·Jobs·Neo4j 연결', () => {
     await applied('meeting', meeting.id, 5);
     expect(
       await graph.query(
-        'MATCH (meeting:KGWorkOSMeeting {key: $key}) OPTIONAL MATCH (meeting)-[relation:KG_MEETING_ROOM]->() RETURN meeting.canceledAt IS NOT NULL AS canceled, count(relation) AS rooms',
+        'MATCH (meeting:KGTeamspaceMeeting {key: $key}) OPTIONAL MATCH (meeting)-[relation:KG_MEETING_ROOM]->() RETURN meeting.canceledAt IS NOT NULL AS canceled, count(relation) AS rooms',
         { key: key('meeting', meeting.id) },
       ),
     ).toEqual([{ canceled: true, rooms: '0' }]);
     expect(
       await graph.query(
-        'MATCH (:KGWorkOSMeeting {key: $key})-[:KG_MEETING_ATTENDEE]->(attendee) RETURN attendee.sourceId AS id',
+        'MATCH (:KGTeamspaceMeeting {key: $key})-[:KG_MEETING_ATTENDEE]->(attendee) RETURN attendee.sourceId AS id',
         { key: key('meeting', meeting.id) },
       ),
     ).toEqual([{ id: actorId }]);
@@ -351,7 +351,7 @@ describeKnowledgeGraph('Calendar의 실제 PG·Jobs·Neo4j 연결', () => {
     ]);
     expect(
       await graph.query(
-        'MATCH (series:KGWorkOSMeetingRecurrence {organizationId: $organizationId}) RETURN series.sourceId AS id, series.count AS count, series.placeholder AS placeholder',
+        'MATCH (series:KGTeamspaceMeetingRecurrence {organizationId: $organizationId}) RETURN series.sourceId AS id, series.count AS count, series.placeholder AS placeholder',
         { organizationId },
       ),
     ).toEqual(
@@ -363,7 +363,7 @@ describeKnowledgeGraph('Calendar의 실제 PG·Jobs·Neo4j 연결', () => {
     for (const meeting of meetings)
       expect(
         await graph.query(
-          'MATCH (:KGWorkOSMeeting {key: $key})-[:KG_MEETING_RECURRENCE]->(series) RETURN series.sourceId AS id',
+          'MATCH (:KGTeamspaceMeeting {key: $key})-[:KG_MEETING_RECURRENCE]->(series) RETURN series.sourceId AS id',
           { key: key('meeting', meeting.id) },
         ),
       ).toEqual([
@@ -402,7 +402,7 @@ describeKnowledgeGraph('Calendar의 실제 PG·Jobs·Neo4j 연결', () => {
     await applied('meeting_recurrence', seriesId, 4);
     expect(
       await graph.query(
-        'MATCH (series:KGWorkOSMeetingRecurrence {key: $key}) RETURN series.deleted AS deleted',
+        'MATCH (series:KGTeamspaceMeetingRecurrence {key: $key}) RETURN series.deleted AS deleted',
         { key: key('meeting_recurrence', seriesId) },
       ),
     ).toEqual([{ deleted: true }]);

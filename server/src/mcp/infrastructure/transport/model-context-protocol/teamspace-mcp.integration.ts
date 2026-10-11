@@ -37,7 +37,7 @@ describe('실제 AI Teamspace MCP transport 통합', () => {
 
   it('actual PAT로 official client가 scope-filtered tools를 조회하고 Wiki write를 영속화한다', async () => {
     const actor = await target.createActor({ scopes: WIKI_SCOPES });
-    const mcp = await connectWithAccessKey(actor, 'work-os-integration');
+    const mcp = await connectWithAccessKey(actor, 'teamspace-integration');
 
     try {
       const tools = await mcp.client.listTools();
@@ -86,7 +86,7 @@ describe('실제 AI Teamspace MCP transport 통합', () => {
 
   it('tools/list 뒤 user policy를 축소하면 stale write invocation을 call-time에 차단한다', async () => {
     const actor = await target.createActor({ scopes: WIKI_SCOPES });
-    const mcp = await connectWithAccessKey(actor, 'work-os-policy-race');
+    const mcp = await connectWithAccessKey(actor, 'teamspace-policy-race');
 
     try {
       const tools = await mcp.client.listTools();
@@ -126,7 +126,7 @@ describe('실제 AI Teamspace MCP transport 통합', () => {
     await actor.agent.delete(`/mcp/access-keys/${actor.keyId}`).expect(204);
 
     await expect(
-      connectWithAccessKey(actor, 'work-os-revoked-key'),
+      connectWithAccessKey(actor, 'teamspace-revoked-key'),
     ).rejects.toThrow();
   });
 
@@ -161,7 +161,7 @@ describe('실제 AI Teamspace MCP transport 통합', () => {
 
   it('전체 scope actor는 v1 manifest의 23개 도구를 manifest 순서로 본다', async () => {
     const actor = await target.createActor({ scopes: MCP_SCOPES });
-    const mcp = await connectWithAccessKey(actor, 'work-os-full-scope');
+    const mcp = await connectWithAccessKey(actor, 'teamspace-full-scope');
 
     try {
       const tools = await mcp.client.listTools();
@@ -176,7 +176,7 @@ describe('실제 AI Teamspace MCP transport 통합', () => {
   it('read scope만 가진 actor는 discovery에서 변경 도구를 보지 못한다', async () => {
     const readScopes = MCP_SCOPES.filter((scope) => scope.endsWith(':read'));
     const actor = await target.createActor({ scopes: readScopes });
-    const mcp = await connectWithAccessKey(actor, 'work-os-read-only');
+    const mcp = await connectWithAccessKey(actor, 'teamspace-read-only');
 
     try {
       const tools = await mcp.client.listTools();
@@ -196,7 +196,7 @@ describe('실제 AI Teamspace MCP transport 통합', () => {
     });
     const { organizationId: ungrantedOrganizationId } =
       await target.addOrganization(actor, { scopes: WIKI_SCOPES });
-    const mcp = await connectWithAccessKey(actor, 'work-os-grant');
+    const mcp = await connectWithAccessKey(actor, 'teamspace-grant');
 
     try {
       const denied = await mcp.client.callTool({
@@ -222,7 +222,7 @@ describe('실제 AI Teamspace MCP transport 통합', () => {
 
   it('조직 policy를 축소하면 연결된 session의 write 호출을 call-time에 거부한다', async () => {
     const actor = await target.createActor({ scopes: WIKI_SCOPES });
-    const mcp = await connectWithAccessKey(actor, 'work-os-org-policy');
+    const mcp = await connectWithAccessKey(actor, 'teamspace-org-policy');
 
     try {
       const access = await actor.agent.get(
@@ -263,7 +263,7 @@ describe('실제 AI Teamspace MCP transport 통합', () => {
       .post(`/organizations/${actor.organizationId}/projects`)
       .send({ key: 'MCPR', name: 'MCP read 대상 프로젝트' })
       .expect(201);
-    const mcp = await connectWithAccessKey(actor, 'work-os-domain-read');
+    const mcp = await connectWithAccessKey(actor, 'teamspace-domain-read');
     const organizationId = actor.organizationId;
 
     try {
@@ -324,7 +324,7 @@ describe('실제 AI Teamspace MCP transport 통합', () => {
       )
       .send({ name: '할 일' })
       .expect(201);
-    const mcp = await connectWithAccessKey(actor, 'work-os-ticket-write');
+    const mcp = await connectWithAccessKey(actor, 'teamspace-ticket-write');
 
     try {
       const created = await mcp.client.callTool({
@@ -367,7 +367,7 @@ describe('실제 AI Teamspace MCP transport 통합', () => {
 
   it('domain not found는 내부 정보 없이 tool error로 응답한다', async () => {
     const actor = await target.createActor({ scopes: WIKI_SCOPES });
-    const mcp = await connectWithAccessKey(actor, 'work-os-not-found');
+    const mcp = await connectWithAccessKey(actor, 'teamspace-not-found');
 
     try {
       const missing = await mcp.client.callTool({
@@ -389,7 +389,7 @@ describe('실제 AI Teamspace MCP transport 통합', () => {
 
   it('tool 입력 element 상한을 넘는 요청은 실행 전에 거부한다', async () => {
     const actor = await target.createActor({ scopes: WIKI_SCOPES });
-    const mcp = await connectWithAccessKey(actor, 'work-os-input-bound');
+    const mcp = await connectWithAccessKey(actor, 'teamspace-input-bound');
     const maxElements = target.mcpConfig.protocol.maxToolInputElements;
 
     try {

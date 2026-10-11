@@ -5,7 +5,7 @@ import {
 
 describe('Better Auth MCP OAuth mapper', () => {
   it('verified claims를 SDK AuthInfo와 raw-free application context로 투영한다', () => {
-    const request = new Request('https://workos.example/mcp', {
+    const request = new Request('https://teamspace.example/mcp', {
       method: 'POST',
       headers: {
         authorization: 'Bearer verified-access-token',
@@ -22,7 +22,7 @@ describe('Better Auth MCP OAuth mapper', () => {
         jti: 'token-id-a',
         exp: 1_800_000_000,
       },
-      'https://workos.example/mcp',
+      'https://teamspace.example/mcp',
     );
 
     expect(mapped.context).toEqual({
@@ -46,7 +46,7 @@ describe('Better Auth MCP OAuth mapper', () => {
   });
 
   it('client_id와 azp가 다르면 fail-closed한다', () => {
-    const request = new Request('https://workos.example/mcp', {
+    const request = new Request('https://teamspace.example/mcp', {
       method: 'POST',
       headers: {
         authorization: 'Bearer verified-access-token',
@@ -62,13 +62,13 @@ describe('Better Auth MCP OAuth mapper', () => {
           azp: 'client-b',
           scope: 'organizations:read',
         },
-        'https://workos.example/mcp',
+        'https://teamspace.example/mcp',
       ),
     ).toThrow('OAuth access token의 client identity가 일치하지 않습니다.');
   });
 
   it('offline_access는 OAuth control scope로 제거하고 business scope만 context에 남긴다', () => {
-    const request = new Request('https://workos.example/mcp', {
+    const request = new Request('https://teamspace.example/mcp', {
       method: 'POST',
       headers: {
         authorization: 'Bearer verified-access-token',
@@ -79,10 +79,10 @@ describe('Better Auth MCP OAuth mapper', () => {
       request,
       {
         sub: 'user-a',
-        client_id: 'work-os-agent',
+        client_id: 'teamspace-agent',
         scope: 'offline_access wiki:read organizations:read',
       },
-      'https://workos.example/mcp',
+      'https://teamspace.example/mcp',
     );
 
     expect(mapped.context.scopes).toEqual(['organizations:read', 'wiki:read']);
@@ -90,7 +90,7 @@ describe('Better Auth MCP OAuth mapper', () => {
   });
 
   it('offline_access 외 canonical scope가 아닌 claim은 거부한다', () => {
-    const request = new Request('https://workos.example/mcp', {
+    const request = new Request('https://teamspace.example/mcp', {
       method: 'POST',
       headers: {
         authorization: 'Bearer verified-access-token',
@@ -105,13 +105,13 @@ describe('Better Auth MCP OAuth mapper', () => {
           client_id: 'client-a',
           scope: 'organizations:read admin:*',
         },
-        'https://workos.example/mcp',
+        'https://teamspace.example/mcp',
       ),
     ).toThrow();
   });
 
   it('검증 callback에 raw bearer header가 없으면 거부한다', () => {
-    const request = new Request('https://workos.example/mcp', {
+    const request = new Request('https://teamspace.example/mcp', {
       method: 'POST',
     });
 
@@ -123,7 +123,7 @@ describe('Better Auth MCP OAuth mapper', () => {
           client_id: 'client-a',
           scope: 'organizations:read',
         },
-        'https://workos.example/mcp',
+        'https://teamspace.example/mcp',
       ),
     ).toThrow('검증된 OAuth bearer token을 찾을 수 없습니다.');
   });

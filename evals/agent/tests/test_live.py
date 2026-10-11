@@ -51,7 +51,7 @@ def test_build_run_manifest_uses_canonical_personas_and_live_protocol_data() -> 
         server_runtime_version="server-1",
         agent_protocol_version="v1",
         mcp_protocol_version="2026-07-28",
-        mcp_resource_alias="work-os",
+        mcp_resource_alias="teamspace",
         tool_manifest_hash="a" * 64,
         teamspace_tool_names=frozenset({"wiki_get", "wiki_update"}),
     )

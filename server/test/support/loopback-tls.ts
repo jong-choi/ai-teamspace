@@ -21,7 +21,7 @@ export interface LoopbackTlsCertificate {
  * key는 OS 임시 디렉터리에만 잠시 쓰고 지우며, 인증서 검증을 끄는 전역 설정은 사용하지 않는다.
  */
 export async function trustLoopbackTlsCertificate(): Promise<LoopbackTlsCertificate> {
-  const directory = await mkdtemp(join(tmpdir(), 'work-os-loopback-tls-'));
+  const directory = await mkdtemp(join(tmpdir(), 'teamspace-loopback-tls-'));
   const keyPath = join(directory, 'key.pem');
   const certPath = join(directory, 'cert.pem');
   try {

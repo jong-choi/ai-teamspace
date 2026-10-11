@@ -57,7 +57,7 @@ ON CREATE SET marker.appliedSeq = 0
 SET marker.writeFence = coalesce(marker.writeFence, 0) + 1
 WITH marker
 WHERE marker.appliedSeq < $sourceVersion
-MERGE (document:KGWorkOSWikiDocument {key: $sourceKey})
+MERGE (document:KGTeamspaceWikiDocument {key: $sourceKey})
 SET document.organizationId = $organizationId,
     document.sourceId = $sourceId,
     document.collectionId = $collectionId,
@@ -71,7 +71,7 @@ OPTIONAL MATCH (document)-[previous:KG_WIKI_PARENT]->()
 DELETE previous
 WITH marker, document
 FOREACH (ignored IN CASE WHEN $parentKey IS NULL THEN [] ELSE [1] END |
-    MERGE (parent:KGWorkOSWikiDocument {key: $parentKey})
+    MERGE (parent:KGTeamspaceWikiDocument {key: $parentKey})
     ON CREATE SET parent.organizationId = $organizationId,
                   parent.sourceId = $parentId,
                   parent.placeholder = true,
@@ -88,7 +88,7 @@ ON CREATE SET marker.appliedSeq = 0
 SET marker.writeFence = coalesce(marker.writeFence, 0) + 1
 WITH marker
 WHERE marker.appliedSeq < $sourceVersion
-OPTIONAL MATCH (document:KGWorkOSWikiDocument {key: $sourceKey})
+OPTIONAL MATCH (document:KGTeamspaceWikiDocument {key: $sourceKey})
 OPTIONAL MATCH (document)-[previous:KG_WIKI_PARENT]->()
 DELETE previous
 WITH marker, document
@@ -636,43 +636,43 @@ export class LangchainNeo4jGraphAdapter
           'CREATE CONSTRAINT kg_projection_source_key IF NOT EXISTS FOR (node:KGProjectionSource) REQUIRE node.key IS UNIQUE',
         );
         await graph.query(
-          'CREATE CONSTRAINT kg_workos_wiki_key IF NOT EXISTS FOR (node:KGWorkOSWikiDocument) REQUIRE node.key IS UNIQUE',
+          'CREATE CONSTRAINT kg_teamspace_wiki_key IF NOT EXISTS FOR (node:KGTeamspaceWikiDocument) REQUIRE node.key IS UNIQUE',
         );
         await graph.query(
-          'CREATE CONSTRAINT kg_workos_project_key IF NOT EXISTS FOR (node:KGWorkOSProject) REQUIRE node.key IS UNIQUE',
+          'CREATE CONSTRAINT kg_teamspace_project_key IF NOT EXISTS FOR (node:KGTeamspaceProject) REQUIRE node.key IS UNIQUE',
         );
         await graph.query(
-          'CREATE CONSTRAINT kg_workos_ticket_key IF NOT EXISTS FOR (node:KGWorkOSTicket) REQUIRE node.key IS UNIQUE',
+          'CREATE CONSTRAINT kg_teamspace_ticket_key IF NOT EXISTS FOR (node:KGTeamspaceTicket) REQUIRE node.key IS UNIQUE',
         );
         await graph.query(
-          'CREATE CONSTRAINT kg_workos_meeting_key IF NOT EXISTS FOR (node:KGWorkOSMeeting) REQUIRE node.key IS UNIQUE',
+          'CREATE CONSTRAINT kg_teamspace_meeting_key IF NOT EXISTS FOR (node:KGTeamspaceMeeting) REQUIRE node.key IS UNIQUE',
         );
         await graph.query(
-          'CREATE CONSTRAINT kg_project_column_key IF NOT EXISTS FOR (node:KGWorkOSProjectColumn) REQUIRE node.key IS UNIQUE',
+          'CREATE CONSTRAINT kg_project_column_key IF NOT EXISTS FOR (node:KGTeamspaceProjectColumn) REQUIRE node.key IS UNIQUE',
         );
         await graph.query(
-          'CREATE CONSTRAINT kg_ticket_label_key IF NOT EXISTS FOR (node:KGWorkOSTicketLabel) REQUIRE node.key IS UNIQUE',
+          'CREATE CONSTRAINT kg_ticket_label_key IF NOT EXISTS FOR (node:KGTeamspaceTicketLabel) REQUIRE node.key IS UNIQUE',
         );
         await graph.query(
-          'CREATE CONSTRAINT kg_ticket_checklist_key IF NOT EXISTS FOR (node:KGWorkOSTicketChecklist) REQUIRE node.key IS UNIQUE',
+          'CREATE CONSTRAINT kg_ticket_checklist_key IF NOT EXISTS FOR (node:KGTeamspaceTicketChecklist) REQUIRE node.key IS UNIQUE',
         );
         await graph.query(
-          'CREATE CONSTRAINT kg_ticket_checklist_item_key IF NOT EXISTS FOR (node:KGWorkOSTicketChecklistItem) REQUIRE node.key IS UNIQUE',
+          'CREATE CONSTRAINT kg_ticket_checklist_item_key IF NOT EXISTS FOR (node:KGTeamspaceTicketChecklistItem) REQUIRE node.key IS UNIQUE',
         );
         await graph.query(
-          'CREATE CONSTRAINT kg_meeting_room_key IF NOT EXISTS FOR (node:KGWorkOSMeetingRoom) REQUIRE node.key IS UNIQUE',
+          'CREATE CONSTRAINT kg_meeting_room_key IF NOT EXISTS FOR (node:KGTeamspaceMeetingRoom) REQUIRE node.key IS UNIQUE',
         );
         await graph.query(
-          'CREATE CONSTRAINT kg_meeting_recurrence_key IF NOT EXISTS FOR (node:KGWorkOSMeetingRecurrence) REQUIRE node.key IS UNIQUE',
+          'CREATE CONSTRAINT kg_meeting_recurrence_key IF NOT EXISTS FOR (node:KGTeamspaceMeetingRecurrence) REQUIRE node.key IS UNIQUE',
         );
         await graph.query(
-          'CREATE CONSTRAINT kg_membership_key IF NOT EXISTS FOR (node:KGWorkOSMembership) REQUIRE node.key IS UNIQUE',
+          'CREATE CONSTRAINT kg_membership_key IF NOT EXISTS FOR (node:KGTeamspaceMembership) REQUIRE node.key IS UNIQUE',
         );
         await graph.query(
-          'CREATE CONSTRAINT kg_user_reference_key IF NOT EXISTS FOR (node:KGWorkOSUserReference) REQUIRE node.key IS UNIQUE',
+          'CREATE CONSTRAINT kg_user_reference_key IF NOT EXISTS FOR (node:KGTeamspaceUserReference) REQUIRE node.key IS UNIQUE',
         );
         await graph.query(
-          'CREATE CONSTRAINT kg_organization_key IF NOT EXISTS FOR (node:KGWorkOSOrganization) REQUIRE node.key IS UNIQUE',
+          'CREATE CONSTRAINT kg_organization_key IF NOT EXISTS FOR (node:KGTeamspaceOrganization) REQUIRE node.key IS UNIQUE',
         );
         await graph.query(
           'CREATE CONSTRAINT kg_curated_node_key IF NOT EXISTS FOR (node:KGCuratedNode) REQUIRE node.key IS UNIQUE',

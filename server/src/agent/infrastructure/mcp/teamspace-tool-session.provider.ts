@@ -4,8 +4,8 @@ import type { StructuredTool } from '@langchain/core/tools';
 
 export type McpToolIdentity =
   | {
-      source: 'workos';
-      namespace: 'workos';
+      source: 'teamspace';
+      namespace: 'teamspace';
       originalToolName: string;
     }
   | {

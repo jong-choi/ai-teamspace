@@ -57,13 +57,13 @@ describeSlowKnowledgeGraph(
       );
       expect(
         await context.graph.query(
-          'MATCH (node:KGWorkOSProject) WHERE node.organizationId=$org RETURN count(node) AS nodes, count(DISTINCT node.key) AS uniqueNodes',
+          'MATCH (node:KGTeamspaceProject) WHERE node.organizationId=$org RETURN count(node) AS nodes, count(DISTINCT node.key) AS uniqueNodes',
           { org },
         ),
       ).toEqual([{ nodes: '1000', uniqueNodes: '1000' }]);
       expect(
         await context.graph.query(
-          'MATCH (node:KGWorkOSProject {key:$key}) RETURN node.name AS name',
+          'MATCH (node:KGTeamspaceProject {key:$key}) RETURN node.name AS name',
           { key: JSON.stringify(['project', org, updated.id]) },
         ),
       ).toEqual([{ name: 'live 변경 최종' }]);

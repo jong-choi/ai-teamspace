@@ -100,7 +100,7 @@ function Harness({
 }: HarnessProps) {
   const stream = useStream<TeamspaceDeepAgent>({
     apiUrl,
-    assistantId: 'workos',
+    assistantId: 'teamspace',
     defaultHeaders: { 'x-test-user': 'user-a' },
     fetchStateHistory: true,
     ...(threadId !== undefined ? { threadId } : {}),

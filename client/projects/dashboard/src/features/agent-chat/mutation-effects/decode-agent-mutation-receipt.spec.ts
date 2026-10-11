@@ -5,7 +5,7 @@ import type { ToolCallWithResult } from '@langchain/langgraph-sdk';
 
 const receipt = {
   version: 1,
-  source: 'workos',
+  source: 'teamspace',
   organizationId: 'org-a',
   resourceId: 'ticket-1',
   kind: 'project_ticket',

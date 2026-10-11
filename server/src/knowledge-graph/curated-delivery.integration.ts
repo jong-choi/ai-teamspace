@@ -315,7 +315,7 @@ describeKnowledgeGraph(
       await applied('wiki_document', document.id, 2);
       expect(
         await graph.query(
-          'MATCH (source)-[edge:KG_CURATED_RELATED_TO {edgeId: $edgeId}]->(document:KGWorkOSWikiDocument) RETURN document.title AS title, edge.predicate AS predicate',
+          'MATCH (source)-[edge:KG_CURATED_RELATED_TO {edgeId: $edgeId}]->(document:KGTeamspaceWikiDocument) RETURN document.title AS title, edge.predicate AS predicate',
           { edgeId: edge.id },
         ),
       ).toEqual([{ title: '업무 owner가 수정', predicate: 'references' }]);
@@ -337,7 +337,7 @@ describeKnowledgeGraph(
       ).toEqual([{ total: '0' }]);
       expect(
         await graph.query(
-          'MATCH (document:KGWorkOSWikiDocument {key: $key}) RETURN document.deleted AS deleted',
+          'MATCH (document:KGTeamspaceWikiDocument {key: $key}) RETURN document.deleted AS deleted',
           { key: key('wiki_document', document.id) },
         ),
       ).toEqual([{ deleted: true }]);
